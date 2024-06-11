@@ -1,0 +1,72 @@
+version: '3'
+
+services:
+  # React Service
+  frontend:
+    container_name: spadeboard-react-client
+    working_dir: /app/client
+    redis:
+      image: node:22-alpine
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # ASP.NET Core Service
+  backend:
+    container_name: spadeboard-aspnetcore-server
+    working_dir: /app/server
+    redis:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    build:
+      context: ./backend
+    environment:
+      ASPNETCORE_URLS: "http://*:8080"
+      DB_CONNECTION_STRING: "Host=db;Port=5432;Database=spadeboard-postgre-db;User Id=spadeboard-db-user;Password=spadeboard-db-pwd"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  # PgAdmin Service
+  pgadmin:
+    container_name: spadeboard-pgadmin4-db 
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: spadeboard@admin.io
+      PGADMIN_DEFAULT_PASSWORD: spadeboard
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  # PostgreSQL Service
+  db:
+    container_name: spadeboard-pgsql-db 
+    working_dir: /app/db
+    redis:
+      image: postgres:alpine-3.20
+    environment:
+      POSTGRES_USER: spadeboard-db-user
+      POSTGRES_PASSWORD: spadeboard-db-pwd
+      POSTGRES_DB: spadeboard-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  postgresql-db-data: {}
+
+networks:
+  app-network: {}
