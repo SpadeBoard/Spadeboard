@@ -1,0 +1,94 @@
+@font-face {
+    font-family: 'OMORI';
+    src: url('../../assets/fonts/OMORI_GAME2.ttf') format('truetype'), url('../../assets/fonts/OMORI_GAME2.ttf') format('truetype');
+}
+
+body {
+    font-family: 'OMORI';
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+}
+
+.auth-container {
+    width: 30%;
+    height: 50%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    backdrop-filter: drop-shadow();
+    padding: 1%;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.auth-branding-container {
+    /*border: 1px solid grey;*/
+    margin: 0% 0% 2.5% 0%;
+    display: flex;
+    justify-content: inherit;
+}
+
+.auth-branding-container img {
+}
+
+.auth-form-container {
+    margin: 5%;
+}
+
+/*Removed original .auth-input-container and made .auth-input-section into it instead*/
+.auth-input-container {
+    padding: 1%;
+    position: relative;
+}
+
+/*Originally .auth-input-box*/
+.auth-input {
+    height: 100%;
+    width: 100%;
+    border-radius: 8px;
+}
+
+.auth-placeholder-overlay {
+    position: absolute;
+    left: 2.2%;
+    top: 4%;
+    color: #888;
+    pointer-events: none;
+    display: inline-flex;
+}
+
+.auth-error-label {
+    font-size: 70%;
+    color: darkred;
+    display: block;
+}
+
+
+
+
+.auth-actions-container {
+    display: flex;
+    justify-content: center;
+}
+
+.auth-btn {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 100%;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.25s;
+}
+
+.auth-btn:hover {
+    border-color: #646cff;
+}
+
+.auth-btn:focus,
+.auth-btn:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+}
