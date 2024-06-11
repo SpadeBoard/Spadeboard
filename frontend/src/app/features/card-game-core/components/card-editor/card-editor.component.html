@@ -1,0 +1,143 @@
+<!--<pre
+    >{{ currentCardFaceElements | json }}
+</pre>-->
+<div class ="container">
+    @if (isCurrentPopupMenuOpen) {
+        <div class="card-editor-popup-menu">
+            <!--NOTE: https://vibhas1892.medium.com/difference-between-ng-template-ng-container-and-ng-content-a1d264619655-->
+            <ng-container *ngComponentOutlet="getCurrentPopupMenuComponent(); inputs: popupMenuInputs; injector: popupMenuInjector;"
+            />
+        </div>
+    }
+    <div class="left-column">
+        <!-- TODO: Have an empty card face here, or a div representing the card, actually, gotta make another drop list then-->
+        <!--<div class="card-editor-face" cdkDropList (cdkDropListDropped)="onDragDrop($event)">!-->
+        <div 
+            class="card-editor-face" 
+            [style]="getCardEditorFaceStyle()" 
+            cdkDropList cdkDropListSortingDisabled="true" 
+            (cdkDropListDropped)="onDragDrop($event)" 
+            [cdkDropListData]="currentCardFaceElements" 
+            #cardEditorFace 
+            #cefList="cdkDropList">    
+            <!-- TODO: For loop of ngComponentOutlet!-->
+            <!-- TODO: use CardFaceElementComponent and pass in the card face elements-->
+            @for (currentCardFaceElement of currentCardFaceElements; track currentCardFaceElement; let i = $index) {
+                <!-- FIXME: Temporary-->
+                <div 
+                    class="dnd-wrapper" 
+                    cdkDrag 
+                    cdkDragBoundary=".card-editor-face" 
+                    (cdkDragStarted)="changeZIndex($event, currentCardFaceElement)" 
+                    (cdkDragMoved)="onDragMoved($event)" 
+                    (cdkDragDropped)="onDragDropped($event)"
+                    [cdkDragData]="currentCardFaceElement"
+                    [style.left.px]="currentCardFaceElement.dndItem?.dndPosition?.x ?? 0"
+                    [style.top.px]="currentCardFaceElement.dndItem?.dndPosition?.y ?? 0"
+                    [style.z-index]="currentCardFaceElement.style?.zIndex ?? 'inherit'"
+                    [attr.element-index]="i"
+                    [attr.card-face-element-id]="currentCardFaceElement.cardFaceElementId"
+                    #cardFaceElement
+                >
+                    <div class="example-custom-placeholder" *cdkDragPlaceholder></div>
+                    <!-- TODO: Check the type of the element, depending on what type it is, render it a certain way-->
+                    @switch (currentCardFaceElement.cardFaceElementType) {
+                        @case ("image") {
+                            <app-card-face-image
+                                [cardFaceImageAttr]="{cardFaceImage: getCardFaceImage(currentCardFaceElement.cardFaceElementId, currentCardFaceElement.cardFaceElementContent, currentCardFaceElement.style?.width, currentCardFaceElement.style?.height)}"
+                                (showImageEditor)="onOpenImageEditor($event)"
+                            >
+                                <span class="position">X: {{currentCardFaceElement.dndItem?.dndPosition?.x ?? 0}}, Y: {{currentCardFaceElement.dndItem?.dndPosition?.y ?? 0}}</span>
+                                <div class="example-handle" cdkDragHandle>
+                                    <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
+                                    <path d="M0 0h24v24H0z" fill="none"></path>
+                                    </svg>
+                                </div>
+                            </app-card-face-image>
+                        }
+                        @case ("rte") {
+                            <div id="card-face-rte">
+                                <button (click)="onOpenRteEditor($event, currentCardFaceElement.cardFaceElementId)">Change text</button>
+                                <angular-editor 
+                                    [config]="createCardFaceRte(currentCardFaceElement.cardFaceElementContent)" 
+                                    [(ngModel)]="currentCardFaceElement.cardFaceElementContent">
+                                </angular-editor>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!--<div class="example-box" cdkDrag cdkDragBoundary=".card-editor-face" (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="onDragEnded($event)" [cdkDragData]="currentCardFaceElement">
+                    {{currentCardFaceElement}}
+                    <div class="example-handle" cdkDragHandle>
+                        <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
+                        <path d="M0 0h24v24H0z" fill="none"></path>
+                        </svg>
+                    </div>
+                </div>-->
+                <!--@if (currentCardFaceElement.isDraggable || currentCardFaceElement.isDroppable) {
+                    <app-dnd-wrapper
+                        [dragData]="currentCardFaceElement"
+                        [dragBoundary]="getDragBoundary()"
+
+                        (onDragMoveChange)="onDragMove($event)"
+                        (onDragEnteredChange)="onDragEntered($event)"
+                        (onDragDrop)="onDragDrop($event)"
+                        (onDragExited)="onDragExited($event)"
+                    />
+                }!-->
+            }
+        </div>
+        <button (click)="flip($event)">Flip</button>
+        <!--TODO: Depending on whether it's save or create, then show different words, if card ID is undefined, then show create-->
+        <button (click)="onCardFaceModify($event)">{{ onCardFaceModifyBtnText }}</button>
+    </div>
+    <!--TODO: Make the right column a drop list-->
+    <div class="right-column" cdkDropList [cdkDropListConnectedTo]="[cefList]">
+        <!--TODO: Replace with the actual images of it-->
+        <!--<button (click)="onRteClick($event)">
+            <angular-editor 
+                [config]="createCardFaceRte('Rich Text Editor')">
+            </angular-editor>
+        </button>
+        <button (click)="onImageClick($event)">
+            <app-card-face-image/>
+        </button>-->
+
+        <div 
+            class="dnd-palette-wrapper" 
+            cdkDrag 
+            (cdkDragMoved)="onDragMoved($event)" 
+            (cdkDragDropped)="onCreateDragDropped($event)"
+            [style.z-index]="0"
+            [attr.element-index]="0"
+            [attr.card-face-element-id]="0"
+            [cdkDragData]="'rte'"
+            #cardFaceRte
+        >
+            <angular-editor 
+                [config]="createCardFaceRte('Rich Text Editor')">
+            </angular-editor>
+        </div>
+        <div 
+            class="dnd-palette-wrapper" 
+            cdkDrag 
+            (cdkDragMoved)="onDragMoved($event)" 
+            (cdkDragDropped)="onCreateDragDropped($event)"
+            [style.z-index]="0"
+            [attr.element-index]="0"
+            [attr.card-face-element-id]="0"
+            [cdkDragData]="'image'"
+            #cardFaceImage
+        >
+            <img 
+                src="https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg" 
+                alt="Placeholder square image" 
+                width="100" 
+                height="100"
+            />
+        </div>
+    </div>
+</div>

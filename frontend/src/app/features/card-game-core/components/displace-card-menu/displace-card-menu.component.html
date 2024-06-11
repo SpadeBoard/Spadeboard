@@ -1,0 +1,66 @@
+<!--Show the source deck-->
+<!--Potentially show the cards you want to displace-->
+<!--Show what's on those faces, flip back and forth-->
+<!--On the side should be where the layout for how many cards you want to move, render based on chosen amount of cards-->
+<!--TODO: Combine two editors into one? Just swap certain things out-->
+<!--<div class="col">
+    <!--Render using app-card, pass in the cards-->
+    <!--<div cdkDropList [style]="getCardStackDropListStyle()" (cdkDropListDropped)="onDragDrop($event)">
+        @for (card of cardsToRender; track card) {
+            <app-card 
+                    [(card)]="card" 
+
+                    (cardChange)="onCardChange($event)" 
+                    (actionContextMenuItemsChange)="onActionContextMenuItemsChange($event)"
+                >
+                <!--TODO: Determine whether the cards should be draggable, also potentially add a drag boundary because the default is there is none-->
+                    <!--@if (item.isDraggable || item.isDroppable) {
+                        <app-dnd-wrapper
+                            [dragData]="item"
+                            [dragBoundary]="getDragBoundary()"
+
+                            (onDragMoveChange)="onDragMove($event)"
+                            (onDragEnteredChange)="onDragEntered($event)"
+                            (onDragDrop)="onDragDrop($event)"
+                            (onDragExited)="onDragExited($event)"
+                        />
+                    }
+                </app-card>
+        }
+    </div>
+    @if (showActionContextMenu) {
+        <app-action-context-menu [actionContextMenuItems]="actionContextMenuItems"></app-action-context-menu>
+    }
+</div>
+<div class="col">
+    <div>
+        Card amount:
+        <!--TODO: Change min and max to be the containee id length essentially-->
+        <!--TODO: Make sure values update correctly as well-->
+        <!--<input 
+            type="range" 
+            min="0" 
+            max="cardsSrcDeck.length"
+            value="amtDisplaceCards" 
+            (input) = "onAmtDisplaceCardsChange($event)"
+            class="slider"
+        />
+        <input 
+            type="number" 
+            [value] = "amtDisplaceCards"
+            (input) = "onAmtDisplaceCardsChange($event)"
+            min="0"
+            max="cardsSrcDeck.length" 
+            step="1"
+        />
+    </div>
+    <div>
+        Select destination deck:
+        <select (onChange)="onDestDeckChange($event)">
+            @for (let id of potentialDestDeckIds; let i = index) { 
+                <option value="i">{{id}}</option>
+            }
+        </select>
+    </div>
+    <button (click)="onDisplace($event)">Displace</button>
+</div>-->

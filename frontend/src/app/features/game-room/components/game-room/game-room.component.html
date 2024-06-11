@@ -1,0 +1,31 @@
+<div class = "game-room-layout">
+    <nav class="game-room-nav">
+        <button>Settings</button>
+        <button (click)="onCardEditor($event)">Card editor</button>
+        <button (click)="onCards($event)">Cards</button>
+        <button>Save</button>
+    </nav>
+
+    <div *ngIf="isCardsMenuOpen" class="cards-menu" [class.open]="isCardsMenuOpen" cdkDropList>
+        <!--Cards menu should open and be wide, do a for loop of cards and set them in here-->
+        <!-- TODO: Do we want to pass in the card or the cardDto-->
+        @for (card of cards; track card) {
+            <!--TODO: Pass in card model for card-->
+            <app-card [card]="card"/>
+        }
+    </div>
+
+    @if (isCardEditorOpen) {
+        <div class = "game-room-editor">
+            <app-card-editor [cardEditor]="{
+            card: card,
+            frontCardFace: frontCardFace,
+            backCardFace: backCardFace,
+            frontCardFaceElements: frontCardFaceElements,
+            backCardFaceElements: backCardFaceElements
+        }"/>
+        </div>
+    }
+</div>
+
+<!-- TODO: Put the board in here-->

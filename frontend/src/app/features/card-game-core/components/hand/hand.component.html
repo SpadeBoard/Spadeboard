@@ -1,0 +1,7 @@
+<div class="hand" cdkDropList (cdkDropListDropped)="drop($event)">
+    <div class="slot" *ngFor="let slot of slots; let i = index">
+        <div class="card" *ngIf="cards[i]" cdkDrag>
+            {{ cards[i] }}
+        </div>
+    </div>
+</div>

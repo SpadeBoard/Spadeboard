@@ -1,0 +1,11 @@
+<div appDndContent
+    (isDraggable)="isDraggable()" 
+    (isDroppable)="isDroppable()" 
+    (customDrop)="customDrop"
+    (customDragEntered)="customDragEntered" 
+    (customDrag)="customDrag"
+    (customDragExited)="customDragExited"
+    (style)="style()"
+    >
+    <ng-content></ng-content>
+</div>

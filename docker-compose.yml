@@ -1,0 +1,95 @@
+services:
+  # React Service
+  frontend:
+    container_name: frontend
+    build:
+      context: ./
+      dockerfile: docker/frontend/Dockerfile
+    ports:
+      - "${NG_FRONTEND_IP_ADDRESS:-4200}:${FRONTEND_PORT:-80}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://frontend:${FRONTEND_PORT:-80}"]
+      interval: ${FRONTEND_HEALTH_CHECK_INTERVAL:-10s}
+      timeout: ${FRONTEND_HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${FRONTEND_HEALTH_CHECK_RETRIES:-3}
+    environment:
+      - NG_FRONTEND_IP_ADDRESS=${NG_FRONTEND_IP_ADDRESS:-4200}
+      - NG_HOST_SERVER_URL=http://localhost:${BACKEND_IP_ADDRESS:-8080}
+    # Should be independent
+    # depends_on:
+      # backend:
+        # condition: service_healthy
+    volumes:
+      - node_modules:/apps/frontend/node_modules
+    networks:
+      - client-side
+
+  # ASP.NET Core Service
+  backend:
+    container_name: backend
+    build:
+      context: ./
+      dockerfile: docker/backend/Dockerfile
+    environment:
+    - ConnectionStrings__ApplicationDbContextConnection=Server=db;Port=${DB_PORT:-5432};Database=${DB_NAME:-spadeboard-db};Username=${DB_USER:-spadeboard-db-user};Password=${DB_PASSWORD:-spadeboard-db-pwd};Include Error Detail=true
+    - ASPNETCORE_ENVIRONMENT=Development
+    - ASPNETCORE_URLS=http://+:{BACKEND_PORT:-80}
+    ports:
+      -  "${BACKEND_IP_ADDRESS:-8080}:${BACKEND_PORT:-80}"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - spadeboard_card_image_data:/app/backend/card-images
+    networks:
+      - client-side
+      - server-side
+
+  # PgAdmin Service
+  # pgadmin:
+    # container_name: pgadmin
+    # image: dpage/pgadmin4:latest
+    # environment:
+      # PGADMIN_DEFAULT_EMAIL: spadeboard@admin.io
+      # PGADMIN_DEFAULT_PASSWORD: spadeboard
+    # ports:
+      # - "80:80"
+    # depends_on:
+      # db:
+        # condition: service_healthy
+    # networks:
+      # - server-side
+
+  # PostgreSQL Service
+  db:
+    container_name: db 
+    image: postgres:alpine3.20
+    # build:
+      # context: ./
+      # dockerfile: docker/db/Dockerfile
+    # https://quickref.me/postgres.html
+    # psql -h db -p 5432 -U spadeboard-db-user -d spadeboard-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-spadeboard-db-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-spadeboard-db-pwd}
+      POSTGRES_DB: ${DB_NAME:-spadeboard-db}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h ${DB_HOST:-db} -p ${DB_PORT:-5432} -U ${DB_USER:-spadeboard-db-user} -d ${DB_NAME:-spadeboard-db}"]
+      interval: ${DB_HEALTH_CHECK_INTERVAL:-10s}
+      timeout: ${DB_HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${DB_HEALTH_CHECK_RETRIES:-3}
+    ports:
+      - "${DB_IP_ADDRESS:-5432}:${DB_PORT:-5432}"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - server-side
+
+volumes:
+  db-data: {}
+  node_modules: {}
+  spadeboard_card_image_data: {}
+
+networks:
+  client-side: {}
+  server-side: {}

@@ -1,0 +1,21 @@
+<!--TODO: Make the div its own reusable separate thing-->
+<!--<app-dnd-resizable-container
+    (isDraggable)="true" 
+    (isDroppable)="true"
+    (customDrop)="onCustomDrop($event)" 
+    (customDragEntered)="onCustomDragEntered" 
+    (customDrag)="onCustomDrag($event)"
+    (customDragExited)="onCustomDragExited($event)"
+    [style]="style"
+>-->
+    <!--TODO: Wrap the resizable wrapper container around angular-editor-->
+    <!--<angular-editor 
+        [config]="angularEditorConfig" 
+        [(ngModel)]="htmlContent">
+    </angular-editor>-->
+    <angular-editor 
+        [config]="angularEditorConfig" 
+        [(ngModel)]="htmlContent">
+    </angular-editor>
+    <button (click)="onRteClose($event)">Close</button>
+<!--</app-dnd-resizable-container>-->

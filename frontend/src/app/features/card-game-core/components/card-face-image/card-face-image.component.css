@@ -1,0 +1,18 @@
+/*Absolutely positioned children: Similar to floated elements, absolutely positioned children don't contribute to the parent's size calculation*/
+.image-container {
+    /*position: absolute;*/
+}
+
+.change-image-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.image-container:hover .change-image-button {
+    opacity: 1;
+}

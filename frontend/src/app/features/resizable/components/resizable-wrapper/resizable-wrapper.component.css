@@ -1,0 +1,31 @@
+/*Set to always be at corner of the parent*/
+/*Absolute: Imagine you’re holding a magnet (absolute element), and it sticks to the nearest piece of metal (its positioned ancestor). If there’s no metal nearby, it sticks to the fridge.*/
+.resizable-handles-area {
+    /*Make sure to stretch and fill the parent container*/
+    /*https://bennadel-cdn.com/resources/uploads/2018/css-absolute-position-inside-overflow-auto-container.png*/
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.resizable-bottom-right-arrow {
+    bottom: 0;
+    right: 0;
+}
+
+.resizable-bottom-left-arrow {
+    bottom: 0;
+    left: 0;
+}
+
+.resizable-top-right-arrow {
+    top: 0;
+    right: 0;
+}
+
+.resizable-top-left-arrow {
+    top: 0;
+    left: 0;
+}

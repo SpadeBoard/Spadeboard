@@ -1,0 +1,25 @@
+<div>
+    <div>
+        <input type="file" (change)="fileChangeEvent($event)" />
+        @if (croppedImage !== ""){
+            <button (click)="onModifyCardFaceImage($event)">Upload</button>
+        }
+        <button (click)="onCloseCardFaceImageEditor($event)">Close</button>
+        <image-cropper
+            [imageChangedEvent]="imageChangedEvent"
+            [maintainAspectRatio]="true"
+            [cropperMaxHeight]="200"
+            [cropperMaxWidth]="400"
+            [aspectRatio]="1 / 1"
+            format="png"
+            (imageCropped)="imageCropped($event)"
+            (imageLoaded)="imageLoaded($event)"
+            (cropperReady)="cropperReady()"
+            (loadImageFailed)="loadImageFailed()"
+        ></image-cropper>
+
+        @if (croppedImage !== ""){
+            <img class="cropped-image-preview" [src]="croppedImage" />
+        }
+    </div>
+</div>
