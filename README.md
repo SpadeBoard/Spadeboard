@@ -15,7 +15,14 @@ Note: all of these commands in the terminal should be ran in the project directo
 
 Command in terminal:
 Note: be in `/path/to/project/frontend`
-`docker run --name spadeboard-react-frontend -p 3000:3000 -it --rm -v ${PWD}:/app -w /app  node:22-alpine npm start`
+`docker run --name spadeboard-react-frontend -p 3000:3000 -it --rm -v ${PWD}:/app -w /app  node:22-alpine`
+
+Installations:
+`npm install`
+
+`npm install react-scripts`
+
+To run: `npm start`
 
 ### Backend
 [Pull image here](https://hub.docker.com/_/python)

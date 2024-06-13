@@ -50,7 +50,8 @@ INSTALLED_APPS = [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'http://0.0.0.0:3000',
+    
+    # 'http://10.x.x.x:3000',
 ]
 
 CORS_ALLOW_CREDENTIALS = True

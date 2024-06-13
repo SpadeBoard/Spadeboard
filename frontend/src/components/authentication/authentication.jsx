@@ -10,6 +10,8 @@ import { motion } from "framer-motion";
 
 import PasswordStrengthBar from 'react-password-strength-bar';
 
+import Cookies from 'js-cookie';
+
 // https://passwordpolicies.cs.princeton.edu/
 /*
     Blocklists
@@ -111,6 +113,25 @@ const Authentication = (props) => {
             return;
         }
 
+        // Gonna figure out how to modify this later, route shouldn't have to be localhost:8000
+        const response = await fetch('http://localhost:8000/api/register', {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                username: username,
+                password: password
+            }),
+        })
+        .then(data => {
+            // Additional logic after setting cookies
+            console.log(data.json());
+          })
+        .catch(err => alert(err));
+
         alert('On register button click');
     }
 
@@ -119,7 +140,28 @@ const Authentication = (props) => {
             return;
         }
 
-        alert('On login button click');
+        // Gonna figure out how to modify this later, route shouldn't have to be localhost:8000
+        const response = await fetch('http://localhost:8000/token/', {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                username: username,
+                password: password
+            }),
+        })
+        .then(data => {
+            // Set cookies
+            Cookies.set('access_token', data.access);
+            Cookies.set('refresh_token', data.refresh);
+            
+            // Additional logic after setting cookies
+            console.log(data.json());
+          })
+        .catch(err => alert(err));
     }
 
     const onCheckValidInput = () => {
