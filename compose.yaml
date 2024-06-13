@@ -3,8 +3,8 @@ version: '3'
 services:
   # React Service
   frontend:
-    container_name: spadeboard-react-client
-    working_dir: /app/client
+    container_name: spadeboard-react-frontend
+    working_dir: /app/frontend
     redis:
       image: node:22-alpine
     build:
@@ -16,23 +16,26 @@ services:
     networks:
       - app-network
 
-  # ASP.NET Core Service
+  # DJango Service
   backend:
-    container_name: spadeboard-aspnetcore-server
-    working_dir: /app/server
+    container_name: spadeboard-django-backend
+    working_dir: /app/backend
     redis:
-      image: mcr.microsoft.com/dotnet/sdk:8.0
+      image: python:latest
     build:
       context: ./backend
     environment:
-      ASPNETCORE_URLS: "http://*:8080"
-      DB_CONNECTION_STRING: "Host=db;Port=5432;Database=spadeboard-postgre-db;User Id=spadeboard-db-user;Password=spadeboard-db-pwd"
+      - POSTGRES_NAME=spadeboard-postgre-db
+      - POSTGRES_USER=spadeboard-db-user
+      - POSTGRES_PASSWORD=spadeboard-db-pwd
     ports:
-      - "8080:8080"
+      - "8000:8000"
     depends_on:
       - db
     networks:
       - app-network
+    command: 
+      python manage.py runserver 0.0.0.0:8000
 
   # PgAdmin Service
   pgadmin:

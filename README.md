@@ -10,19 +10,34 @@ Note: these commands should be ran from the project directory
 ## INIT INDIVIDUAL CONTAINERS
 Note: all of these commands in the terminal should be ran in the project directory.
 
-### Client side
+### Frontend
 [Pull image here](https://hub.docker.com/layers/library/node/22.2.0-alpine/images/sha256-af91495523ac23f316a698fcf7fe3d451e2a63dbf7fd7f901ea7e772da00de86?context=explore)
 
 Command in terminal:
-Note: be in `/path/to/project/client`
-`docker run --name spadeboard-react-client -p 3000:3000 -it --rm -v ${PWD}:/app -w /app  node:22-alpine npm start`
+Note: be in `/path/to/project/frontend`
+`docker run --name spadeboard-react-frontend -p 3000:3000 -it --rm -v ${PWD}:/app -w /app  node:22-alpine npm start`
 
-### Server side
-[Pull image here - docker pull mcr.microsoft.com/dotnet/sdk:8.0](https://hub.docker.com/_/microsoft-dotnet-sdk)
+### Backend
+[Pull image here](https://hub.docker.com/_/python)
 
 Command in terminal:
-Note: be in `/path/to/project/server`
-`docker run --name spadeboard-aspnetcore-server -p 8080:8080 -e 'ASPNETCORE_URLS=http://*:8080' -it --rm -v ${PWD}:/app -w /app mcr.microsoft.com/dotnet/sdk:8.0 dotnet run`
+Note: be in `/path/to/project/backend`
+`docker run --name spadeboard-django-backend -p 8000:8000 -it --rm -v ${PWD}:/app -w /app python:latest`
+
+Installations:
+`pip install psycopg2`
+
+`python -m pip install Django`
+
+`pip install djangorestframework`
+`pip install markdown       # Markdown support for the browsable API.`
+`pip install django-filter`
+`pip install djangorestframework-simplejwt`
+`pip install django-cors-headers`
+
+`python -m pip install django[argon2]`
+
+For running the server: `python manage.py runserver 0.0.0.0:8000`
 
 ### For PostgreSQL and PGAdmin
 Note: 
