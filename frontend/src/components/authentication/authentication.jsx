@@ -114,7 +114,7 @@ const Authentication = (props) => {
         }
 
         // Gonna figure out how to modify this later, route shouldn't have to be localhost:8000
-        const response = await fetch('http://localhost:8000/api/register', {
+        const response = await fetch('http://localhost:8000/api/register/', {
             method: "POST",
             headers: {
                 "Accept": "application/json",
@@ -141,7 +141,7 @@ const Authentication = (props) => {
         }
 
         // Gonna figure out how to modify this later, route shouldn't have to be localhost:8000
-        const response = await fetch('http://localhost:8000/token/', {
+        const response = await fetch('http://localhost:8000/api/token/', {
             method: "POST",
             headers: {
                 "Accept": "application/json",
