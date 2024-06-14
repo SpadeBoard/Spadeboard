@@ -1,0 +1,66 @@
+services:
+  # React Service
+  frontend:
+    container_name: frontend
+    build:
+      context: ./
+      dockerfile: docker/frontend/Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - node_modules:/apps/frontend/node_modules
+    networks:
+      - client-side
+
+  # DJango Service
+  backend:
+    container_name: backend
+    build:
+      context: ./
+      dockerfile: docker/backend/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - client-side
+      - server-side
+
+  # PgAdmin Service
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: spadeboard@admin.io
+      PGADMIN_DEFAULT_PASSWORD: spadeboard
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    networks:
+      - server-side
+
+  # PostgreSQL Service
+  db:
+    container_name: db 
+    image: postgres:alpine3.20
+    environment:
+      POSTGRES_USER: spadeboard-db-user
+      POSTGRES_PASSWORD: spadeboard-db-pwd
+      POSTGRES_DB: spadeboard-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - server-side
+
+volumes:
+  db-data: {}
+  node_modules: {}
+
+networks:
+  client-side: {}
+  server-side: {}

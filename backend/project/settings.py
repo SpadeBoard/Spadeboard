@@ -101,16 +101,14 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
     ### AUTHENTICATION ###
-    'spadeboard-pgsql-db': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'spadeboard-pgsql-db',
+        'NAME': 'spadeboard-db',
         'USER': 'spadeboard-db-user',
-        'PASSWORD': 'spadeboard-db-pwd'
+        'PASSWORD': 'spadeboard-db-pwd',
+        'HOST': 'db',
+        'PORT': '5432',
     }
 }
 
