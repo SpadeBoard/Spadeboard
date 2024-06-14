@@ -72,12 +72,12 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     # Eventually remove this permission
-    'DEFAULT_PERMISSION_CLASSES': (
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ),
+    ],
      'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication'
-      ],
+    ],
 }
 
 ROOT_URLCONF = 'project.urls'

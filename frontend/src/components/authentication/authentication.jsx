@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
@@ -104,6 +104,8 @@ const Authentication = (props) => {
 
     const [passwordStrengthScore, setPasswordStrengthScore] = useState(0)
 
+    const navigate = useNavigate();
+
     const onRegisterButtonClick = async () => {
         if (!onCheckValidInput()) {
             return;
@@ -120,7 +122,6 @@ const Authentication = (props) => {
                 "Accept": "application/json",
                 "Content-Type": "application/json",
             },
-            credentials: 'include',
             body: JSON.stringify({
                 username: username,
                 password: password
@@ -141,7 +142,7 @@ const Authentication = (props) => {
         }
 
         // Gonna figure out how to modify this later, route shouldn't have to be localhost:8000
-        const response = await fetch('http://localhost:8000/api/token/', {
+        const response = await fetch('http://localhost:8000/api/login/', {
             method: "POST",
             headers: {
                 "Accept": "application/json",
@@ -160,6 +161,8 @@ const Authentication = (props) => {
             
             // Additional logic after setting cookies
             console.log(data.json());
+            
+            navigate('/');
           })
         .catch(err => alert(err));
     }
