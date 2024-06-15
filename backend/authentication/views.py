@@ -6,9 +6,12 @@ from rest_framework.exceptions import AuthenticationFailed
 from .models import User
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, TokenError
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 
 # Create your views here
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = UserSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
@@ -16,6 +19,8 @@ class RegisterView(APIView):
         return Response(serializer.data)
 
 class Loginview(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         username = request.data["username"]
         password = request.data["password"]
