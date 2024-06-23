@@ -1,0 +1,29 @@
+/* CardBody.css */
+.card-body {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  margin: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 15px;
+}
+
+.card-content {
+  text-align: left;
+}
+
+.card-title {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.card-text {
+  font-size: 1em;
+  color: #555;
+}
