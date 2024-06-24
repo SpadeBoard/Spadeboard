@@ -1,9 +1,7 @@
 import Card from '../../components/card/card';
 
 const GameRoom = (props) => {
-    return <div>
-        <Card/>
-    </div>
+    return (<Card/>)
 }
 
 export default GameRoom;
