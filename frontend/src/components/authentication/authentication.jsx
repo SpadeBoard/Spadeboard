@@ -154,13 +154,21 @@ const Authentication = (props) => {
                 password: password
             }),
         })
-        .then(data => {
+        .then (
+            function(res) { 
+                return res.json(); 
+            }
+        )
+        .then (data => {
+            // let loginData = JSON.stringify(data);
+
             // Set cookies
-            Cookies.set('access_token', data.access);
-            Cookies.set('refresh_token', data.refresh);
+            Cookies.set('access_token', data.access_token);
+            Cookies.set('refresh_token', data.refresh_token);
             
             // Additional logic after setting cookies
-            console.log(data.json());
+            console.log(data);
+            console.log("Access token: " + data.access_token + "\nRefresh token: " + data.refresh_token);
             
             navigate('/');
           })
