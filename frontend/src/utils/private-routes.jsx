@@ -2,9 +2,12 @@ import { Outlet, Navigate } from 'react-router-dom'
 import Cookies from 'js-cookie';
 
 const PrivateRoutes = () => {
-    return(
-        Cookies.get('access_token') ? <Outlet/> : <Navigate to="/login"/>
-    )
+    if (Cookies.get('access_token') && Cookies.get('access_token') !== "undefined") {
+        return <Outlet/>
+    }
+    else {
+       return <Navigate to="/login"/>
+    }
 }
 
 export default PrivateRoutes
