@@ -1,46 +1,41 @@
 {
-  "name": "client",
-  "version": "0.1.0",
+  "name": "frontend",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "bootstrap": "^5.3.3",
-    "framer-motion": "^11.2.10",
+    "framer-motion": "^11.2.12",
     "js-cookie": "^3.0.5",
     "react": "^18.3.1",
-    "react-bootstrap": "^2.10.2",
+    "react-bootstrap": "^2.10.3",
     "react-card-flip": "^1.2.3",
     "react-dom": "^18.3.1",
     "react-password-strength-bar": "^0.4.1",
     "react-rnd-rotate-restore": "^0.0.19",
-    "react-router-dom": "^6.23.1",
-    "react-scripts": "^5.0.1",
-    "web-vitals": "^2.1.4"
+    "react-router-dom": "^6.24.0"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.1",
+    "@typescript-eslint/parser": "^7.13.1",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.7",
+    "jsdom": "^24.1.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1",
+    "vitest": "^1.6.0"
   }
 }
