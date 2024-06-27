@@ -38,7 +38,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - server-side
 
@@ -50,6 +51,11 @@ services:
       POSTGRES_USER: spadeboard-db-user
       POSTGRES_PASSWORD: spadeboard-db-pwd
       POSTGRES_DB: spadeboard-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U spadeboard-db-user -d spadeboard-db"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     ports:
       - "5432:5432"
     volumes:
