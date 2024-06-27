@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import ReactCardFlip from 'react-card-flip';
-import CardBody from './card-body';
+import CardInfo from './card-info';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 
-const Card  = (props) => {
+const CardBody = (props) => {
     const [isFlipped, setIsFlipped] = useState(false);
    
-    const [cardMinWidth, setCardMinWidth] = useState(200);
+    const [cardMinWidth, setCardMinWidth] = useState(182);
     const [cardMinHeight, setCardMinHeight] = useState(320);
+
+    const [cardWidth, setCardWidth] = useState(182);
+    const [cardHeight, setCardHeight] = useState(320);
 
     const HandleFlip = () => {
         setIsFlipped(prevState => !prevState);
@@ -18,27 +21,31 @@ const Card  = (props) => {
         { name: 'Flip', value: '1', onClick: HandleFlip}
       ];
 
-    const CalculateCardBodyAspectRatio = (cardBodyWidth, cardBodyHeight) => {
+    const CalculateCardInfoAspectRatio = (cardBodyWidth, cardBodyHeight) => {
         return `${cardBodyWidth}/${cardBodyHeight}`;
     }
 
     return (
         <div>
                 <ReactCardFlip isFlipped={isFlipped} flipDirection="horizontal">
-                    <CardBody 
+                    <CardInfo 
                         title="Front"
                         content="This is some example content for the card."
                         imageUrl="https://via.placeholder.com/150"
                         minHeight={cardMinHeight}
                         minWidth={cardMinWidth}
-                        aspectRatio= {CalculateCardBodyAspectRatio(466.72, 591.72)}
+                        aspectRatio= {CalculateCardInfoAspectRatio({cardWidth}, {cardHeight})}
+                        height={cardHeight}
+                        width={cardWidth}
                     />
-                    <CardBody 
+                    <CardInfo 
                         title="Back"
                         content="Another piece of content."
                         minHeight={cardMinHeight}
                         minWidth={cardMinWidth}
-                        aspectRatio= {CalculateCardBodyAspectRatio(466.72, 591.72)}
+                        aspectRatio= {CalculateCardInfoAspectRatio({cardWidth}, {cardHeight})}
+                        height={cardHeight}
+                        width={cardWidth}
                     />
                 </ReactCardFlip>
                 <ButtonGroup className="mb-2">
@@ -60,4 +67,4 @@ const Card  = (props) => {
       )
 }
 
-export default Card;
+export default CardBody;

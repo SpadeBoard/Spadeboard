@@ -1,11 +1,14 @@
-import ComponentContainer from '../../utils/component-container';
-import Card from '../../components/card/card';
+import CardWorkspace from '../../components/card-system/card-workspace';
+
+
+// https://www.npmjs.com/package/react-intersection-observer
+// Probably should use this package instead of the built in IO
 
 const GameRoom = (props) => {
     return (
-        <ComponentContainer>
-          <Card />
-        </ComponentContainer>
+        <div>
+          <CardWorkspace/>
+        </div>
       );
 }
 

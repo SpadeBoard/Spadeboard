@@ -1,9 +1,9 @@
-// CardBody.js
+// CardInfo.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import './card.css'; // Import a CSS file for styling (optional)
 
-const CardBody = ({ title, content, imageUrl, minHeight, minWidth, aspectRatio }) => {
+const CardInfo = ({ title, content, imageUrl, minHeight, minWidth, aspectRatio, height, width }) => {
   const cardBodyStyle = {
     display: "flex",
     flexDirection: "column",
@@ -15,9 +15,11 @@ const CardBody = ({ title, content, imageUrl, minHeight, minWidth, aspectRatio }
     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
     maxWidth: "100%",
     maxHeight: "100%",
-    minHeight: minHeight ? `${minHeight}px` : "auto",
-    minWidth: minWidth ? `${minWidth}px` : "100%",
-    aspectRatio: aspectRatio ? `${aspectRatio}` : "5/7"
+    minHeight: minHeight ? `${minHeight}px` : "320px",
+    minWidth: minWidth ? `${minWidth}px` : "182px",
+    aspectRatio: aspectRatio ? `${aspectRatio}` : "5/7",
+    width: width ? `${width}px` : "182px",
+    height: height ? `${height}px` : "320px",
   };
 
   return (
@@ -31,7 +33,7 @@ const CardBody = ({ title, content, imageUrl, minHeight, minWidth, aspectRatio }
   );
 };
 
-CardBody.propTypes = {
+CardInfo.propTypes = {
   title: PropTypes.string,
   content: PropTypes.string,
   imageUrl: PropTypes.string,
@@ -40,7 +42,7 @@ CardBody.propTypes = {
   aspectRatio: PropTypes.string
 };
 
-CardBody.defaultProps = {
+CardInfo.defaultProps = {
   title: '',
   content: '',
   imageUrl: '',
@@ -49,4 +51,4 @@ CardBody.defaultProps = {
   aspectRatio: undefined
 };
 
-export default CardBody;
+export default CardInfo;

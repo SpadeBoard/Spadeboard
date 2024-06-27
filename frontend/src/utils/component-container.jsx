@@ -4,6 +4,8 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 
 const ComponentContainer  = (props) => {
+    const { registerComponentRef, notifyOverlap } = props;
+
     const [disableDragging, setDisableDragging] = useState(false);
     const [x, setX] = useState(0);
     const [y, setY] = useState(0);
@@ -50,20 +52,45 @@ const ComponentContainer  = (props) => {
         return false;
     };
 
-    const CalculateCardBodyAspectRatio = (componentBodyWidth, componentBodyHeight) => {
-        return `${componentBodyWidth}/${componentBodyHeight}`;
-    }
+    // When this is called, it's on the initial render and therefore it always grabs the value of undefined
+    /*const AddToOverlappableComponents = useEffect(() => {
+        // Register the component
+        targetComponentRefs.push(componentRef.current);
 
-    /*const CheckOverlap = useEffect(() => {
-        if (componentRef.current) {
-            setMinWidth(componentRef.current.getBoundingClientRect().width);
-            setMinHeight(componentRef.current.getBoundingClientRect().height);
-        }
-      }, [x, y]);*/
+        // Unregister the component on cleanup
+        return () => {
+            const index = targetComponentRefs.indexOf(componentRef.current);
+            if (index > -1) {
+                targetComponentRefs.splice(index, 1);
+            }
+        };
+    }, []);*/
+
+    // Problem: componentRef will always be undefined when first rendered and therefore if two cards are on top of each other
+    // there won't be an automatic overlap registration
+    // Gotta rewrite this entire function and the registerComponentRef and notifyOverlap functions
+    // Don't think you can create interfaces here
+    const CheckOverlap = useEffect(() => {
+        console.log(`X: ${x}, Y: ${y}`);
+
+        if (!componentRef.current)
+            return;
+
+        // Parent function
+        if (!registerComponentRef)
+            return;
+
+        registerComponentRef(componentRef, props.children);
+
+        if (!notifyOverlap)
+            return;
+
+        notifyOverlap(componentRef, props.children);
+      }, [x, y]);
 
     return (
         <Rnd
-            style = {RndStyle}
+            // style = {RndStyle}
             position={{ x: x, y: y }}
             minHeight = {minHeight}
             minWidth = {minWidth}

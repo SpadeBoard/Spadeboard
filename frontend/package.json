@@ -19,7 +19,8 @@
     "react-dom": "^18.3.1",
     "react-password-strength-bar": "^0.4.1",
     "react-rnd-rotate-restore": "^0.0.19",
-    "react-router-dom": "^6.24.0"
+    "react-router-dom": "^6.24.0",
+    "shuffle": "^0.2.5"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.6",
