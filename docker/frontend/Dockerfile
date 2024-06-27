@@ -20,5 +20,5 @@ COPY ./frontend ./
 EXPOSE 3000
 
 # Start the React application
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
 
