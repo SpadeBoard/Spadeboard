@@ -1,6 +1,7 @@
 /* CardBody.css */
 .card-body {
   display: flex;
+  background: rgba(237, 233, 223, 1.0);
   flex-direction: column;
   justify-content: space-between;
   border: 1px solid #ddd;

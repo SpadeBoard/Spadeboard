@@ -23,7 +23,7 @@ const CardInfo = ({ title, content, imageUrl, minHeight, minWidth, aspectRatio, 
   };
 
   return (
-    <div style={cardBodyStyle}>
+    <div className="card-body" style={cardBodyStyle}>
       <img src={imageUrl} alt={title} className="card-img-top" />
       <div className="card-content">
         <h5 className="card-title">{title}</h5>
