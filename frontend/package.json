@@ -18,6 +18,7 @@
     "react-card-flip": "^1.2.3",
     "react-dom": "^18.3.1",
     "react-password-strength-bar": "^0.4.1",
+    "react-reverse-portal": "^2.1.2",
     "react-rnd-rotate-restore": "^0.0.19",
     "react-router-dom": "^6.24.0",
     "shuffle": "^0.2.5"
