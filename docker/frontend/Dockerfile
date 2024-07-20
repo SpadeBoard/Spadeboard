@@ -1,5 +1,5 @@
 # Use the official Node.js image as a base
-FROM node:22-alpine
+FROM node:latest
 
 # Set environment variable
 ENV NODE_ENV=development
