@@ -6,9 +6,17 @@ import Deck from './deck';
 
 import Button from 'react-bootstrap/Button';
 
+import { createHtmlPortalNode, InPortal, OutPortal } from 'react-reverse-portal';
+
 const CardWorkspace = (props) => {
     const [cardComponents, setCardComponents] = useState([]);
     const targetComponentRefs = useRef([]);
+
+    const cardPortalNode = createHtmlPortalNode({
+      attributes: { 
+        id: "card", 
+        style: "background-color: #aaf;" }
+    });
 
     const [decks, setDecks] = useState([]);
     
@@ -49,7 +57,11 @@ const CardWorkspace = (props) => {
                     component, 
                     overlappedComponent.component
                   ];
-                  setDecks([...decks, { cards: cards }]);
+
+                  addDeck(cards);
+
+                  // Call addDeck
+                  // setDecks([...decks, { cards: cards }]);
                 }
 
                 // componentRef.current.style.zIndex = '1';
@@ -87,28 +99,33 @@ const CardWorkspace = (props) => {
 
     const addCardComponent = () => {
       setCardComponents([...cardComponents, 
-        <ComponentContainer 
-          key =  {cardComponents.length}
-          id={cardComponents.length}
-          registerComponentRef={registerComponentRef}
-          notifyOverlap={notifyOverlap}
-        >
-          <CardBody/>
-        </ComponentContainer>
+        // <InPortal node = {cardPortalNode}>
+          <ComponentContainer 
+            key =  {cardComponents.length}
+            id={cardComponents.length}
+            registerComponentRef={registerComponentRef}
+            notifyOverlap={notifyOverlap}
+          >
+            <CardBody/>
+          </ComponentContainer>
+        // </InPortal>
       ])
     }
 
-    const addDeck = () => {
-        setDecks([...decks, 
-        <ComponentContainer 
-            key =  {decks.length}
-            id={decks.length}
-            registerComponentRef={registerComponentRef}
-            notifyOverlap={notifyOverlap}
-        >
-          <Deck cards = {decks}/>
-        </ComponentContainer>
-      ])
+    const addDeck = (cards) => {
+      setDecks([...decks, 
+        {
+            key: decks.length,
+            id: decks.length,
+            cards: cards
+        }
+      ]);
+    }
+
+    const ComponentB = (props) => {
+      return <div>
+          <OutPortal node={props.cardPortalNode}/>
+      </div>;
     }
 
     return (
@@ -116,14 +133,18 @@ const CardWorkspace = (props) => {
       <Button variant="primary" onClick={addCardComponent}>
         Add card
       </Button>
+
       <div>
         {cardComponents.map((cardComponent, index) => (
           <React.Fragment key={index}>{cardComponent}</React.Fragment>
         ))}
       </div>
+      
       <div>
+        {/*<ComponentB node = {cardPortalNode}/>*/}
+
         {decks.map((deck, index) => (
-          <Deck key={index} cards={deck.cards} />
+          <Deck cards={deck.cards} />
         ))}
       </div>
     </div>
