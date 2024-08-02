@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 import ComponentContainer from '../../utils/component-container';
 import CardBody from './card-body';
@@ -9,20 +9,22 @@ import Button from 'react-bootstrap/Button';
 import { createHtmlPortalNode, InPortal, OutPortal } from 'react-reverse-portal';
 
 const CardWorkspace = (props) => {
-    const [cardComponents, setCardComponents] = useState([]);
+    const [cardData, setCardData] = useState([]);
+    const [doesCardExist, setDoesCardExist] = useState(false);
+
     const targetComponentRefs = useRef([]);
 
     const cardPortalNode = createHtmlPortalNode({
       attributes: { 
-        id: "card", 
-        style: "background-color: #aaf;" }
+        id: "card"}
     });
 
-    const [decks, setDecks] = useState([]);
+    const [deckData, setDeckData] = useState([]);
+    const [doesDeckExist, setDoesDeckExist] = useState(false);
     
     const registerComponentRef = (ref, component) => {
       if (ref.current && !targetComponentRefs.current.some(item => item.ref.current === ref.current)) {
-        targetComponentRefs.current.push({ ref, component });
+        targetComponentRefs.current.push({ ref, component, id: component.props.id });
       }
   };
 
@@ -45,34 +47,21 @@ const CardWorkspace = (props) => {
                 rectCompA.top > rectCompB.bottom);
 
               if (doesOverlap) {
-                console.log(`Overlapping components`);
-                
                 // Temporary, check whether the overlapping card is already part of an existing deck
                 // If it is, add to that deck
                 // If not then create a new deck with it.
                 
                 let overlappedComponent = targetComponentRefs.current.find(item => item.ref.current === entry.target);
+
                 if (overlappedComponent) {
                   let cards = [
                     component, 
-                    overlappedComponent.component
+                    overlappedComponent.component,
                   ];
 
-                  addDeck(cards);
-
-                  // Call addDeck
-                  // setDecks([...decks, { cards: cards }]);
+                  addDeckData(cards);
                 }
-
-                // componentRef.current.style.zIndex = '1';
-                // entry.target.style.zIndex = '0';
               }
-
-              // I think the intersection check has issues, probably gotta fix the root and threshold
-              /*
-              if (entry.isIntersecting) {
-                console.log("Intersecting");
-              }*/
             }
         });
     };
@@ -87,66 +76,109 @@ const CardWorkspace = (props) => {
           io.observe(target.ref.current);
       }
     });
-
-    return () => {
-        targetComponentRefs.current.forEach(target => {
-          if (target.ref.current) {
-              io.unobserve(target.ref.current);
-          }
-      });
-    };
   };
 
-    const addCardComponent = () => {
-      setCardComponents([...cardComponents, 
-        // <InPortal node = {cardPortalNode}>
-          <ComponentContainer 
-            key =  {cardComponents.length}
-            id={cardComponents.length}
-            registerComponentRef={registerComponentRef}
-            notifyOverlap={notifyOverlap}
-          >
-            <CardBody/>
-          </ComponentContainer>
-        // </InPortal>
-      ])
+    const addCardData = () => {  
+      setCardData([...cardData, {
+        id: cardData.length,
+      }]);
     }
 
-    const addDeck = (cards) => {
-      setDecks([...decks, 
+    // There could be multiple decks simultaneously
+    // This should probably be function for creating new deck
+    // and another function for adding card to existing deck
+    const addDeckData = (cards) => {
+      const deckPortalNode = createHtmlPortalNode({
+        attributes: { 
+          id: "deck ${deckData.length}"}
+      });
+
+      setDeckData([...deckData, 
         {
-            key: decks.length,
-            id: decks.length,
+            key: deckData.length,
+            id: deckData.length,
             cards: cards
         }
       ]);
+
+      // How to now shift cards based on their index to this new InPortalNode
+      updateCardPortalsToDeckPortal(cards, deckPortalNode);
     }
 
-    const ComponentB = (props) => {
+    const updateCardPortalsToDeckPortal = (cards, deckPortalNode) => {
+      // Not sure what to do here, I think I need to somehow change the InPortal the overlapping components belong to
+      // And then also store that portal node and then pass it as a prop
+  }
+
+    const GenerateCards = (props) => {
       return <div>
-          <OutPortal node={props.cardPortalNode}/>
-      </div>;
+        {props.cardData.map((cardDatum, index) => (
+          <ComponentContainer
+            key={cardDatum.id}
+            id={cardDatum.id}
+            registerComponentRef={registerComponentRef}
+            notifyOverlap = {notifyOverlap}
+          >
+            <CardBody />
+          </ComponentContainer>
+        ))}
+      </div>
     }
+
+    const RenderInPortal = (props) => {
+      return <InPortal node={props.node}>
+        {props.children}
+      </InPortal>
+    }
+
+    const CardsOutPortal = (props) => {
+      return <div id = "cards">
+        {doesCardExist === true && <OutPortal node={props.node}/>}
+      </div>
+    }
+
+    const RenderDeck = (props) => {
+      return (
+        <>
+          {doesDeckExist === true && props.deckData.map((deckDatum, index) => (
+            <Deck key={index} cards = {deckDatum.cards} node={deckDatum.portalNode} />
+          ))}
+        </>
+      );
+    }
+
+    const updatePortals = useEffect(() => {
+      if (cardData.length > 0) {
+        setDoesCardExist(true);
+      }
+      else {
+        setDoesCardExist(false);
+      }
+
+      /*if (deckData.length > 0) {
+        setDoesDeckExist(true);
+      }
+      else {
+        setDoesDeckExist(false);
+      }*/
+
+    }, [cardData, deckData]);
 
     return (
     <div>
-      <Button variant="primary" onClick={addCardComponent}>
+      <Button variant="primary" onClick={addCardData}>
         Add card
       </Button>
 
-      <div>
-        {cardComponents.map((cardComponent, index) => (
-          <React.Fragment key={index}>{cardComponent}</React.Fragment>
-        ))}
-      </div>
-      
-      <div>
-        {/*<ComponentB node = {cardPortalNode}/>*/}
+      <RenderInPortal node={cardPortalNode}>
+        <GenerateCards cardData={cardData}/>
+      </RenderInPortal>
 
-        {decks.map((deck, index) => (
-          <Deck cards={deck.cards} />
-        ))}
-      </div>
+      {/*Render cards here when they aren't in deck*/}
+      <CardsOutPortal node ={cardPortalNode}/>
+
+      {/*Render decks on overlap*/}
+      <RenderDeck deckData = {deckData}/>
     </div>
   );
 }

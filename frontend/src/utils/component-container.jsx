@@ -52,26 +52,8 @@ const ComponentContainer  = (props) => {
         return false;
     };
 
-    // When this is called, it's on the initial render and therefore it always grabs the value of undefined
-    /*const AddToOverlappableComponents = useEffect(() => {
-        // Register the component
-        targetComponentRefs.push(componentRef.current);
-
-        // Unregister the component on cleanup
-        return () => {
-            const index = targetComponentRefs.indexOf(componentRef.current);
-            if (index > -1) {
-                targetComponentRefs.splice(index, 1);
-            }
-        };
-    }, []);*/
-
-    // Problem: componentRef will always be undefined when first rendered and therefore if two cards are on top of each other
-    // there won't be an automatic overlap registration
-    // Gotta rewrite this entire function and the registerComponentRef and notifyOverlap functions
-    // Don't think you can create interfaces here
-    const CheckOverlap = useEffect(() => {
-        console.log(`X: ${x}, Y: ${y}`);
+      const checkOverlap = () => {
+        console.log(`X: ${x}, Y: ${y}, ComponentContainer ID: ${props.id}`);
 
         if (!componentRef.current)
             return;
@@ -86,7 +68,7 @@ const ComponentContainer  = (props) => {
             return;
 
         notifyOverlap(componentRef, props.children);
-      }, [x, y]);
+      }
 
     return (
         <Rnd
@@ -95,7 +77,12 @@ const ComponentContainer  = (props) => {
             minHeight = {minHeight}
             minWidth = {minWidth}
             lockAspectRatio = {true}
-            onDragStop={(e, d) => { setX(d.x); setY(d.y); }}
+            onDragStop={(e, d) => { 
+                setX(d.x); 
+                setY(d.y); 
+
+                checkOverlap();
+            }}
             disableDragging = {disableDragging}
             onResize={(e, direction, ref, delta, position) => {
                 setWidth(ref.offsetWidth);

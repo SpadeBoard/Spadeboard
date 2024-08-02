@@ -4,7 +4,9 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import Shuffle from 'shuffle';
 
-const Deck = ({ cards }) => {
+import { OutPortal } from 'react-reverse-portal';
+
+const Deck = ({ cards, portalNode }) => {
   const [deck, setDeck] = useState([]);
 
   // Update the state whenever the `cards` prop changes
@@ -24,28 +26,32 @@ const Deck = ({ cards }) => {
     { name: 'Shuffle', value: '1', onClick: shuffleDeck }
   ];
 
+  // Why is this giving issues?
+  // What should be happening is that props.node should be deckPortalNode
+  const DeckOutPortal = (props) => {
+    return <div id = "deck">
+      {deck.length > 0 && <OutPortal node={props.node}/>}
+    </div>
+  }
+
   return (
     <ComponentContainer>
+      <DeckOutPortal node = {portalNode}/>
       <div>
-        {deck.map((card, index) => (
-          <div key={index} style={{ position: 'absolute', zIndex: index }}>
-            {card}
-          </div>
-        ))}
         <ButtonGroup className="mb-2">
-          {radios.map((radio, idx) => (
-            <ToggleButton
-              key={idx}
-              id={`radio-${idx}`}
-              type="radio"
-              variant="secondary"
-              name="radio"
-              value={radio.value}
-              onClick={radio.onClick}
-            >
-              {radio.name}
-            </ToggleButton>
-          ))}
+            {radios.map((radio, idx) => (
+              <ToggleButton
+                key={idx}
+                id={`radio-${idx}`}
+                type="radio"
+                variant="secondary"
+                name="radio"
+                value={radio.value}
+                onClick={radio.onClick}
+              >
+                {radio.name}
+              </ToggleButton>
+            ))}
         </ButtonGroup>
       </div>
     </ComponentContainer>
