@@ -4,9 +4,13 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 
 const ComponentContainer  = (props) => {
-    const { registerComponentRef, notifyOverlap } = props;
+    const { id, registerComponentRef, notifyOverlap } = props;
+
+    const [componentContainerId, setComponentContainerId] = useState(id);
 
     const [disableDragging, setDisableDragging] = useState(false);
+    const [disableDraggableButton, setDisableDraggableButton] = useState(false);
+
     const [x, setX] = useState(0);
     const [y, setY] = useState(0);
     const [width, setWidth] = useState(200);
@@ -26,8 +30,15 @@ const ComponentContainer  = (props) => {
     };
     
     const radios = [
-        { name: 'Draggable?', value: '1', onClick: HandleDisableDragging}
+        { name: 'Draggable?', value: '1', onClick: HandleDisableDragging, disabled: disableDraggableButton}
       ];
+
+      const updateDisableDraggingWhenCardIsInDeck = useEffect(() => {
+        setDisableDragging(props.disableDragging || false);
+        setDisableDraggableButton(props.disableDragging || false);
+
+      }, [props.disableDragging]);
+
 
     const RndStyle = {
         display: "flex",
@@ -53,8 +64,6 @@ const ComponentContainer  = (props) => {
     };
 
       const checkOverlap = () => {
-        console.log(`X: ${x}, Y: ${y}, ComponentContainer ID: ${props.id}`);
-
         if (!componentRef.current)
             return;
 
@@ -62,12 +71,12 @@ const ComponentContainer  = (props) => {
         if (!registerComponentRef)
             return;
 
-        registerComponentRef(componentRef, props.children);
+        registerComponentRef(componentRef, props.children, componentContainerId);
 
         if (!notifyOverlap)
             return;
 
-        notifyOverlap(componentRef, props.children);
+        notifyOverlap(componentRef, props.children, componentContainerId);
       }
 
     return (
@@ -95,6 +104,8 @@ const ComponentContainer  = (props) => {
         >
             <div ref = {componentRef}>
                 {props.children}
+                {/*Disable certain buttons if possible, also this radio button thing should really be its own component under utils folder
+                Something like component-container-actions, pass in functions for each radio button */}
                 <ButtonGroup className="mb-2">
                             {radios.map((radio, idx) => (
                             <ToggleButton
@@ -105,6 +116,7 @@ const ComponentContainer  = (props) => {
                                 name="radio"
                                 value={radio.value}
                                 onClick ={radio.onClick}
+                                disabled = {radio.disabled}
                             >
                                 {radio.name}
                             </ToggleButton>
@@ -112,7 +124,7 @@ const ComponentContainer  = (props) => {
                 </ButtonGroup>
             </div>
         </Rnd>
-      )
+    )
 }
 
 export default ComponentContainer;

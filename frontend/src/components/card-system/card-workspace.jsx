@@ -16,19 +16,28 @@ const CardWorkspace = (props) => {
 
     const cardPortalNode = createHtmlPortalNode({
       attributes: { 
-        id: "card"}
+        id: "card-portal-node"}
     });
 
     const [deckData, setDeckData] = useState([]);
     const [doesDeckExist, setDoesDeckExist] = useState(false);
+    const [deckPortalNodes, setDeckPortalNodes] = useState([]);
     
-    const registerComponentRef = (ref, component) => {
+    const registerComponentRef = (ref, component, id) => {
       if (ref.current && !targetComponentRefs.current.some(item => item.ref.current === ref.current)) {
-        targetComponentRefs.current.push({ ref, component, id: component.props.id });
+        console.log(`Id: ${id}`);
+
+        targetComponentRefs.current.push(
+          { ref, 
+            component, 
+            id
+          }
+        );
       }
   };
 
-  const notifyOverlap = (componentRef, component) => {
+  // Genuinely need to fix this, I doubt I'm using IOs correctly
+  const notifyOverlap = (componentRef, component, componentContainerId) => {
     if (!componentRef.current) return;
 
     let rectCompA = componentRef.current.getBoundingClientRect();
@@ -54,12 +63,21 @@ const CardWorkspace = (props) => {
                 let overlappedComponent = targetComponentRefs.current.find(item => item.ref.current === entry.target);
 
                 if (overlappedComponent) {
-                  let cards = [
-                    component, 
-                    overlappedComponent.component,
+                  // Question is how do we grab the overlapped component when it's already inside deck
+                  // This is why I think we need a different alternative to IOs, or as I've said, I might be misunderstanding IOs 
+
+
+                  let cardsIds = [
+                    componentContainerId, 
+                    overlappedComponent.id,
                   ];
 
-                  addDeckData(cards);
+                  console.log(`Component id: ${componentContainerId}\nOverlapped component id: ${overlappedComponent.id}`);
+
+                  // Grab the actual card data based on these cards
+                  // They should already have ids which are being referenced though
+
+                  addDeckData(cardsIds);
                 }
               }
             }
@@ -78,36 +96,44 @@ const CardWorkspace = (props) => {
     });
   };
 
-    const addCardData = () => {  
+    const addCardData = (portalNodeId) => {  
       setCardData([...cardData, {
         id: cardData.length,
+        portalNodeId: portalNodeId
       }]);
     }
 
     // There could be multiple decks simultaneously
     // This should probably be function for creating new deck
     // and another function for adding card to existing deck
-    const addDeckData = (cards) => {
+    const addDeckData = (cardsIds) => {
       const deckPortalNode = createHtmlPortalNode({
         attributes: { 
-          id: "deck ${deckData.length}"}
+          id: `deck-portal-node_${deckData.length}`}
       });
 
+      // Store this info to compare ids
+      setDeckPortalNodes([...deckPortalNodes,
+        deckPortalNode
+      ])
+
+      // Keep track of portalNodeId to match and render cards with that same portal node
       setDeckData([...deckData, 
         {
             key: deckData.length,
             id: deckData.length,
-            cards: cards
+            cardsIds: cardsIds,
+            portalNodeId: deckPortalNode.element.attributes.id.value
         }
       ]);
 
-      // How to now shift cards based on their index to this new InPortalNode
-      updateCardPortalsToDeckPortal(cards, deckPortalNode);
+      updateCardInPortalIds(cardsIds, deckPortalNode);
     }
 
-    const updateCardPortalsToDeckPortal = (cards, deckPortalNode) => {
-      // Not sure what to do here, I think I need to somehow change the InPortal the overlapping components belong to
-      // And then also store that portal node and then pass it as a prop
+    const updateCardInPortalIds = (cardsIds, portalNode) => {
+      setCardData(prevCardData => prevCardData.map(cardDatum => (
+        cardsIds.some(cardId => cardId === cardDatum.id) ? { ...cardDatum, portalNodeId: portalNode.element.attributes.id.value } : cardDatum
+      )));
   }
 
     const GenerateCards = (props) => {
@@ -118,6 +144,7 @@ const CardWorkspace = (props) => {
             id={cardDatum.id}
             registerComponentRef={registerComponentRef}
             notifyOverlap = {notifyOverlap}
+            disableDragging = {props.disableDragging}
           >
             <CardBody />
           </ComponentContainer>
@@ -133,52 +160,76 @@ const CardWorkspace = (props) => {
 
     const CardsOutPortal = (props) => {
       return <div id = "cards">
-        {doesCardExist === true && <OutPortal node={props.node}/>}
+        {doesCardExist === true && props.cardData.filter(cardDatum => cardDatum.portalNodeId === props.portalNode.element.attributes.id.value).map(cardDatum => (
+          <OutPortal key={cardDatum.id} node={props.portalNode} />
+        ))}
       </div>
     }
 
+    const RenderCards = (props) => {
+      return (
+      <>
+        {doesCardExist === true && (
+        <>  
+          {/*InPortal for cards*/}
+          <RenderInPortal node={props.cardPortalNode}>
+            <GenerateCards cardData={props.cardData.filter(card => card.portalNodeId === props.cardPortalNode.element.attributes.id.value)}/>
+          </RenderInPortal>
+
+          {/*OutPortal - Render cards here when they aren't in deck*/}
+          <CardsOutPortal portalNode ={props.cardPortalNode} cardData = {props.cardData}/>
+        </>
+        )}
+      </>
+      )
+    }
+
     const RenderDeck = (props) => {
+      const getDeckPortalNodeById = (portalNodeId) => {
+        return props.deckPortalNodes.find(node => node.element.attributes.id.value === portalNodeId);
+      };
+
       return (
         <>
-          {doesDeckExist === true && props.deckData.map((deckDatum, index) => (
-            <Deck key={index} cards = {deckDatum.cards} node={deckDatum.portalNode} />
-          ))}
+          {/*InPortal for decks
+          Pass in all deck portal nodes ids, iterate over them*/}
+          {doesDeckExist === true && (
+          <>
+            {/* Render InPortal for each deck - might wanna modify this later for context sensivity, holding down to drag entire deck vs only drawing 1 card*/}
+            {props.deckPortalNodes.map((deckPortalNode, index) => (
+              <InPortal key={index} node={deckPortalNode}>
+                <GenerateCards cardData={props.cardData.filter(card => card.portalNodeId === deckPortalNode.element.attributes.id.value)} disableDragging = {true} />
+              </InPortal>
+            ))}
+            
+            {/* Render decks*/}
+            {props.deckData.map((deckDatum, index) => {
+              const deckPortalNode = getDeckPortalNodeById(deckDatum.portalNodeId);
+              return (
+                <Deck key={index} cards={deckDatum.cards} portalNode={deckPortalNode} />
+              );
+            })}
         </>
+        )}
+      </>
       );
     }
 
     const updatePortals = useEffect(() => {
-      if (cardData.length > 0) {
-        setDoesCardExist(true);
-      }
-      else {
-        setDoesCardExist(false);
-      }
-
-      /*if (deckData.length > 0) {
-        setDoesDeckExist(true);
-      }
-      else {
-        setDoesDeckExist(false);
-      }*/
-
+      setDoesCardExist(cardData.length > 0);
+      setDoesDeckExist(deckData.length > 0);
     }, [cardData, deckData]);
 
     return (
     <div>
-      <Button variant="primary" onClick={addCardData}>
+      <Button variant="primary" onClick={() =>addCardData(cardPortalNode.element.attributes.id.value)}>
         Add card
       </Button>
 
-      <RenderInPortal node={cardPortalNode}>
-        <GenerateCards cardData={cardData}/>
-      </RenderInPortal>
-
-      {/*Render cards here when they aren't in deck*/}
-      <CardsOutPortal node ={cardPortalNode}/>
-
+      <RenderCards cardPortalNode = {cardPortalNode} cardData = {cardData}/>
+      
       {/*Render decks on overlap*/}
-      <RenderDeck deckData = {deckData}/>
+      <RenderDeck deckData = {deckData} deckPortalNodes = {deckPortalNodes} cardData = {cardData}/>
     </div>
   );
 }

@@ -26,17 +26,15 @@ const Deck = ({ cards, portalNode }) => {
     { name: 'Shuffle', value: '1', onClick: shuffleDeck }
   ];
 
-  // Why is this giving issues?
-  // What should be happening is that props.node should be deckPortalNode
   const DeckOutPortal = (props) => {
     return <div id = "deck">
-      {deck.length > 0 && <OutPortal node={props.node}/>}
+      <OutPortal node={props.portalNode}/>
     </div>
   }
 
   return (
     <ComponentContainer>
-      <DeckOutPortal node = {portalNode}/>
+      <DeckOutPortal portalNode = {portalNode}/>
       <div>
         <ButtonGroup className="mb-2">
             {radios.map((radio, idx) => (
