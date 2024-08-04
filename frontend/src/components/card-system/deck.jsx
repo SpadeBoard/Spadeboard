@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import ComponentContainer from '../../utils/component-container';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import ToggleButton from 'react-bootstrap/ToggleButton';
+
 import Shuffle from 'shuffle';
 
 import { OutPortal } from 'react-reverse-portal';
+
+import ActionsContextMenu from '../../utils/actions-context-menu';
 
 const Deck = ({ cards, portalNode }) => {
   const [deck, setDeck] = useState([]);
@@ -22,36 +23,21 @@ const Deck = ({ cards, portalNode }) => {
     setDeck(shuffledDeck);
   };
 
-  const radios = [
-    { name: 'Shuffle', value: '1', onClick: shuffleDeck }
+  const actionsContextMenuItems = [
+    { name: 'SHUFFLE', onClick: shuffleDeck },
+    { name: 'DISPLACE CARD', onClick: shuffleDeck}
   ];
 
   const DeckOutPortal = (props) => {
-    return <div id = "deck">
-      <OutPortal node={props.portalNode}/>
+    return <div id="deck">
+      <OutPortal node={props.portalNode} />
     </div>
   }
 
   return (
     <ComponentContainer>
-      <DeckOutPortal portalNode = {portalNode}/>
-      <div>
-        <ButtonGroup className="mb-2">
-            {radios.map((radio, idx) => (
-              <ToggleButton
-                key={idx}
-                id={`radio-${idx}`}
-                type="radio"
-                variant="secondary"
-                name="radio"
-                value={radio.value}
-                onClick={radio.onClick}
-              >
-                {radio.name}
-              </ToggleButton>
-            ))}
-        </ButtonGroup>
-      </div>
+      <DeckOutPortal portalNode={portalNode} />
+      <ActionsContextMenu contextMenuItemsId ={"deck"} contextMenuItems = {actionsContextMenuItems}/>
     </ComponentContainer>
   );
 };

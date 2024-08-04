@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import Rnd from 'react-rnd-rotate-restore';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import ToggleButton from 'react-bootstrap/ToggleButton';
 
-const ComponentContainer  = (props) => {
+import ActionsContextMenu from './actions-context-menu';
+
+import component_container_styles from './component-container.module.css';
+
+const ComponentContainer = (props) => {
     const { id, registerComponentRef, notifyOverlap } = props;
 
     const [componentContainerId, setComponentContainerId] = useState(id);
@@ -28,18 +30,18 @@ const ComponentContainer  = (props) => {
     const HandleDisableDragging = () => {
         setDisableDragging(prevState => !prevState);
     };
-    
-    const radios = [
-        { name: 'Draggable?', value: '1', onClick: HandleDisableDragging, disabled: disableDraggableButton}
-      ];
 
-      const updateDisableDraggingWhenCardIsInDeck = useEffect(() => {
+    const actionsContextMenuItems = [
+        { name: 'DRAGGABLE', onClick: HandleDisableDragging, disabled: disableDraggableButton }
+    ];
+
+    const updateDisableDraggingWhenCardIsInDeck = useEffect(() => {
         setDisableDragging(props.disableDragging || false);
         setDisableDraggableButton(props.disableDragging || false);
 
-      }, [props.disableDragging]);
+    }, [props.disableDragging]);
 
-
+    // Time to use this
     const RndStyle = {
         display: "flex",
         border: "solid 1px #ddd",
@@ -55,7 +57,7 @@ const ComponentContainer  = (props) => {
             setMinWidth(componentRefWidth);
             setMinHeight(componentRefHeight);
 
-            console.log(`Container dimensions: ${width}px x ${height}px\nComponent dimensions: ${componentRefWidth}px x ${componentRefHeight }px`);
+            console.log(`Container dimensions: ${width}px x ${height}px\nComponent dimensions: ${componentRefWidth}px x ${componentRefHeight}px`);
 
             return true;
         }
@@ -63,7 +65,7 @@ const ComponentContainer  = (props) => {
         return false;
     };
 
-      const checkOverlap = () => {
+    const checkOverlap = () => {
         if (!componentRef.current)
             return;
 
@@ -77,53 +79,38 @@ const ComponentContainer  = (props) => {
             return;
 
         notifyOverlap(componentRef, props.children, componentContainerId);
-      }
+    }
 
     return (
-        <Rnd
-            // style = {RndStyle}
-            position={{ x: x, y: y }}
-            minHeight = {minHeight}
-            minWidth = {minWidth}
-            lockAspectRatio = {true}
-            onDragStop={(e, d) => { 
-                setX(d.x); 
-                setY(d.y); 
+        <>
+            <Rnd
+                className={component_container_styles.rnd}
+                position={{ x: x, y: y }}
+                minHeight={minHeight}
+                minWidth={minWidth}
+                lockAspectRatio={true}
+                onDragStop={(e, d) => {
+                    setX(d.x);
+                    setY(d.y);
 
-                checkOverlap();
-            }}
-            disableDragging = {disableDragging}
-            onResize={(e, direction, ref, delta, position) => {
-                setWidth(ref.offsetWidth);
-                setHeight(ref.offsetHeight);
-                setX(position.x);
-                setY(position.y);
+                    checkOverlap();
+                }}
+                disableDragging={disableDragging}
+                onResize={(e, direction, ref, delta, position) => {
+                    setWidth(ref.offsetWidth);
+                    setHeight(ref.offsetHeight);
+                    setX(position.x);
+                    setY(position.y);
 
-                SetComponentContainerMinSize();
-            }}
-        >
-            <div ref = {componentRef}>
-                {props.children}
-                {/*Disable certain buttons if possible, also this radio button thing should really be its own component under utils folder
-                Something like component-container-actions, pass in functions for each radio button */}
-                <ButtonGroup className="mb-2">
-                            {radios.map((radio, idx) => (
-                            <ToggleButton
-                                key={idx}
-                                id={`radio-${idx}`}
-                                type="radio"
-                                variant="secondary"
-                                name="radio"
-                                value={radio.value}
-                                onClick ={radio.onClick}
-                                disabled = {radio.disabled}
-                            >
-                                {radio.name}
-                            </ToggleButton>
-                            ))}
-                </ButtonGroup>
-            </div>
-        </Rnd>
+                    SetComponentContainerMinSize();
+                }}
+            >
+                <span ref={componentRef}>
+                    {props.children}
+                </span>
+                <ActionsContextMenu contextMenuItemsId={"component-container"} contextMenuItems={actionsContextMenuItems} />
+            </Rnd>
+        </>
     )
 }
 

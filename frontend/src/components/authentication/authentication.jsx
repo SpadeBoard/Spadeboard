@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 
-import "./authentication.css";
+// Wrap Bootstrap in here?
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './authentication.css';
 
 import { motion } from "framer-motion";
 
@@ -24,7 +26,7 @@ import Cookies from 'js-cookie';
 
 // https://codesandbox.io/p/sandbox/framer-motion-react-wavy-letter-text-animation-j69kkr?file=%2Fsrc%2FWavyText.tsx%3A5%2C16
 /*Separate to possibly be used elsewhere, probably gonna rename some parts and animate the input*/
-const AuthenticationInput = ({ value, placeholder, onChange, type="text" }) => {
+const AuthenticationInput = ({ value, placeholder, onChange, type = "text" }) => {
     return (
         <motion.input
             value={value}
@@ -69,7 +71,7 @@ const AuthenticationPlaceholder = ({ value, placeholder }) => {
     );
 };
 
-const AuthenticationInputContainer = ({ value, placeholder, onChange, className, type ="text", error }) => {
+const AuthenticationInputContainer = ({ value, placeholder, onChange, className, type = "text", error }) => {
     return (
         <div className="auth-input-container">
             <AuthenticationInput
@@ -88,11 +90,11 @@ const AuthenticationInputContainer = ({ value, placeholder, onChange, className,
 const AuthenticationButton = ({ value, onClick, className }) => {
     return (
         <motion.button
-            onClick={ onClick }
-            className={ className }
-            whileHover = {{ scale: 1.1 }}
-            whileTap = {{ scale: 0.9 }}
-        >{ value }</motion.button>
+            onClick={onClick}
+            className={className}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+        >{value}</motion.button>
     );
 }
 
@@ -110,7 +112,7 @@ const Authentication = (props) => {
         if (!onCheckValidInput()) {
             return;
         }
-        
+
         if (!IsValidRegistrationData()) {
             return;
         }
@@ -127,11 +129,11 @@ const Authentication = (props) => {
                 password: password
             }),
         })
-        .then(data => {
-            // Additional logic after setting cookies
-            console.log(data.json());
-          })
-        .catch(err => alert(err));
+            .then(data => {
+                // Additional logic after setting cookies
+                console.log(data.json());
+            })
+            .catch(err => alert(err));
 
         alert('On register button click');
     }
@@ -154,25 +156,25 @@ const Authentication = (props) => {
                 password: password
             }),
         })
-        .then (
-            function(res) { 
-                return res.json(); 
-            }
-        )
-        .then (data => {
-            // let loginData = JSON.stringify(data);
+            .then(
+                function (res) {
+                    return res.json();
+                }
+            )
+            .then(data => {
+                // let loginData = JSON.stringify(data);
 
-            // Set cookies
-            Cookies.set('access_token', data.access_token);
-            Cookies.set('refresh_token', data.refresh_token);
-            
-            // Additional logic after setting cookies
-            console.log(data);
-            console.log("Access token: " + data.access_token + "\nRefresh token: " + data.refresh_token);
-            
-            navigate('/');
-          })
-        .catch(err => alert(err));
+                // Set cookies
+                Cookies.set('access_token', data.access_token);
+                Cookies.set('refresh_token', data.refresh_token);
+
+                // Additional logic after setting cookies
+                console.log(data);
+                console.log("Access token: " + data.access_token + "\nRefresh token: " + data.refresh_token);
+
+                navigate('/');
+            })
+            .catch(err => alert(err));
     }
 
     const onCheckValidInput = () => {
@@ -222,7 +224,7 @@ const Authentication = (props) => {
         <Tabs defaultActiveKey="login" variant="tabs" justify>
             <Tab eventKey="login" title="LOGIN">
                 <div className={"auth-form-container"}>
-                    <AuthenticationInputContainer value={username} placeholder="Username" onChange={ev => setUsername(ev.target.value)} error={usernameError} />                     
+                    <AuthenticationInputContainer value={username} placeholder="Username" onChange={ev => setUsername(ev.target.value)} error={usernameError} />
                     <AuthenticationInputContainer value={password} placeholder="Password" onChange={ev => setPassword(ev.target.value)} type={"password"} error={passwordError} />
                 </div>
                 <div className={"auth-actions-container"}>
@@ -232,14 +234,14 @@ const Authentication = (props) => {
             <Tab eventKey="register" title="REGISTER">
                 <div className={"auth-form-container"}>
                     <AuthenticationInputContainer value={username} placeholder="Username" onChange={ev => setUsername(ev.target.value)} error={usernameError} />
-                    <AuthenticationInputContainer value={password} placeholder="Password" onChange={ev => setPassword(ev.target.value)} type={"password"} error={passwordError}/>
+                    <AuthenticationInputContainer value={password} placeholder="Password" onChange={ev => setPassword(ev.target.value)} type={"password"} error={passwordError} />
 
                     <PasswordStrengthBar minLength={12} password={password} onChangeScore={(score, feedback) => {
                         setPasswordStrengthScore(score);
-                    }}/>
+                    }} />
                 </div>
                 <div className={"auth-actions-container"}>
-                    <AuthenticationButton value={"REGISTER"} onClick={onRegisterButtonClick} className={"auth-btn"}/>
+                    <AuthenticationButton value={"REGISTER"} onClick={onRegisterButtonClick} className={"auth-btn"} />
                 </div>
             </Tab>
         </Tabs>

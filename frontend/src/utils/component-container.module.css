@@ -1,0 +1,13 @@
+.rnd {
+    display: flex;
+    border: solid 1px #ddd;
+    background: #f0f0f0;
+    position: relative; /* To use absolute positioning for children */
+}
+
+.actions-context-menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
