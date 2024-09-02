@@ -1,12 +1,14 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 3000,
-    strictPort: true,
-    host: true
-  },
-})
+export default defineConfig(() => {
+  return {
+    plugins: [react()],
+    server: {
+      port: parseInt(process.env.VITE_FRONTEND_PORT || '3000'), // Default to '5173' if undefined
+      strictPort: true,
+      host: true,
+    },
+  };
+});

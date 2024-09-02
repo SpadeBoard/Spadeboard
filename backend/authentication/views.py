@@ -15,8 +15,16 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        user = serializer.save()
+
+        access_token = AccessToken.for_user(user)
+        refresh_token =RefreshToken.for_user(user)
+
+        return Response({
+            "user": serializer.data,
+            "access_token" : str(access_token),
+            "refresh_token" : str(refresh_token)
+        })
 
 class Loginview(APIView):
     permission_classes = [AllowAny]

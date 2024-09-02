@@ -6,9 +6,19 @@ services:
       context: ./
       dockerfile: docker/frontend/Dockerfile
     ports:
-      - "3000:3000"
-    depends_on:
-      - backend
+      - "${FRONTEND_PORT:-3000}:${FRONTEND_PORT:-3000}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://frontend:${FRONTEND_PORT:-3000}"]
+      interval: ${FRONTEND_HEALTH_CHECK_INTERVAL:-10s}
+      timeout: ${FRONTEND_HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${FRONTEND_HEALTH_CHECK_RETRIES:-3}
+    environment:
+      - VITE_FRONTEND_PORT=${FRONTEND_PORT:-3000}
+      - VITE_HOST_SERVER_URL=http://localhost:${BACKEND_PORT:-8000}
+    # Should be independent
+    # depends_on:
+      # backend:
+        # condition: service_healthy
     volumes:
       - node_modules:/apps/frontend/node_modules
     networks:
@@ -21,7 +31,7 @@ services:
       context: ./
       dockerfile: docker/backend/Dockerfile
     ports:
-      - "8000:8000"
+      -  "${BACKEND_PORT:-8000}:${BACKEND_PORT:-8000}"
     depends_on:
       db:
         condition: service_healthy
@@ -30,35 +40,35 @@ services:
       - server-side
 
   # PgAdmin Service
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: spadeboard@admin.io
-      PGADMIN_DEFAULT_PASSWORD: spadeboard
-    ports:
-      - "80:80"
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - server-side
+  # pgadmin:
+    # container_name: pgadmin
+    # image: dpage/pgadmin4:latest
+    # environment:
+      # PGADMIN_DEFAULT_EMAIL: spadeboard@admin.io
+      # PGADMIN_DEFAULT_PASSWORD: spadeboard
+    # ports:
+      # - "80:80"
+    # depends_on:
+      # db:
+        # condition: service_healthy
+    # networks:
+      # - server-side
 
   # PostgreSQL Service
   db:
     container_name: db 
-    image: postgres:alpine3.20
+    image: postgres:16.4-alpine3.20
     environment:
-      POSTGRES_USER: spadeboard-db-user
-      POSTGRES_PASSWORD: spadeboard-db-pwd
-      POSTGRES_DB: spadeboard-db
+      POSTGRES_USER: ${DB_USER:-spadeboard-db-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-spadeboard-db-pwd}
+      POSTGRES_DB: ${DB_NAME:-spadeboard-db}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U spadeboard-db-user -d spadeboard-db"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -h ${DB_HOST:-db} -p ${DB_PORT:-5432} -U ${DB_USER:-spadeboard-db-user} -d ${DB_NAME:-spadeboard-db}"]
+      interval: ${DB_HEALTH_CHECK_INTERVAL:-10s}
+      timeout: ${DB_HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${DB_HEALTH_CHECK_RETRIES:-3}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:${DB_PORT:-5432}"
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:

@@ -9,12 +9,19 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/*Temporary, makes it easier to focus on frontend*/}
+        <Route path="/" element={<Navigate replace to="/game-room" />} />
+        <Route path='/game-room' element={<GameRoom />} />
+
+        <Route path="/login" element={<Login />} />
+        {/*
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Navigate replace to="/game-room" />} />
           <Route path='/game-room' element={<GameRoom />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Navigate replace to="/login" />} />
+        */}
       </Routes>
     </BrowserRouter>
   );

@@ -1,5 +1,10 @@
 # Use the official Node.js image as a base
-FROM node:latest
+FROM node:22.8.0-alpine3.20
+
+# Install curl
+# Alpine comes with wget, not curl
+# For health checks
+RUN apk add --no-cache curl
 
 # Set environment variable
 ENV NODE_ENV=development
@@ -16,9 +21,5 @@ RUN npm install
 # Copy the rest of the application to the working directory
 COPY ./frontend ./
 
-# Expose port 3000
-EXPOSE 3000
-
 # Start the React application
 CMD ["npm", "run", "dev"]
-

@@ -1,0 +1,44 @@
+* {
+    box-sizing: border-box;
+}
+.row {
+    height: 400px;
+    display: flex;
+}
+/*.row * {
+    flex: 1;
+}*/
+
+/* Create two equal columns that floats next to each other */
+.column {
+    float: left;
+    width: 50%;
+    padding: 10px;
+    
+    /*height: 300px;*/
+    /* Should be removed. Only for demonstration */
+}
+
+.column:nth-of-type(1) {
+    flex: 1;
+    text-align: right;
+    
+}
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.row:nth-of-type(1) {
+    /*height: 'fit-content';*/
+    background-color: green;
+}
+
+/*Remember to use percentages for CSS, please, monitor issues*/
+.row:nth-of-type(2) {
+    height: 20%;
+    background-color: red;
+}

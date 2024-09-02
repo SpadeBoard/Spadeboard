@@ -2,7 +2,7 @@ import "./login.css";
 
 import Authentication from '../../components/authentication/authentication';
 
-const Login = (props) => {
+function Login() {
     return <div className="background">
         <Authentication />
     </div>
