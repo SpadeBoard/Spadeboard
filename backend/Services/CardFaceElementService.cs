@@ -75,6 +75,47 @@ namespace Services
             }
         }
 
+        public async Task UpdateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto)
+        {
+            foreach (CardFaceElementDto cardFaceElementDto in cardFaceElementsDto)
+            {
+                await UpdateCardFaceElementDtoAsync(cardFaceElementDto);
+            }
+        }
+
+        public async Task UpdateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto)
+        {
+            _context.Entry(cardFaceElementDto.CardFaceElement).State = EntityState.Modified;
+        
+            if (cardFaceElementDto.CardFaceElement.Style != null)
+                _context.Entry(cardFaceElementDto.CardFaceElement.Style).State = EntityState.Modified;
+            
+            if (cardFaceElementDto.DndItemDto.DndItem != null)
+                _context.Entry(cardFaceElementDto.DndItemDto.DndItem).State = EntityState.Modified;
+
+            if (cardFaceElementDto.DndItemDto.DndPosition != null)
+                _context.Entry(cardFaceElementDto.DndItemDto.DndPosition).State = EntityState.Modified;
+
+            if (cardFaceElementDto.DndItemDto.DndDragBoundary != null)
+                _context.Entry(cardFaceElementDto.DndItemDto.DndDragBoundary).State = EntityState.Modified;
+            
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!Exists(cardFaceElementDto.CardFaceElement.CardFaceElementId))
+                {
+                    throw;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
         // TODO: Refactor, split this into DeleteCardFaceElementNavAsync and nest that in here
         public async Task DeleteCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements) 
         {

@@ -1,13 +1,19 @@
-# DOCKER SETUP
+# SpadeBoard
+An app to prototype card creation.
 
-## INITIAL
+## Description
+An open source self-hostable app where you can create rooms to design your tabletop game (like card games, TTRPGs, board games) and bring in your friends. Mainly focused on card games.
+
+## Getting Started
+### Dependencies
+- Docker
+
+### Installing
 [Get Docker for your platform here](https://docs.docker.com/get-docker/)
 
-## INIT ENTIRE PROJECT
+### Executing program
+Note: these commands should be ran from the project directory and currently changes in code don't automatically update the actual app, you need to build the project again
+
 Starting: `docker compose -f docker-compose.yml up -d`
 
 Stopping: `docker compose -f docker-compose.yml down --volumes --rmi all`
-Note: these commands should be ran from the project directory and currently changes in code don't automatically update the actual app, you need to build the project again
-
-### BASIC COMMANDS FOR EXISTING CONTAINER
-[Basic commands for existing container](https://stackoverflow.com/a/41806119)

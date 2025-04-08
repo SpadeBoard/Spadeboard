@@ -31,6 +31,10 @@ namespace Services
 
         Task UpdateCardFaceElementNavAsync(CardFaceElement cardFaceElement);
 
+        Task UpdateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto);
+
+        Task UpdateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto);
+
         Task CreateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto, CardFace cardFace);
 
         Task CreateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto, CardFace cardFace);

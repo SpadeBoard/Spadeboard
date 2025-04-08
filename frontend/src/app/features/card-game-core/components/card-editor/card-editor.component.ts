@@ -195,6 +195,8 @@ export class CardEditorComponent implements AfterViewInit {
   src/app/features/card-game-core/components/card-editor/card-editor.component.html:35:60:
       35 │ ...yle.left.px]="currentCardFaceElement.dndItem?.dndPosition?.x ?? 0"
   */
+
+  // FIXME: Reset this everytime you open the card editor via the button on the side
   cardDto: CardDto = {
     card: {
       cardId: 0,
@@ -265,7 +267,7 @@ export class CardEditorComponent implements AfterViewInit {
         },
       }
     ],
-    frontCardFaceElements: [
+    /*frontCardFaceElements: [
       {
         cardFaceElementId: 0,
         cardFaceId: 0,
@@ -278,7 +280,7 @@ export class CardEditorComponent implements AfterViewInit {
         cardFaceElementContent: 'Alucard',
         cardFaceElementType: 'rte',
       }
-    ],
+    ],*/
     backCardFace: {
       cardFaceId: -1,
       style: {
@@ -423,10 +425,10 @@ export class CardEditorComponent implements AfterViewInit {
     if (this.currentCardFace === undefined || this.currentCardFace.cardFaceId === undefined)
       return;
 
-    let cardFaceElements: CardFaceElement[] | undefined = this.getCardFaceElementsByCardFaceId(this.currentCardFace.cardFaceId) as CardFaceElement[] | undefined;
+    let cardFaceElementsDto: CardFaceElementDto[] | undefined = this.getCardFaceElementsDtoByCardFaceId(this.currentCardFace.cardFaceId) as CardFaceElementDto[] | undefined;
 
-    if (cardFaceElements)
-      this.currentCardFaceElements = cardFaceElements;
+    if (cardFaceElementsDto)
+      this.currentCardFaceElementsDto = cardFaceElementsDto;
   }
 
   scaleCardFaceDimensions(cardFace: CardFace): CardFace {
@@ -665,6 +667,16 @@ export class CardEditorComponent implements AfterViewInit {
     this.onCardFaceModifyBtnText = this.cardDto.card !== undefined && this.cardDto.card.cardId !== undefined && this.cardDto.card.cardId > 0 ? 'Save' : 'Create';
   }
 
+  setCurrentCardFace(frontCardFaceId: number): void {
+    if (this.currentCardFace?.cardFaceId == frontCardFaceId) {
+      this.currentCardFace = this.cardDto.frontCardFace;
+    }
+    else
+    {
+      this.currentCardFace = this.cardDto.backCardFace;
+    }
+  }
+
   // TODO: CREATE OR UPDATE DEPENDING ON FACTOR
   onCardFaceModify(event: Event): void {
     if (this.cardDto === undefined || this.cardDto.card === undefined)
@@ -676,8 +688,15 @@ export class CardEditorComponent implements AfterViewInit {
           console.log(`On update card: ${(result) ? JSON.stringify(result) : result}`);
 
           // FIXME: Updating shouldn't be returning anything
-          if (isCardDto(result))
+          if (isCardDto(result)) {
             this.cardDto = result;
+
+            if (this.cardDto.frontCardFace?.cardFaceId === undefined)
+              return;
+            
+            this.setCurrentCardFace(this.cardDto.frontCardFace?.cardFaceId);
+            this.setCurrentCardFaceElementsDto();
+          }
         });
     }
 
@@ -701,6 +720,17 @@ export class CardEditorComponent implements AfterViewInit {
 
       if (isCardDto(result)) {
         this.cardDto = result;
+
+        console.log(`Card Dto after create: ${JSON.stringify(this.cardDto)}`);
+        
+        // FIXED: Need to call this to update the current card face elements DTO
+
+        if (this.currentCardFace?.cardFaceId === undefined)
+          return;
+
+        this.setCurrentCardFace(this.currentCardFace?.cardFaceId);
+        this.setCurrentCardFaceElementsDto();
+
         this.setOnCardFaceModifyBtnText();
         console.log(`Card face modify button text: ${this.onCardFaceModifyBtnText}`);
       }

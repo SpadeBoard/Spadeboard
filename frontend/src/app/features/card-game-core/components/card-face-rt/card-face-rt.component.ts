@@ -1,5 +1,5 @@
 import { Component, effect, input } from '@angular/core';
-import { bbCodeToHtml, html } from '../../utils/rich-text-sanitizer';
+import { bbCodeToHtml, html, decodeHtml } from '../../utils/rich-text-sanitizer';
 import { CardFaceElementDto } from '../../models/card-face-element';
 
 @Component({
@@ -71,6 +71,10 @@ export class CardFaceRtComponent {
       style: cardFaceElementDto.cardFaceElement.style,
       dndPosition: cardFaceElementDto.dndItemDto.dndPosition
     }
+  }
+
+  getInnerHtml(): string | null {
+    return decodeHtml(this.html.content);
   }
 
   // TODO: Create a style and grab the DndPosition

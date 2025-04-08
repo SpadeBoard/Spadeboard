@@ -184,7 +184,8 @@ namespace backend.Controllers
                     await _cardFaceService.UpdateCardFaceDtoAsync(cardDto.BackCardFace);
                 }
 
-                if (cardDto.FrontCardFaceElements != null)
+                // TODO: Remove
+                /*if (cardDto.FrontCardFaceElements != null)
                 {
                     await _cardFaceElementService.UpdateCardFaceElementsNavAsync(cardDto.FrontCardFaceElements);
                 }
@@ -192,10 +193,21 @@ namespace backend.Controllers
                 if (cardDto.BackCardFaceElements != null)
                 {
                     await _cardFaceElementService.UpdateCardFaceElementsNavAsync(cardDto.BackCardFaceElements);
+                }*/
+                // TODO: between these
+
+                if (cardDto.FrontCardFaceElementsDto != null)
+                {
+                    await _cardFaceElementService.UpdateCardFaceElementsDtoAsync(cardDto.FrontCardFaceElementsDto);
+                }
+
+                if (cardDto.BackCardFaceElementsDto != null)
+                {
+                    await _cardFaceElementService.UpdateCardFaceElementsDtoAsync(cardDto.BackCardFaceElementsDto);
                 }
 
                 await transaction.CommitAsync();
-                return NoContent();
+                return Ok(cardDto);
             }
             catch (DbUpdateConcurrencyException ex)
             {

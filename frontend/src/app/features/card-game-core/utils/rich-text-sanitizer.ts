@@ -28,6 +28,7 @@ export interface parser {
 }
 
 // FIXME: The YouTube embedding width and height and is gonna differ depending on the Angular Editor
+// TODO: Font size - https://www.bbcode.org/changing-the-font-size-with-bbcode.php
 export const bbCodeParsers: Record<string, parser> = {
   h1: {
     pattern: /\[h1\](.*?)\[\/h1\]/s,
@@ -364,6 +365,10 @@ export interface bbCode {
         dndPosition: DndPosition
     }
     content: (string | bbCode)[]
+}
+
+export function decodeHtml(input: string) : string | null {
+  return new DOMParser().parseFromString(input, "text/html").documentElement.textContent;
 }
 
 // https://en.wikipedia.org/wiki/BBCode
