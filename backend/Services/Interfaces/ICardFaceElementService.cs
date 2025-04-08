@@ -2,31 +2,40 @@ using Models.Cards;
 
 namespace Services
 {
+    // TODO: Rename the DTO functions to nav
     public interface ICardFaceElementService
     {
-        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsByCardFaceId(int cardFaceId);
+        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsByCardFaceIdAsync(int cardFaceId);
 
-        // TODO: GetCardFaceElementsDtoAsync
         Task <CardFaceElement?> GetCardFaceElementAsync(int cardFaceElementId);
         
         Task <IEnumerable<CardFaceElement>> GetCardFaceElementsAsync();
 
-        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsDtoAsync();
+        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsNavAsync();
 
-        Task<CardFaceElement> GetCardFaceElementDtoAsync(int cardFaceElementId);
+        Task<CardFaceElement> GetCardFaceElementNavAsync(int cardFaceElementId);
 
-        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsDtoByCardFaceId(int cardFaceId);
+        Task<IEnumerable<CardFaceElementDto>> GetCardFaceElementsDtoByCardFaceIdAsync(int cardFaceId);
+        
+        Task<CardFaceElementDto?> GetCardFaceElementDtoAsync(int cardFaceElementId, int cardFaceId);
 
-        void SetCardFaceElementsCardFace(CardFaceElement[] cardFaceElements, CardFace cardFace);
-        Task SetCardFaceElementsCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace);
+        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsNavByCardFaceId(int cardFaceId);
+
+        Task CreateCardFaceElementsNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace);
     
-        Task DeleteCardFaceElementsDtoAsync(CardFaceElement[] cardFaceElements) ;
+        Task DeleteCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements) ;
 
-        Task DeleteCardFaceElementDtoAsync(CardFaceElement cardFaceElement) ;
+        Task DeleteCardFaceElementNavAsync(CardFaceElement cardFaceElement) ;
 
-        Task UpdateCardFaceElementsDtoAsync(CardFaceElement[] cardFaceElements);
+        Task UpdateCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements);
 
-        Task UpdateCardFaceElementDtoAsync(CardFaceElement cardFaceElement);
+        Task UpdateCardFaceElementNavAsync(CardFaceElement cardFaceElement);
+
+        Task CreateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto, CardFace cardFace);
+
+        Task CreateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto, CardFace cardFace);
+
+        Task CreateCardFaceElementNavAsync(CardFaceElement cardFaceElement, CardFace cardFace);
 
         // TODO: Refactor this function to be in a universal interface
         bool Exists(int id);

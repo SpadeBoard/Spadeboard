@@ -12,14 +12,9 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DndItemsController : ControllerBase
+    public class DndItemsController(ApplicationDbContext context) : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public DndItemsController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         // GET: api/DndItems
         [HttpGet]

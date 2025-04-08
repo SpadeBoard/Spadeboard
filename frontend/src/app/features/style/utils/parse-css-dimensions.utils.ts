@@ -32,3 +32,7 @@ export function parseCssDimension(value: string | undefined): number {
             return 0;
     }
 }
+
+export function parseCssDimensionToNumber(cssDimension: string): number {
+    return parseFloat(cssDimension); // Removes 'px' and converts to a number
+}

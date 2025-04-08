@@ -1,5 +1,5 @@
 import { Card, CardDto } from "../models/card";
-import { CardFaceElement } from "../models/card-face-element";
+import { CardFaceElement, CardFaceElementDto } from "../models/card-face-element";
 import { Deck } from "../models/deck";
 
 // Are interfaces so we can't do instanceof to check
@@ -38,4 +38,11 @@ export function isCardFaceElement(obj: any): obj is CardFaceElement {
         && 'cardFaceElementId' in obj
         && 'cardFaceId' in obj
         && 'cardFaceElementContent' in obj;
+}
+
+export function isCardFaceElementDto(obj: any): obj is CardFaceElementDto {
+    return obj
+        && typeof obj === 'object'
+        && 'cardFaceElement' in obj
+        && 'dndItemDto' in obj
 }

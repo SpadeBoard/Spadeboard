@@ -1,5 +1,5 @@
 import { inject, Injectable, ResourceLoaderParams, ResourceRef } from '@angular/core';
-import { CardFaceElement } from '../models/card-face-element';
+import { CardFaceElement, CardFaceElementDto } from '../models/card-face-element';
 import { rxResource } from '@angular/core/rxjs-interop';
 
 import { environment } from '../../../../environments/environment';
@@ -17,9 +17,9 @@ export class CardFaceElementApiService {
   
   constructor() { }
 
-  getCardFaceElements(cardFaceId?: number): Observable<CardFaceElement[] | undefined> {
+  getCardFaceElements(cardFaceId?: number): Observable<CardFaceElement[] | CardFaceElementDto[] | undefined> {
     if (cardFaceId !== undefined) {
-      return this.http.get<CardFaceElement[]>(`${this.apiUrl}/CardFace/dto/${cardFaceId}`);
+      return this.http.get<CardFaceElementDto[]>(`${this.apiUrl}/CardFace/dto/${cardFaceId}`);
       // return this.http.get<CardFaceElement[]>(`${this.apiUrl}/dto/${cardFaceId}`);
     }
     

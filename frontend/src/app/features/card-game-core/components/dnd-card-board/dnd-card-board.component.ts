@@ -89,14 +89,14 @@ export class DndCardBoardComponent implements DndFunctionality {
     dndItem: {
       dndItemId: 0,
       isDraggable: false,
-      isDroppable: false,
-      dndPosition: {
-        x: 0,
-        y: 0
-      },
-      style: {
-        styleId: 0
-      }
+      isDroppable: false
+    },
+    dndPosition: {
+      x: 0,
+      y: 0
+    },
+    style: {
+      styleId: 0
     }
   };
 

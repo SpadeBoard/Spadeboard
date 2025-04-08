@@ -36,6 +36,8 @@ interface MyInterface {
 })
 export class DndCardBoardService implements DndFunctionality {
   // TODO: Replace with game room ID
+  // TODO: Use the bridge table here
+  // TODO: Start on backend to make deck?
   gameRoomId: number = 0;
   ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a"; // TODO: Create user and replace owner ID
 
@@ -212,7 +214,7 @@ export class DndCardBoardService implements DndFunctionality {
       dndItemId: this._items.getValue().length + 1,
       isDraggable: true,
       isDroppable: true,
-      dndPosition: (!destCard || destCard.dndItem === undefined|| destCard.dndItem.dndPosition === undefined) ? { x: 0, y: 0 } : destCard.dndItem.dndPosition,
+      dndPosition: (!destCard || destCard.dndItem === undefined|| destCard.dndPosition === undefined) ? { x: 0, y: 0 } : destCard.dndPosition,
     };
 
     // ADDINGS CARDS TO ONE DECK
@@ -441,7 +443,7 @@ Answer from Perplexity: https://www.perplexity.ai/search/in-angular-cdk-how-do-i
 
       /**************** FIXME: Setting droppability of item to false should be handled defaultly ***********************/
       draggedCard.dndItem.isDroppable = false;
-      draggedCard.dndItem.dndPosition = event.dropPoint;
+      draggedCard.dndPosition = event.dropPoint;
       this.updateCard(draggedCard);
 
       droppedCard.dndItem.isDroppable = false;
@@ -459,7 +461,7 @@ Answer from Perplexity: https://www.perplexity.ai/search/in-angular-cdk-how-do-i
       if (!draggedCard || !isCard(draggedCard) || !draggedCard.dndItem)
         return;
 
-      draggedCard.dndItem.dndPosition = event.dropPoint;
+      draggedCard.dndPosition = event.dropPoint;
       this.updateCard(draggedCard);
 
       // CARD IS IN DECK

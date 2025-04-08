@@ -249,10 +249,12 @@ export class CardApiService {
         frontCardFace: cardDto.frontCardFace, 
         // frontCardFaceStyle: cardDto.frontCardFaceStyle,
         frontCardFaceElements: cardDto.frontCardFaceElements,
+        frontCardFaceElementsDto: cardDto.frontCardFaceElementsDto,
         // frontCardFaceElementStyles: cardDto.frontCardFaceElementStyles, 
         backCardFace: cardDto.backCardFace, 
         // backCardFaceStyle: cardDto.backCardFaceStyle,
         backCardFaceElements: cardDto.backCardFaceElements,
+        backCardFaceElementsDto: cardDto.backCardFaceElementsDto,
         // backCardFaceElementStyles: cardDto.backCardFaceElementStyles
       });
     }

@@ -25,3 +25,6 @@ declare const _NGX_ENV_: Env;
 declare namespace NodeJS {
   export interface ProcessEnv extends Env {}
 }
+
+declare module '@thoughtsunificator/bbcode-parser';
+declare module '@thoughtsunificator/bbcode-parser-template';

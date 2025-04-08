@@ -41,6 +41,9 @@
     height: 100%;
     background-color: rgba(198, 255, 250, 0.9);
     transition: right 0.5s ease; /* Smooth transition for opening */
+    gap: 1rem;
+    justify-content: center;
+    display: flex; /*FIXME: Prevents menu from being closable but has to be this to have gap and flex*/
 }
 
 .cards-menu.open {

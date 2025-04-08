@@ -34,9 +34,22 @@ namespace backend.Controllers
         }
 
         [HttpGet("CardFace/{id}")]
-        public async Task<ActionResult<IEnumerable<CardFaceElement>>> GetCardFaceElementsByCardFaceId(int id)
+        public async Task<ActionResult<IEnumerable<CardFaceElement>>> GetCardFaceElementsByCardFaceIdAsync(int id)
         {
-            var cardFaceElements = await _cardFaceElementService.GetCardFaceElementsByCardFaceId(id);
+            var cardFaceElements = await _cardFaceElementService.GetCardFaceElementsByCardFaceIdAsync(id);
+
+            if (cardFaceElements == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cardFaceElements);
+        }
+
+        [HttpGet("CardFace/nav/{id}")]
+        public async Task<ActionResult<IEnumerable<CardFaceElement>>> GetCardFaceElementsNavByCardFaceId(int id)
+        {
+            var cardFaceElements = await _cardFaceElementService.GetCardFaceElementsNavByCardFaceId(id);
 
             if (cardFaceElements == null)
             {
@@ -47,16 +60,16 @@ namespace backend.Controllers
         }
 
         [HttpGet("CardFace/dto/{id}")]
-        public async Task<ActionResult<IEnumerable<CardFaceElement>>> GetCardFaceElementsDtoByCardFaceId(int id)
+        public async Task<ActionResult<IEnumerable<CardFaceElementDto>>> GetCardFaceElementsDtoByCardFaceId(int id)
         {
-            var cardFaceElements = await _cardFaceElementService.GetCardFaceElementsDtoByCardFaceId(id);
+            var cardFaceElementsDto = await _cardFaceElementService.GetCardFaceElementsDtoByCardFaceIdAsync(id);
 
-            if (cardFaceElements == null)
+            if (cardFaceElementsDto == null)
             {
                 return NotFound();
             }
 
-            return Ok(cardFaceElements);
+            return Ok(cardFaceElementsDto);
         }
 
         // GET: api/CardFaceElements/5

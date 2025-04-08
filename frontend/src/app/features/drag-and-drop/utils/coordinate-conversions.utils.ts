@@ -73,3 +73,95 @@ export function pageToLocalCoordinates(element: ElementRef<HTMLElement>, pageX: 
     const localY = pageY - (rect.top + windowPageYOffset);
     return { x: localX, y: localY };
 }
+
+/*
+To scale a child element to fit inside a parent element when both have pixel dimensions, you need to calculate the scaling factors for both width and height and apply the smaller of the two to maintain the aspect ratio. Here's the math:
+
+### Formula
+1. **Determine the scaling factors:**
+   - $$ \text{Scale Width} = \frac{\text{Parent Width}}{\text{Child Width}} $$
+   - $$ \text{Scale Height} = \frac{\text{Parent Height}}{\text{Child Height}} $$
+
+2. **Choose the smaller scaling factor:**
+   - $$ \text{Scale Factor} = \min(\text{Scale Width}, \text{Scale Height}) $$
+
+3. **Calculate the new dimensions for the child:**
+   - $$ \text{New Child Width} = \text{Child Width} \times \text{Scale Factor} $$
+   - $$ \text{New Child Height} = \text{Child Height} \times \text{Scale Factor} $$
+
+### Implementation Example in Angular
+You can use these calculations in Angular by dynamically applying styles to scale the child element:
+
+#### Component Logic (TypeScript)
+```typescript
+export class ParentComponent {
+  parentWidth = 500; // Example parent width in pixels
+  parentHeight = 300; // Example parent height in pixels
+  childWidth = 800; // Example child width in pixels
+  childHeight = 600; // Example child height in pixels
+
+  getScaledDimensions() {
+    const scaleWidth = this.parentWidth / this.childWidth;
+    const scaleHeight = this.parentHeight / this.childHeight;
+    const scaleFactor = Math.min(scaleWidth, scaleHeight);
+
+    return {
+      width: this.childWidth * scaleFactor,
+      height: this.childHeight * scaleFactor,
+    };
+  }
+}
+```
+
+#### Template (HTML)
+```html
+
+  
+    Scaled Child
+  
+
+```
+
+### Explanation
+- The `getScaledDimensions()` method computes the new width and height of the child element based on the parent dimensions.
+- The `min()` function ensures that the child fits entirely within the parent while maintaining its aspect ratio.
+
+This approach ensures that the child element is resized proportionally to fit within its parent's dimensions.
+
+Citations:
+[1] https://www.reddit.com/r/angular/comments/1ffwt9i/populating_parent_div_with_portion_of_child/
+[2] https://stackoverflow.com/questions/46855018/angular2-how-can-i-have-a-parent-component-tell-a-child-what-size-to-be
+[3] https://stackoverflow.com/questions/1098219/how-to-make-child-divs-always-fit-inside-parent-div
+[4] https://www.reddit.com/r/godot/comments/7i4nuv/parent_height_determined_by_child_height/
+[5] https://forum.juce.com/t/set-width-of-parent-component-in-relation-to-their-child-component/41637
+[6] https://github.com/FormidableLabs/resize-observer-experiments
+[7] https://angular.io/guide/inputs-outputs
+[8] https://graphviz.org/faq/
+[9] https://css-tricks.com/using-css-transitions-auto-dimensions/
+
+---
+Answer from Perplexity: https://www.perplexity.ai/search/in-angular-i-m-trying-to-take-SI_I_5uIT4KR1Xo4hjvOvA?utm_source=copy_output
+*/
+export function convertToRelativeDimensions(childDimensions: {width: number, height: number}, parentDimensions: {width: number, height: number}, scaleFactor?: number) {
+    if (scaleFactor !== undefined) 
+    {
+        return {
+            x: childDimensions.width * scaleFactor,
+            y: childDimensions.height * scaleFactor
+        };
+    }
+
+    let scaleWidth = parentDimensions.width / childDimensions.width;
+    let scaleHeight = parentDimensions.height / childDimensions.height;
+    let calcScaleFactor = Math.min(scaleWidth, scaleHeight);
+
+    return {
+        x: childDimensions.width * calcScaleFactor,
+        y: childDimensions.height * calcScaleFactor
+    };
+
+    /*return {
+        x: (childDimensions.width / parentDimensions.width), // * 100,
+        y: (childDimensions.height / parentDimensions.height) // * 100
+    };*/
+}

@@ -40,6 +40,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<ICardFaceService, CardFaceService>();
 builder.Services.AddScoped<ICardFaceElementService, CardFaceElementService>();
+builder.Services.AddScoped<IDndItemService, DndItemService>();
 
 WebApplication app = builder.Build();
 

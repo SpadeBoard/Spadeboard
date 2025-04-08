@@ -1,4 +1,4 @@
 <!--FIXME: Sizing isn't correct-->
-@for (cardFaceElement of cardFaceElements; track cardFaceElement) {
-    <app-card-face-element/>
+@for (cardFaceElementDto of cardFaceElementsDto; track cardFaceElementDto) {
+    <app-card-face-element [cardFaceElementDtoInput]="cardFaceElementDto"/>
 }

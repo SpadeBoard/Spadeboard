@@ -1,0 +1,10 @@
+<!-- TODO: Pass in ngStyle, grab the DndPosition too and set the style.px.left and style.px.top -->
+<div
+    [style.width]="html.attrs.style.width"
+    [style.height]="html.attrs.style.height"
+    [style.left.px]="html.attrs.dndPosition.x ?? 0"
+    [style.top.px]="html.attrs.dndPosition.y ?? 0"
+>
+    <!-- TODO: Place the HTML of the content-->
+    {{html.content}}
+</div>

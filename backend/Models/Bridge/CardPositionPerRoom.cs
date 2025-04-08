@@ -26,6 +26,10 @@ namespace Models.Bridge
         [ForeignKey("CardId")]
         public virtual Card? Card { get; set; }
 
+        public int DndItemId { get; set; }
+        [ForeignKey("DndItemId")]
+        public virtual DndItem? DndItem { get; set; }
+
         [Required]
         public int DndPositionId {get; set;}
         [ForeignKey("DndPositionId")]

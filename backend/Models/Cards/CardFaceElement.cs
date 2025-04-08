@@ -1,9 +1,38 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Models.DndItems;
 using Models.Styles;
 
 namespace Models.Cards
 {
+    // TODO: Use the DTO instead of CardFaceElement for the CardDto as well as the services
+    public class CardFaceElementDto
+    {
+        public CardFaceElement CardFaceElement {get; set;}
+
+        public DndItemDto DndItemDto {get; set;}
+    
+        public int? StyleId {get; set;}
+        [ForeignKey("StyleId")]
+        public virtual Style? Style {get; set;}
+    }
+
+    /*[Table("CardFaceElementTemplates")]
+    public class CardFaceElementTemplates
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int CardFaceElementTemplateId { get; set; }
+
+        public int? CardFaceElementId {get; set;}
+        [ForeignKey("CardFaceElementId")]
+        public CardFaceElement? CardFaceElement {get; set;}
+
+        public int? StyleId {get; set;}
+        [ForeignKey("StyleId")]
+        public virtual Style? Style {get; set;}
+    }*/
+
     [Table("CardFaceElements")] // Maps this entity to the "Cards" table
     public class CardFaceElement
     {
@@ -22,5 +51,13 @@ namespace Models.Cards
         public int? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style {get; set;}
+
+        // TODO: Do we need a DndItem here as well as DndPosiiton? How does this work?
+        /*
+        FIXME: MessageText: insert or update on table "DndItems" violates foreign key constraint "FK_DndItems_DndDragBoundaries_DndDragBoundaryId"
+        */
+        /*public int? DndItemId {get; set;}
+        [ForeignKey("DndItemId")]
+        public virtual DndItem? DndItem {get; set;}*/
     }
 }

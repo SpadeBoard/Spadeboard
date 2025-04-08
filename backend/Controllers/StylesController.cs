@@ -12,14 +12,9 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class StylesController : ControllerBase
+    public class StylesController(ApplicationDbContext context) : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public StylesController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         // GET: api/Styles
         [HttpGet]

@@ -7,4 +7,8 @@
     *ngComponentOutlet="getCardFaceElementComponent()"
     [ngComponentOutletInputs]="{ style: getStyle(cardFaceElement) }"
     >
-</ng-container>!-->
+</ng-container>-->
+
+<ng-container 
+    *ngComponentOutlet="getCardFaceElementComponent(); inputs: cardFaceSubelementInputs;"
+/>

@@ -91,10 +91,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             );
 
         // Prevent circular reference
-        builder.Entity<DndPosition>()
+        /*builder.Entity<DndPosition>()
             .HasOne(dndPosition => dndPosition.DndItem)
             .WithOne(dndItem => dndItem.DndPosition)
-            .HasForeignKey<DndItem>(dndItem => dndItem.DndPositionId);
+            .HasForeignKey<DndItem>(dndItem => dndItem.DndPositionId);*/
 
         builder.Entity<DndPosition>()
             .HasData(
@@ -107,9 +107,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                     DndItemId = 1, 
                     IsDraggable = true,
                     IsDroppable=true,
-                    DndPositionId = 1,
-                    DndDragBoundaryId = 1,
-                    StyleId = 1
+                    // DndPositionId = 1,
+                    // DndDragBoundaryId = 1,
+                    // StyleId = 1
                 }
             );
 
@@ -172,5 +172,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 
     public DbSet<CardPositionPerRoom> CardPositionPerRoom {get;set;} = default!;
 
-    public DbSet<IdentityUser> Users { get; set; }
+    public DbSet<IdentityUser> Users { get; set; } = default!;
+
+    public DbSet<CardFaceElementPerCardFace> CardFaceElementPerCardFace{ get; set; } = default!;
 }

@@ -19,13 +19,15 @@ namespace Models.Cards
     {
         public Card Card { get; set; }
         public CardFace FrontCardFace { get; set; }
-        public Style? FrontCardFaceStyle { get; set; } // TEMP
         public CardFaceElement[]? FrontCardFaceElements {get; set;}
-        public Style[]? FrontCardFaceElementStyles {get; set;}
+
+        public CardFaceElementDto[]? FrontCardFaceElementsDto {get; set;}
 
         public CardFace BackCardFace { get; set; }
-        public Style? BackCardFaceStyle { get; set; } // TEMP
         public CardFaceElement[]? BackCardFaceElements {get; set;}
+        
+        public CardFaceElementDto[]? BackCardFaceElementsDto {get; set;}
+        
         public Style[]? BackCardFaceElementStyles {get;set;}
         
         public DndItem? DndItem { get; set; } // TEMP
@@ -38,12 +40,10 @@ namespace Models.Cards
         public CardFaceCreateDto FrontCardFace { get; set; }
         public StyleCreateDto FrontCardFaceStyle { get; set; } // TEMP
         public CardFaceElement[]? FrontCardFaceElements {get; set;}
-        public StyleCreateDto[]? FrontCardFaceElementStyles {get; set;}
 
         public CardFaceCreateDto BackCardFace { get; set; }
         public StyleCreateDto BackCardFaceStyle { get; set; } // TEMP
         public CardFaceElement[]? BackCardFaceElements {get; set;}
-        public StyleCreateDto[]? BackCardFaceElementStyles {get;set;}
         
         public DndItemCreateDto? DndItem { get; set; } // TEMP
     }

@@ -1,10 +1,10 @@
-import { Component, input, output } from '@angular/core';
-import { CardFaceElement } from '../../models/card-face-element';
+import { Component, effect, input, output } from '@angular/core';
+import { CardFaceElementDto } from '../../models/card-face-element';
 import { CardFaceRteComponent } from '../card-face-rte/card-face-rte.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 
-import { getStyle } from '../../../style/utils/get-style';
 import { CommonModule } from '@angular/common';
+import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 // Programmatic rendering
 // https://angular.dev/guide/components/programmatic-rendering
 
@@ -18,31 +18,50 @@ import { CommonModule } from '@angular/common';
   styleUrl: './card-face-element.component.css'
 })
 export class CardFaceElementComponent {
-  cardFaceElement = input<CardFaceElement>({
-    cardFaceElementId: 0,
-    cardFaceId: 0,
-    cardFaceElementContent: '',
-    cardFaceElementType: '',
-    
-    dndItem: {
-      dndItemId: 0,
-      isDraggable: false,
-      isDroppable: false,
-      dndPosition: { x: 0, y: 0 }
+  cardFaceElementDtoInput = input<CardFaceElementDto>({
+    cardFaceElement: {
+      cardFaceElementId: 0,
+      cardFaceId: 0,
+      cardFaceElementContent: '',
+      cardFaceElementType: '',
     },
-    
-    style: {
-      styleId: 0,
-      minHeight: '300px',
-      maxHeight: '300px',
-      minWidth: '300px',
-      maxWidth: '300px',
-      width: '300px',
-      height: '300px'
+    dndItemDto: {
+      dndItem: {
+        dndItemId: 0,
+        isDraggable: false,
+        isDroppable: false
+      },
+      dndPosition: {
+        x: 0,
+        y: 0
+      }
     }
   });
+
+  cardFaceSubelementInputs = {
+    // TODO: Pass in the potential card face elements as well as front card face and back card face
+    cardFaceElementDtoInput: {
+      cardFaceElement: {
+        cardFaceElementId: 0,
+        cardFaceId: 0,
+        cardFaceElementContent: '',
+        cardFaceElementType: '',
+      },
+      dndItemDto: {
+        dndItem: {
+          dndItemId: 0,
+          isDraggable: false,
+          isDroppable: false
+        },
+        dndPosition: {
+          x: 0,
+          y: 0
+        }
+      }
+    } as CardFaceElementDto
+  };
   
-  cardFaceElementChange = output<CardFaceElement>();
+  cardFaceElementDtoChange = output<CardFaceElementDto>();
 
   // TODO: Grab these two components, or somehow just make this one thing
   // Really the goal is to switch out the HTML dynamically
@@ -55,14 +74,26 @@ export class CardFaceElementComponent {
   // TODO: Figure out DndWrapper auto resizing, use css styling, make css file?
   getCardFaceElementComponent() {
     // Returns component class
-    if (this.cardFaceElement().cardFaceElementType === 'rte') {
-      return CardFaceRteComponent;
-    } else {
-      return CardFaceImageComponent;
+    switch(this.cardFaceElementDtoInput().cardFaceElement.cardFaceElementType) {
+      case 'rte':
+        return CardFaceRtComponent;
+      case 'image':
+        return CardFaceImageComponent;
+      default: 
+        return null;
     }
   }
 
-  constructor() {}
+  constructor() {
+    effect(() => {
+      let cardFaceElementDto = this.cardFaceElementDtoInput();
+
+      if (cardFaceElementDto.cardFaceElement.cardFaceElementId > 0) {
+        this.cardFaceSubelementInputs.cardFaceElementDtoInput = cardFaceElementDto;
+      }
+    });
+
+  }
 
   // TODO: When style changes, send it to the directive
 }

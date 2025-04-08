@@ -2,10 +2,13 @@ import { Component, computed, effect, inject, input, InputSignal, Signal } from 
 
 import { CardFace } from '../../models/card-face';
 
-import { CardFaceElement } from '../../models/card-face-element';
+import { CardFaceElement, CardFaceElementDto } from '../../models/card-face-element';
 import { convertToRelativeCoordinates } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 import { CardFaceElementApiService } from '../../services/card-face-element-api.service';
 import { CardFaceElementComponent } from '../card-face-element/card-face-element.component';
+import { parseCssDimensionToNumber } from '../../../style/utils/parse-css-dimensions.utils';
+import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
+import { isCardFaceElementDto } from '../../utils/card-game-core.utils';
 
 @Component({
   selector: 'app-card-face',
@@ -37,11 +40,11 @@ export class CardFaceComponent {
 
   private cardFaceElementApiService: CardFaceElementApiService = inject(CardFaceElementApiService);
 
-  cardFaceElementsInput: InputSignal<CardFaceElement[] | undefined> = input<CardFaceElement[] | undefined>([
+  cardFaceElementsDtoInput: InputSignal<CardFaceElementDto[] | undefined> = input<CardFaceElementDto[] | undefined>([
     
   ]);
-  readonly cardFaceElementsComputed: Signal<CardFaceElement[] | undefined> = computed(() => this.cardFaceElementsInput());
-  cardFaceElements: CardFaceElement[] = [];
+  readonly cardFaceElementsComputed: Signal<CardFaceElementDto[] | undefined> = computed(() => this.cardFaceElementsDtoInput());
+  cardFaceElementsDto: CardFaceElementDto[] = [];
 
   constructor() {
     effect(() => {
@@ -54,15 +57,21 @@ export class CardFaceComponent {
       if (this.cardFace !== undefined && this.cardFace.cardFaceId !== 0) {
         // 404 error, something's wrong with the frontend, why are we passing in 0, 0, then 1, 2
         this.cardFaceElementApiService.getCardFaceElements(this.cardFace.cardFaceId).subscribe(cardFaceElements => {
-          if (cardFaceElements !== undefined)
-            this.cardFaceElements = cardFaceElements;
+          if (cardFaceElements !== undefined) {
+            this.cardFaceElementsDto = this.convertCardFaceElementsDtoPosition(cardFaceElements as CardFaceElementDto[]);
+            
+            // FIXME: Can't place width and height, because there's no position being stored
+            this.cardFaceElementsDto.forEach(element => {
+              // console.log(`Mapped element: ${JSON.stringify(element.dndItem?.dndPosition)}`);
+            })
+          }
         });
       }
 
-      /*let cardFaceElements = this.cardFaceElementsComputed();
+      /*let cardFaceElements = this.cardFaceElementsDtoComputed();
 
       if (cardFaceElements !== undefined) {
-        this.cardFaceElements = cardFaceElements;
+        this.cardFaceElementsDto = cardFaceElements;
       }*/
     });
   }
@@ -71,9 +80,36 @@ export class CardFaceComponent {
     // TODO: Grab all the card face elements
   }
 
-  convertCardFaceElementsPosition(cardFaceElements: CardFaceElement[]): void {
-    cardFaceElements.forEach(element => {
-      // convertToRelativeCoordinates();
+  convertCardFaceElementsDtoPosition(cardFaceElementsDto: CardFaceElementDto[]): CardFaceElementDto[] {
+    let newCardFaceElementDtos: CardFaceElementDto[] = [];
+      
+    newCardFaceElementDtos = cardFaceElementsDto.map(element => {
+      // Create a shallow copy of the element to avoid modifying the original
+      let newElementDto: CardFaceElementDto = { ...element };
+
+      // TODO: Put in separate function
+      if (newElementDto.dndItemDto.dndItem && this.cardFace.style?.width && this.cardFace.style?.height) {
+        let cardFaceDimensionsNumeric = {
+          width: parseCssDimensionToNumber(this.cardFace.style.width),
+          height: parseCssDimensionToNumber(this.cardFace.style.height)
+        };
+
+        let relativeCoordinate: DndPosition = convertToRelativeCoordinates(
+          newElementDto.dndItemDto.dndPosition,
+          cardFaceDimensionsNumeric
+        );
+
+        // Create a new dndItem object to avoid mutation
+        newElementDto.dndItemDto = {
+          dndItem: newElementDto.dndItemDto.dndItem,
+          dndPosition: relativeCoordinate
+        };
+
+      }
+
+      return newElementDto;
     });
+
+    return newCardFaceElementDtos;
   }
 }
