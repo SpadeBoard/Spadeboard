@@ -2,44 +2,43 @@ using Models.Cards;
 
 namespace Services
 {
-    // TODO: Rename the DTO functions to nav
     public interface ICardFaceElementService
     {
-        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsByCardFaceIdAsync(int cardFaceId);
+        public Task<IEnumerable<CardFaceElement>> GetCardFaceElementsByCardFaceIdAsync(int cardFaceId);
 
-        Task <CardFaceElement?> GetCardFaceElementAsync(int cardFaceElementId);
+        public Task <CardFaceElement?> GetCardFaceElementAsync(int cardFaceElementId);
         
-        Task <IEnumerable<CardFaceElement>> GetCardFaceElementsAsync();
+        public Task <IEnumerable<CardFaceElement>> GetCardFaceElementsAsync();
 
-        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsNavAsync();
+        public Task<IEnumerable<CardFaceElement>> GetCardFaceElementsNavAsync();
 
-        Task<CardFaceElement> GetCardFaceElementNavAsync(int cardFaceElementId);
+        public Task<CardFaceElement> GetCardFaceElementNavAsync(int cardFaceElementId);
 
-        Task<IEnumerable<CardFaceElementDto>> GetCardFaceElementsDtoByCardFaceIdAsync(int cardFaceId);
+        public Task<IEnumerable<CardFaceElementDto>> GetCardFaceElementsDtoByCardFaceIdAsync(int cardFaceId);
         
-        Task<CardFaceElementDto?> GetCardFaceElementDtoAsync(int cardFaceElementId, int cardFaceId);
+        public Task<CardFaceElementDto?> GetCardFaceElementDtoAsync(int cardFaceElementId, int cardFaceId);
 
-        Task<IEnumerable<CardFaceElement>> GetCardFaceElementsNavByCardFaceId(int cardFaceId);
+        public Task<IEnumerable<CardFaceElement>> GetCardFaceElementsNavByCardFaceId(int cardFaceId);
 
-        Task CreateCardFaceElementsNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace);
+        public Task CreateCardFaceElementsNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace);
     
-        Task DeleteCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements) ;
+        public Task DeleteCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements) ;
 
-        Task DeleteCardFaceElementNavAsync(CardFaceElement cardFaceElement) ;
+        public Task DeleteCardFaceElementNavAsync(CardFaceElement cardFaceElement) ;
 
-        Task UpdateCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements);
+        public Task UpdateCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements);
 
-        Task UpdateCardFaceElementNavAsync(CardFaceElement cardFaceElement);
+        public Task UpdateCardFaceElementNavAsync(CardFaceElement cardFaceElement);
 
-        Task UpdateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto);
+        public Task UpdateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto);
 
-        Task UpdateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto);
+        public Task UpdateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto);
 
-        Task CreateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto, CardFace cardFace);
+        public Task CreateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto, CardFace cardFace);
 
-        Task CreateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto, CardFace cardFace);
+        public Task CreateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto, CardFace cardFace);
 
-        Task CreateCardFaceElementNavAsync(CardFaceElement cardFaceElement, CardFace cardFace);
+        public Task CreateCardFaceElementNavAsync(CardFaceElement cardFaceElement, CardFace cardFace);
 
         // TODO: Refactor this function to be in a universal interface
         bool Exists(int id);

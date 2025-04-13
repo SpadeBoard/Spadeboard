@@ -37,7 +37,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+
 builder.Services.AddScoped<ICardService, CardService>();
+builder.Services.AddScoped<ICardPerOwnerService, CardPerOwnerService>();
 builder.Services.AddScoped<ICardFaceService, CardFaceService>();
 builder.Services.AddScoped<ICardFaceElementService, CardFaceElementService>();
 builder.Services.AddScoped<IDndItemService, DndItemService>();
@@ -82,6 +85,19 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// In Program.cs
+/*app.MapPost("/app/backend/card-face-thumbnail-images", async (IFormFile file) => {
+    var uploadPath = "/app/backend/card-face-thumbnail-images"; // Docker volume mount point
+    var uniqueFileName = $"{Guid.NewGuid()}.webp";
+    var filePath = Path.Combine(uploadPath, uniqueFileName);
+
+    using var stream = new FileStream(filePath, FileMode.Create);
+    await file.CopyToAsync(stream);
+    
+    return Results.Ok($"/uploads/{uniqueFileName}");
+}).Accepts<IFormFile>("image/webp");*/
+
+// https://learn.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-9.0
 
 // For migrations that need to be updated to database, only do for developmenet, not production
 using (IServiceScope scope = serviceProvider.CreateScope())

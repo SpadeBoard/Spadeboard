@@ -1,5 +1,5 @@
 import { Component, effect, input } from '@angular/core';
-import { bbCodeToHtml, html, decodeHtml } from '../../utils/rich-text-sanitizer';
+import { bbCodeToHtml, html, decodeHtml } from '../../utils/rich-text-sanitizer.utils';
 import { CardFaceElementDto } from '../../models/card-face-element';
 
 @Component({

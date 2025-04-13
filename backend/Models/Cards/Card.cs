@@ -19,18 +19,20 @@ namespace Models.Cards
     {
         public Card Card { get; set; }
         public CardFace FrontCardFace { get; set; }
-        public CardFaceElement[]? FrontCardFaceElements {get; set;}
+        // public CardFaceElement[]? FrontCardFaceElements {get; set;}
 
         public CardFaceElementDto[]? FrontCardFaceElementsDto {get; set;}
 
         public CardFace BackCardFace { get; set; }
-        public CardFaceElement[]? BackCardFaceElements {get; set;}
+        // public CardFaceElement[]? BackCardFaceElements {get; set;}
         
         public CardFaceElementDto[]? BackCardFaceElementsDto {get; set;}
         
-        public Style[]? BackCardFaceElementStyles {get;set;}
+        // public Style[]? BackCardFaceElementStyles {get;set;}
         
         public DndItem? DndItem { get; set; } // TEMP
+
+        public string OwnerId { get;set;}
     }
 
     public class CardBatchCreateDto 
@@ -95,8 +97,8 @@ namespace Models.Cards
         public bool IsFlipped {get;set;}
 
         // Owner ID
-        public string? OwnerId {get; set;}
+        /*public string? OwnerId {get; set;}
         [ForeignKey("OwnerId")]
-        public virtual IdentityUser? Owner {get; set;}
+        public virtual IdentityUser? Owner {get; set;}*/
     }
 }

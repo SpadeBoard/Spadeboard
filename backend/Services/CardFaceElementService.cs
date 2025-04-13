@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
 
+
 namespace Services
 {
     public class CardFaceElementService(ApplicationDbContext context, IDndItemService dndItemService) : ICardFaceElementService
@@ -85,21 +86,30 @@ namespace Services
 
         public async Task UpdateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto)
         {
-            _context.Entry(cardFaceElementDto.CardFaceElement).State = EntityState.Modified;
-        
             if (cardFaceElementDto.CardFaceElement.Style != null)
+            {
                 _context.Entry(cardFaceElementDto.CardFaceElement.Style).State = EntityState.Modified;
-            
+            }
+
             if (cardFaceElementDto.DndItemDto.DndItem != null)
+            {
                 _context.Entry(cardFaceElementDto.DndItemDto.DndItem).State = EntityState.Modified;
+            }
 
             if (cardFaceElementDto.DndItemDto.DndPosition != null)
+            {
                 _context.Entry(cardFaceElementDto.DndItemDto.DndPosition).State = EntityState.Modified;
+            }
 
             if (cardFaceElementDto.DndItemDto.DndDragBoundary != null)
+            {
                 _context.Entry(cardFaceElementDto.DndItemDto.DndDragBoundary).State = EntityState.Modified;
-            
-            try
+            }
+
+            context.Entry(cardFaceElementDto.CardFaceElement).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            /*try
             {
                 await _context.SaveChangesAsync();
             }
@@ -113,7 +123,7 @@ namespace Services
                 {
                     throw;
                 }
-            }
+            }*/
         }
 
         // TODO: Refactor, split this into DeleteCardFaceElementNavAsync and nest that in here

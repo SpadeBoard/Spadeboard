@@ -19,12 +19,25 @@ namespace Services
             return _context.Card.Any(e => e.CardId == id);
         }
 
-        public async Task<IEnumerable<Card>> GetCardsByOwner(string ownerId)
+        public async Task<Card?> GetCardAsync(int cardId)
+        {
+            var card = await _context.Card.FindAsync(cardId);
+
+            return card;
+        }
+
+        public async Task UpdateCardDtoAsync(CardDto cardDto)
+        {
+            
+        }
+
+        // TODO: To be removed and replaced with the other function
+        /*public async Task<IEnumerable<Card>> GetCardsByOwner(string ownerId)
         {
             // FIXME: Use ownerId
             return await _context.Card
                 .Where(card => card.OwnerId == ownerId)
                 .ToListAsync();
-        }
+        }*/
     }
 }

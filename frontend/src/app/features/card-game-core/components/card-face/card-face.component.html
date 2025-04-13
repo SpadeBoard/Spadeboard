@@ -1,4 +1,1 @@
-<!--FIXME: Sizing isn't correct-->
-@for (cardFaceElementDto of cardFaceElementsDto; track cardFaceElementDto) {
-    <app-card-face-element [cardFaceElementDtoInput]="cardFaceElementDto"/>
-}
+<img *ngIf="image?.src" [src]="image?.src ?? ''" />

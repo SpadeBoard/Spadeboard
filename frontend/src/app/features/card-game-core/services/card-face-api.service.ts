@@ -14,7 +14,6 @@ export class CardFaceApiService {
   private http = inject(HttpClient);
   
   private apiUrl = `${environment.hostServerUrl}/api/cardFaces`;
-  private apiCompositeUrl = `${environment.hostServerUrl}/api/card_face_all_attributes`;
 
   constructor() { }
 
@@ -33,46 +32,6 @@ export class CardFaceApiService {
 
   // ASSUMPTION:
   // All card faces are associated with a card
- /* getCardFaces(): ResourceRef<CardFace[] | undefined>;
-  getCardFaces(cardId: number, getAllAttributes: boolean): ResourceRef<{cardFaces: CardFace[], cardFaceElements: CardFaceElement[]} | undefined>;
-  getCardFaces(cardId?: number, getAllAttributes?: boolean): ResourceRef<CardFace[] | {cardFaces: CardFace[], cardFaceElements: CardFaceElement[]} | undefined> {
-    return rxResource<CardFace[] | {cardFaces: CardFace[], cardFaceElements: CardFaceElement[]} | undefined, {cardId: number | undefined, getAllAttributes: boolean | undefined}>({
-      request: () => ({cardId, getAllAttributes}), 
-      loader: (params: ResourceLoaderParams<{
-        cardId: number | undefined;
-        getAllAttributes: boolean | undefined;
-      }>): Observable<CardFace[] | {cardFaces: CardFace[], cardFaceElements: CardFaceElement[]}> =>  {
-        if (params.request.cardId !== undefined && params.request.getAllAttributes !== undefined && getAllAttributes == true) {
-          let cI: number = params.request.cardId;
-          let gAA: boolean = params.request.getAllAttributes;
-          
-          return this.http.get<{cardFaces: CardFace[], cardFaceElements: CardFaceElement[]}>(`${this.apiCompositeUrl}/`, {
-            params: { CardId: cI }
-          });
-        }
-        return this.http.get<CardFace[]>(`${this.apiUrl}/`);
-      }
-    });
-  }
-
-  getCardFace(cardFaceId: number): ResourceRef<CardFace | undefined>;
-  getCardFace(cardFaceId: number, getAllAttributes: boolean): ResourceRef<{cardFace: CardFace, cardFaceElements: CardFaceElement[]} | undefined>;
-  getCardFace(cardFaceId: number, getAllAttributes?: boolean): ResourceRef<CardFace | {cardFace: CardFace, cardFaceElements: CardFaceElement[]} | undefined> {
-    return rxResource<CardFace| {cardFace: CardFace, cardFaceElements: CardFaceElement[]} | undefined, {cardFaceId: number, getAllAttributes: boolean | undefined}>({
-      request: () => ({cardFaceId, getAllAttributes}), 
-      loader: (
-        params: ResourceLoaderParams<{
-          cardFaceId: number;
-          getAllAttributes: boolean | undefined;}
-        >): Observable<CardFace | {cardFace: CardFace, cardFaceElements: CardFaceElement[]}> =>  {
-        if (getAllAttributes !== undefined && getAllAttributes == true) {
-          return this.http.get<{cardFace: CardFace, cardFaceElements: CardFaceElement[]}>(`${this.apiCompositeUrl}/${cardFaceId}`);
-        }
-        return this.http.get<CardFace>(`${this.apiUrl}/${cardFaceId}`);
-      }
-    });
-  }
-
   /*createCardFace(cardFace: Omit<CardFace, 'cardFaceId'>): ResourceRef<CardFace | undefined>;
   createCardFace(cardFace: Omit<CardFace, 'cardFaceId'>, cardFaceElements: CardFaceElement[]): ResourceRef<{cardFace: CardFace, cardFaceElements: CardFaceElement[]} | undefined>;
   createCardFace(cardFace: Omit<CardFace, 'cardFaceId'>, cardFaceElements?: CardFaceElement[]): ResourceRef<CardFace | {cardFace: CardFace, cardFaceElements: CardFaceElement[]} | undefined> {

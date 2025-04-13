@@ -4,7 +4,7 @@ import { CardFace } from '../../../card-game-core/models/card-face';
 import { CardFaceElement } from '../../../card-game-core/models/card-face-element';
 import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
 // import { DndCardBoardComponent } from '../../../card-game-core/components/dnd-card-board/dnd-card-board.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { CdkDrag, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
 import { CardApiService } from '../../../card-game-core/services/card-api.service';
 import { CardComponent } from '../../../card-game-core/components/card/card.component';
@@ -14,6 +14,7 @@ import { CardComponent } from '../../../card-game-core/components/card/card.comp
   imports: [
     CardEditorComponent, /*DndCardBoardComponent,*/ CommonModule,
     CdkDrag, CdkDragHandle, DragDropModule,
+    NgOptimizedImage,
     CardComponent
   ],
   templateUrl: './game-room.component.html',
@@ -42,12 +43,11 @@ export class GameRoomComponent implements AfterViewChecked{
 
   cardsMenuDimensions: {width: number, height: number} | undefined = undefined;
 
-  // ASSUMPTION: We're opening it without having an already existing card
+  // ASSUMPTION: We're opening editor without having an already existing card
   card: Card = {
     cardId: 0,
     frontCardFaceId: 0,
     backCardFaceId: 0,
-    ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
     isFlipped: false,
     dndItem: {
       dndItemId: 0,
@@ -81,123 +81,18 @@ export class GameRoomComponent implements AfterViewChecked{
   cards: Card[] = [
 
   ];
-  private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
 
   /*
-  To ensure that the latest `cardsMenuDimensions` are passed through to your components (``), you need to address the timing issue where the DOM updates and `ngAfterViewChecked` is called. Here’s how you can achieve this:
-
-    ---
-
-    ## **Key Problem**
-    The `cardsMenuDimensions` are updated in `ngAfterViewChecked`, but the updated values might not propagate to the child components (``) immediately due to Angular's change detection lifecycle.
-
-    ---
-
-    ## **Solution**
-
-    ### 1. Use Angular's `ChangeDetectorRef`
-    You can explicitly trigger change detection after updating `cardsMenuDimensions` using Angular's `ChangeDetectorRef`. This ensures that the new dimensions are propagated to child components.
-
-    ```typescript
-    import { ChangeDetectorRef } from '@angular/core';
-
-    export class YourComponent {
-      cardsMenuDimensions: { width: number; height: number } = { width: 0, height: 0 };
-      shouldUpdateDimensions = true;
-
-      constructor(private cdr: ChangeDetectorRef) {}
-
-      ngAfterViewChecked(): void {
-        if (this.shouldUpdateDimensions) {
-          const rect = this.getCardsMenuClientRect();
-
-          if (rect.width > 0 && rect.height > 0 && this.cards.length > 0) {
-            console.log('Size after view init:', rect.width, rect.height);
-
-            this.cardsMenuDimensions = {
-              width: rect.width,
-              height: rect.height
-            };
-
-            // Trigger change detection to ensure child components get the updated dimensions
-            this.cdr.detectChanges();
-          }
-
-          this.shouldUpdateDimensions = false;
-        }
-      }
-
-      getCardsMenuClientRect(): DOMRect {
-        const element = document.querySelector('.cards-menu');
-        return element ? element.getBoundingClientRect() : new DOMRect(0, 0, 0, 0);
-      }
-    }
-    ```
-
-    ---
-
-    ### 2. Use an `@Input()` Setter in the Child Component
-    In ``, use an `@Input()` setter for `parentDimensionsInput`. This allows you to react to changes in the input property and perform any necessary updates.
-
-    ```typescript
-    export class AppCardComponent {
-      private _parentDimensionsInput: { width: number; height: number } | null = null;
-
-      @Input()
-      set parentDimensionsInput(value: { width: number; height: number }) {
-        this._parentDimensionsInput = value;
-        this.onParentDimensionsChanged();
-      }
-
-      get parentDimensionsInput(): { width: number; height: number } | null {
-        return this._parentDimensionsInput;
-      }
-
-      onParentDimensionsChanged() {
-        // Handle logic when dimensions change
-        console.log('Updated dimensions:', this._parentDimensionsInput);
-      }
-    }
-    ```
-
-    ---
-
-    ### 3. Use Angular's `trackBy` for Efficient Rendering
-    In your template, use Angular's `trackBy` function to optimize rendering and avoid unnecessary DOM destruction/recreation when iterating over the cards.
-
-    ```html
-
-      
-
-    ```
-
-    In your component:
-
-    ```typescript
-    trackByCard(index: number, card: any): any {
-      return card.id || index; // Use a unique identifier for each card
-    }
-    ```
-
-    ---
-
-    ### **Explanation of Changes**
-    1. **Change Detection Trigger:** Using `ChangeDetectorRef.detectChanges()` ensures that Angular propagates changes to child components immediately.
-    2. **Efficient Rendering:** The `trackBy` function prevents unnecessary re-creation of DOM elements, improving performance.
-    3. **Reactive Input Handling:** The `@Input()` setter in `` ensures that child components can react dynamically to changes in `cardsMenuDimensions`.
-
-    ---
-
-    ### **Alternative Approach**
-    If you want to avoid manual change detection triggers, consider using a reactive approach with an `Observable` or `Subject`. Emit changes to `cardsMenuDimensions` and subscribe to them in child components.
-
-    Let me know if you'd like an example of this approach!
-
-    ---
-    Answer from Perplexity: https://www.perplexity.ai/search/div-hidden-iscardsmenuopen-cla-kJTIf8rLRKm8tNISTWzBCQ?utm_source=copy_output
+  TODO: Cards menu cachine
+  1. Load card metadata at startup, which should just be the card object itself
+  2. When nedded, load the details
+  3. Cache in memory or blob, using images so probably blob
+  4. Use LRU to unload old cards
+  5. Replace the blobs via checking timestamp of the cards and when they changed
   */
+
   ngAfterViewChecked(): void {
-    if (this.shouldUpdateDimensions) {
+    /*if (this.shouldUpdateDimensions) {
       let rect = this.getCardsMenuClientRect();
       // FIXME: Why 0, 0
       // https://stackoverflow.com/a/57146762
@@ -214,7 +109,7 @@ export class GameRoomComponent implements AfterViewChecked{
       }
 
       this.shouldUpdateDimensions = false;
-    }
+    }*/
   }
 
   getCardsMenuClientRect() {
