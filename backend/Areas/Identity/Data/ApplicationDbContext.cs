@@ -10,13 +10,8 @@ using Models.Bridge;
 
 namespace Data;
 
-public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<IdentityUser>(options)
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
-    {
-    }
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -43,11 +38,11 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             .Property(p => p.CardId)
             .ValueGeneratedOnAdd();
 
-        builder.Entity<Card>()
+        /*builder.Entity<Card>()
             .HasOne<IdentityUser>(c => c.Owner)
             .WithOne()
             .HasForeignKey<Card>(c => c.OwnerId)
-            .IsRequired(false);
+            .IsRequired(false);*/
 
         builder.Entity<CardFace>()
             .Property(p => p.CardFaceId)
@@ -128,6 +123,38 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             }
         );
 
+        // TODO: Make sure that when adding a blank card to the database, it just creates a relationship between user and card face
+        // Blank front card face and back card face data
+        builder.Entity<CardFace>().HasData(
+            new CardFace
+            {
+                CardFaceId = -1,
+                StyleId = 1,
+                CardFaceThumbnailFilePath = "" // TODO: Modify to get the specific image for blank card
+            }
+        );
+
+        // TODO: Make a default blank card
+        builder.Entity<Card>().HasData(
+            new Card
+            {
+                CardId = -1,
+                FrontCardFaceId = -1,
+                BackCardFaceId = -1,
+                IsFlipped = false
+            }
+        );
+
+        /*builder.Entity<CardPerOwner>().HasData(
+            new CardPerOwner
+            {
+                CardId = -1,
+                OwnerId = "5811e387-1551-4090-9485-a3ebe30efb5a"
+            }
+        );*/
+
+        // TODO: Add a default relationship between test user and blank card faces
+
         // Please for the love of God stop giving me the 
         /*
         {
@@ -175,4 +202,6 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<IdentityUser> Users { get; set; } = default!;
 
     public DbSet<CardFaceElementPerCardFace> CardFaceElementPerCardFace{ get; set; } = default!;
+
+    public DbSet<CardPerOwner> CardPerOwner{ get; set; } = default!;
 }

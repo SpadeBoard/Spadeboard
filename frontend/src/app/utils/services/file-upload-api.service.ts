@@ -1,7 +1,8 @@
 import { inject, Injectable, ResourceRef } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -9,30 +10,35 @@ import { rxResource } from '@angular/core/rxjs-interop';
 export class FileUploadApiService {
   private http = inject(HttpClient);
   
-  private apiUrl = `${environment.hostServerUrl}/api/file`;
-  
+  private apiUrl = `${environment.hostServerUrl}/api/Files`;
+
   constructor() { }
 
-  getFile(fileId: number): ResourceRef<string | undefined> {
-    return rxResource<string, [number]>({
-      request: () => [fileId],
-      loader: ([fileId]) => {
-          return this.http.get<string>(`${this.apiUrl}/${fileId}`);
-        }
-      }
-    );
+  getFile(fileName: string, type?: string): Observable<Blob | undefined> {
+    switch (type)
+    {
+      case "card-face":
+        return this.http.get(`${this.apiUrl}/card-face/${fileName}`, { responseType: 'blob' });
+      default:
+        return this.http.get(`${this.apiUrl}/${fileName}`, { responseType: 'blob' });
+    }
   }
 
-  uploadFile(file: File): ResourceRef<string | undefined> {
-    return rxResource<string, [File]>({
-      request: () => [file],
-      loader: ([file]) => {
-          return this.http.post<string>(`${this.apiUrl}/`, {file});
-        }
-      }
-    );
+  // TODO: Do switch statement here
+  
+  uploadFile(formData: FormData, type?: string): Observable<{ id: string }> {
+    let headers = new HttpHeaders().set('Content-Type', 'multipart/form-data');
+    
+    switch (type)
+    {
+      case "card-face":
+        return this.http.post<{id: string}>(`${this.apiUrl}/card-face`, formData);
+      default:
+        return this.http.post<{id: string}>(`${this.apiUrl}`, formData/*, {headers}*/);
+    }
   }
 
+  /*
   deleteFile(fileId: number): ResourceRef<void | undefined> {
     return rxResource<void, [number]>({
       request: () => [fileId],
@@ -41,5 +47,5 @@ export class FileUploadApiService {
         }
       }
     );
-  }
+  }*/
 }

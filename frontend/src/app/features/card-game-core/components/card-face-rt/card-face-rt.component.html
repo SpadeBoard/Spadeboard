@@ -1,6 +1,6 @@
 <!-- TODO: Pass in ngStyle, grab the DndPosition too and set the style.px.left and style.px.top -->
 <div
-    [style.position]="'absolute'"
+    [style.position]="'html.attrs.style.position'"
     [style.width.px]="html.attrs.style.width"
     [style.height.px]="html.attrs.style.height"
     [style.left.px]="html.attrs.dndPosition.x ?? 0"
@@ -12,6 +12,11 @@
 <!--FIXME: Left and top not working
 The position: static property prevents left from having an effect.
 Try setting position to something other than static.
+-->
+
+<!-- 
+ANGULAR EDITOR -> Store to database -> Take information
+
 -->
 
 <!--FIXED: 

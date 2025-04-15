@@ -9,7 +9,7 @@ export interface Card {
     cardId: number;
     frontCardFaceId: number
     backCardFaceId: number
-    ownerId?: string // temp
+    ownerId?: string //  TODO: To be removed
     isFlipped: boolean,
     dndItem?: DndItem,  // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
     style?: Style, // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
@@ -19,16 +19,13 @@ export interface Card {
 export interface CardDto {
     card: Partial<Card>;
     frontCardFace?: Partial<CardFace>;
-    frontCardFaceStyle?: Partial<Style>;
     frontCardFaceElements?: Array<Partial<CardFaceElement>>;
     frontCardFaceElementsDto?: Array<Partial<CardFaceElementDto>>;
-    frontCardFaceElementStyles?: Array<Partial<Style>>;
 
     backCardFace?: Partial<CardFace>;
-    backCardFaceStyle?: Partial<Style>;
-    backCardFaceElements?: Array<Partial<CardFaceElement>>
+    backCardFaceElements?: Array<Partial<CardFaceElement>>;
     backCardFaceElementsDto?: Array<Partial<CardFaceElementDto>>
-    backCardFaceElementStyles?: Array<Partial<Style>>;
 
     dndItem?: Partial<DndItem>;
+    ownerId?: string;
 }

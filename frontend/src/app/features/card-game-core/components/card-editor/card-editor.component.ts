@@ -33,6 +33,10 @@ import { CardApiService } from '../../services/card-api.service';
 import { CardFaceApiService } from '../../services/card-face-api.service';
 import { CardFaceElementApiService } from '../../services/card-face-element-api.service';
 import { DndItem } from '../../../drag-and-drop/models/dnd-item';
+import html2canvas from 'html2canvas';
+import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
+import { getCrypto } from '../../../drag-and-drop/utils/crypto.utils';
+import { EMPTY, forkJoin, from, Observable, ObservedValueOf, pipe, switchMap, tap } from 'rxjs';
 
 // TODO: Resizable card face, have arrows for dragging, make sure there's a max width/height for that card face
 @Component({
@@ -50,13 +54,23 @@ export class CardEditorComponent implements AfterViewInit {
   private cardApiService = inject(CardApiService);
   private cardFaceApiService = inject(CardFaceApiService);
   private cardFaceElementApiService = inject(CardFaceElementApiService);
+  private fileUploadApiService = inject(FileUploadApiService);
 
   /*private fileUploadComponent = inject(FileUploadComponent);
   private domSanitizer = inject(DomSanitizer);*/
 
   @ViewChild('cardEditorFace') cardEditorFaceRef!: ElementRef;
   @ViewChild('cardFaceElement') cardFaceElementRef!: ElementRef;
-  private _cardFaceElementId: number = -1;
+  
+  /*
+  @ViewChild('frontCardFaceRef') frontCardFaceRef!: ElementRef;
+  @ViewChild('backCardFaceRef') backCardFaceRef!: ElementRef;
+  
+  @ViewChild('frontCardFaceCanvas') frontCardFaceCanvas!: ElementRef;
+  @ViewChild('backCardFaceCanvas') backCardFaceCanvas!: ElementRef;
+  */
+  
+  private currentCardFaceElementId: number = -1;
   private _cdr = inject(ChangeDetectorRef);
 
   onCardFaceModifyBtnText: string = "Create";
@@ -182,6 +196,7 @@ export class CardEditorComponent implements AfterViewInit {
       styleId: 0,
       aspectRatio: "63/88",
     },
+    cardFaceThumbnailFilePath: ''
   }
 
   // TODO: Use the CardFaceElementApiService in the constructor then, if it's a valid card face ID
@@ -202,9 +217,10 @@ export class CardEditorComponent implements AfterViewInit {
       cardId: 0,
       frontCardFaceId: 0,
       backCardFaceId: -1,
-      ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
+      ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a', // TODO: Remove and fix the backend
       isFlipped: false,
     },
+    ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
     frontCardFace: {
       cardFaceId: 0,
       style: {
@@ -213,7 +229,8 @@ export class CardEditorComponent implements AfterViewInit {
         height: '100', //Modify
         zIndex: 'inherit',
         border: '2px dotted rgb(204, 204, 204)'
-      }
+      },
+      cardFaceThumbnailFilePath: ''
     }, // FIXME: Update the element via finding the card face element ID
     frontCardFaceElementsDto: [
       {
@@ -289,11 +306,9 @@ export class CardEditorComponent implements AfterViewInit {
         height: '100', //Modify
         zIndex: 'inherit',
         border: '2px dotted rgb(204, 204, 204)'
-      }
+      },
+      cardFaceThumbnailFilePath: ''
     },
-    backCardFaceElements: [
-
-    ],
     backCardFaceElementsDto: [
 
     ]
@@ -667,8 +682,9 @@ export class CardEditorComponent implements AfterViewInit {
     this.onCardFaceModifyBtnText = this.cardDto.card !== undefined && this.cardDto.card.cardId !== undefined && this.cardDto.card.cardId > 0 ? 'Save' : 'Create';
   }
 
+  // TODO: Modify this for if there's more than 2 card faces
   setCurrentCardFace(frontCardFaceId: number): void {
-    if (this.currentCardFace?.cardFaceId == frontCardFaceId) {
+    if (!this.cardDto.card.isFlipped) {
       this.currentCardFace = this.cardDto.frontCardFace;
     }
     else
@@ -677,27 +693,36 @@ export class CardEditorComponent implements AfterViewInit {
     }
   }
 
+  updateCard(): void {
+    this.cardApiService.updateCard(
+      this.cardDto).subscribe((result: Card | CardDto | void | undefined) => {
+        console.log(`On update card: ${(result) ? JSON.stringify(result) : result}`);
+
+        // FIXME: Updating shouldn't be returning anything
+        if (isCardDto(result)) {
+          this.cardDto = result;
+
+          if (this.cardDto.frontCardFace?.cardFaceId === undefined)
+            return;
+          
+          this.setCurrentCardFace(this.cardDto.frontCardFace?.cardFaceId);
+          this.setCurrentCardFaceElementsDto();
+        }
+      });
+  }
+
   // TODO: CREATE OR UPDATE DEPENDING ON FACTOR
   onCardFaceModify(event: Event): void {
     if (this.cardDto === undefined || this.cardDto.card === undefined)
       return;
 
+    // TODO: Have a preview image for the face that's not being looked at, that will be where the canvases will be stored and draw from
+    // TODO: Check to make sure that the card faces remain the same, if they don't remain the same, then continue on
+
+    // TODO: If the card was blank and updated, then create a new card, get the card ID to determine what to do
     if (this.cardDto.card.cardId !== undefined && this.cardDto.card.cardId > 0) {
-      this.cardApiService.updateCard(
-        this.cardDto).subscribe((result: Card | CardDto | void | undefined) => {
-          console.log(`On update card: ${(result) ? JSON.stringify(result) : result}`);
-
-          // FIXME: Updating shouldn't be returning anything
-          if (isCardDto(result)) {
-            this.cardDto = result;
-
-            if (this.cardDto.frontCardFace?.cardFaceId === undefined)
-              return;
-            
-            this.setCurrentCardFace(this.cardDto.frontCardFace?.cardFaceId);
-            this.setCurrentCardFaceElementsDto();
-          }
-        });
+      this.updateCard();
+      return;
     }
 
     console.log("Create or save");
@@ -712,29 +737,7 @@ export class CardEditorComponent implements AfterViewInit {
       return;
     }
 
-    let cardDtoOmitPks: CardDto = this.omitCardDtoPks(this.cardDto);
-
-    this.cardApiService.createCard(this.cardDto
-        /*cardDtoOmitPks*/).subscribe((result: Card | CardDto | undefined) => {
-      console.log(`On create card: ${(result) ? JSON.stringify(result) : result}`);
-
-      if (isCardDto(result)) {
-        this.cardDto = result;
-
-        console.log(`Card Dto after create: ${JSON.stringify(this.cardDto)}`);
-        
-        // FIXED: Need to call this to update the current card face elements DTO
-
-        if (this.currentCardFace?.cardFaceId === undefined)
-          return;
-
-        this.setCurrentCardFace(this.currentCardFace?.cardFaceId);
-        this.setCurrentCardFaceElementsDto();
-
-        this.setOnCardFaceModifyBtnText();
-        console.log(`Card face modify button text: ${this.onCardFaceModifyBtnText}`);
-      }
-    });
+    this.createCard();
   }
 
   // FIXME: How to omit the IDs in frontCardFaceElementsDto and backCardFaceElementsDto
@@ -743,24 +746,6 @@ export class CardEditorComponent implements AfterViewInit {
       card: cardDto.card as Partial<Omit<Card, 'cardId'>>,
       frontCardFace: cardDto.frontCardFace as Partial<Omit<CardFace, 'cardFaceId'>>,
       backCardFace: cardDto.backCardFace as Partial<Omit<CardFace, 'cardFaceId'>>,
-      frontCardFaceStyle: cardDto.frontCardFaceStyle as Partial<Omit<Style, 'styleId'>>,
-      backCardFaceStyle: cardDto.backCardFaceStyle as Partial<Omit<Style, 'styleId'>>,
-      frontCardFaceElements: cardDto.frontCardFaceElements?.map(element => {
-        let { cardFaceElementId, ...rest } = element as CardFaceElement;
-        return rest;
-      }) as Array<Partial<Omit<CardFaceElement, 'cardFaceElementId'>>>,
-      frontCardFaceElementStyles: cardDto.frontCardFaceElementStyles?.map(style => {
-        let { styleId, ...rest } = style as Style;
-        return rest;
-      }) as Array<Partial<Omit<Style, 'styleId'>>>,
-      backCardFaceElements: cardDto.backCardFaceElements?.map(element => {
-        let { cardFaceElementId, ...rest } = element as CardFaceElement;
-        return rest;
-      }) as Array<Partial<Omit<CardFaceElement, 'cardFaceElementId'>>>,
-      backCardFaceElementStyles: cardDto.backCardFaceElementStyles?.map(style => {
-        let { styleId, ...rest } = style as Style;
-        return rest;
-      }) as Array<Partial<Omit<Style, 'styleId'>>>,
       dndItem: cardDto.dndItem as Partial<Omit<DndItem, 'dndItemId'>>
     }
   }
@@ -773,8 +758,8 @@ export class CardEditorComponent implements AfterViewInit {
       return;
 
     // FIXME: This is not right
-    this._cardFaceElementId = cardFaceElementId;
-    let cardFaceElementDto: CardFaceElementDto | null = this.getCardFaceElementDto(this.currentCardFaceElementsDto, this._cardFaceElementId);
+    this.currentCardFaceElementId = cardFaceElementId;
+    let cardFaceElementDto: CardFaceElementDto | null = this.getCardFaceElementDto(this.currentCardFaceElementsDto, this.currentCardFaceElementId);
 
     if (!cardFaceElementDto)
       return;
@@ -787,10 +772,11 @@ export class CardEditorComponent implements AfterViewInit {
 
     this.isCurrentPopupMenuOpen = true;
 
-    if (cardFaceElementId)
-      this._cardFaceElementId = cardFaceElementId;
-    
     let cardFaceElementDto: CardFaceElementDto | null = this.getCardFaceElementDto(this.currentCardFaceElementsDto, cardFaceElementId);
+
+    // FIXED: Wasn't able to modify the first image before
+    if (cardFaceElementDto)
+      this.currentCardFaceElementId = cardFaceElementDto.cardFaceElement.cardFaceElementId;
 
     this.popupMenuInputs.cardFaceImageAttr = {
       cardFaceImage: {
@@ -806,7 +792,7 @@ export class CardEditorComponent implements AfterViewInit {
     };
 
     // FIXME: Current card face element ID is -1, pass into the app-card-face-image as part of input then pass it back up?
-    console.log(`On open image editor current card face element ID: ${this._cardFaceElementId}`);
+    console.log(`On open image editor current card face element ID: ${this.currentCardFaceElementId}`);
   }
 
   onCloseImageEditor(showImageEditor: boolean) {
@@ -816,32 +802,15 @@ export class CardEditorComponent implements AfterViewInit {
   // Wait, why store the blob? Wouldn't it change everytime?
   setCardFaceImageElementSrc(croppedImage: string): void {
     alert(`${croppedImage}`);
-    // TODO: Find the image being edited, then get that and set the source
-
-    // TEMP
-
-    /*
-    ngx-image-cropper.mjs:1314 Error: Invalid image type
-    at LoadImageService.checkImageTypeAndLoadImageFromArrayBuffer (ngx-image-cropper.mjs:967:29)
-    at LoadImageService.<anonymous> (ngx-image-cropper.mjs:961:25)
-    at Generator.next (<anonymous>)
-    at fulfilled (chunk-EIJ3YIEK.js?v=2627aefe:36:24)
-    at _ZoneDelegate.invoke (zone.js:369:28)
-    at Object.onInvoke (core.mjs:6525:25)
-    at _ZoneDelegate.invoke (zone.js:368:34)
-    at ZoneImpl.run (zone.js:111:43)
-    at zone.js:2538:40
-    at _ZoneDelegate.invokeTask (zone.js:402:33)
-    */
 
     console.log(this.cardFaceElementRef.nativeElement.attributes);
     // Need to keep track of what item's being modified
 
     // FIXME: Why is this not being set
-    console.log('Card face image element index: ', this._cardFaceElementId);
+    console.log('Card face image element index: ', this.currentCardFaceElementId);
 
     // https://stackoverflow.com/questions/51019467/convert-blob-to-image-url-and-use-in-image-src-to-display-image
-    let cardFaceElementDto: CardFaceElementDto | null = this.getCardFaceElementDto(this.currentCardFaceElementsDto, this._cardFaceElementId);
+    let cardFaceElementDto: CardFaceElementDto | null = this.getCardFaceElementDto(this.currentCardFaceElementsDto, this.currentCardFaceElementId);
 
     if (!cardFaceElementDto)
       return;
@@ -887,10 +856,10 @@ export class CardEditorComponent implements AfterViewInit {
     console.log(`RTE HTML content: ${htmlContent}`)
     this.isCurrentPopupMenuOpen = false;
 
-    console.log('Current element index: ', this._cardFaceElementId);
+    console.log('Current element index: ', this.currentCardFaceElementId);
 
     // https://stackoverflow.com/questions/51019467/convert-blob-to-image-url-and-use-in-image-src-to-display-image
-    let cardFaceElementDto: CardFaceElementDto | null = this.getCardFaceElementDto(this.currentCardFaceElementsDto, this._cardFaceElementId);
+    let cardFaceElementDto: CardFaceElementDto | null = this.getCardFaceElementDto(this.currentCardFaceElementsDto, this.currentCardFaceElementId);
 
     console.log('Card face element: ', JSON.stringify(cardFaceElementDto));
 
@@ -1024,13 +993,6 @@ Now 1 rem will be equal to 10 px
       // TODO: Make a new cardFaceElementDto, not cardFaceElement
       switch (event.item.data) {
         case 'rte':
-          /*cardFaceElement = {
-            cardFaceElementId: this.currentCardFaceElements.length,
-            cardFaceId: this.currentCardFace.cardFaceId as number,
-            cardFaceElementContent: '',
-            cardFaceElementType: 'rte'
-          };*/
-
           cardFaceElementDto = {
             cardFaceElement: {
               cardFaceElementId: this.currentCardFaceElementsDto.length,
@@ -1055,13 +1017,6 @@ Now 1 rem will be equal to 10 px
           };
           break;
         case 'image':
-          /*cardFaceElement = {
-            cardFaceElementId: this.currentCardFaceElements.length,
-            cardFaceId: this.currentCardFace.cardFaceId as number,
-            cardFaceElementContent: 'https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg',
-            cardFaceElementType: 'image'
-          };*/
-
           cardFaceElementDto = {
             cardFaceElement: {
               cardFaceElementId: this.currentCardFaceElementsDto.length,
@@ -1095,4 +1050,116 @@ Now 1 rem will be equal to 10 px
       console.log("Added new component: ", JSON.stringify(this.currentCardFaceElementsDto));
     }
   }
+
+  // TODO: Actually determine whether you should be able to have more than two sides to a card, then use this to loop through and actually add them
+  // That means modifying it so that you don't forkJoin from the flattenCardFaceImage function but rather the uploading files function, map through those, create observables
+  // Take an image everytime you flip the card and assign it to this
+  cardFaceImages: FormData[] = [
+
+  ];
+
+ // TODO: Use from to convert promise to observable, then chain it using pipe to use with uploading files
+  flattenCardFaceToImage(/*cardFace: CardFace | Partial<CardFace>*/): Promise<FormData> {
+    return new Promise((resolve, reject) => {
+      // TODO: Pass in the ref and scale as parameters
+      html2canvas(this.cardEditorFaceRef.nativeElement, {
+        scale: 0.45
+      })
+        .then((canvas: any) => {
+          canvas.toBlob((blob: Blob | null) => {
+            if (!blob /*|| cardFace === undefined || cardFace?.cardFaceThumbnailFilePath === undefined*/) {
+              reject(new Error('Canvas blob is null'));
+              return;
+            }
+
+            let formData = new FormData();
+
+            // let compatibleCrypto = getCrypto();
+
+            // TODO: Replace the card face ID in the backend, replace via matching Regex of anything less than 1
+            // let cardFaceFileName: string = `${cardFace.cardFaceId}-${compatibleCrypto.randomUUID()}.jpg`;
+
+            formData.append('formFile', blob);
+            // console.log(cardFaceFileName);
+            console.log(`Form data: ${JSON.stringify(formData.values)}`);
+
+            resolve(formData);
+          }, 'image/jpg', 0.8);
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
+  }
+
+  // CHECKME: Does this actually work
+  createCard(): void {
+    if (this.currentCardFace !== undefined) {
+      // Wrap the promise in an observable if needed
+      let cardFaceFormDataObservable: Observable<ObservedValueOf<Promise<FormData>>> = from(this.flattenCardFaceToImage());
+  
+      forkJoin({
+        frontFormData: this.flattenCardFaceToImage(),
+        backFormData: this.flattenCardFaceToImage()
+      })
+      .pipe(
+        switchMap(({ frontFormData, backFormData }) => {
+          if (!frontFormData || !backFormData) {
+            console.error('Error: Missing form data');
+            throw new Error('Form data for front or back is missing');
+          }
+  
+          // Now returning the next observable (the file upload requests)
+          return forkJoin({
+            frontCardFaceThumbnailFileName: this.fileUploadApiService.uploadFile(frontFormData, 'card-face'),
+            backCardFaceThumbnailFileName: this.fileUploadApiService.uploadFile(backFormData, 'card-face')
+          });
+        }), // Take what's emitted then passes in
+        switchMap((uploadFileResult) => {
+          console.log('Upload results:', uploadFileResult);
+  
+          if (this.cardDto.frontCardFace === undefined || this.cardDto.backCardFace === undefined) {
+            console.error('Missing card faces');
+            return EMPTY;
+          }
+  
+          // Proceed with the card creation API call
+          this.cardDto.frontCardFace.cardFaceThumbnailFilePath = uploadFileResult.frontCardFaceThumbnailFileName.id;
+          this.cardDto.backCardFace.cardFaceThumbnailFilePath = uploadFileResult.backCardFaceThumbnailFileName.id;
+  
+          return this.cardApiService.createCard(this.cardDto); // Returns Observable<any>
+        })
+      )
+      .subscribe({
+        next: (createResult: CardDto | Card | undefined) => {
+          console.log('Card successfully created:', createResult);
+          if (isCardDto(createResult)) {
+            this.cardDto = createResult;
+            this.setOnCardFaceModifyBtnText();
+
+            if (this.cardDto.frontCardFace?.cardFaceId === undefined)
+              return;
+
+            this.setCurrentCardFace(this.cardDto.frontCardFace?.cardFaceId);
+            this.setCurrentCardFaceElementsDto();
+          }
+        },
+        error: (err) => {
+          console.error('Something went wrong:', err);
+        }
+      });
+    }
+  }
+
+    // https://stackblitz.com/edit/angular-html2canvas-example-xfgxcv?file=src%2Fapp%2Fapp.component.ts
+        // https://prasanthj.com/javascript/convet-div-to-image-in-angular/
+        // https://stackblitz.com/edit/angular-html2canvas-example?file=src%2Fapp%2Fapp.component.ts
+
+        // https://stackoverflow.com/questions/9664474/convert-blob-string-to-jpg-file/9664621
+        
+        // TODO: Upload the file in the backend, then replacing the cardFaceThumbnailFilePath to that file path
+
+        // document.body.appendChild(canvas);
+
+  // https://stackoverflow.com/questions/76188415/vue3-vite-module-has-been-externalized
 }

@@ -19,5 +19,8 @@ namespace Models.Cards
         public int? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style { get; set; }
+
+        // 'card-thumbnail-images/[card-id]_[card-face-id]_image.jpg'
+        public string? CardFaceThumbnailFilePath {get; set;}
     }
 }

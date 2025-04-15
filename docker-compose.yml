@@ -40,7 +40,8 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - spadeboard_card_image_data:/app/backend/card-images
+      - card-face-thumbnail-image-data:/app/backend/card-face-thumbnail-images
+      - card-face-elements-image-data:/app/backend/card-face-elements-images
     networks:
       - client-side
       - server-side
@@ -88,7 +89,8 @@ services:
 volumes:
   db-data: {}
   node_modules: {}
-  spadeboard_card_image_data: {}
+  card-face-thumbnail-image-data: {}
+  card-face-elements-image-data: {}
 
 networks:
   client-side: {}

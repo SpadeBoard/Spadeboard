@@ -7,7 +7,9 @@ namespace Services
         Task UpdateCardFaceDtoAsync(CardFace cardFace);
         Task DeleteCardFaceDtoAsync(CardFace cardFace);
 
-        Task<CardFace> GetCardFaceDtoAsync(int cardFaceId);
+        Task<CardFace> GetCardFaceNavAsync(int cardFaceId);
+
+        Task CreateCardFaceNavAsync(CardFace cardFace);
     
         bool Exists(int id);
     }

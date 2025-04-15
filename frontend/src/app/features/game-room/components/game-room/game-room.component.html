@@ -2,23 +2,19 @@
     <nav class="game-room-nav">
         <button>Settings</button>
         <button (click)="onCardEditor($event)">Card editor</button>
-        <button (click)="onCards($event)">Cards collection</button>
+        <button (click)="onCardsCollection($event)">Cards collection</button>
         <button>Save</button>
     </nav>
 
-    <!--<div *ngIf="isCardsMenuOpen" class="cards-menu" [class.open]="isCardsMenuOpen" cdkDropList #cardsMenu>!-->
-    <div [hidden]="!isCardsMenuOpen" class="cards-menu" [class.open]="isCardsMenuOpen" cdkDropList #cardsMenu>
-        <!--Cards menu should open and be wide, do a for loop of cards and set them in here-->
-        <!-- TODO: Do we want to pass in the card or the cardDto-->
-        <!-- The configured tracking expression (track by identity) caused re-creation of the entire collection of size 2. This is an expensive operation requiring destruction and subsequent creation of DOM nodes, directives, components etc. Please review the "track expression" and make sure that it uniquely identifies items in a collection. Find more at -->
+    <!--
+    <div [hidden]="!isCardsCollectionMenuOpen" class="cards-menu" [class.open]="isCardsCollectionMenuOpen" cdkDropList #cardsMenu>
         @for (card of cards; track card) {
-            <!--FIXME: DOM updates, then ngAfterViewChecked gets called, so how would cardsMenuDimensions be passed in-->
             <app-card  
-                [parentDimensionsInput]="cardsMenuDimensions"
                 [card]="card"
             />
         }
-    </div>
+    </div>-->
+    <app-cards-collection [isCardsCollectionMenuOpenInput]="isCardsCollectionMenuOpen"></app-cards-collection>
 
     @if (isCardEditorOpen) {
         <div class = "game-room-editor">

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
+using System.Net.Sockets;
 
 namespace Services
 {
@@ -14,6 +15,18 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
+        public async Task CreateCardFaceNavAsync(CardFace cardFace){
+            if (cardFace.Style != null) {
+                _context.Style.Add(cardFace.Style);
+                await _context.SaveChangesAsync();
+                cardFace.StyleId = cardFace.Style.StyleId;
+            }
+
+            cardFace.CardFaceId = 0;
+            _context.CardFace.Add(cardFace);
+            await _context.SaveChangesAsync();
+        }
+        
         public async Task DeleteCardFaceDtoAsync(CardFace cardFace)
         {
             _context.CardFace.Remove(cardFace);
@@ -28,13 +41,24 @@ namespace Services
 
         public async Task UpdateCardFaceDtoAsync(CardFace cardFace)
         {
-            _context.Entry(cardFace).State = EntityState.Modified;
-
-            if (cardFace.Style != null) 
-                _context.Entry(cardFace.Style).State = EntityState.Modified;
-
-            try
+            if (cardFace.Style != null)
             {
+                _context.Entry(cardFace.Style).State = EntityState.Modified;
+                // await _context.SaveChangesAsync();
+            }
+
+            _context.Entry(cardFace).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            /*try
+            {
+                if (cardFace.Style != null)
+                {
+                    _context.Entry(cardFace.Style).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+
+                _context.Entry(cardFace).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -47,7 +71,7 @@ namespace Services
                 {
                     throw;
                 }
-            }
+            }*/
         }
 
         public bool Exists(int id)
@@ -56,7 +80,7 @@ namespace Services
         }
 
         // FIXME: Card face doesn't have a Card ID
-        public async Task<CardFace> GetCardFaceDtoAsync(int cardFaceId)
+        public async Task<CardFace> GetCardFaceNavAsync(int cardFaceId)
         {
             try
             {
@@ -80,5 +104,16 @@ namespace Services
                 throw;
             }
         }
+
+        /*
+        // Example Blob data (byte array)
+        byte[] blobData = new byte[] { 0x25, 0x50, 0x44, 0x46 }; // Represents a PDF file header
+
+        // Specify the output file path
+        string filePath = @"D:\output.pdf";
+
+        // Convert and save Blob data as a file
+        ConvertBlobToFile(blobData, filePath);
+        */
     }
 }

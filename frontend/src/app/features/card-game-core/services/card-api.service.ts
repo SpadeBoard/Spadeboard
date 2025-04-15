@@ -75,12 +75,21 @@ export class CardApiService {
   // Omit<Partial<Class>>:
   // If you apply Omit after Partial, you'll make all properties optional first, and then remove the specified properties.
 
+  // TODO: Go into the owner function in backend, then use the service to grab all the cards associated with that owner ID then return those
   getCards(ownerId?: string): Observable<Card[] | undefined> {
     if (ownerId !== undefined) {
       return this.http.get<Card[]>(`${this.apiUrl}/owner/${ownerId}`);
     }
 
     return this.http.get<Card[]>(this.apiUrl);
+  }
+
+  getCard(cardId: number, ownerId?: string): Observable<Card | undefined> {
+    if (ownerId !== undefined) {
+      return this.http.get<Card>(`${this.apiUrl}/owner/${ownerId}/${cardId}`);
+    }
+
+    return this.http.get<Card>(this.apiUrl);
   }
 
   // TODO: Rewrite the post, update, and delete functions for everything
@@ -99,13 +108,6 @@ export class CardApiService {
     // TODO: Refactor and make this check a function on its own
     if (cardDto.frontCardFace !== undefined 
       && cardDto.backCardFace !== undefined
-      // && cardDto.frontCardFaceStyle !== undefined
-      // && cardDto.frontCardFaceElements !== undefined
-      // && cardDto.frontCardFaceElementStyles !== undefined
-      // && cardDto.backCardFaceStyle !== undefined
-      // && cardDto.backCardFaceElements !== undefined)
-      // && cardDto.backCardFaceElementStyles !== undefined
-      // && cardDto.dndItem !== undefined
       ){
       // FIXED:
       /*
@@ -124,19 +126,14 @@ export class CardApiService {
       Of course it's because you write the wrong url
       */
 
-      return this.http.post<CardDto>(`${this.apiUrl}/dto`, {
+      return this.http.post<CardDto>(`${this.apiUrl}/dto`, cardDto /*{
         card: cardDto.card, 
         frontCardFace: cardDto.frontCardFace, 
-        // frontCardFaceStyle: cardDto.frontCardFaceStyle,
-        frontCardFaceElements: cardDto.frontCardFaceElements,
         frontCardFaceElementsDto: cardDto.frontCardFaceElementsDto,
-        // frontCardFaceElementStyles: cardDto.frontCardFaceElementStyles, 
         backCardFace: cardDto.backCardFace, 
-        // backCardFaceStyle: cardDto.backCardFaceStyle,
-        backCardFaceElements: cardDto.backCardFaceElements,
         backCardFaceElementsDto: cardDto.backCardFaceElementsDto,
-        // backCardFaceElementStyles: cardDto.backCardFaceElementStyles
-      });
+        ownerId: cardDto.ownerId
+      }*/);
     }
 
     /*if (ownerId !== undefined) {
@@ -151,23 +148,16 @@ export class CardApiService {
   updateCard(cardDto: CardDto): Observable<Card | CardDto | void | undefined> {
     if (cardDto.frontCardFace !== undefined
       && cardDto.backCardFace !== undefined
-      // && cardDto.frontCardFaceStyle !== undefined
-      // && cardDto.frontCardFaceElements !== undefined
-      // && cardDto.frontCardFaceElementStyles !== undefined
-      // && cardDto.backCardFaceStyle !== undefined
-      // && cardDto.backCardFaceElements !== undefined)
-      // && cardDto.backCardFaceElementStyles !== undefined
-      // && cardDto.dndItem !== undefined
     ) {
-      return this.http.put<CardDto>(`${this.apiUrl}/dto/${cardDto.card.cardId}`, {
+      return this.http.put<CardDto>(`${this.apiUrl}/dto/${cardDto.card.cardId}`, cardDto /*{
         card: cardDto.card,
         frontCardFace: cardDto.frontCardFace,
-        // frontCardFaceElements: cardDto.frontCardFaceElements,
         frontCardFaceElementsDto: cardDto.frontCardFaceElementsDto,
         backCardFace: cardDto.backCardFace,
-        // backCardFaceElements: cardDto.backCardFaceElements,
-        backCardFaceElementsDto: cardDto.backCardFaceElementsDto
-      });
+        backCardFaceElementsDto: cardDto.backCardFaceElementsDto,
+        ownerId: cardDto.ownerId
+        // CHECKME: Do we need to update the owner ID too? But it's not gonna change
+      }*/);
     }
     
     return this.http.put<void>(`${this.apiUrl}/${cardDto.card.cardId}`, cardDto.card);

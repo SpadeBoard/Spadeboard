@@ -43,7 +43,7 @@ namespace backend.Controllers
         [HttpGet("dto/{id}")]
         public async Task<ActionResult<CardFace>> GetCardFaceDto(int id)
         {
-            var cardFace = await _cardFaceService.GetCardFaceDtoAsync(id);
+            var cardFace = await _cardFaceService.GetCardFaceNavAsync(id);
 
             if (cardFace == null)
             {

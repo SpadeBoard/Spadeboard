@@ -34,18 +34,3 @@
     flex-grow: 1;
     margin: 5%;
 }
-
-.cards-menu {
-    left: -20%; /* Position it off-screen initially */
-    width: 20%;
-    height: 100%;
-    background-color: rgba(198, 255, 250, 0.9);
-    transition: right 0.5s ease; /* Smooth transition for opening */
-    gap: 1rem;
-    justify-content: center;
-    display: flex; /*FIXME: Prevents menu from being closable but has to be this to have gap and flex*/
-}
-
-.cards-menu.open {
-    left: 0%; /* When open, it should slide next to the game-room-nav */
-}
