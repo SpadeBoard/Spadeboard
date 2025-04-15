@@ -3,6 +3,7 @@ import { Card } from '../../models/card';
 import { CardApiService } from '../../services/card-api.service';
 import { CardComponent } from '../card/card.component';
 import { CdkDrag, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
+import { catchError, map, Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-cards-collection',
@@ -28,7 +29,8 @@ export class CardsCollectionComponent {
       if (this.isCardsCollectionMenuOpenInput() !== undefined) {
         this.isCardsCollectionMenuOpen = this.isCardsCollectionMenuOpenInput();
 
-        this.populateCardsCollection();
+        if (this.isCardsCollectionMenuOpen)
+          this.populateCardsCollection();
       }
     });
   }
@@ -45,21 +47,22 @@ export class CardsCollectionComponent {
     });
   }
 
+  // https://v17.angular.io/guide/observables
   // ASSUMPTION: Checks to see if there needs to be a new card added to the menu
-  doesUserHaveMoreCards(): boolean {
-    let userHasMoreCards: boolean = false;
-    this.cardApiService.getCards(
-      // ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'undefined'. Current value: '{"width":85,"height":853}'. Expression location: _GameRoomComponent component.
-      this.userId).subscribe((result: Card[] | undefined) => {
-        if (result !== undefined && result.length > this.cards.length)
-        {
-          userHasMoreCards = true;
-          return;
-        }
-    });
-
-    return userHasMoreCards;
+  doesUserHaveMoreCards(): Observable<boolean> {
+    return this.cardApiService.getCards(this.userId).pipe(
+      map((result: Card[] | undefined) => {
+        return result !== undefined && result.length > this.cards.length;
+      }),
+      catchError((err: any) => {
+        console.error('Does user have more cards emitted an error: ' + err);
+        return of(false);
+      })
+    );
   }
+
+  // https://rxjs.dev/api/operators/catchError
+  // https://angular.dev/guide/templates/pipes
 
   getLatestCard(id: number): void {
     this.cardApiService.getCard(
@@ -86,10 +89,10 @@ export class CardsCollectionComponent {
     }
 
     // ASSUMPTION: Arrays here start at 0 but Postgres starts with 1
-    if (this.doesUserHaveMoreCards() == true) {
-      this.getLatestCard(this.cards.length);
-
-      return;
-    }
+    this.doesUserHaveMoreCards().subscribe((userHasMore: boolean) => {
+      if (userHasMore) {
+        this.getLatestCard(this.cards.length);
+      }
+    });
   }
 }

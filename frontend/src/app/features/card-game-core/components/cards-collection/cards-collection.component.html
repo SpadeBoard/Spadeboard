@@ -11,8 +11,8 @@
     <!--TODO: Implement caching for the images !-->
     @for (card of cards; track card) {
         <!--TODO: Wrap the draggable out of there-->
-        <app-card  
-            [card]="card"
-        />
+        <div cdkDrag>
+            <app-card [card]="card"/>
+        </div>
     }
 </div>
