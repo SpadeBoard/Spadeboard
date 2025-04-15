@@ -36,10 +36,18 @@ namespace Services
             return cards;
         }
 
+        // TODO: Probably fix this considering you can have multiple cards with multiple owners, might actually need a surrogate key instead of composite
+        // Or something else, maybe the game room?
         public async Task<CardPerOwner?> GetCardPerOwnerByCardIdAsync(int cardId)
         {
             return await _context.CardPerOwner
                 .FirstOrDefaultAsync(cpo => cpo.CardId == cardId);
+        }
+
+        public async Task<CardPerOwner?> GetCardPerOwnerByCardIdAndOwnerIdAsync(int cardId, string ownerId)
+        {
+            return await _context.CardPerOwner
+                .FirstOrDefaultAsync(cpo => cpo.CardId == cardId && cpo.OwnerId == ownerId);
         }
 
         public async Task<CardPerOwner> CreateCardPerOwnerAsync(CardPerOwner cpo)

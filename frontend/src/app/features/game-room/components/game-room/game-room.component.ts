@@ -8,6 +8,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { CdkDrag, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
 import { CardApiService } from '../../../card-game-core/services/card-api.service';
 import { CardComponent } from '../../../card-game-core/components/card/card.component';
+import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
 
 @Component({
   selector: 'app-game-room',
@@ -15,7 +16,7 @@ import { CardComponent } from '../../../card-game-core/components/card/card.comp
     CardEditorComponent, /*DndCardBoardComponent,*/ CommonModule,
     CdkDrag, CdkDragHandle, DragDropModule,
     NgOptimizedImage,
-    CardComponent
+    CardComponent, CardsCollectionComponent
   ],
   templateUrl: './game-room.component.html',
   styleUrl: './game-room.component.css'
@@ -37,7 +38,7 @@ export class GameRoomComponent implements AfterViewChecked{
   }
 
   isCardEditorOpen: boolean = false;
-  isCardsMenuOpen: boolean = false;
+  isCardsCollectionMenuOpen: boolean = false;
 
   private cardApiService = inject(CardApiService);
 
@@ -142,52 +143,15 @@ export class GameRoomComponent implements AfterViewChecked{
   }
 
   // TODO: Use the DndCardBoardService to grab the cards, and put them all in a droplist, and make sure to have an exit drag
-  onCards(event: Event) {
+  onCardsCollection(event: Event) {
     // FIXME: This will never update, like you can add new cards so this will never run except initially
-    /*
-    game-room.component.ts:79 ERROR TypeError: Cannot read properties of undefined (reading 'cardFace')
-    at _CardComponent.setCardStyle (card.component.ts:114:89)
-    at _CardComponent.ngOnInit (card.component.ts:77:10)
-    at callHookInternal (core.mjs:4195:10)
-    at callHook (core.mjs:4219:7)
-    at callHooks (core.mjs:4179:9)
-    at executeInitAndCheckHooks (core.mjs:4134:5)
-    at refreshView (core.mjs:14336:11)
-    at detectChangesInView (core.mjs:14531:5)
-    at detectChangesInViewIfAttached (core.mjs:14493:3)
-    at detectChangesInEmbeddedViews (core.mjs:14453:7)
-    */
-    if (this.cards.length <= 0) {
-      this.getCards();
-      console.log(`On cards: ${JSON.stringify(this.cards)}`);
-    }
 
-    this.isCardsMenuOpen = !this.isCardsMenuOpen;
-    console.log(`Open the cards menu so you can drag from card to board`);
+    // TODO: Make a component for the cards menu, and what we wanna do
+    // is if the amount of cards is less than the amount of cards in the database for this user
+    // We'd then grab that new card at that index, and then add it onto the cards
+    this.isCardsCollectionMenuOpen = !this.isCardsCollectionMenuOpen;
 
-    if (this.isCardsMenuOpen)
-      this.shouldUpdateDimensions = true;
-    // Let the DOM update
-    /*setTimeout(() => {
-      let rect = this.getCardsMenuClientRect();
-
-      if (this.isCardsMenuOpen
-        && rect.width > 0
-        && rect.height > 0) {
-        // FIXME: Why 0, 0
-        // https://stackoverflow.com/a/57146762
-        console.log('Size after view init:', rect.width, rect.height);
-
-
-        let width: string = `${rect.width}px`;
-        let height: string = `${rect.height}px`;
-
-        // FIXME: Why 0,0
-        this.cardsMenuDimensions = {
-          width: rect.width,
-          height: rect.height
-        };
-      }
-    }, 0);*/
+    /*if (this.isCardsCollectionMenuOpen)
+      this.shouldUpdateDimensions = true;*/
   }
 }

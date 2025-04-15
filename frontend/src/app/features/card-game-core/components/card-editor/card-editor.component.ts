@@ -1063,7 +1063,7 @@ Now 1 rem will be equal to 10 px
     return new Promise((resolve, reject) => {
       // TODO: Pass in the ref and scale as parameters
       html2canvas(this.cardEditorFaceRef.nativeElement, {
-        scale: 0.40
+        scale: 0.45
       })
         .then((canvas: any) => {
           canvas.toBlob((blob: Blob | null) => {

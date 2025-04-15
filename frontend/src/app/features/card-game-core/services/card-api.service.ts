@@ -84,6 +84,14 @@ export class CardApiService {
     return this.http.get<Card[]>(this.apiUrl);
   }
 
+  getCard(cardId: number, ownerId?: string): Observable<Card | undefined> {
+    if (ownerId !== undefined) {
+      return this.http.get<Card>(`${this.apiUrl}/owner/${ownerId}/${cardId}`);
+    }
+
+    return this.http.get<Card>(this.apiUrl);
+  }
+
   // TODO: Rewrite the post, update, and delete functions for everything
   // Because it's considered generally unsafe to use rxResource with them
   // Problem is they might be necessary since/if we're using signals

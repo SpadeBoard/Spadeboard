@@ -54,7 +54,8 @@ export class CardFaceComponent {
     if (!this.cardFace.cardFaceThumbnailFilePath) {
       return Promise.resolve(undefined);
     }
-  
+
+    // https://www.learnrxjs.io/learn-rxjs/operators/filtering/takeuntil
     return new Promise((resolve) => {
       this.fileUploadApiService.getFile(
         this.cardFace.cardFaceThumbnailFilePath as string,

@@ -133,6 +133,26 @@ namespace backend.Controllers
             return cards;
         }
 
+        [HttpGet("owner/{ownerId}/{cardId}")]
+        public async Task<ActionResult<Card>> GetCardByOwner(string ownerId, int cardId)
+        {
+            var cpo = await _cardPerOwnerService.GetCardPerOwnerByCardIdAndOwnerIdAsync(cardId, ownerId);
+
+            if (cpo == null)
+            {
+                return NotFound();
+            }
+
+            var card = await _cardService.GetCardAsync(cpo.CardId);
+
+            if (card == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(card);
+        }
+
         // PUT: api/Cards/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
