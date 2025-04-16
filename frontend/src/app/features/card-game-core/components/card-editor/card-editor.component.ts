@@ -205,19 +205,12 @@ export class CardEditorComponent implements AfterViewInit {
   // TODO: Have extended interfaces instead actually use what they're extending as a property
   // TODO: Grab the width and height of the faces and set them for the cardDto
 
-  // FIXME: Property 'dndItem' does not exist on type 'CardFaceElement'.
-  /*
-  src/app/features/card-game-core/components/card-editor/card-editor.component.html:35:60:
-      35 │ ...yle.left.px]="currentCardFaceElement.dndItem?.dndPosition?.x ?? 0"
-  */
-
   // FIXME: Reset this everytime you open the card editor via the button on the side
   cardDto: CardDto = {
     card: {
       cardId: 0,
       frontCardFaceId: 0,
       backCardFaceId: -1,
-      ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a', // TODO: Remove and fix the backend
       isFlipped: false,
     },
     ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
@@ -962,12 +955,6 @@ Now 1 rem will be equal to 10 px
         console.log(`onCreateDragDropped current card face is undefined`);
         return;
       }
-
-      /*let cardFaceElement: CardFaceElement = {
-        cardFaceElementId: 0,
-        cardFaceId: 0,
-        cardFaceElementContent: ''
-      };*/
 
       // TODO: Use this, separate out the items
       let cardFaceElementDto: CardFaceElementDto = {

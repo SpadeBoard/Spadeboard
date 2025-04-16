@@ -4,14 +4,12 @@ using Models.Cards;
 
 namespace Services
 {
-    public interface ICardPerOwnerService
+    public interface ICardPerOwnerService: ICrud<CardPerOwner>
     {
         public Task<CardPerOwner?> GetCardPerOwnerByCardIdAndOwnerIdAsync(int cardId, string ownerId);
 
         public Task<CardPerOwner?> GetCardPerOwnerByCardIdAsync(int cardId);
 
-        public Task<IEnumerable<Card>> GetCardsPerOwnerAsync(string ownerId);
-
-        public Task<CardPerOwner> CreateCardPerOwnerAsync(CardPerOwner cpo);
+        public Task<IEnumerable<Card>> GetCardsNavByOwnerIdAsync(string ownerId);
     }
 }

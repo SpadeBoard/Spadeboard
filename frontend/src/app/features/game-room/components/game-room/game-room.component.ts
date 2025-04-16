@@ -9,6 +9,7 @@ import { CdkDrag, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
 import { CardApiService } from '../../../card-game-core/services/card-api.service';
 import { CardComponent } from '../../../card-game-core/components/card/card.component';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
+import { DndBoardComponent } from '../../../card-game-core/components/dnd-board/dnd-board.component';
 
 @Component({
   selector: 'app-game-room',
@@ -16,7 +17,8 @@ import { CardsCollectionComponent } from '../../../card-game-core/components/car
     CardEditorComponent, /*DndBoardComponent,*/ CommonModule,
     CdkDrag, CdkDragHandle, DragDropModule,
     NgOptimizedImage,
-    CardComponent, CardsCollectionComponent
+    CardComponent, CardsCollectionComponent,
+    DndBoardComponent
   ],
   templateUrl: './game-room.component.html',
   styleUrl: './game-room.component.css'

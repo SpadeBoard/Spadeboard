@@ -86,19 +86,7 @@ namespace Models.Cards
         [ForeignKey("BackCardFaceId")]
         public virtual CardFace? BackCardFace { get; set; }
 
-        // TODO: Specify it's a foreign key
-        // FIXME: Do we need a foreign key to this, or should it be made dynamically in frontend
-       /* [Required] // Makes this property mandatory
-        public int DndItemId {get; set;}
-        [ForeignKey("DndItemId")]
-        public virtual DndItem? DndItem { get; set; }*/
-
         [Required]
         public bool IsFlipped {get;set;}
-
-        // Owner ID
-        /*public string? OwnerId {get; set;}
-        [ForeignKey("OwnerId")]
-        public virtual IdentityUser? Owner {get; set;}*/
     }
 }

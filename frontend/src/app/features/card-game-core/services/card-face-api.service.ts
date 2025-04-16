@@ -1,7 +1,5 @@
 import { inject, Injectable, ResourceLoaderParams, ResourceRef } from '@angular/core';
 import { CardFace } from '../models/card-face';
-import { CardFaceElement } from '../models/card-face-element';
-import { rxResource } from '@angular/core/rxjs-interop';
 
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';

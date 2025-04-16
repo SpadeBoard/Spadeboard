@@ -16,43 +16,46 @@ namespace Services
         private readonly ApplicationDbContext _context = context;
         private readonly IDndItemService _dndItemService = dndItemService;
 
-        public async Task<IEnumerable<CardFaceElement>> GetCardFaceElementsByCardFaceIdAsync(int cardFaceId)
+        public async Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(int cardFaceId)
         {
             return await _context.CardFaceElement
                 .Where(element => element.CardFaceId == cardFaceId)
                 .ToListAsync();
         }
 
-        public async Task CreateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto, CardFace cardFace)
+        public async Task CreateAllDtoAsync(CardFaceElementDto[] cardFaceElementsDto, CardFace cardFace)
         {
             foreach (CardFaceElementDto cardFaceElementDto in cardFaceElementsDto) {
-                await CreateCardFaceElementDtoAsync(cardFaceElementDto, cardFace);
+                cardFaceElementDto.CardFaceElement.CardFace = cardFace;
+                await CreateDtoAsync(cardFaceElementDto);
             }
         }
 
-        public async Task CreateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto, CardFace cardFace)
+        public async Task CreateDtoAsync(CardFaceElementDto cardFaceElementDto)
         {
-            await CreateCardFaceElementNavAsync(cardFaceElementDto.CardFaceElement, cardFace);
+            await CreateNavAsync(cardFaceElementDto.CardFaceElement);
 
             await _dndItemService.CreateCardFaceElementPerCardFaceAsync(cardFaceElementDto);
         }
 
-        public async Task CreateCardFaceElementsNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace)
+        public async Task CreateAllNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace)
         {
             foreach (CardFaceElement e in cardFaceElements)
             {
-                await CreateCardFaceElementNavAsync(e, cardFace);
+                e.CardFace = cardFace;
+
+                await CreateNavAsync(e);
             }
         }
-        public async Task UpdateCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements)
+        public async Task UpdateAllNavAsync(CardFaceElement[] cardFaceElements)
         {
             foreach (CardFaceElement cardFaceElement in cardFaceElements)
             {
-                await UpdateCardFaceElementNavAsync(cardFaceElement);
+                await UpdateNavAsync(cardFaceElement);
             }
         }
 
-        public async Task UpdateCardFaceElementNavAsync(CardFaceElement cardFaceElement)
+        public async Task UpdateNavAsync(CardFaceElement cardFaceElement)
         {
             _context.Entry(cardFaceElement).State = EntityState.Modified;
         
@@ -76,15 +79,15 @@ namespace Services
             }
         }
 
-        public async Task UpdateCardFaceElementsDtoAsync(CardFaceElementDto[] cardFaceElementsDto)
+        public async Task UpdateAllDtoAsync(CardFaceElementDto[] cardFaceElementsDto)
         {
             foreach (CardFaceElementDto cardFaceElementDto in cardFaceElementsDto)
             {
-                await UpdateCardFaceElementDtoAsync(cardFaceElementDto);
+                await UpdateDtoAsync(cardFaceElementDto);
             }
         }
 
-        public async Task UpdateCardFaceElementDtoAsync(CardFaceElementDto cardFaceElementDto)
+        public async Task UpdateDtoAsync(CardFaceElementDto cardFaceElementDto)
         {
             if (cardFaceElementDto.CardFaceElement.Style != null)
             {
@@ -107,9 +110,8 @@ namespace Services
             }
 
             context.Entry(cardFaceElementDto.CardFaceElement).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
 
-            /*try
+            try
             {
                 await _context.SaveChangesAsync();
             }
@@ -123,29 +125,76 @@ namespace Services
                 {
                     throw;
                 }
-            }*/
+            }
         }
 
-        // TODO: Refactor, split this into DeleteCardFaceElementNavAsync and nest that in here
-        public async Task DeleteCardFaceElementsNavAsync(CardFaceElement[] cardFaceElements) 
+        // TODO: Refactor, split this into DeleteNavAsync and nest that in here
+        public async Task DeleteAllNavAsync(CardFaceElement[] cardFaceElements) 
         {
             foreach (CardFaceElement cardFaceElement in cardFaceElements)
             {
                 CardFaceElement elementToDelete = cardFaceElement;
-                await DeleteCardFaceElementNavAsync(elementToDelete);
+                await DeleteNavAsync(elementToDelete);
             }
         }
 
-        public async Task DeleteCardFaceElementNavAsync(CardFaceElement cardFaceElement) 
+        public async Task<bool> DeleteNavAsync(CardFaceElement cardFaceElement) 
         {
             _context.CardFaceElement.Remove(cardFaceElement);
-            await _context.SaveChangesAsync();
 
             if (cardFaceElement.Style != null)
             {
                 _context.Style.Remove(cardFaceElement.Style);
-                await _context.SaveChangesAsync();
             }
+
+            int changes =  await _context.SaveChangesAsync();
+
+            return changes > 0;
+        }
+
+        public async Task CreateAsync(CardFaceElement item)
+        {
+            _context.CardFaceElement.Add(item);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> UpdateAsync(int id, CardFaceElement item)
+        {
+            if (id != item.CardFaceElementId)
+                return false;
+
+            _context.Entry(item).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!Exists(id))
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var cardFaceElement = await GetAsync(id);
+            if (cardFaceElement == null)
+            {
+                return false;
+            }
+
+            _context.CardFaceElement.Remove(cardFaceElement);
+            int changes =  await _context.SaveChangesAsync();
+
+            return changes > 0;
         }
 
         public bool Exists(int id)
@@ -153,86 +202,57 @@ namespace Services
             return _context.CardFaceElement.Any(e => e.CardFaceElementId == id);
         }
 
-        public async Task<IEnumerable<CardFaceElement>> GetCardFaceElementsNavAsync()
+        public async Task<IEnumerable<CardFaceElement>> GetAllNavAsync()
         {
-            var cardFaceElements = await _context.CardFaceElement.ToListAsync() ?? throw new NotImplementedException();
+            var cardFaceElements = await _context.CardFaceElement
+                .Include(element => element.CardFace)
+                .Include(element => element.Style)
+                .ToListAsync();
 
-            // Create a new list to hold updated elements
-            var CardFaceElementsNav = new List<CardFaceElement>();
-
-            foreach (var cardFaceElement in cardFaceElements)
-            {
-                var e = await GetCardFaceElementNavAsync(cardFaceElement.CardFaceElementId);
-
-                if (e != null)
-                {
-                   CardFaceElementsNav.Add(e); // Add the updated element to the new list
-                }
-            }
-
-            return CardFaceElementsNav;
+            return cardFaceElements;
         }
 
-        public async Task<IEnumerable<CardFaceElement>> GetCardFaceElementsNavByCardFaceId(int cardFaceId)
+        public async Task<IEnumerable<CardFaceElement>> GetAllNavByCardFaceId(int cardFaceId)
         {
             var cardFaceElements = await _context.CardFaceElement
                 .Where(element => element.CardFaceId == cardFaceId)
+                .Include(element => element.CardFace)
+                .Include(element => element.Style)
                 .ToListAsync();
 
-            var CardFaceElementsNav = new List<CardFaceElement>();
-
-            foreach (var cardFaceElement in cardFaceElements)
-            {
-                var e = await GetCardFaceElementNavAsync(cardFaceElement.CardFaceElementId);
-
-                if (e != null)
-                {
-                   CardFaceElementsNav.Add(e); // Add the updated element to the new list
-                }
-            }
-
-            return CardFaceElementsNav;
+            return cardFaceElements;
         }
 
-        public async Task<CardFaceElement?> GetCardFaceElementAsync(int cardFaceElementId)
+        public async Task<CardFaceElement?> GetAsync(int id)
         {
-            return await _context.CardFaceElement.FindAsync(cardFaceElementId);
+            return await _context.CardFaceElement.FindAsync(id);
         }
 
-        public async Task<IEnumerable<CardFaceElement>> GetCardFaceElementsAsync()
+        public async Task<IEnumerable<CardFaceElement>> GetAllAsync()
         {
             return await _context.CardFaceElement.ToListAsync();
         }
 
         // FIXME: So this works with the other CardFaceElementDto function
-        public async Task<CardFaceElement> GetCardFaceElementNavAsync(int cardFaceElementId)
+        public async Task<CardFaceElement?> GetNavAsync(int id)
         {
-            var cardFaceElement = await _context.CardFaceElement.FindAsync(cardFaceElementId);
+            var cardFaceElement = await _context.CardFaceElement
+                .Include(cardFaceElement => cardFaceElement.Style)
+                .Include(cardFaceElement => cardFaceElement.CardFace)
+                .FirstOrDefaultAsync(cardFaceElement => cardFaceElement.CardFaceElementId == id);
             
-            if (cardFaceElement == null) {
-                throw new NotImplementedException();
-            }
-
-            if (cardFaceElement.StyleId != null) {
-                var style = await _context.Style.FindAsync(cardFaceElement.StyleId);
-
-                if (style != null) {
-                    cardFaceElement.Style = style;
-                }
-            }
-
             return cardFaceElement;
         }
 
-        public async Task<IEnumerable<CardFaceElementDto>> GetCardFaceElementsDtoByCardFaceIdAsync(int cardFaceId) 
+        public async Task<IEnumerable<CardFaceElementDto>> GetAllDtoByCardFaceIdAsync(int cardFaceId) 
         {
-            var cardFaceElements = await GetCardFaceElementsNavByCardFaceId(cardFaceId) ?? throw new Exception();
+            var cardFaceElements = await GetAllNavByCardFaceId(cardFaceId) ?? throw new Exception();
             var cardFaceElementsDto = new List<CardFaceElementDto>();
 
             foreach (CardFaceElement cardFaceElement in cardFaceElements) 
             {   
                 // Object reference not set to an instance of an object.
-                var cardFaceElementDto  = await GetCardFaceElementDtoAsync(cardFaceElement.CardFaceElementId, cardFaceId);
+                var cardFaceElementDto  = await GetDtoAsync(cardFaceElement.CardFaceElementId, cardFaceId);
             
                 if (cardFaceElementDto != null) {
                     cardFaceElementsDto.Add(cardFaceElementDto);
@@ -243,7 +263,7 @@ namespace Services
         }
 
         // TODO: Pass in the card face ID
-        public async Task<CardFaceElementDto?> GetCardFaceElementDtoAsync(int cardFaceElementId, int cardFaceId)
+        public async Task<CardFaceElementDto?> GetDtoAsync(int cardFaceElementId, int cardFaceId)
         {
             var cardFaceElementPerCardFaceAsync = await _dndItemService.GetCardFaceElementPerCardFaceByCardFaceIdAsync(cardFaceElementId, cardFaceId);
             if (cardFaceElementPerCardFaceAsync == null)
@@ -251,7 +271,7 @@ namespace Services
                 return null;
             }
 
-            var cardFaceElement = await GetCardFaceElementNavAsync(cardFaceElementPerCardFaceAsync.CardFaceElementId);
+            var cardFaceElement = await GetNavAsync(cardFaceElementPerCardFaceAsync.CardFaceElementId);
             if (cardFaceElement == null)
             {
                 return null;
@@ -272,17 +292,22 @@ namespace Services
             return cardFaceElementDto;
         }
 
-        public async Task CreateCardFaceElementNavAsync(CardFaceElement cardFaceElement, CardFace cardFace)
+        public async Task CreateNavAsync(CardFaceElement cardFaceElement)
         {
             if (cardFaceElement.Style != null)
             {
-                // ASSUMPTION: No need to set ID to 0 because it's already set to 0
+                cardFaceElement.Style.StyleId = 0;
                 await _context.Style.AddAsync(cardFaceElement.Style);
             }
 
-            // FIXED: Temporary to bypass the ID set in frontend issue
+            // TODO: Refactor the thing so that 1 card face element can be on multiple faces
+            /*if (cardFaceElement.CardFace != null)
+            {
+                cardFaceElement.CardFace.CardFaceId = 0;
+                await _context.CardFace.AddAsync(cardFaceElement.CardFace);
+            }*/
+
             cardFaceElement.CardFaceElementId = 0;
-            cardFaceElement.CardFace = cardFace;
             await _context.CardFaceElement.AddAsync(cardFaceElement);
         }
     }

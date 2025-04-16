@@ -17,7 +17,7 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardsController(ApplicationDbContext context, ICardService cardService, ICardFaceService cardFaceService, ICardPerOwnerService cardPerOwnerService, ICardFaceElementService cardFaceElementService) : ControllerBase
+    public class CardsController(ApplicationDbContext context, ICardDtoService cardDtoService, ICardService cardService, ICardFaceService cardFaceService, ICardPerOwnerService cardPerOwnerService, ICardFaceElementService cardFaceElementService) : ControllerBase
     {
         private readonly ApplicationDbContext _context = context;
 
@@ -29,18 +29,26 @@ namespace backend.Controllers
 
         private readonly ICardFaceElementService _cardFaceElementService = cardFaceElementService;
 
+        private readonly ICardDtoService _cardDtoService = cardDtoService;
         // GET: api/Cards
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Card>>> GetCard()
         {
-            return await _context.Card.ToListAsync();
+            var cards = await _cardService.GetAllAsync();
+
+            if (cards == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cards);
         }
 
         // GET: api/Cards/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Card>> GetCard(int id)
         {
-            var card = await _cardService.GetCardAsync(id);
+            var card = await _cardService.GetAsync(id);
 
             if (card == null)
             {
@@ -54,76 +62,20 @@ namespace backend.Controllers
         [HttpGet("dto/{id}")]
         public async Task<ActionResult<CardDto>> GetCardDto(int id)
         {
-            Card? card = await _context.Card
-                .Include(c => c.FrontCardFace)
-                .Include(c => c.BackCardFace)
-                .FirstOrDefaultAsync(c => c.CardId == id);
+            var cardDto = await _cardDtoService.GetDtoAsync(id);
 
-            
-            if (card == null)
+            if (cardDto == null)
             {
                 return NotFound();
             }
 
-            CardDto cardDto = new()
-            {
-                Card = card
-            };
-            
-            CardFace? frontCardFace = await _cardFaceService.GetCardFaceNavAsync(card.FrontCardFaceId);
-            CardFace? backCardFace = await _cardFaceService.GetCardFaceNavAsync(card.BackCardFaceId);
-            
-            if (frontCardFace == null && backCardFace == null)
-            {
-                return NotFound();
-            }
-
-            if (frontCardFace != null)
-                cardDto.FrontCardFace = frontCardFace;
-
-            if (backCardFace != null)
-                cardDto.BackCardFace = backCardFace;
-
-            // TODO: Replace with getting the elements DTO
-            /*var frontCardFaceElements = await _cardFaceElementService.GetCardFaceElementsByCardFaceIdAsync(card.FrontCardFaceId);
-            var backCardFaceElements = await _cardFaceElementService.GetCardFaceElementsByCardFaceIdAsync(card.BackCardFaceId);
-
-            if (frontCardFaceElements != null) {
-                cardDto.FrontCardFaceElements = frontCardFaceElements.ToArray<CardFaceElement>();
-            }
-
-            if (backCardFaceElements != null) {
-                cardDto.BackCardFaceElements = backCardFaceElements.ToArray<CardFaceElement>();
-            }*/
-
-            // TODO: Remove between these two TODOs
-            // Object reference not set to an instance of an object.
-            var frontCardFaceElementsDto = await _cardFaceElementService.GetCardFaceElementsDtoByCardFaceIdAsync(card.FrontCardFaceId);
-            var backCardFaceElementsDto = await _cardFaceElementService.GetCardFaceElementsDtoByCardFaceIdAsync(card.BackCardFaceId);
-
-            if (frontCardFaceElementsDto != null) {
-                cardDto.FrontCardFaceElementsDto = frontCardFaceElementsDto.ToArray<CardFaceElementDto>();
-            }
-
-            if (backCardFaceElementsDto != null) {
-                cardDto.BackCardFaceElementsDto = backCardFaceElementsDto.ToArray<CardFaceElementDto>();
-            }
-
-            CardPerOwner? cpo = await _cardPerOwnerService.GetCardPerOwnerByCardIdAsync(cardDto.Card.CardId);
-
-            if (cpo != null) 
-            {
-                cardDto.OwnerId = cpo.OwnerId;
-            } 
-            
-            // FIXME: Grab the styling for the card face elements as well as card faces
             return cardDto;
         }
 
         [HttpGet("owner/{ownerId}")]
         public async Task<ActionResult<IEnumerable<Card>>> GetCardsByOwner(string ownerId)
         {
-            var cards = (await _cardPerOwnerService.GetCardsPerOwnerAsync(ownerId)).ToList();
+            var cards = (await _cardPerOwnerService.GetCardsNavByOwnerIdAsync(ownerId)).ToList();
 
             if (cards == null)
             {
@@ -143,7 +95,7 @@ namespace backend.Controllers
                 return NotFound();
             }
 
-            var card = await _cardService.GetCardAsync(cpo.CardId);
+            var card = await _cardService.GetAsync(cpo.CardId);
 
             if (card == null)
             {
@@ -158,30 +110,16 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCard(int id, Card card)
         {
+            var result = await _cardService.UpdateAsync(id, card);
+
+            if (result == true)
+                return NoContent();
+
+            // Could be either bad request or not found, you may want to distinguish these
             if (id != card.CardId)
-            {
                 return BadRequest();
-            }
 
-            _context.Entry(card).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CardExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return NotFound();
         }
 
         // Is problem being that it's updating the card again?
@@ -279,22 +217,22 @@ namespace backend.Controllers
 
                 if (cardDto.FrontCardFace != null) 
                 {
-                    await _cardFaceService.UpdateCardFaceDtoAsync(cardDto.FrontCardFace);
+                    await _cardFaceService.UpdateNavAsync(cardDto.FrontCardFace);
                 }
 
                 if (cardDto.BackCardFace != null) 
                 {
-                    await _cardFaceService.UpdateCardFaceDtoAsync(cardDto.BackCardFace);
+                    await _cardFaceService.UpdateNavAsync(cardDto.BackCardFace);
                 }
 
                 if (cardDto.FrontCardFaceElementsDto != null)
                 {
-                    await _cardFaceElementService.UpdateCardFaceElementsDtoAsync(cardDto.FrontCardFaceElementsDto);
+                    await _cardFaceElementService.UpdateAllDtoAsync(cardDto.FrontCardFaceElementsDto);
                 }
 
                 if (cardDto.BackCardFaceElementsDto != null)
                 {
-                    await _cardFaceElementService.UpdateCardFaceElementsDtoAsync(cardDto.BackCardFaceElementsDto);
+                    await _cardFaceElementService.UpdateAllDtoAsync(cardDto.BackCardFaceElementsDto);
                 }
 
                 await transaction.CommitAsync();
@@ -326,9 +264,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Card>> PostCard(Card card)
         {
-            _context.Card.Add(card);
-            await _context.SaveChangesAsync();
-
+            await _cardService.CreateAsync(card);
             return CreatedAtAction("GetCard", new { id = card.CardId }, card);
         }
 
@@ -336,12 +272,6 @@ namespace backend.Controllers
         // Function overriding
 
         // https://stackoverflow.com/questions/53854416/error-action-has-more-than-one-parameter-bound-from-request-body
-        /*
-        Unhandled exception. 
-        System.InvalidOperationException: Action 'backend.Controllers.CardsController.PostCard (backend)' has more than one parameter that was specified or inferred as bound from request body. 
-        Only one parameter per action may be bound from body. Inspect the following parameters, and use 'FromQueryAttribute' to specify bound from query, 
-        'FromRouteAttribute' to specify bound from route, and 'FromBodyAttribute' for parameters to be bound from body:
-        */
 
         // https://learn.microsoft.com/en-us/aspnet/core/mvc/models/model-binding?view=aspnetcore-9.0
         // https://learn.microsoft.com/en-us/aspnet/web-api/overview/data/using-web-api-with-entity-framework/part-5
@@ -356,84 +286,18 @@ namespace backend.Controllers
                 // FIXME: Can add styling and card face even though card already exists, so what we want to do is check the model state?
                 // https://learn.microsoft.com/en-us/ef/core/saving/transactions
                 // Might have to use transactions to control this
-                await _cardFaceService.CreateCardFaceNavAsync(cardDto.FrontCardFace);
-                await _cardFaceService.CreateCardFaceNavAsync(cardDto.BackCardFace);
+                await _cardFaceService.CreateNavAsync(cardDto.FrontCardFace);
+                await _cardFaceService.CreateNavAsync(cardDto.BackCardFace);
                 
-                // TODO: Modify this, this is temporary
-                /*if (cardDto.FrontCardFace.Style != null)
-                {
-                    _context.Style.Add(cardDto.FrontCardFace.Style);
-
-                    await _context.SaveChangesAsync();
-
-                    int frontCardFaceStyleId = cardDto.FrontCardFace.Style.StyleId;
-
-                    // FIXME: Temporary styling
-                    // cardDto.FrontCardFace.StyleId = frontCardFaceStyleId;
-                    // cardDto.FrontCardFace.Style = cardDto.FrontCardFaceStyle;
-                }
-
-                if (cardDto.BackCardFace.Style != null)
-                {
-                    _context.Style.Add(cardDto.BackCardFace.Style);
-
-                    await _context.SaveChangesAsync();
-
-                    int backCardFaceStyleId = cardDto.BackCardFace.Style.StyleId;
-
-                    // FIXME: Temporary styling
-                    // cardDto.BackCardFace.StyleId =  backCardFaceStyleId;
-                    // cardDto.BackCardFace.Style = cardDto.BackCardFaceStyle;
-                }
-
-                if (cardDto.FrontCardFace.Style != null && cardDto.BackCardFace.Style != null)
-                    Console.WriteLine(String.Format("Front card face style ID: {0}, back card face style ID: {1}\nFront card face sttyle FK: {2}, back card face style FK: {3}", cardDto.FrontCardFace.Style.StyleId, cardDto.BackCardFace.Style.StyleId, cardDto.FrontCardFace.StyleId, cardDto.BackCardFace.StyleId));
-
-
-                // FIXED: Making sure the front card face ID and back card face ID generate IDs, only works with 0
-                // Probably a band-aid solution but oh well
-                cardDto.FrontCardFace.CardFaceId = 0;
-                cardDto.BackCardFace.CardFaceId = 0;
-
-                // TODO: Actually make this into a different function, call that instead, also call the file service as well and save it
-
-                // CHECKME: It actually saves the front card face first
-                _context.CardFace.Add(cardDto.FrontCardFace);
-                _context.CardFace.Add(cardDto.BackCardFace);
-
-                await _context.SaveChangesAsync();*/
-
-                // https://stackoverflow.com/a/41146434
-                // It is pretty easy. If you are using DB generated Ids (like IDENTITY in MS SQL) you just need to add entity to ObjectSet and SaveChanges on related ObjectContext. Id will be automatically filled for you:
-                // CHECKME: Actually works with Postgres
-
-                int frontCardFaceId = cardDto.FrontCardFace.CardFaceId;
-                int backCardFaceId = cardDto.BackCardFace.CardFaceId;
-
-                // TODO: Modify this to also add the DND items, gotta use that service, pass in CardFaceElementsDto
-                /*if (cardDto.FrontCardFaceElements != null)
-                    await _cardFaceElementService.CreateCardFaceElementsNavCardFaceAsync(cardDto.FrontCardFaceElements, cardDto.FrontCardFace);
-
-                if (cardDto.BackCardFaceElements != null)
-                    await _cardFaceElementService.CreateCardFaceElementsNavCardFaceAsync(cardDto.BackCardFaceElements, cardDto.BackCardFace);
-
-                if (cardDto.FrontCardFaceElements != null || cardDto.BackCardFaceElements != null)
-                    await _context.SaveChangesAsync();*/
-
-                // TODO: Remove between these two TODOs
-                // TODO: For the elements DTO, create them
-                // FIXME: Not adding correct, why is that
                 if (cardDto.FrontCardFaceElementsDto != null)
-                    await _cardFaceElementService.CreateCardFaceElementsDtoAsync(cardDto.FrontCardFaceElementsDto, cardDto.FrontCardFace);
+                    await _cardFaceElementService.CreateAllDtoAsync(cardDto.FrontCardFaceElementsDto, cardDto.FrontCardFace);
 
                 if (cardDto.BackCardFaceElementsDto != null)
-                    await _cardFaceElementService.CreateCardFaceElementsDtoAsync(cardDto.BackCardFaceElementsDto, cardDto.BackCardFace);
+                    await _cardFaceElementService.CreateAllDtoAsync(cardDto.BackCardFaceElementsDto, cardDto.BackCardFace);
 
                 if (cardDto.FrontCardFaceElementsDto != null || cardDto.BackCardFaceElementsDto != null)
                     await _context.SaveChangesAsync();
 
-                // TODO: Log the elements DTO, why are they done
-                // FIXME: None
                 Console.WriteLine("Card Face Elements Created - Front: {0}, Back: {1}",
                     cardDto.FrontCardFaceElementsDto != null 
                         ? JsonConvert.SerializeObject(cardDto.FrontCardFaceElementsDto, Formatting.Indented) 
@@ -441,30 +305,20 @@ namespace backend.Controllers
                     cardDto.BackCardFaceElementsDto != null 
                         ? JsonConvert.SerializeObject(cardDto.BackCardFaceElementsDto, Formatting.Indented) 
                         : "none");
-                /*
-                MessageText: insert or update on table "Cards" violates foreign key constraint "FK_Cards_CardFaces_BackCardFaceId"
-                Detail: Key (BackCardFaceId)=(-1) is not present in table "CardFaces".
-                SchemaName: public
-                */
-
-                cardDto.Card.FrontCardFaceId = frontCardFaceId;
-                cardDto.Card.BackCardFaceId = backCardFaceId;
-                // cardDto.Card.DndItemId = 1; // This is seeded data
 
                 cardDto.Card.FrontCardFace = cardDto.FrontCardFace;
                 cardDto.Card.BackCardFace = cardDto.BackCardFace;
 
                 Console.WriteLine(String.Format("Front card face ID: {0}, back card face ID: {1}", cardDto.FrontCardFace.CardFaceId, cardDto.BackCardFace.CardFaceId));
 
-                _context.Card.Add(cardDto.Card);
-                await _context.SaveChangesAsync();
+                await  _cardService.CreateAsync(cardDto.Card);
 
                 CardPerOwner cpo = new(){
                     Card = cardDto.Card,
                     OwnerId = cardDto.OwnerId
                 };
 
-                await _cardPerOwnerService.CreateCardPerOwnerAsync(cpo);
+                await _cardPerOwnerService.CreateAsync(cpo);
 
                 await transaction.CommitAsync();
 
@@ -511,38 +365,16 @@ namespace backend.Controllers
 
                 // TODO: Delete from cardPerOwner table
 
-                /*if (cardDto.FrontCardFace != null)
-                {
-                    Console.WriteLine(String.Format("Front card face ID (delete): {0}", cardDto.FrontCardFace.CardFaceId));
-                    var cardFaceElements = await _cardFaceElementService.GetCardFaceElementsByCardFaceIdAsync(cardDto.FrontCardFace.CardFaceId);
-
-                    if (cardFaceElements != null)
-                    {
-                        await _cardFaceElementService.DeleteCardFaceElementsNavAsync(cardFaceElements.ToArray());
-                    }
-                }
-
-                if (cardDto.BackCardFace != null)
-                {
-                    Console.WriteLine(String.Format("Back card face ID (delete): {0}", cardDto.BackCardFace.CardFaceId));
-                    var cardFaceElements = await _cardFaceElementService.GetCardFaceElementsByCardFaceIdAsync(cardDto.BackCardFace.CardFaceId);
-
-                    if (cardFaceElements != null)
-                    {
-                        await _cardFaceElementService.DeleteCardFaceElementsNavAsync(cardFaceElements.ToArray());
-                    }
-                }*/
-
                 if (cardDto.FrontCardFace != null)
                 {
                     Console.WriteLine("Delete front card face");
-                    await _cardFaceService.DeleteCardFaceDtoAsync(cardDto.FrontCardFace);
+                    await _cardFaceService.DeleteNavAsync(cardDto.FrontCardFace);
                 }
 
                 if (cardDto.BackCardFace != null)
                 {
                     Console.WriteLine("Delete back card face");
-                    await _cardFaceService.DeleteCardFaceDtoAsync(cardDto.BackCardFace);
+                    await _cardFaceService.DeleteNavAsync(cardDto.BackCardFace);
                 }
 
                 await transaction.CommitAsync();

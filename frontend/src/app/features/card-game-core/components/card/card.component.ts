@@ -46,7 +46,6 @@ export class CardComponent {
     cardId: 0,
     frontCardFaceId: 0,
     backCardFaceId: 0,
-    ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
     isFlipped: false,
     dndItem: {
       dndItemId: 0,
@@ -139,6 +138,7 @@ export class CardComponent {
   // Don't use style service, dynamically create the styling here
   cardFaces: Signal<readonly CardFaceComponent[]> = viewChildren(CardFaceComponent);
 
+  // TODO: Replace this
   flip(): boolean {
     this.card().isFlipped = !this.card().isFlipped;
     this.cardChange.emit(this.card());

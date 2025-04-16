@@ -40,7 +40,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 builder.Services.AddScoped<ICardService, CardService>();
+builder.Services.AddScoped<ICardDtoService, CardDtoService>();
 builder.Services.AddScoped<ICardPerOwnerService, CardPerOwnerService>();
+builder.Services.AddScoped<ICardPositionPerRoomService, CardPositionPerRoomService>();
 builder.Services.AddScoped<ICardFaceService, CardFaceService>();
 builder.Services.AddScoped<ICardFaceElementService, CardFaceElementService>();
 builder.Services.AddScoped<IDndItemService, DndItemService>();

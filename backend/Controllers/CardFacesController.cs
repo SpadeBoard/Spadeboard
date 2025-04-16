@@ -13,24 +13,29 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardFacesController(ApplicationDbContext context, ICardFaceService cardFaceService) : ControllerBase
+    public class CardFacesController(ICardFaceService cardFaceService) : ControllerBase
     {
-        private readonly ApplicationDbContext _context = context;
-
         private readonly ICardFaceService _cardFaceService = cardFaceService;
 
         // GET: api/CardFaces
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CardFace>>> GetCardFace()
         {
-            return await _context.CardFace.ToListAsync();
+            var cardFaces = await _cardFaceService.GetAllAsync();
+
+            if (cardFaces == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cardFaces);
         }
 
         // GET: api/CardFaces/5
         [HttpGet("{id}")]
         public async Task<ActionResult<CardFace>> GetCardFace(int id)
         {
-            var cardFace = await _context.CardFace.FindAsync(id);
+            var cardFace = await _cardFaceService.GetAsync(id);
 
             if (cardFace == null)
             {
@@ -43,7 +48,7 @@ namespace backend.Controllers
         [HttpGet("dto/{id}")]
         public async Task<ActionResult<CardFace>> GetCardFaceDto(int id)
         {
-            var cardFace = await _cardFaceService.GetCardFaceNavAsync(id);
+            var cardFace = await _cardFaceService.GetNavAsync(id);
 
             if (cardFace == null)
             {
@@ -58,30 +63,16 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCardFace(int id, CardFace cardFace)
         {
+            var result = await _cardFaceService.UpdateAsync(id, cardFace);
+
+            if (result == true)
+                return NoContent();
+
+            // Could be either bad request or not found, you may want to distinguish these
             if (id != cardFace.CardFaceId)
-            {
                 return BadRequest();
-            }
 
-            _context.Entry(cardFace).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CardFaceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return NotFound();
         }
 
         // POST: api/CardFaces
@@ -89,9 +80,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<CardFace>> PostCardFace(CardFace cardFace)
         {
-            _context.CardFace.Add(cardFace);
-            await _context.SaveChangesAsync();
-
+            await _cardFaceService.CreateAsync(cardFace);
             return CreatedAtAction("GetCardFace", new { id = cardFace.CardFaceId }, cardFace);
         }
 
@@ -99,22 +88,13 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCardFace(int id)
         {
-            var cardFace = await _context.CardFace.FindAsync(id);
-            if (cardFace == null)
+            var deleted = await _cardFaceService.DeleteAsync(id);
+            if (deleted == false)
             {
                 return NotFound();
             }
 
-            _context.CardFace.Remove(cardFace);
-            await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        // TODO: Replace with the service
-        private bool CardFaceExists(int id)
-        {
-            return _context.CardFace.Any(e => e.CardFaceId == id);
         }
     }
 }

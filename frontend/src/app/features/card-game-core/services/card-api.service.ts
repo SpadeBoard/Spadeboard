@@ -109,36 +109,8 @@ export class CardApiService {
     if (cardDto.frontCardFace !== undefined 
       && cardDto.backCardFace !== undefined
       ){
-      // FIXED:
-      /*
-        {
-            "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
-            "title": "One or more validation errors occurred.",
-            "status": 400,
-            "errors": {
-                "DndItem": [
-                    "The DndItem field is required."
-                ]
-            },
-            "traceId": "00-fef42757ea5c358a966ac1890ae41229-617ebc7dabe71283-00"
-        }
-      
-      Of course it's because you write the wrong url
-      */
-
-      return this.http.post<CardDto>(`${this.apiUrl}/dto`, cardDto /*{
-        card: cardDto.card, 
-        frontCardFace: cardDto.frontCardFace, 
-        frontCardFaceElementsDto: cardDto.frontCardFaceElementsDto,
-        backCardFace: cardDto.backCardFace, 
-        backCardFaceElementsDto: cardDto.backCardFaceElementsDto,
-        ownerId: cardDto.ownerId
-      }*/);
+      return this.http.post<CardDto>(`${this.apiUrl}/dto`, cardDto);
     }
-
-    /*if (ownerId !== undefined) {
-      return this.http.post<Card>(`${this.apiCompositeUrl}/${ownerId}/`, card);
-    }*/
 
     // TODO: Separate properties
     return this.http.post<Card>(this.apiUrl, cardDto.card);
@@ -149,15 +121,8 @@ export class CardApiService {
     if (cardDto.frontCardFace !== undefined
       && cardDto.backCardFace !== undefined
     ) {
-      return this.http.put<CardDto>(`${this.apiUrl}/dto/${cardDto.card.cardId}`, cardDto /*{
-        card: cardDto.card,
-        frontCardFace: cardDto.frontCardFace,
-        frontCardFaceElementsDto: cardDto.frontCardFaceElementsDto,
-        backCardFace: cardDto.backCardFace,
-        backCardFaceElementsDto: cardDto.backCardFaceElementsDto,
-        ownerId: cardDto.ownerId
-        // CHECKME: Do we need to update the owner ID too? But it's not gonna change
-      }*/);
+      // CHECKME: Do we need to update the owner ID too? But it's not gonna change
+      return this.http.put<CardDto>(`${this.apiUrl}/dto/${cardDto.card.cardId}`, cardDto);
     }
     
     return this.http.put<void>(`${this.apiUrl}/${cardDto.card.cardId}`, cardDto.card);

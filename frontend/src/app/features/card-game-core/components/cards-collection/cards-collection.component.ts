@@ -88,10 +88,10 @@ export class CardsCollectionComponent {
       return;
     }
 
-    // ASSUMPTION: Arrays here start at 0 but Postgres starts with 1
+    // ASSUMPTION: Postgres records start from 1, so grab the length of the cards and add 1 to get correct index
     this.doesUserHaveMoreCards().subscribe((userHasMore: boolean) => {
       if (userHasMore) {
-        this.getLatestCard(this.cards.length);
+        this.getLatestCard(this.cards.length + 1);
       }
     });
   }

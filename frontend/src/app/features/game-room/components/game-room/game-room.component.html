@@ -1,32 +1,30 @@
 <div class = "game-room-layout">
-    <nav class="game-room-nav">
-        <button>Settings</button>
-        <button (click)="onCardEditor($event)">Card editor</button>
-        <button (click)="onCardsCollection($event)">Cards collection</button>
-        <button>Save</button>
-    </nav>
+    <div class ="game-room-player-layer">
+        <nav class="game-room-nav">
+            <button>Settings</button>
+            <button (click)="onCardEditor($event)">Card editor</button>
+            <button (click)="onCardsCollection($event)">Cards collection</button>
+            <button>Save</button>
+        </nav>
 
-    <!--
-    <div [hidden]="!isCardsCollectionMenuOpen" class="cards-menu" [class.open]="isCardsCollectionMenuOpen" cdkDropList #cardsMenu>
-        @for (card of cards; track card) {
-            <app-card  
-                [card]="card"
-            />
+        <app-cards-collection [isCardsCollectionMenuOpenInput]="isCardsCollectionMenuOpen"></app-cards-collection>
+
+        @if (isCardEditorOpen) {
+            <div class = "game-room-editor">
+                <app-card-editor [cardEditor]="{
+                card: card,
+                frontCardFace: frontCardFace,
+                backCardFace: backCardFace,
+                frontCardFaceElements: frontCardFaceElements,
+                backCardFaceElements: backCardFaceElements
+            }"/>
+            </div>
         }
-    </div>-->
-    <app-cards-collection [isCardsCollectionMenuOpenInput]="isCardsCollectionMenuOpen"></app-cards-collection>
+    </div>
 
-    @if (isCardEditorOpen) {
-        <div class = "game-room-editor">
-            <app-card-editor [cardEditor]="{
-            card: card,
-            frontCardFace: frontCardFace,
-            backCardFace: backCardFace,
-            frontCardFaceElements: frontCardFaceElements,
-            backCardFaceElements: backCardFaceElements
-        }"/>
-        </div>
-    }
+    <div class="dnd-board-layer">
+        <app-dnd-board/>
+    </div>
 </div>
 
 <!-- TODO: Put the board in here-->
