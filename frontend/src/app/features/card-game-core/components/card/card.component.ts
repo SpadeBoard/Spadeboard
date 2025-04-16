@@ -3,7 +3,7 @@ import { Component, Signal, viewChildren, output, input, inject, effect, compute
 import { Card } from '../../models/card';
 import { cardFlipAnimation } from './card.animations';
 
-import { DndCardBoardService } from '../../services/dnd-card-board.service';
+import { DndBoardService } from '../../services/dnd-board.service';
 import { DndContentDirective } from '../../../drag-and-drop/directives/dnd-content.directive';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 
@@ -29,7 +29,7 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 })
 export class CardComponent {
   private cardFaceApiService: CardFaceApiService = inject(CardFaceApiService);
-  private dndCardBoardService: DndCardBoardService = inject(DndCardBoardService);
+  private dndBoardService: DndBoardService = inject(DndBoardService);
   
   // TODO: If parent dimensions is larger than 0, then calculate the width and height
   parentDimensionsInput = input<{width: number, height: number} | undefined>();

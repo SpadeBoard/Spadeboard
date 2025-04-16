@@ -5,7 +5,7 @@ import { fisherYatesShuffle } from '../../utils/shuffle-algorithms.utils';
 
 import { DndContentDirective } from '../../../drag-and-drop/directives/dnd-content.directive';
 
-import { DndCardBoardService } from '../../services/dnd-card-board.service';
+import { DndBoardService } from '../../services/dnd-board.service';
 
 import { shuffleAnimation } from './deck.animations';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
@@ -73,7 +73,7 @@ export class DeckComponent {
   }
   /*********************************/
 
-  constructor (private dndCardBoardService: DndCardBoardService){
+  constructor (private dndBoardService: DndBoardService){
   }
 
   setDeckStyle(): void {

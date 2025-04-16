@@ -3,7 +3,7 @@ import { Card } from '../../../card-game-core/models/card';
 import { CardFace } from '../../../card-game-core/models/card-face';
 import { CardFaceElement } from '../../../card-game-core/models/card-face-element';
 import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
-// import { DndCardBoardComponent } from '../../../card-game-core/components/dnd-card-board/dnd-card-board.component';
+// import { DndBoardComponent } from '../../../card-game-core/components/dnd-board/dnd-board.component';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { CdkDrag, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
 import { CardApiService } from '../../../card-game-core/services/card-api.service';
@@ -13,7 +13,7 @@ import { CardsCollectionComponent } from '../../../card-game-core/components/car
 @Component({
   selector: 'app-game-room',
   imports: [
-    CardEditorComponent, /*DndCardBoardComponent,*/ CommonModule,
+    CardEditorComponent, /*DndBoardComponent,*/ CommonModule,
     CdkDrag, CdkDragHandle, DragDropModule,
     NgOptimizedImage,
     CardComponent, CardsCollectionComponent
@@ -123,8 +123,8 @@ export class GameRoomComponent implements AfterViewChecked{
     return null;
   }
 
-  // TODO: Use the CardApiService or DndCardBoardService to get the cards
-  // TODO: Refactor because DndCardBoardService already has it
+  // TODO: Use the CardApiService or DndBoardService to get the cards
+  // TODO: Refactor because DndBoardService already has it
   getCards(): void {
     this.cardApiService.getCards(
       // ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'undefined'. Current value: '{"width":85,"height":853}'. Expression location: _GameRoomComponent component.
@@ -142,7 +142,7 @@ export class GameRoomComponent implements AfterViewChecked{
     console.log(`Card editor state: ${this.isCardEditorOpen}`);
   }
 
-  // TODO: Use the DndCardBoardService to grab the cards, and put them all in a droplist, and make sure to have an exit drag
+  // TODO: Use the DndBoardService to grab the cards, and put them all in a droplist, and make sure to have an exit drag
   onCardsCollection(event: Event) {
     // FIXME: This will never update, like you can add new cards so this will never run except initially
 

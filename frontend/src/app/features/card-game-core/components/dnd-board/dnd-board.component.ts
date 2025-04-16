@@ -1,5 +1,5 @@
 import { Component, HostListener, inject, input, output } from '@angular/core';
-import { DndCardBoardService } from '../../services/dnd-card-board.service';
+import { DndBoardService } from '../../services/dnd-board.service';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { map, Subscription } from 'rxjs';
 import { Deck } from '../../models/deck';
@@ -16,20 +16,20 @@ import { CardFaceElement } from '../../models/card-face-element';
 
 // TODO: FIGURE OUT HIERARCHAL RELATIONSHIP
 /************************************************************
-app-dnd-card-board (root)          ↑ 
+app-dnd-board (root)          ↑ 
 |   app-dnd-wrapper (parent)          | 
 |                                                      |
 ↓     app-card (child)                       | signal up (card)
 
 /*************************************************************/
 @Component({
-  selector: 'app-dnd-card-board',
+  selector: 'app-dnd-board',
   imports: [],
-  templateUrl: './dnd-card-board.component.html',
-  styleUrl: './dnd-card-board.component.css'
+  templateUrl: './dnd-board.component.html',
+  styleUrl: './dnd-board.component.css'
 })
-export class DndCardBoardComponent implements DndFunctionality {
-  private dndCardBoardService: DndCardBoardService = inject(DndCardBoardService);
+export class DndBoardComponent implements DndFunctionality {
+  private dndBoardService: DndBoardService = inject(DndBoardService);
   
   getBackCardFaceElements(): CardFaceElement[] {
     throw new Error('Method not implemented.');
@@ -122,11 +122,11 @@ export class DndCardBoardComponent implements DndFunctionality {
 
   constructor() {
     // Is going to get triggered everytime adding, deleting, or updating occurs
-    this._subscription.add(this.dndCardBoardService.getItems()
+    this._subscription.add(this.dndBoardService.getItems()
     .pipe(
         map((items: (Card | Deck)[]) => items.filter((item:(Card | Deck)) =>
           isDeck(item) || 
-          (isCard(item) && this.dndCardBoardService.findDeckFromCard(item.cardId) === null)
+          (isCard(item) && this.dndBoardService.findDeckFromCard(item.cardId) === null)
         ))
       ).subscribe((filteredItems: (Card | Deck)[]) => {
         console.log('Filtered Items:', filteredItems);
@@ -144,16 +144,16 @@ export class DndCardBoardComponent implements DndFunctionality {
   ngOnInit() {}
 
   getCardsFromDeck(item: Deck): Card[] {
-    return this.dndCardBoardService.findCardsFromDeck(item, 6);
+    return this.dndBoardService.findCardsFromDeck(item, 6);
   }
 
   // CHECKME
   onCardChange(updatedCard: Card) {
-    this.dndCardBoardService.updateCard(updatedCard);
+    this.dndBoardService.updateCard(updatedCard);
   }
 
   onDeckChange(updatedDeck: Deck) {
-    this.dndCardBoardService.updateDeck(updatedDeck);
+    this.dndBoardService.updateDeck(updatedDeck);
   }
 
   onActionContextMenuItemsChange(newActionContextMenuItems: ActionContextMenuItem[]) {
@@ -162,19 +162,19 @@ export class DndCardBoardComponent implements DndFunctionality {
   }
 
   onDragMove(event: CdkDragMove<any>): void {
-    this.dndCardBoardService.onDragMove(event);
+    this.dndBoardService.onDragMove(event);
   }
 
   onDragEntered(event: CdkDragEnter<any>): void {
-    this.dndCardBoardService.onDragEntered(event);
+    this.dndBoardService.onDragEntered(event);
   }
 
   onDragExited(event: CdkDragExit<any>): void {
-    this.dndCardBoardService.onDragExited(event);
+    this.dndBoardService.onDragExited(event);
   }
 
   onDragDrop(event: CdkDragDrop<any>): void {
-    this.dndCardBoardService.onDragDrop(event);
+    this.dndBoardService.onDragDrop(event);
   }
 
   onCardEditor() {
@@ -248,7 +248,7 @@ export class DndCardBoardComponent implements DndFunctionality {
       }
     }
     
-    let decks: Deck[] | undefined = this.dndCardBoardService.findDecks();
+    let decks: Deck[] | undefined = this.dndBoardService.findDecks();
     
     if (decks === undefined)
       return null;
@@ -261,11 +261,11 @@ export class DndCardBoardComponent implements DndFunctionality {
       }
     }));
 
-    return this.dndCardBoardService.findCardsFromDeck(srcDeck);
+    return this.dndBoardService.findCardsFromDeck(srcDeck);
   }
 
   getDestinationDeckIds(currentSrcDeckId: number): number[] | null {
-    let destDecks: Deck[] | undefined = this.dndCardBoardService.findDecks();
+    let destDecks: Deck[] | undefined = this.dndBoardService.findDecks();
   
     if (destDecks === undefined)
       return null;
@@ -299,16 +299,16 @@ export class DndCardBoardComponent implements DndFunctionality {
   }
 
   handleAmtDisplaceCardsChange(srcDeckId: number, destDeckId: number, amt: number) {
-    let destDeck: Deck | Card | null = this.dndCardBoardService.findDeck(destDeckId);
-    let srcDeck: Deck | Card | null = this.dndCardBoardService.findDeck(srcDeckId);
+    let destDeck: Deck | Card | null = this.dndBoardService.findDeck(destDeckId);
+    let srcDeck: Deck | Card | null = this.dndBoardService.findDeck(srcDeckId);
     
     if (!isDeck(destDeck) || !isDeck(srcDeck))
       return;
 
-    this.dndCardBoardService.displaceCards(srcDeck, destDeck, amt);
+    this.dndBoardService.displaceCards(srcDeck, destDeck, amt);
 
-    this.dndCardBoardService.updateDeck(srcDeck);
-    this.dndCardBoardService.updateDeck(destDeck);
+    this.dndBoardService.updateDeck(srcDeck);
+    this.dndBoardService.updateDeck(destDeck);
   }
 
   ngOnDestroy() {

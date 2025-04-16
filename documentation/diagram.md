@@ -3,11 +3,11 @@
 title: Animal example
 ---
 classDiagram
-    class DndCardBoardComponent {
+    class DndBoardComponent {
         <<component>>
     }
     note for DndCardBoard "Root"
-    class DndCardBoardService {
+    class DndBoardService {
         <<injectable>>
         - _gameRoomId: number
         - _items: BehaviorSubject<(Card | Deck)[]> 
@@ -36,7 +36,7 @@ classDiagram
         + onDragEntered(event: CdkDragEnter<any>): void
         + onDragDrop(event: CdkDragDrop<any>): void
     }
-    DndCardBoardService --|> DndFunctionality
+    DndBoardService --|> DndFunctionality
     
     class DndComponent {
         <<component>>
@@ -92,11 +92,11 @@ classDiagram
     class DeckComponent {
         <<component>>
     }
-    DndCardBoardComponent --o DndCardBoardService : uses
+    DndBoardComponent --o DndBoardService : uses
 
-    note for DndCardBoardService  "Service"
-    note for DndCardBoardService  "Autoload"
-    note for DndCardBoardService  "Singleton"
+    note for DndBoardService  "Service"
+    note for DndBoardService  "Autoload"
+    note for DndBoardService  "Singleton"
 
     note for CardComponent "Parent"
     note for DndComponent "Child"

@@ -18,7 +18,7 @@ export class DndResizableContainerComponent {
   isDraggable = input<boolean>(true);
   isDroppable = input<boolean>(true);
 
-  // TODO: Use these as a translation layer to pass back up to the DndCardBoardService, pass up the model, etc.
+  // TODO: Use these as a translation layer to pass back up to the DndBoardService, pass up the model, etc.
   dragData =  output<any>();
   customDrop = output<any>();
   customDragEntered = output<any>();

@@ -34,10 +34,15 @@ interface MyInterface {
 @Injectable({
   providedIn: 'root'
 })
-export class DndCardBoardService implements DndFunctionality {
+export class DndBoardService implements DndFunctionality {
   // TODO: Replace with game room ID
   // TODO: Use the bridge table here
   // TODO: Start on backend to make deck?
+
+  // TODO: Think about rulesets for plugins? Not sure how far it would go and how db would be structured if you can make plugins for components
+
+  // TODO: Use this only for card boards
+  // TODO: Make an interface for all items that can be extended
   gameRoomId: number = 0;
   ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a"; // TODO: Create user and replace owner ID
 
