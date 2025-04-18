@@ -1,8 +1,8 @@
 import { inject, Injectable, ResourceLoaderParams, ResourceRef } from '@angular/core';
-import { CardFaceElement, CardFaceElementDto } from '../models/card-face-element';
+import { CardFaceElement, CardFaceElementDto } from '../../models/card-face-element';
 import { rxResource } from '@angular/core/rxjs-interop';
 
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 

@@ -32,9 +32,18 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var card= await GetAsync(id);
+            if (card== null)
+            {
+                return false;
+            }
+
+            _context.Card.Remove(card);
+            int changes =  await _context.SaveChangesAsync();
+
+            return changes > 0;
         }
 
         public Task<bool> DeleteNavAsync(Card nav)

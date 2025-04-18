@@ -143,22 +143,11 @@ namespace Services
 
         public async Task<IEnumerable<CardFace>> GetAllNavAsync()
         {
-            var cardFaces = await _context.CardFace.ToListAsync() ?? throw new NotImplementedException();
+            var cardFaces = await _context.CardFace
+            .Include(cf => cf.Style)
+            .ToListAsync();
 
-            // Create a new list to hold updated elements
-            var CardFacesNav = new List<CardFace>();
-
-            foreach (var cardFace in cardFaces)
-            {
-                var e = await GetNavAsync(cardFace.CardFaceId);
-
-                if (e != null)
-                {
-                   CardFacesNav.Add(e); // Add the updated element to the new list
-                }
-            }
-
-            return CardFacesNav;
+            return cardFaces;
         }
     }
 }

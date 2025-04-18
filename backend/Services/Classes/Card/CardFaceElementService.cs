@@ -294,6 +294,7 @@ namespace Services
 
         public async Task CreateNavAsync(CardFaceElement cardFaceElement)
         {
+            // TODO: Make a style service, and use Exists as a check
             if (cardFaceElement.Style != null)
             {
                 cardFaceElement.Style.StyleId = 0;
@@ -301,11 +302,11 @@ namespace Services
             }
 
             // TODO: Refactor the thing so that 1 card face element can be on multiple faces
-            /*if (cardFaceElement.CardFace != null)
+            if (cardFaceElement.CardFace != null)
             {
                 cardFaceElement.CardFace.CardFaceId = 0;
                 await _context.CardFace.AddAsync(cardFaceElement.CardFace);
-            }*/
+            }
 
             cardFaceElement.CardFaceElementId = 0;
             await _context.CardFaceElement.AddAsync(cardFaceElement);

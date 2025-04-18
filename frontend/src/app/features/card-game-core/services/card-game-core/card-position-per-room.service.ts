@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { CardPositionPerRoom } from '../models/card';
+import { CardPositionPerRoom } from '../../models/card';
 import { CardPositionPerRoomApiService } from './card-position-per-room-api.service';
 
 @Injectable({

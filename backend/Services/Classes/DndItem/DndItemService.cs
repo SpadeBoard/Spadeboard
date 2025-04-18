@@ -53,7 +53,7 @@ namespace Services
 
         public bool Exists(int id)
         {
-            throw new NotImplementedException();
+            return _context.DndItem.Any(d => d.DndItemId == id);
         }
 
         // TODO: Figure out how to pass in DndPosition separately

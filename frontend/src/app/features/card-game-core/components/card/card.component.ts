@@ -10,7 +10,7 @@ import { ActionContextMenuItem } from '../../../actions-context-menu/models/acti
 import { Style } from '../../../style/models/style';
 import { CardFaceComponent } from '../card-face/card-face.component';
 import { parseCssDimension, parseCssDimensionToNumber } from '../../../style/utils/parse-css-dimensions.utils';
-import { CardFaceApiService } from '../../services/card-face-api.service';
+import { CardFaceApiService } from '../../services/card-game-core/card-face-api.service';
 import { CardFace } from '../../models/card-face';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';

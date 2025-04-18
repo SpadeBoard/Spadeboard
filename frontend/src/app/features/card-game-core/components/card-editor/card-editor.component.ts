@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, ElementRef, inject, input, Type, ViewChild, WritableSignal, Injector, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, inject, input, Type, ViewChild, WritableSignal, Injector, ChangeDetectorRef, InputSignal, Signal, effect } from '@angular/core';
 import { CardFace } from '../../models/card-face';
 import { Card, CardDto } from '../../models/card';
 import { CdkDrag, DragDropModule, CdkDragHandle, CdkDragMove, CdkDragEnd, Point, DragRef, CdkDragStart, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
@@ -29,14 +29,15 @@ import { blobToDataURL } from '../../../../utils/utils';
 import { CardFaceRteComponent } from '../card-face-rte/card-face-rte.component';
 import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
 import { FormsModule } from '@angular/forms';
-import { CardApiService } from '../../services/card-api.service';
-import { CardFaceApiService } from '../../services/card-face-api.service';
-import { CardFaceElementApiService } from '../../services/card-face-element-api.service';
+import { CardApiService } from '../../services/card-game-core/card-api.service';
+import { CardFaceApiService } from '../../services/card-game-core/card-face-api.service';
+import { CardFaceElementApiService } from '../../services/card-game-core/card-face-element-api.service';
 import { DndItem } from '../../../drag-and-drop/models/dnd-item';
 import html2canvas from 'html2canvas';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { getCrypto } from '../../../drag-and-drop/utils/crypto.utils';
 import { EMPTY, forkJoin, from, Observable, ObservedValueOf, pipe, switchMap, tap } from 'rxjs';
+import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 
 // TODO: Resizable card face, have arrows for dragging, make sure there's a max width/height for that card face
 @Component({
@@ -51,7 +52,8 @@ import { EMPTY, forkJoin, from, Observable, ObservedValueOf, pipe, switchMap, ta
 })
 export class CardEditorComponent implements AfterViewInit {
   // https://www.youtube.com/watch?v=5JcMras7aaA
-  private cardApiService = inject(CardApiService);
+  private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
+  private cardApiService: CardApiService = inject(CardApiService);
   private cardFaceApiService = inject(CardFaceApiService);
   private cardFaceElementApiService = inject(CardFaceElementApiService);
   private fileUploadApiService = inject(FileUploadApiService);
@@ -76,6 +78,12 @@ export class CardEditorComponent implements AfterViewInit {
   onCardFaceModifyBtnText: string = "Create";
 
   constructor() {
+    effect(() => {
+      if (this.cardGameCoreService.cardEditorCardDto().card.cardId !== undefined && this.cardGameCoreService.cardEditorCardDto().card.cardId as number > 0) {
+        this.setCardDto(this.cardGameCoreService.cardEditorCardDto());
+      }
+    });
+
     this.currentCardFace = (this.isFlipped) ? this.cardDto.backCardFace : this.cardDto.frontCardFace;
     this.setCurrentCardFaceElementsDto();
   }
@@ -88,6 +96,11 @@ export class CardEditorComponent implements AfterViewInit {
     let height: string = `${rect.height}px`;
 
     this.updateCardFaceDimensions(width, height);
+  }
+
+  setCardDto(newCardDto: CardDto) {
+    if (!newCardDto || newCardDto.card.cardId === undefined || newCardDto.card.cardId < 0) return;
+    this.cardDto = newCardDto;
   }
 
   private updateCardFaceDimensions(width: string, height: string) {
@@ -148,43 +161,6 @@ export class CardEditorComponent implements AfterViewInit {
         useValue: (htmlContent: string) => this.setRteHtmlContent(htmlContent)
       }
     ]
-  });
-
-  // TODO: If there's a card ID, then load the card face
-  cardEditor = input<{ card: Card, frontCardFace: CardFace, backCardFace: CardFace, frontCardFaceElements: CardFaceElement[], backCardFaceElements: CardFaceElement[] }>();
-  cardEditorComputed = computed(() => {
-    let card: Card | undefined = this.cardEditor()?.card;
-
-    if (card === undefined || card.cardId <= 0)
-      return;
-
-    let frontCardFace: CardFace | undefined = this.cardEditor()?.frontCardFace;
-
-    if (frontCardFace === undefined)
-      return;
-
-    this.cardDto.frontCardFace = frontCardFace;
-
-    let backCardFace: CardFace | undefined = this.cardEditor()?.backCardFace;
-
-    if (backCardFace === undefined)
-      return;
-
-    this.cardDto.backCardFace = backCardFace;
-
-    let frontCardFaceElements: CardFaceElement[] | undefined = this.cardEditor()?.frontCardFaceElements;
-
-    if (frontCardFaceElements === undefined)
-      return;
-
-    this.cardDto.frontCardFaceElements = frontCardFaceElements;
-
-    let backCardFaceElements: CardFaceElement[] | undefined = this.cardEditor()?.backCardFaceElements;
-
-    if (backCardFaceElements === undefined)
-      return;
-
-    this.cardDto.backCardFaceElements = backCardFaceElements;
   });
 
   // ASSUMPTIONS

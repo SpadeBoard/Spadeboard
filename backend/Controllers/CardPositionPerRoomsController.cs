@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Data;
 using Services;
 using Models.Bridge;
+using System.Text.Json;
 
 namespace backend.Controllers
 {
@@ -23,14 +24,21 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CardPositionPerRoom>>> GetCardPositionPerRoom()
         {
-            return await _context.CardPositionPerRoom.ToListAsync();
+            var cprs = await _cardPositionPerRoomService.GetAllAsync();
+
+            if (cprs == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cprs);
         }
 
         // GET: api/CardPositionPerRooms/5
         [HttpGet("{id}")]
         public async Task<ActionResult<CardPositionPerRoom>> GetCardPositionPerRoom(int id)
         {
-            var cardPositionPerRoom = await _cardPositionPerRoomService.GetCardPositionPerRoomAsync(id);
+            var cardPositionPerRoom = await _cardPositionPerRoomService.GetAsync(id);
 
             if (cardPositionPerRoom == null)
             {
@@ -40,10 +48,23 @@ namespace backend.Controllers
             return cardPositionPerRoom;
         }
 
-        [HttpGet("room/{gameRoomId}")]
-        public async Task<ActionResult<IEnumerable<CardPositionPerRoom>>> GetCardsPositionPerRoomByRoomId(int gameRoomId)
+        [HttpGet("nav/{id}")]
+        public async Task<ActionResult<CardPositionPerRoom>> GetCardPositionPerRoomNav(int id)
         {
-            var cprs = await _cardPositionPerRoomService.GetCardsPositionPerRoomNavByRoomIdAsync(gameRoomId);
+            var cardPositionPerRoom = await _cardPositionPerRoomService.GetNavAsync(id);
+
+            if (cardPositionPerRoom == null)
+            {
+                return NotFound();
+            }
+
+            return cardPositionPerRoom;
+        }
+
+        [HttpGet("nav/room/{gameRoomId}")]
+        public async Task<ActionResult<IEnumerable<CardPositionPerRoom>>> GetCardsPositionPerRoomNavByRoomId(int gameRoomId)
+        {
+            var cprs = await _cardPositionPerRoomService.GetAllNavByRoomIdAsync(gameRoomId);
 
             return Ok(cprs);
         }
@@ -53,60 +74,61 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCardPositionPerRoom(int id, CardPositionPerRoom cardPositionPerRoom)
         {
+            var result = await _cardPositionPerRoomService.UpdateAsync(id, cardPositionPerRoom);
+
+            if (result == true)
+                return NoContent();
+
+            // Could be either bad request or not found, you may want to distinguish these
             if (id != cardPositionPerRoom.CardPositionPerRoomId)
-            {
                 return BadRequest();
-            }
 
-            _context.Entry(cardPositionPerRoom).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CardPositionPerRoomExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return NotFound();
         }
 
         // POST: api/CardPositionPerRooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        
+        // FIXME: Why is this undefined
         [HttpPost]
         public async Task<ActionResult<CardPositionPerRoom>> PostCardPositionPerRoom(CardPositionPerRoom cardPositionPerRoom)
         {
-            await _cardPositionPerRoomService.CreateCardPositionPerRoomAsync(cardPositionPerRoom);
+            await _cardPositionPerRoomService.CreateAsync(cardPositionPerRoom);
             return CreatedAtAction("GetCardPositionPerRoom", new { id = cardPositionPerRoom.CardPositionPerRoomId }, cardPositionPerRoom);
+        }
+
+        [HttpPost("nav")]
+        public async Task<ActionResult<CardPositionPerRoom>> PostCardPositionPerRoomNav(CardPositionPerRoom cardPositionPerRoom)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _cardPositionPerRoomService.CreateNavAsync(cardPositionPerRoom);
+
+                string navJson = JsonSerializer.Serialize(cardPositionPerRoom);
+                Console.WriteLine(navJson);
+
+                await transaction.CommitAsync();
+                return CreatedAtAction("GetCardPositionPerRoom", new { id = cardPositionPerRoom.CardPositionPerRoomId }, cardPositionPerRoom);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
+            }
         }
 
         // DELETE: api/CardPositionPerRooms/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCardPositionPerRoom(int id)
         {
-            var cardPositionPerRoom = await _context.CardPositionPerRoom.FindAsync(id);
-            if (cardPositionPerRoom == null)
+            var deleted = await _cardPositionPerRoomService.DeleteAsync(id);
+            if (deleted == false)
             {
                 return NotFound();
             }
 
-            _context.CardPositionPerRoom.Remove(cardPositionPerRoom);
-            await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        private bool CardPositionPerRoomExists(int id)
-        {
-            return _cardPositionPerRoomService.Exists(id);
         }
     }
 }

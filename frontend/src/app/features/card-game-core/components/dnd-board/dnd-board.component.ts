@@ -11,8 +11,9 @@ import { CardEditorComponent } from '../card-editor/card-editor.component';
 import { DisplaceCardMenuComponent } from '../displace-card-menu/displace-card-menu.component';
 import { CardFace } from '../../models/card-face';
 import { CardFaceElement } from '../../models/card-face-element';
-import { CardPositionPerRoomService } from '../../services/card-position-per-room.service';
+import { CardPositionPerRoomService } from '../../services/card-game-core/card-position-per-room.service';
 import { CardPositionPerRoomComponent } from '../card-position-per-room/card-position-per-room.component';
+import { GameRoomService } from '../../../game-room/services/game-room.service';
 
 // ROLE: AUTOLOAD
 
@@ -41,4 +42,8 @@ export class DndBoardComponent {
   // TODO: Populate this
   gameRoomId: number = 1;
   ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a"; // TODO: Should be admin of room
+
+  constructor() {
+
+  }
 }

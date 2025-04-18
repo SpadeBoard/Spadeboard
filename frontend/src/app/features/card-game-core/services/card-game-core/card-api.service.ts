@@ -3,12 +3,12 @@ import { inject, Injectable, ResourceLoaderParams, ResourceRef } from '@angular/
 
 import { rxResource } from '@angular/core/rxjs-interop';
 
-import { Card, CardDto } from '../models/card';
-import { environment } from '../../../../environments/environment';
-import { DndItem } from '../../drag-and-drop/models/dnd-item';
+import { Card, CardDto } from '../../models/card';
+import { environment } from '../../../../../environments/environment';
+import { DndItem } from '../../../drag-and-drop/models/dnd-item';
 import { map, Observable, of } from 'rxjs';
-import { CardFace } from '../models/card-face';
-import { Style } from '../../style/models/style';
+import { CardFace } from '../../models/card-face';
+import { Style } from '../../../style/models/style';
 
 @Injectable({
   providedIn: 'root'

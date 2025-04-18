@@ -55,9 +55,9 @@ namespace Services
             await _context.SaveChangesAsync();
         }
 
-        public Task<IEnumerable<CardPerOwner>> GetAllAsync()
+        public async Task<IEnumerable<CardPerOwner>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.CardPerOwner.ToListAsync();
         }
 
         public Task<CardPerOwner?> GetAsync(int id)

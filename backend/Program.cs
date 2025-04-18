@@ -39,13 +39,17 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
+builder.Services.AddScoped<IGameRoomService, GameRoomService>();
+
 builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<ICardDtoService, CardDtoService>();
 builder.Services.AddScoped<ICardPerOwnerService, CardPerOwnerService>();
 builder.Services.AddScoped<ICardPositionPerRoomService, CardPositionPerRoomService>();
 builder.Services.AddScoped<ICardFaceService, CardFaceService>();
 builder.Services.AddScoped<ICardFaceElementService, CardFaceElementService>();
+
 builder.Services.AddScoped<IDndItemService, DndItemService>();
+builder.Services.AddScoped<IDndPositionService, DndPositionService>();
 
 WebApplication app = builder.Build();
 
@@ -105,7 +109,13 @@ app.MapControllerRoute(
 using (IServiceScope scope = serviceProvider.CreateScope())
 {
     ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await dbContext.Database.MigrateAsync();
+    
+    var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+    
+    if (pendingMigrations.Any())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
 }
 
 app.Run();

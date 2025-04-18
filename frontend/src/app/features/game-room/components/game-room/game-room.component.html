@@ -7,23 +7,20 @@
             <button>Save</button>
         </nav>
 
-        <app-cards-collection [isCardsCollectionMenuOpenInput]="isCardsCollectionMenuOpen"></app-cards-collection>
+        <!--FIXME: Why is it that the layer prevents dragging-->
+        <!-- TODO: Rearrange the order, this is a temporary solution-->
+        <div cdkDropListGroup>
+            <app-cards-collection />
+            <div class="dnd-board-layer" #dndBoard>
+                <app-dnd-board/>
+            </div>
+        </div>
 
         @if (isCardEditorOpen) {
             <div class = "game-room-editor">
-                <app-card-editor [cardEditor]="{
-                card: card,
-                frontCardFace: frontCardFace,
-                backCardFace: backCardFace,
-                frontCardFaceElements: frontCardFaceElements,
-                backCardFaceElements: backCardFaceElements
-            }"/>
+                <app-card-editor/>
             </div>
         }
-    </div>
-
-    <div class="dnd-board-layer">
-        <app-dnd-board/>
     </div>
 </div>
 

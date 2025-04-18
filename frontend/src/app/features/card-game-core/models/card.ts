@@ -32,6 +32,7 @@ export interface CardDto {
 
 // TODO: Replace with the objects themselves?
 export interface CardPositionPerRoom {
+    cardPositionPerRoomId: number;
     card: Card;
     dndItem: DndItem;
     dndPosition: DndPosition;
