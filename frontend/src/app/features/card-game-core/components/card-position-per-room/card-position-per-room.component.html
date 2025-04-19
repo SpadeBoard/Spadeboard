@@ -1,6 +1,7 @@
 @for (cpr of cprs; track cpr) {
     <div 
         cdkDrag
+        class="cpr-cdk"
         [style.left.px]="cpr.dndPosition.x ?? 0"
         [style.top.px]="cpr.dndPosition.y ?? 0"
         [style.width]="'fit-content'"
@@ -8,6 +9,7 @@
         (cdkDragMoved)="onDragMoved($event)"
         (cdkDragDropped)="onDragDrop($event, cpr)"
     >
+        <!--FIXME: Position can't be absolute-->
         <app-card [card]="cpr.card"/>
     </div>
 }

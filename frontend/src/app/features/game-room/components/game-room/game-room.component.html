@@ -1,4 +1,8 @@
 <div class = "game-room-layout">
+    <div class="dnd-board-layer" #dndBoard>
+        <app-dnd-board/>
+    </div>
+    
     <div class ="game-room-player-layer">
         <nav class="game-room-nav">
             <button>Settings</button>
@@ -7,21 +11,14 @@
             <button>Save</button>
         </nav>
 
-        <!--FIXME: Why is it that the layer prevents dragging-->
-        <!-- TODO: Rearrange the order, this is a temporary solution-->
-        <div cdkDropListGroup>
-            <app-cards-collection />
-            <div class="dnd-board-layer" #dndBoard>
-                <app-dnd-board/>
-            </div>
-        </div>
-
-        @if (isCardEditorOpen) {
-            <div class = "game-room-editor">
-                <app-card-editor/>
-            </div>
-        }
+        <app-cards-collection />
     </div>
+
+    @if (isCardEditorOpen) {
+        <div class = "game-room-editor">
+            <app-card-editor/>
+        </div>
+    }
 </div>
 
 <!-- TODO: Put the board in here-->
