@@ -15,7 +15,6 @@ export class CardGameCoreService {
   private cardPositionPerRoom = new Subject<CardPositionPerRoom>();
   cardPositionPerRoom$ = this.cardPositionPerRoom.asObservable();
 
-  gameRoomId: WritableSignal<number> = signal<number>(0);
   userId: WritableSignal<string> = signal<string>('');
 
   isCardsCollectionMenuOpen: WritableSignal<boolean>=  signal<boolean>(false);
@@ -40,9 +39,6 @@ export class CardGameCoreService {
 
   constructor() { }
 
-  setGameRoomId(newGameRoomId: number) {
-    this.gameRoomId.set(newGameRoomId);
-  }
 
   setUserId(newUserId: string) {
     this.userId.set(newUserId);

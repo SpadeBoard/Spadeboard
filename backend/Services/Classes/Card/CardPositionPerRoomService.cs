@@ -180,12 +180,83 @@ namespace Services
         }
 
         // TODO: Figure out whether UpdateNavAsync would return a boolean
-        public Task UpdateNavAsync(CardPositionPerRoom nav)
+        public async Task<bool> UpdateNavAsync(CardPositionPerRoom nav)
+        {
+            if (nav.Card != null && _cardService.IsModified(nav.Card)) 
+            {
+                _context.Entry(nav.Card).State = EntityState.Modified;
+                Console.WriteLine("CPR Card modified");
+            }
+
+            if (nav.DndItem != null && _dndItemService.IsModified(nav.DndItem))
+            {
+                _context.Entry(nav.DndItem).State = EntityState.Modified;
+                Console.WriteLine("CPR Dnd Item modified");
+            }
+
+            if (nav.DndPosition != null && _dndPositionService.IsModified(nav.DndPosition)) 
+            {
+                _context.Entry(nav.DndPosition).State = EntityState.Modified;
+                Console.WriteLine("CPR Dnd Position modified");
+            }
+
+            if (nav.GameRoom != null && _gameRoomService.IsModified(nav.GameRoom)) 
+            {
+                _context.Entry(nav.GameRoom ).State = EntityState.Modified;
+                Console.WriteLine("CPR Game Room modified");
+            }
+            
+            _context.Entry(nav).State = EntityState.Modified;
+            Console.WriteLine("CPR modified");
+        
+            try
+            {
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!Exists(nav.CardPositionPerRoomId))
+                {
+                    throw;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public Task<bool> DeleteNavAsync(CardPositionPerRoom nav)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteNavAsync(CardPositionPerRoom nav)
+        public async Task<bool> UpdateAllNavAsync(CardPositionPerRoom[] cprs)
+        {
+            try
+            {
+                foreach (CardPositionPerRoom cpr in cprs)
+                {
+                    var updated = await UpdateNavAsync(cpr);
+
+                    if (!updated) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex) 
+            {
+                throw;
+            }
+        }
+
+        public bool IsModified(CardPositionPerRoom item)
         {
             throw new NotImplementedException();
         }

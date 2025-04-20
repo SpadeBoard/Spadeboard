@@ -111,5 +111,35 @@ namespace Services
 
             return cardFaceElementDndAttributesPerCardFace;
         }
+
+        public Task<IEnumerable<DndItem>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DndItem?> GetAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CreateAsync(DndItem item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateAsync(int id, DndItem item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsModified(DndItem item)
+        {
+            return _context.Entry(item).Properties.Any(p => p.IsModified);
+        }
     }
 }

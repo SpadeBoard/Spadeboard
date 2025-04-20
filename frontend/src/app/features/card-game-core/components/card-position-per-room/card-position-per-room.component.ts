@@ -20,19 +20,21 @@ import { mergeMap } from 'rxjs';
 export class CardPositionPerRoomComponent {
   private cardPositionPerRoomApiService = inject(CardPositionPerRoomApiService);
   private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
+  private gameRoomService: GameRoomService = inject(GameRoomService);
 
   cprs: CardPositionPerRoom[] = [];
 
   constructor() {
     effect(() => {
-      if (this.cardGameCoreService.gameRoomId() > 0) {
-        this.getCardsPositionPerRoomByRoomId(this.cardGameCoreService.gameRoomId());
+      if (this.gameRoomService.currentGameRoomId() > 0) {
+        this.getCardsPositionPerRoomByRoomId(this.gameRoomService.currentGameRoomId());
       }
     });
   }
 
   ngOnInit() {
     this.createCardPositionPerRoom();
+    this.updateCardPositionPerRoomOnSave();
   }
 
   private getCardPositionPerRoom() {
@@ -81,10 +83,22 @@ export class CardPositionPerRoomComponent {
     }
   }
 
+  private updateCardPositionPerRoomOnSave() {
+    this.gameRoomService.onSaveGameRoom$.subscribe(() => {
+      this.cardPositionPerRoomApiService.updateCardsPositionPerRoom(this.cprs).subscribe((cprs: CardPositionPerRoom[] | undefined) => {
+        if (cprs !== undefined) {
+          console.log(`Updated CPRs on save: ${JSON.stringify(cprs)}`);
+        }
+      });
+    });
+  }
+
   private deleteCardPositionPerRoom(id: number) {
     // TODO: Delete from the bridge table
+    this.cprs = this.cprs.filter(cpr => cpr.cardPositionPerRoomId !== id);
 
     // TODO: If it's the only reference in there, then delete the entire card from the database
+    this.cardPositionPerRoomApiService.deleteCardPositionPerRoom(id);
   }
 
   onDragMoved(event: CdkDragMove) {

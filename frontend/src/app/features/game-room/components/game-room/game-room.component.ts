@@ -60,7 +60,9 @@ export class GameRoomComponent implements AfterViewChecked{
   }
 
   constructor() {
-    this.cardGameCoreService.setGameRoomId(1);
+    this.gameRoomService.setCurrentGameRoomId(1);
+    this.gameRoomService.onAutosaveTimeout();
+    
     this.cardGameCoreService.setUserId(this.ownerId);
   }
 
@@ -77,15 +79,19 @@ export class GameRoomComponent implements AfterViewChecked{
   5. Replace the blobs via checking timestamp of the cards and when they changed
   */
 
-  onCardEditor(event: Event) {
+  onCardEditor(event: Event): void {
     this.isCardEditorOpen = !this.isCardEditorOpen;
     this.cardGameCoreService.setCardEditorCardDto(this.cardDto);
     console.log(`Card editor state: ${this.isCardEditorOpen}`);
   }
 
-  onCardsCollection(event: Event) {
+  onCardsCollection(event: Event): void {
     this.isCardsCollectionMenuOpen = !this.isCardsCollectionMenuOpen;
     this.cardGameCoreService.setIsCardsCollectionMenuOpen(this.isCardsCollectionMenuOpen);
+  }
+
+  onSaveGameRoom(event: Event): void {
+    this.gameRoomService.onSave();
   }
 
   // https://fluin.io/blog/things-I-wish-I-knew-about-CDK-drag-drop

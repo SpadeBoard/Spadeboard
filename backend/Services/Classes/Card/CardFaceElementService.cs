@@ -11,10 +11,11 @@ using Models.Cards;
 
 namespace Services
 {
-    public class CardFaceElementService(ApplicationDbContext context, IDndItemService dndItemService) : ICardFaceElementService
+    public class CardFaceElementService(ApplicationDbContext context, IDndItemService dndItemService, IStyleService styleService) : ICardFaceElementService
     {
         private readonly ApplicationDbContext _context = context;
         private readonly IDndItemService _dndItemService = dndItemService;
+        private readonly IStyleService _styleService = styleService;
 
         public async Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(int cardFaceId)
         {
@@ -47,24 +48,30 @@ namespace Services
                 await CreateNavAsync(e);
             }
         }
-        public async Task UpdateAllNavAsync(CardFaceElement[] cardFaceElements)
+        public async Task<bool> UpdateAllNavAsync(CardFaceElement[] cardFaceElements)
         {
             foreach (CardFaceElement cardFaceElement in cardFaceElements)
             {
-                await UpdateNavAsync(cardFaceElement);
+                var updated = await UpdateNavAsync(cardFaceElement);
+
+                if (!updated) {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        public async Task UpdateNavAsync(CardFaceElement cardFaceElement)
+        public async Task<bool> UpdateNavAsync(CardFaceElement cardFaceElement)
         {
-            _context.Entry(cardFaceElement).State = EntityState.Modified;
-        
-            if (cardFaceElement.Style != null)
+            if (cardFaceElement.Style != null && _styleService.IsModified(cardFaceElement.Style))
                 _context.Entry(cardFaceElement.Style).State = EntityState.Modified;
             
+            _context.Entry(cardFaceElement).State = EntityState.Modified;
+        
             try
             {
-                await _context.SaveChangesAsync();
+                return await _context.SaveChangesAsync() > 0;
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -200,6 +207,11 @@ namespace Services
         public bool Exists(int id)
         {
             return _context.CardFaceElement.Any(e => e.CardFaceElementId == id);
+        }
+
+        public bool IsModified(CardFaceElement item)
+        {
+            return _context.Entry(item).Properties.Any(p => p.IsModified);
         }
 
         public async Task<IEnumerable<CardFaceElement>> GetAllNavAsync()

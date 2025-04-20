@@ -56,6 +56,11 @@ namespace Services
             return _context.Card.Any(e => e.CardId == id);
         }
 
+        public bool IsModified(Card item)
+        {
+            return _context.Entry(item).Properties.Any(p => p.IsModified);
+        }
+
         public async Task<IEnumerable<Card>> GetAllAsync()
         {
             return await _context.Card.ToListAsync();
@@ -113,7 +118,7 @@ namespace Services
             }
         }
 
-        public Task UpdateNavAsync(Card nav)
+        public Task<bool> UpdateNavAsync(Card nav)
         {
             throw new NotImplementedException();
         }

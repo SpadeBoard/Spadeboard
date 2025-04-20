@@ -24,9 +24,9 @@ namespace Services
 
         public Task<bool> DeleteNavAsync(CardFaceElement cardFaceElement) ;
 
-        public Task UpdateAllNavAsync(CardFaceElement[] cardFaceElements);
+        public Task<bool> UpdateAllNavAsync(CardFaceElement[] cardFaceElements);
 
-        public Task UpdateNavAsync(CardFaceElement cardFaceElement);
+        public Task<bool> UpdateNavAsync(CardFaceElement cardFaceElement);
 
         public Task UpdateAllDtoAsync(CardFaceElementDto[] cardFaceElementsDto);
 

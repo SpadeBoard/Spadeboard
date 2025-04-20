@@ -9,5 +9,7 @@ namespace Services
         public Task<bool> DeleteAsync(int id);
         
         public bool Exists(int id);
+
+        public bool IsModified(T item);
     }
 }

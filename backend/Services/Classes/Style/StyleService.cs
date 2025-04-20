@@ -6,17 +6,16 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data;
-using Models.DndItems;
-using Models.Cards;
-using Models.Bridge;
+using Models.Styles;
+
 
 namespace Services
 {
-    public class DndPositionService(ApplicationDbContext context) : IDndPositionService
+    public class StyleService(ApplicationDbContext context) : IStyleService
     {
         private readonly ApplicationDbContext _context = context;
 
-        public Task CreateAsync(DndPosition item)
+        public Task CreateAsync(Style item)
         {
             throw new NotImplementedException();
         }
@@ -28,25 +27,25 @@ namespace Services
 
         public bool Exists(int id)
         {
-            return _context.DndPosition.Any(p => p.DndPositionId == id);
+            throw new NotImplementedException();
         }
 
-        public bool IsModified(DndPosition item)
+        public Task<IEnumerable<Style>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Style?> GetAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsModified(Style item)
         {
             return _context.Entry(item).Properties.Any(p => p.IsModified);
         }
 
-        public Task<IEnumerable<DndPosition>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<DndPosition?> GetAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateAsync(int id, DndPosition item)
+        public Task<bool> UpdateAsync(int id, Style item)
         {
             throw new NotImplementedException();
         }

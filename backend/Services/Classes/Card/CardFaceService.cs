@@ -11,9 +11,11 @@ using System.Net.Sockets;
 
 namespace Services
 {
-    public class CardFaceService(ApplicationDbContext context) : ICardFaceService
+    public class CardFaceService(ApplicationDbContext context, IStyleService styleService) : ICardFaceService
     {
         private readonly ApplicationDbContext _context = context;
+
+        private readonly IStyleService _styleService = styleService;
 
         public async Task CreateNavAsync(CardFace cardFace){
             if (cardFace.Style != null) {
@@ -40,9 +42,9 @@ namespace Services
             return changes > 0;
         }
 
-        public async Task UpdateNavAsync(CardFace cardFace)
+        public async Task<bool> UpdateNavAsync(CardFace cardFace)
         {
-            if (cardFace.Style != null)
+            if (cardFace.Style != null && _styleService.IsModified(cardFace.Style))
             {
                 _context.Entry(cardFace.Style).State = EntityState.Modified;
             }
@@ -51,7 +53,7 @@ namespace Services
 
             try
             {
-                await _context.SaveChangesAsync();
+                return await _context.SaveChangesAsync() > 0;
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -148,6 +150,11 @@ namespace Services
             .ToListAsync();
 
             return cardFaces;
+        }
+
+        public bool IsModified(CardFace item)
+        {
+            return _context.Entry(item).Properties.Any(p => p.IsModified);
         }
     }
 }

@@ -23,4 +23,13 @@ export class CardPositionPerRoomApiService {
     // TODO: Make a separate function for updating navs
     return this.http.post<CardPositionPerRoom>(`${this.apiUrl}/nav`, cpr);
   }
+
+  updateCardsPositionPerRoom(cprs: CardPositionPerRoom[]): Observable<CardPositionPerRoom[] | undefined> {
+    return this.http.put<CardPositionPerRoom[]>(`${this.apiUrl}/nav`, cprs);
+  }
+
+  // TODO: Two options, delete nav vs delete just the reference?
+  deleteCardPositionPerRoom(id: number) {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

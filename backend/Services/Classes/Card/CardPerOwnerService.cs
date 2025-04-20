@@ -81,6 +81,11 @@ namespace Services
             return true;
         }
 
+        public bool IsModified(CardPerOwner item)
+        {
+            return _context.Entry(item).Properties.Any(p => p.IsModified);
+        }
+
         /*public async Task<CardPerOwner> UpdateCardPerOwnerAsync(int cardId, string ownerId)
         {
             await _context.CardPerOwner.AddAsync(cpo);

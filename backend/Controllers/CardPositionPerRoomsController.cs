@@ -86,6 +86,37 @@ namespace backend.Controllers
             return NotFound();
         }
 
+        [HttpPut("nav")]
+        public async Task<IActionResult> PutCardPositionPerRoomAllNav(CardPositionPerRoom[] cprs)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                Console.WriteLine("Put CPR all nav: Check length");
+
+                if (cprs.Length <= 0)
+                    return BadRequest();
+
+                Console.WriteLine("Put CPR all nav: CPRS length is higher than 0");
+
+                bool updated = await _cardPositionPerRoomService.UpdateAllNavAsync(cprs);
+                if (updated)
+                    return Ok(cprs);
+
+                return BadRequest();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
+            }
+            catch (Exception ex) 
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
+            }
+        }
+
         // POST: api/CardPositionPerRooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         

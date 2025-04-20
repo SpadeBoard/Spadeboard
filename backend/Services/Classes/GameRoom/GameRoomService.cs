@@ -22,6 +22,11 @@ namespace Services
             return _context.GameRoom.Any(gr => gr.GameRoomId == id);
         }
 
+        public bool IsModified(GameRoom item)
+        {
+            return _context.Entry(item).Properties.Any(p => p.IsModified);
+        }
+
         public Task<IEnumerable<GameRoom>> GetAllAsync()
         {
             throw new NotImplementedException();

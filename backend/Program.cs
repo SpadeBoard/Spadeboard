@@ -51,6 +51,8 @@ builder.Services.AddScoped<ICardFaceElementService, CardFaceElementService>();
 builder.Services.AddScoped<IDndItemService, DndItemService>();
 builder.Services.AddScoped<IDndPositionService, DndPositionService>();
 
+builder.Services.AddScoped<IStyleService, StyleService>();
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

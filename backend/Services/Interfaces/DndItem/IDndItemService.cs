@@ -4,7 +4,7 @@ using Models.DndItems;
 
 namespace Services
 {
-    public interface IDndItemService
+    public interface IDndItemService: ICrud<DndItem>
     {
         public Task<CardFaceElementPerCardFace?> GetCardFaceElementPerCardFaceByCardFaceIdAsync(int cardFaceElementId, int cardFaceId);
 
@@ -14,7 +14,6 @@ namespace Services
 
         public Task CreateDndPositionAsync(DndPosition dndPosition);
     
-        public bool Exists(int id);
 
         public Task<DndItemDto?> GetDndItemDtoByDndItemIdAndDndPositionIdAsync(int dndItemId, int dndPositionId);
     }
