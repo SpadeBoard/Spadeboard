@@ -1,30 +1,22 @@
 <div class = "game-room-layout">
-    <nav class="game-room-nav">
-        <button>Settings</button>
-        <button (click)="onCardEditor($event)">Card editor</button>
-        <button (click)="onCardsCollection($event)">Cards collection</button>
-        <button>Save</button>
-    </nav>
+    <div class="dnd-board-layer" #dndBoard>
+        <app-dnd-board/>
+    </div>
+    
+    <div class ="game-room-player-layer">
+        <nav class="game-room-nav">
+            <button>Settings</button>
+            <button (click)="onCardEditor($event)">Card editor</button>
+            <button (click)="onCardsCollection($event)">Cards collection</button>
+            <button (click)="onSaveGameRoom($event)">Save</button>
+        </nav>
 
-    <!--
-    <div [hidden]="!isCardsCollectionMenuOpen" class="cards-menu" [class.open]="isCardsCollectionMenuOpen" cdkDropList #cardsMenu>
-        @for (card of cards; track card) {
-            <app-card  
-                [card]="card"
-            />
-        }
-    </div>-->
-    <app-cards-collection [isCardsCollectionMenuOpenInput]="isCardsCollectionMenuOpen"></app-cards-collection>
+        <app-cards-collection />
+    </div>
 
     @if (isCardEditorOpen) {
         <div class = "game-room-editor">
-            <app-card-editor [cardEditor]="{
-            card: card,
-            frontCardFace: frontCardFace,
-            backCardFace: backCardFace,
-            frontCardFaceElements: frontCardFaceElements,
-            backCardFaceElements: backCardFaceElements
-        }"/>
+            <app-card-editor/>
         </div>
     }
 </div>

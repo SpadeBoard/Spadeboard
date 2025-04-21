@@ -1,20 +1,23 @@
 .cards-menu {
-    left: -15%; /* Position it off-screen initially */
-    width: 15%;
+    position: absolute;
+    left: 10vw; 
+    width: 15vw;
     height: 100%;
     background-color: rgba(198, 255, 250, 0.9);
-    transition: right 0.5s ease; /* Smooth transition for opening */
-    display: none; /*FIXME: Prevents menu from being closable but has to be this to have gap and flex*/
-}
-
-.cards-menu.open {
-    left: 20%; /* When open, it should slide next to the game-room-nav */
+    transition: left 0.5s ease; /* Transition the property you change */
     display: flex;
     gap: 1rem;
     align-items: center;
     flex-direction: column;
     overflow-y: scroll;
-    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* When open, slide in and make visible */
+.cards-menu.open {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /*https://stackblitz.com/edit/angular-ng-deep-demo?file=app%2Fx%2Fx.component.css*/

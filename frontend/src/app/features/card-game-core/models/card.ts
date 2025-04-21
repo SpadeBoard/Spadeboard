@@ -1,5 +1,6 @@
 import { DndItem } from "../../drag-and-drop/models/dnd-item";
 import { DndPosition } from "../../drag-and-drop/models/dnd-types";
+import { GameRoom } from "../../game-room/models/game-room/game-room";
 import { Style } from "../../style/models/style";
 import { CardFace } from "./card-face";
 import { CardFaceElement, CardFaceElementDto } from "./card-face-element";
@@ -8,8 +9,7 @@ import { CardFaceElement, CardFaceElementDto } from "./card-face-element";
 export interface Card {
     cardId: number;
     frontCardFaceId: number
-    backCardFaceId: number
-    ownerId?: string //  TODO: To be removed
+    backCardFaceId: number;
     isFlipped: boolean,
     dndItem?: DndItem,  // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
     style?: Style, // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
@@ -28,4 +28,13 @@ export interface CardDto {
 
     dndItem?: Partial<DndItem>;
     ownerId?: string;
+}
+
+// TODO: Replace with the objects themselves?
+export interface CardPositionPerRoom {
+    cardPositionPerRoomId: number;
+    card: Card;
+    dndItem: DndItem;
+    dndPosition: DndPosition;
+    gameRoom: GameRoom;
 }

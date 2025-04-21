@@ -96,7 +96,7 @@ Citations:
 
 // ASSUMPTIONS:
 // Drag the handler, then whatever component that has the directive has its own functions for the @Output
-// With cards and decks, they have those functions, which then will call the implemented functions of the same name in dndCardBoardService
+// With cards and decks, they have those functions, which then will call the implemented functions of the same name in dndBoardService
 // This is meant to wrap around the component that can be draggable and droppable and resizable
 export class DndWrapperComponent {
   /*************************** DND *************************/

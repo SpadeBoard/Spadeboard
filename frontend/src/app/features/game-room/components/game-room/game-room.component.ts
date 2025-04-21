@@ -1,22 +1,28 @@
 import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, ViewChild } from '@angular/core';
-import { Card } from '../../../card-game-core/models/card';
+import { Card, CardDto, CardPositionPerRoom } from '../../../card-game-core/models/card';
 import { CardFace } from '../../../card-game-core/models/card-face';
 import { CardFaceElement } from '../../../card-game-core/models/card-face-element';
 import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
-// import { DndCardBoardComponent } from '../../../card-game-core/components/dnd-card-board/dnd-card-board.component';
+// import { DndBoardComponent } from '../../../card-game-core/components/dnd-board/dnd-board.component';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { CdkDrag, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
-import { CardApiService } from '../../../card-game-core/services/card-api.service';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
+import { CardApiService } from '../../../card-game-core/services/card-game-core/card-api.service';
 import { CardComponent } from '../../../card-game-core/components/card/card.component';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
+import { DndBoardComponent } from '../../../card-game-core/components/dnd-board/dnd-board.component';
+import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
+import { DndBoardService } from '../../../card-game-core/services/dnd-board.service';
+import { GameRoomService } from '../../services/game-room.service';
+import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
 
 @Component({
   selector: 'app-game-room',
   imports: [
-    CardEditorComponent, /*DndCardBoardComponent,*/ CommonModule,
+    CardEditorComponent, CommonModule,
     CdkDrag, CdkDragHandle, DragDropModule,
     NgOptimizedImage,
-    CardComponent, CardsCollectionComponent
+    CardComponent, CardsCollectionComponent,
+    DndBoardComponent
   ],
   templateUrl: './game-room.component.html',
   styleUrl: './game-room.component.css'
@@ -24,64 +30,45 @@ import { CardsCollectionComponent } from '../../../card-game-core/components/car
 export class GameRoomComponent implements AfterViewChecked{
   // TODO: ViewChild being cardMenu, then grab its width and height and pass that into card
   // https://stackoverflow.com/a/41095677
-  private cardsMenuRef : ElementRef | undefined;
-  
-  private shouldUpdateDimensions: boolean = false;
 
-  @ViewChild('cardsMenu') set cardsMenu(content: ElementRef) {
-    if(content) { // This will only run when the element is available
-      this.cardsMenuRef = content;
-      // Cards menu ref: {"nativeElement":{"__ngContext__":3}}, Cards menu ref native element: {"__ngContext__":3}
-      // Wut
-      console.log(`Cards menu ref: ${JSON.stringify(this.cardsMenuRef)}, Cards menu ref native element: ${JSON.stringify(this.cardsMenuRef.nativeElement)}`);
-    }
-  }
+  @ViewChild('dndBoard') dndBoard!: ElementRef;
 
   isCardEditorOpen: boolean = false;
   isCardsCollectionMenuOpen: boolean = false;
 
-  private cardApiService = inject(CardApiService);
+  private gameRoomService: GameRoomService = inject(GameRoomService);
+  private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
 
   cardsMenuDimensions: {width: number, height: number} | undefined = undefined;
 
-  // ASSUMPTION: We're opening editor without having an already existing card
-  card: Card = {
-    cardId: 0,
-    frontCardFaceId: 0,
-    backCardFaceId: 0,
-    isFlipped: false,
-    dndItem: {
-      dndItemId: 0,
-      isDraggable: false,
-      isDroppable: false
-    }
-  };
+  private ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a";
 
-  frontCardFace: CardFace = {
-    cardFaceId: 0,
-    style: {
-      styleId: 0
-    }
+   // ASSUMPTION: We're opening editor without having an already existing card
+  cardDto: CardDto = {
+    card: {
+      cardId: 0,
+      frontCardFaceId: 0,
+      backCardFaceId: 0,
+      isFlipped: false,
+      dndItem: {
+        dndItemId: 0,
+        isDraggable: false,
+        isDroppable: false
+      }
+    },
+    ownerId: this.ownerId
   }
 
-  backCardFace: CardFace = {
-    cardFaceId: 0,
-    style: {
-      styleId: 0
-    }
-  }
-
-  frontCardFaceElements: CardFaceElement[] = [
-
-  ];
-
-  backCardFaceElements: CardFaceElement[] = [
+  constructor() {
+    this.gameRoomService.setCurrentGameRoomId(1);
+    this.gameRoomService.onAutosaveTimeout();
     
-  ];
+    this.cardGameCoreService.setUserId(this.ownerId);
+  }
 
-  cards: Card[] = [
+  ngAfterViewChecked(): void {
 
-  ];
+  }
 
   /*
   TODO: Cards menu cachine
@@ -92,66 +79,31 @@ export class GameRoomComponent implements AfterViewChecked{
   5. Replace the blobs via checking timestamp of the cards and when they changed
   */
 
-  ngAfterViewChecked(): void {
-    /*if (this.shouldUpdateDimensions) {
-      let rect = this.getCardsMenuClientRect();
-      // FIXME: Why 0, 0
-      // https://stackoverflow.com/a/57146762
-      if (rect.width > 0 && rect.height > 0) {
-        console.log('Size after view init:', rect.width, rect.height);
-
-        this.cardsMenuDimensions = {
-          width: rect.width,
-          height: rect.height
-        };
-
-        // Doesn't work
-        // this.cdr.detectChanges();
-      }
-
-      this.shouldUpdateDimensions = false;
-    }*/
-  }
-
-  getCardsMenuClientRect() {
-    // FIXME: Why is nativeElement undefined
-    if (this.cardsMenuRef && this.cardsMenuRef.nativeElement) {
-      console.log('Get cards menu client rect:', this.cardsMenuRef.nativeElement.getBoundingClientRect().width, this.cardsMenuRef.nativeElement.getBoundingClientRect().height);
-      
-      return this.cardsMenuRef.nativeElement.getBoundingClientRect();
-    }
-    return null;
-  }
-
-  // TODO: Use the CardApiService or DndCardBoardService to get the cards
-  // TODO: Refactor because DndCardBoardService already has it
-  getCards(): void {
-    this.cardApiService.getCards(
-      // ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'undefined'. Current value: '{"width":85,"height":853}'. Expression location: _GameRoomComponent component.
-      "5811e387-1551-4090-9485-a3ebe30efb5a").subscribe((result: Card[] | undefined) => {
-        if (result !== undefined)
-        {
-          this.cards = result;
-          return;
-        }
-    });
-  }
-
-  onCardEditor(event: Event) {
+  onCardEditor(event: Event): void {
     this.isCardEditorOpen = !this.isCardEditorOpen;
+    this.cardGameCoreService.setCardEditorCardDto(this.cardDto);
     console.log(`Card editor state: ${this.isCardEditorOpen}`);
   }
 
-  // TODO: Use the DndCardBoardService to grab the cards, and put them all in a droplist, and make sure to have an exit drag
-  onCardsCollection(event: Event) {
-    // FIXME: This will never update, like you can add new cards so this will never run except initially
-
-    // TODO: Make a component for the cards menu, and what we wanna do
-    // is if the amount of cards is less than the amount of cards in the database for this user
-    // We'd then grab that new card at that index, and then add it onto the cards
+  onCardsCollection(event: Event): void {
     this.isCardsCollectionMenuOpen = !this.isCardsCollectionMenuOpen;
-
-    /*if (this.isCardsCollectionMenuOpen)
-      this.shouldUpdateDimensions = true;*/
+    this.cardGameCoreService.setIsCardsCollectionMenuOpen(this.isCardsCollectionMenuOpen);
   }
+
+  onSaveGameRoom(event: Event): void {
+    this.gameRoomService.onSave();
+  }
+
+  // https://fluin.io/blog/things-I-wish-I-knew-about-CDK-drag-drop
+  // https://stackblitz.com/edit/drag-drop-dashboard?file=src%2Fapp%2Fapp.component.ts
+  // https://next.material.angular.io/cdk/drag-drop/api
+
+  // MATH:
+  // https://forums.unrealengine.com/t/get-mouse-position-on-viewport/111399/2
+  // Function Get Mouse Position on Viewport and multiply the result by Function: Get Viewport Scale
+
+  // TODO: Screen or webpage?
+  // https://stackoverflow.com/questions/14717617/how-to-get-the-mouse-position-relative-to-the-window-viewport-in-javascript
+
+  // https://stackblitz.com/edit/angular-cdk-nested-drag-drop-tree-structure-zvsafw?file=src%2Fapp%2Fapp.component.ts
 }

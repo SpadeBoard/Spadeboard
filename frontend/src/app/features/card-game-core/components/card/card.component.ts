@@ -3,14 +3,14 @@ import { Component, Signal, viewChildren, output, input, inject, effect, compute
 import { Card } from '../../models/card';
 import { cardFlipAnimation } from './card.animations';
 
-import { DndCardBoardService } from '../../services/dnd-card-board.service';
+import { DndBoardService } from '../../services/dnd-board.service';
 import { DndContentDirective } from '../../../drag-and-drop/directives/dnd-content.directive';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 
 import { Style } from '../../../style/models/style';
 import { CardFaceComponent } from '../card-face/card-face.component';
 import { parseCssDimension, parseCssDimensionToNumber } from '../../../style/utils/parse-css-dimensions.utils';
-import { CardFaceApiService } from '../../services/card-face-api.service';
+import { CardFaceApiService } from '../../services/card-game-core/card-face-api.service';
 import { CardFace } from '../../models/card-face';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
@@ -29,7 +29,7 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 })
 export class CardComponent {
   private cardFaceApiService: CardFaceApiService = inject(CardFaceApiService);
-  private dndCardBoardService: DndCardBoardService = inject(DndCardBoardService);
+  private dndBoardService: DndBoardService = inject(DndBoardService);
   
   // TODO: If parent dimensions is larger than 0, then calculate the width and height
   parentDimensionsInput = input<{width: number, height: number} | undefined>();
@@ -46,7 +46,6 @@ export class CardComponent {
     cardId: 0,
     frontCardFaceId: 0,
     backCardFaceId: 0,
-    ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
     isFlipped: false,
     dndItem: {
       dndItemId: 0,
@@ -139,6 +138,7 @@ export class CardComponent {
   // Don't use style service, dynamically create the styling here
   cardFaces: Signal<readonly CardFaceComponent[]> = viewChildren(CardFaceComponent);
 
+  // TODO: Replace this
   flip(): boolean {
     this.card().isFlipped = !this.card().isFlipped;
     this.cardChange.emit(this.card());

@@ -4,7 +4,7 @@ import { CardFace } from '../../models/card-face';
 
 import { CardFaceElement, CardFaceElementDto } from '../../models/card-face-element';
 import { convertToRelativeCoordinates } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
-import { CardFaceElementApiService } from '../../services/card-face-element-api.service';
+import { CardFaceElementApiService } from '../../services/card-game-core/card-face-element-api.service';
 import { CardFaceElementComponent } from '../card-face-element/card-face-element.component';
 import { parseCssDimensionToNumber } from '../../../style/utils/parse-css-dimensions.utils';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 import { Card } from '../../models/card';
-import { DndCardBoardService } from '../../services/dnd-card-board.service';
+import { DndBoardService } from '../../services/dnd-board.service';
 
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
@@ -17,7 +17,7 @@ export class HandComponent {
   
   cards: Card[] = [];
 
-  constructor(private dndCardBoardService: DndCardBoardService) {}
+  constructor(private dndBoardService: DndBoardService) {}
 
   onCustomDrop(event: CdkDragDrop<any>)
   {
