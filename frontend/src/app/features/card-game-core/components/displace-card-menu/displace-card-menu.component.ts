@@ -23,18 +23,6 @@ export class DisplaceCardMenuComponent {
 
   displaceCardMenu = input<{srcDeckId: number, cardsSrcDeck: Card[], potentialDestDeckIds: number[]}>();
 
-  readonly displaceCardMenuComputed = computed(() => {
-    this.displaceCardMenu()?.cardsSrcDeck.forEach((card) => {
-      if (card.dndItem && card.dndItem.isDroppable) {
-        card.dndItem.isDroppable = false;
-      }
-
-      if (card.isFlipped == false) {
-        card.isFlipped = true;
-      }
-    });
-  });
-
   // TODO: // This matches the 'key in componentOutputs of the parent
   private _destDeckId: number = 0;
   amtDisplaceCards: number = 0;

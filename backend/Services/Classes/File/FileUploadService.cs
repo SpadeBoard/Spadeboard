@@ -14,8 +14,11 @@ namespace Services
     {
         // TODO: Use switch statement to switch between file types and where to store them
         // TODO: Modify this to read from the environment instead, maybe pass in the volume path instead as a parameter
-        private readonly string volumePath = "/app/backend/card-face-thumbnail-images";
+        private readonly string cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
+        private readonly string cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
         private readonly float maxFileSizeCardFace = 30000; // TODO: Read from environment variable
+
+        private readonly float maxFileSizeCardFaceElementImage = 1000000; // TODO: Read from environment variable
 
         // TODO: Replace with entire path? Because the fileName should include the volume path too
         public async Task<FileStream?> GetFileAsync(string fileName, string volumePath)
@@ -82,20 +85,30 @@ namespace Services
 
         public async Task<FileStream?> GetCardFaceFileAsync(string fileName)
         {
-            return await GetFileAsync(fileName, volumePath);
+            return await GetFileAsync(fileName, cardFaceFilePath);
         }
 
         public async Task<string?> UploadCardFaceFileAsync(IFormFile formFile)
         {
             // TODO: To be modified, this should be specifically for images
-            return await UploadFileAsync(formFile, maxFileSizeCardFace, volumePath);
+            return await UploadFileAsync(formFile, maxFileSizeCardFace, cardFaceFilePath);
+        }
+
+        public async Task<FileStream?> GetCardFaceElementImageFileAsync(string fileName)
+        {
+            return await GetFileAsync(fileName, cardFaceElementImageFilePath);
+        }
+
+        public async Task<string?> UploadCardFaceElementImageFileAsync(IFormFile formFile)
+        {
+            return await UploadFileAsync(formFile, maxFileSizeCardFaceElementImage, cardFaceElementImageFilePath);
         }
 
         // TODO: figure out how to fix this
-        public void ConvertBlobToFile(byte[] blob, string filePath) {
+        /*public void ConvertBlobToFile(byte[] blob, string filePath) {
             try 
             {
-                filePath = Path.Combine(volumePath, filePath);
+                filePath = Path.Combine(cardFaceFilePath, filePath);
 
                 using FileStream fs = new(filePath, FileMode.Create);
                 using BinaryWriter bw = new(fs);
@@ -107,7 +120,7 @@ namespace Services
             {
                 Console.Error.WriteLine("An error occurred while writing the file: " + ex.Message);
             }
-        }
+        }*/
 
         // TODO: Delete files at a certain point if there's no user reference to it
     }

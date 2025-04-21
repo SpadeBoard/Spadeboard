@@ -16,26 +16,6 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
-        // TODO: Add optional parameter to get the boundary
-        public async Task<DndItemDto?> GetDndItemDtoByDndItemIdAndDndPositionIdAsync(int dndItemId, int dndPositionId)
-        {
-            var dndItem = await _context.DndItem.FirstOrDefaultAsync(item => item.DndItemId == dndItemId);
-        
-            var dndPosition = await _context.DndPosition.FirstOrDefaultAsync(pos => pos.DndPositionId == dndPositionId);
-
-            if (dndItem == null || dndPosition == null)
-            {
-                return null;
-            }
-
-            DndItemDto dndItemDto = new(){
-                DndItem = dndItem,
-                DndPosition = dndPosition
-            };
-
-            return dndItemDto;
-        }
-
         // TODO: Rename all these types of functions to be consistent
         public async Task CreateDndItemNavAsync(DndItem dndItem)
         {
@@ -77,7 +57,7 @@ namespace Services
         public async Task CreateCardFaceElementPerCardFaceAsync(CardFaceElementDto cardFaceElementDto)
         {
             // TODO: Use the CardFaceElement service in order to set it but then also grab its value, or just pass it in
-            await CreateDndItemNavAsync(cardFaceElementDto.DndItemDto.DndItem);
+            await CreateAsync(cardFaceElementDto.DndItemDto.DndItem);
 
             await CreateDndPositionAsync(cardFaceElementDto.DndItemDto.DndPosition);
 
@@ -103,28 +83,21 @@ namespace Services
             await _context.DndPosition.AddAsync(dndPosition);
         }
 
-        public async Task<CardFaceElementPerCardFace?> GetCardFaceElementPerCardFaceByCardFaceIdAsync(int cardFaceElementId, int cardFaceId)
+        public async Task<IEnumerable<DndItem>> GetAllAsync()
         {
-            CardFaceElementPerCardFace? cardFaceElementDndAttributesPerCardFace = await _context.CardFaceElementPerCardFace.FirstOrDefaultAsync(attribute => attribute.CardFaceElement.CardFaceElementId == cardFaceElementId && attribute.CardFace.CardFaceId == cardFaceId);
-            
-            // TODO: Grab the card fa
-
-            return cardFaceElementDndAttributesPerCardFace;
+            return await _context.DndItem.ToListAsync(); 
         }
 
-        public Task<IEnumerable<DndItem>> GetAllAsync()
+        public async Task<DndItem?> GetAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.DndItem.FirstOrDefaultAsync(dnd => dnd.DndItemId == id);
         }
 
-        public Task<DndItem?> GetAsync(int id)
+        public async Task CreateAsync(DndItem item)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task CreateAsync(DndItem item)
-        {
-            throw new NotImplementedException();
+            item.DndItemId = 0;
+            await _context.DndItem.AddAsync(item);
+            await _context.SaveChangesAsync();
         }
 
         public Task<bool> UpdateAsync(int id, DndItem item)

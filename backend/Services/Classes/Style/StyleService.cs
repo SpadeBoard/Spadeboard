@@ -27,7 +27,7 @@ namespace Services
 
         public bool Exists(int id)
         {
-            throw new NotImplementedException();
+            return _context.Style.Any(s => s.StyleId == id);
         }
 
         public Task<IEnumerable<Style>> GetAllAsync()

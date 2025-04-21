@@ -1,5 +1,5 @@
 import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, ViewChild } from '@angular/core';
-import { Card, CardDto, CardPositionPerRoom } from '../../../card-game-core/models/card';
+import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../../card-game-core/models/card';
 import { CardFace } from '../../../card-game-core/models/card-face';
 import { CardFaceElement } from '../../../card-game-core/models/card-face-element';
 import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
@@ -43,22 +43,6 @@ export class GameRoomComponent implements AfterViewChecked{
 
   private ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a";
 
-   // ASSUMPTION: We're opening editor without having an already existing card
-  cardDto: CardDto = {
-    card: {
-      cardId: 0,
-      frontCardFaceId: 0,
-      backCardFaceId: 0,
-      isFlipped: false,
-      dndItem: {
-        dndItemId: 0,
-        isDraggable: false,
-        isDroppable: false
-      }
-    },
-    ownerId: this.ownerId
-  }
-
   constructor() {
     this.gameRoomService.setCurrentGameRoomId(1);
     this.gameRoomService.onAutosaveTimeout();
@@ -81,7 +65,7 @@ export class GameRoomComponent implements AfterViewChecked{
 
   onCardEditor(event: Event): void {
     this.isCardEditorOpen = !this.isCardEditorOpen;
-    this.cardGameCoreService.setCardEditorCardDto(this.cardDto);
+    // this.cardGameCoreService.setCardEditorCardDto(this.cardEditorCardDto);
     console.log(`Card editor state: ${this.isCardEditorOpen}`);
   }
 

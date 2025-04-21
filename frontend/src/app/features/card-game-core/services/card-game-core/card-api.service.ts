@@ -3,7 +3,7 @@ import { inject, Injectable, ResourceLoaderParams, ResourceRef } from '@angular/
 
 import { rxResource } from '@angular/core/rxjs-interop';
 
-import { Card, CardDto } from '../../models/card';
+import { Card, CardEditorCardDto } from '../../models/card';
 import { environment } from '../../../../../environments/environment';
 import { DndItem } from '../../../drag-and-drop/models/dnd-item';
 import { map, Observable, of } from 'rxjs';
@@ -55,7 +55,7 @@ export class CardApiService {
   // FIXME: Card composite must returns something different
 
   /*
-  const cardsResource = this.cardApiService.getCards(ownerId);
+  const cardsResource = this.cardApiService.getCards$(ownerId);
 
   Internally:
   request: () => [ownerId]
@@ -76,7 +76,7 @@ export class CardApiService {
   // If you apply Omit after Partial, you'll make all properties optional first, and then remove the specified properties.
 
   // TODO: Go into the owner function in backend, then use the service to grab all the cards associated with that owner ID then return those
-  getCards(ownerId?: string): Observable<Card[] | undefined> {
+  getCards$(ownerId?: string): Observable<Card[] | undefined> {
     if (ownerId !== undefined) {
       return this.http.get<Card[]>(`${this.apiUrl}/owner/${ownerId}`);
     }
@@ -84,7 +84,7 @@ export class CardApiService {
     return this.http.get<Card[]>(this.apiUrl);
   }
 
-  getCard(cardId: number, ownerId?: string): Observable<Card | undefined> {
+  getCard$(cardId: number, ownerId?: string): Observable<Card | undefined> {
     if (ownerId !== undefined) {
       return this.http.get<Card>(`${this.apiUrl}/owner/${ownerId}/${cardId}`);
     }
@@ -100,35 +100,35 @@ export class CardApiService {
   For POST, UPDATE and DELETE requests, canceling might lead to unintended side effects, such as incomplete data submissions or updates. However, if you need similar functionality for these types of requests, you can use the effect() method to safely manage the operations.
   */
 
-  createCard(cardDto: CardDto): Observable<Card | CardDto | undefined> {
-    if (cardDto.card === undefined) {
+  createCard$(cardEditorCardDto: CardEditorCardDto): Observable<Card | CardEditorCardDto | undefined> {
+    if (cardEditorCardDto.card === undefined) {
       return of(undefined);
     } 
 
     // TODO: Refactor and make this check a function on its own
-    if (cardDto.frontCardFace !== undefined 
-      && cardDto.backCardFace !== undefined
+    if (cardEditorCardDto.frontCardFace !== undefined 
+      && cardEditorCardDto.backCardFace !== undefined
       ){
-      return this.http.post<CardDto>(`${this.apiUrl}/dto`, cardDto);
+      return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto`, cardEditorCardDto);
     }
 
     // TODO: Separate properties
-    return this.http.post<Card>(this.apiUrl, cardDto.card);
+    return this.http.post<Card>(this.apiUrl, cardEditorCardDto.card);
   }
 
   // FIXME: Updating shouldn't be returning anything
-  updateCard(cardDto: CardDto): Observable<Card | CardDto | void | undefined> {
-    if (cardDto.frontCardFace !== undefined
-      && cardDto.backCardFace !== undefined
+  updateCard$(cardEditorCardDto: CardEditorCardDto): Observable<Card | CardEditorCardDto | void | undefined> {
+    if (cardEditorCardDto.frontCardFace !== undefined
+      && cardEditorCardDto.backCardFace !== undefined
     ) {
       // CHECKME: Do we need to update the owner ID too? But it's not gonna change
-      return this.http.put<CardDto>(`${this.apiUrl}/dto/${cardDto.card.cardId}`, cardDto);
+      return this.http.put<CardEditorCardDto>(`${this.apiUrl}/dto/${cardEditorCardDto.card.cardId}`, cardEditorCardDto);
     }
     
-    return this.http.put<void>(`${this.apiUrl}/${cardDto.card.cardId}`, cardDto.card);
+    return this.http.put<void>(`${this.apiUrl}/${cardEditorCardDto.card.cardId}`, cardEditorCardDto.card);
   }
 
-  deleteCard(cardId: number, deleteAllAttributesAssociatedWithCard: boolean): Observable<void | undefined> {
+  deleteCard$(cardId: number, deleteAllAttributesAssociatedWithCard: boolean): Observable<void | undefined> {
     if (deleteAllAttributesAssociatedWithCard) {
       return this.http.delete<void>(`${this.apiUrl}/dto/${cardId}`);
     }

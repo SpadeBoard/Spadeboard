@@ -1,14 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Models.Bridge;
 using Models.Styles;
 
 namespace Models.Cards
 {
-    public class CardFaceCreateDto
-    {
-        public int StyleId {get; set;}
-    }
-
     [Table("CardFaces")] // Maps this entity to the "Cards" table
     public class CardFace
     {
@@ -22,5 +18,12 @@ namespace Models.Cards
 
         // 'card-thumbnail-images/[card-id]_[card-face-id]_image.jpg'
         public string? CardFaceThumbnailFilePath {get; set;}
+    }
+
+    public class CardEditorCardFaceDto 
+    {
+        public CardFace CardFace {get; set;}
+
+        public CardFaceElementPerCardFace[] CardFaceElementsPerCardFace {get; set;}
     }
 }

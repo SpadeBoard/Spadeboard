@@ -40,7 +40,7 @@ export class CardsCollectionComponent {
   }
   
   getCards(): void {
-    this.cardApiService.getCards(
+    this.cardApiService.getCards$(
       this.userId).subscribe((result: Card[] | undefined) => {
         if (result !== undefined)
         {
@@ -53,7 +53,7 @@ export class CardsCollectionComponent {
   // https://v17.angular.io/guide/observables
   // ASSUMPTION: Checks to see if there needs to be a new card added to the menu
   private doesUserHaveMoreCards(): Observable<boolean> {
-    return this.cardApiService.getCards(this.userId).pipe(
+    return this.cardApiService.getCards$(this.userId).pipe(
       map((result: Card[] | undefined) => {
         return result !== undefined && result.length > this.cards.length;
       }),
@@ -68,7 +68,7 @@ export class CardsCollectionComponent {
   // https://angular.dev/guide/templates/pipes
 
   private getLatestCard(id: number): void {
-    this.cardApiService.getCard(
+    this.cardApiService.getCard$(
       id, this.userId).subscribe((result: Card | undefined) => {
         if (result !== undefined)
         {

@@ -13,9 +13,11 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardFacesController(ICardFaceService cardFaceService) : ControllerBase
+    public class CardFacesController(ICardFaceService cardFaceService, ICardFacePerCardService cardFacePerCardService) : ControllerBase
     {
         private readonly ICardFaceService _cardFaceService = cardFaceService;
+
+        private readonly ICardFacePerCardService _cardFacePerCardService = cardFacePerCardService;
 
         // GET: api/CardFaces
         [HttpGet]
@@ -45,8 +47,8 @@ namespace backend.Controllers
             return cardFace;
         }
 
-        [HttpGet("dto/{id}")]
-        public async Task<ActionResult<CardFace>> GetCardFaceDto(int id)
+        [HttpGet("nav/{id}")]
+        public async Task<ActionResult<CardFace>> GetCardFaceNav(int id)
         {
             var cardFace = await _cardFaceService.GetNavAsync(id);
 
@@ -56,6 +58,22 @@ namespace backend.Controllers
             }
 
             return cardFace;
+        }
+
+        [HttpGet("card-face-per-card/{id}")]
+        public async Task<ActionResult<IEnumerable<CardFace>>> GetCardFacesPerCard(int id)
+        {
+            var cfpc = await _cardFacePerCardService.GetAllNavByCardId(id);
+
+            List<CardFace> cardFaces = [];
+
+            foreach (var cfp in cfpc)
+            {
+                if (cfp.CardFace != null)
+                    cardFaces.Add(cfp.CardFace);
+            }
+
+            return cardFaces;
         }
 
         // PUT: api/CardFaces/5

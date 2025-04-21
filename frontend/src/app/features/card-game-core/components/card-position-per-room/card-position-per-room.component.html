@@ -2,8 +2,8 @@
     <div 
         cdkDrag
         class="cpr-cdk"
-        [style.left.px]="cpr.dndPosition.x ?? 0"
-        [style.top.px]="cpr.dndPosition.y ?? 0"
+        [style.left.px]="cpr.dndPosition.x"
+        [style.top.px]="cpr.dndPosition.y"
         [style.width]="'fit-content'"
         [style.height]="'fit-content'"
         (cdkDragMoved)="onDragMoved($event)"

@@ -16,20 +16,23 @@ Bridge tables documentation
 namespace Models.Bridge
 {
     [Table("CardFaceElementPerCardFace")]
-    [PrimaryKey(nameof(CardFaceElementId), nameof(DndItemId), nameof(DndPositionId), nameof(CardFaceId))]
     public class CardFaceElementPerCardFace
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int CardFaceElementPerCardFaceId {get; set;}
+
         [ForeignKey("CardFaceElementId")]
         public int CardFaceElementId { get; set; }
-        public CardFaceElement CardFaceElement { get; set; }
+        public CardFaceElement? CardFaceElement { get; set; }
         
         [ForeignKey("DndItemId")]
         public int DndItemId { get; set; }  
-        public DndItem DndItem { get; set; }
+        public DndItem? DndItem { get; set; }
 
         [ForeignKey("DndPositionId")]
         public int DndPositionId { get; set; }  
-        public DndPosition DndPosition { get; set; }
+        public DndPosition? DndPosition { get; set; }
 
         [ForeignKey("DndDragBoundaryId")]
         public int? DndDragBoundaryId {get; set;}
@@ -37,6 +40,6 @@ namespace Models.Bridge
 
         [ForeignKey("CardFaceId")]
         public int CardFaceId { get; set; }  
-        public CardFace CardFace { get; set; }
+        public CardFace? CardFace { get; set; }
     }
 }

@@ -1,7 +1,7 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { CardPositionPerRoomApiService } from './card-position-per-room-api.service';
-import { CardDto, CardPositionPerRoom } from '../../models/card';
+import { CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 
 @Injectable({
   providedIn: 'root'
@@ -19,19 +19,14 @@ export class CardGameCoreService {
 
   isCardsCollectionMenuOpen: WritableSignal<boolean>=  signal<boolean>(false);
 
-  cardEditorCardDto: WritableSignal<CardDto> = signal<CardDto> ({
+  cardEditorCardDto: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
     card: {
       cardId: 0,
-      frontCardFaceId: 0,
-      backCardFaceId: 0,
       isFlipped: false,
-      dndItem: {
-        dndItemId: 0,
-        isDraggable: false,
-        isDroppable: false
-      }
+      currentCardFaceIndex: 0
     },
-    ownerId: ''
+    ownerId: '',
+    cardEditorCardFacesDto: []
   });
 
   // https://medium.com/@dev.ashaysawarkar/communicating-between-sibling-components-in-angular-using-rxjs-subject-4e5382dcca34
@@ -44,7 +39,7 @@ export class CardGameCoreService {
     this.userId.set(newUserId);
   }
 
-  setCardEditorCardDto(newCardEditorCardDto: CardDto) {
+  setCardEditorCardDto(newCardEditorCardDto: CardEditorCardDto) {
     this.cardEditorCardDto.set(newCardEditorCardDto);
   }
 

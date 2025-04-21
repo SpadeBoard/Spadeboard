@@ -10,12 +10,12 @@ namespace Models.Bridge
     [PrimaryKey(nameof(CardId), nameof(OwnerId))]
     public class CardPerOwner
     {
-        [ForeignKey("CardId")]
         public int CardId { get; set; }
-        public Card Card { get; set; }
+        [ForeignKey("CardId")]
+        public Card? Card { get; set; }
 
         public string OwnerId {get; set;}
         [ForeignKey("OwnerId")]
-        public virtual IdentityUser Owner {get; set;}
+        public virtual IdentityUser? Owner {get; set;}
     }
 }

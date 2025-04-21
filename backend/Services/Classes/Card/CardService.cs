@@ -23,13 +23,8 @@ namespace Services
 
         public async Task CreateAsync(Card item)
         {
-            _context.Card.Add(item);
+            await _context.Card.AddAsync(item);
             await _context.SaveChangesAsync();
-        }
-
-        public Task CreateNavAsync(Card nav)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -44,11 +39,6 @@ namespace Services
             int changes =  await _context.SaveChangesAsync();
 
             return changes > 0;
-        }
-
-        public Task<bool> DeleteNavAsync(Card nav)
-        {
-            throw new NotImplementedException();
         }
 
         public bool Exists(int id)
@@ -66,27 +56,9 @@ namespace Services
             return await _context.Card.ToListAsync();
         }
 
-        public async Task<IEnumerable<Card>> GetAllNavAsync()
-        {
-            return await _context.Card
-                .Include(card => card.FrontCardFace)
-                .Include(card => card.BackCardFace)
-                .ToListAsync();
-        }
-
         public async Task<Card?> GetAsync(int id)
         {
             var card = await _context.Card.FindAsync(id);
-
-            return card;
-        }
-
-        public async Task<Card?> GetNavAsync(int id)
-        {
-            Card? card = await _context.Card
-                .Include(c => c.FrontCardFace)
-                .Include(c => c.BackCardFace)
-                .FirstOrDefaultAsync(c => c.CardId == id);
 
             return card;
         }
@@ -116,11 +88,6 @@ namespace Services
                     throw;
                 }
             }
-        }
-
-        public Task<bool> UpdateNavAsync(Card nav)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -1,5 +1,5 @@
-import { Card, CardDto } from "../models/card";
-import { CardFaceElement, CardFaceElementDto } from "../models/card-face-element";
+import { Card, CardEditorCardDto } from "../models/card";
+import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace } from "../models/card-face-element";
 import { Deck } from "../models/deck";
 
 // Are interfaces so we can't do instanceof to check
@@ -14,7 +14,7 @@ export function isCard(obj: any): obj is Card {
         && 'isFlipped' in obj;// Adjust based on Card properties
 }
 
-export function isCardDto(obj: any): obj is CardDto {
+export function isCardDto(obj: any): obj is CardEditorCardDto {
     return obj
         && typeof obj === 'object'
         && 'card' in obj
@@ -45,4 +45,12 @@ export function isCardFaceElementDto(obj: any): obj is CardFaceElementDto {
         && typeof obj === 'object'
         && 'cardFaceElement' in obj
         && 'dndItemDto' in obj
+}
+
+export function isCardFaceElementPerCardFace(obj: any): obj is CardFaceElementPerCardFace {
+    return obj
+        && typeof obj === 'object'
+        && 'cardFaceElement' in obj
+        && 'dndItem' in obj
+        && 'dndPosition' in obj
 }

@@ -2,31 +2,33 @@ import { DndItem } from "../../drag-and-drop/models/dnd-item";
 import { DndPosition } from "../../drag-and-drop/models/dnd-types";
 import { GameRoom } from "../../game-room/models/game-room/game-room";
 import { Style } from "../../style/models/style";
-import { CardFace } from "./card-face";
-import { CardFaceElement, CardFaceElementDto } from "./card-face-element";
+import { CardFace, CardEditorCardFaceDto } from "./card-face";
+import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace } from "./card-face-element";
 
 // TODO: Instead of having DndItem itself, have the card extends the item
 export interface Card {
     cardId: number;
-    frontCardFaceId: number
-    backCardFaceId: number;
+    currentCardFaceIndex: number;
+    frontCardFaceId?: number
+    backCardFaceId?: number;
     isFlipped: boolean,
-    dndItem?: DndItem,  // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
-    style?: Style, // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
-    dndPosition?: DndPosition // TODO: Get rid of this, just use the bridge table
+    // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
+    // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
 }
 
-export interface CardDto {
-    card: Partial<Card>;
-    frontCardFace?: Partial<CardFace>;
-    frontCardFaceElements?: Array<Partial<CardFaceElement>>;
-    frontCardFaceElementsDto?: Array<Partial<CardFaceElementDto>>;
+// TODO: Make a CardEditorCardDto which has everything including DndPosition
 
-    backCardFace?: Partial<CardFace>;
-    backCardFaceElements?: Array<Partial<CardFaceElement>>;
-    backCardFaceElementsDto?: Array<Partial<CardFaceElementDto>>
+// TODO: Rename this to CardEditorCardDto
+export interface CardEditorCardDto {
+    card: Card;
+    frontCardFace?: CardFace;
+    frontCardFaceElementsDto?: Array<CardFaceElementDto>;
+    
+    cardEditorCardFacesDto: Array<CardEditorCardFaceDto>;
 
-    dndItem?: Partial<DndItem>;
+    backCardFace?: CardFace;
+    backCardFaceElementsDto?: Array<CardFaceElementDto>;
+
     ownerId?: string;
 }
 

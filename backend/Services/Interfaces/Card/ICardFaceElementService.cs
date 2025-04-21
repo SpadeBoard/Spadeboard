@@ -12,10 +12,6 @@ namespace Services
 
         public Task<CardFaceElement?> GetNavAsync(int id);
 
-        public Task<IEnumerable<CardFaceElementDto>> GetAllDtoByCardFaceIdAsync(int cardFaceId);
-        
-        public Task<CardFaceElementDto?> GetDtoAsync(int cardFaceElementId, int cardFaceId);
-
         public Task<IEnumerable<CardFaceElement>> GetAllNavByCardFaceId(int cardFaceId);
 
         public Task CreateAllNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace);
@@ -28,14 +24,6 @@ namespace Services
 
         public Task<bool> UpdateNavAsync(CardFaceElement cardFaceElement);
 
-        public Task UpdateAllDtoAsync(CardFaceElementDto[] cardFaceElementsDto);
-
-        public Task UpdateDtoAsync(CardFaceElementDto cardFaceElementDto);
-
-        public Task CreateAllDtoAsync(CardFaceElementDto[] cardFaceElementsDto, CardFace cardFace);
-
-        public Task CreateDtoAsync(CardFaceElementDto cardFaceElementDto);
-
-        public Task CreateNavAsync(CardFaceElement cardFaceElement);
+        public Task CreateNavAsync(CardFaceElement nav);
     }
 }

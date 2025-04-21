@@ -10,111 +10,40 @@
         </div>
     }
     <div class="left-column">
-        <!-- TODO: Have an empty card face here, or a div representing the card, actually, gotta make another drop list then-->
-        <!--<div class="card-editor-face" cdkDropList (cdkDropListDropped)="onDragDrop($event)">!-->
         <div 
             class="card-editor-face" 
             [style]="getCardEditorFaceStyle()" 
             cdkDropList cdkDropListSortingDisabled="true" 
             (cdkDropListDropped)="onDragDrop($event)" 
-            [cdkDropListData]="currentCardFaceElements" 
+            [cdkDropListData]="currentCardFaceElementsDto" 
             #cardEditorFace 
             #cefList="cdkDropList">    
-            <!-- TODO: For loop of ngComponentOutlet!-->
-            <!-- FIXME: Replace with currentCardFaceElementsDto, pass in data being the DTO-->
-            <!--@for (currentCardFaceElementDto of currentCardFaceElementsDto; track currentCardFaceElementDto; let i = $index) {-->
-            <!--@for (currentCardFaceElement of currentCardFaceElements; track currentCardFaceElement; let i = $index) {
-                <div 
-                    class="dnd-wrapper" 
-                    cdkDrag 
-                    cdkDragBoundary=".card-editor-face" 
-                    (cdkDragStarted)="changeZIndex($event, currentCardFaceElement)" 
-                    (cdkDragMoved)="onDragMoved($event)" 
-                    (cdkDragDropped)="onDragDropped($event)"
-                    [cdkDragData]="currentCardFaceElement" 
-                    [style.left.px]="currentCardFaceElement.dndItem?.dndPosition?.x ?? 0"
-                    [style.top.px]="currentCardFaceElement.dndItem?.dndPosition?.y ?? 0"
-                    [style.z-index]="currentCardFaceElement.style?.zIndex ?? 'inherit'"
-                    [attr.element-index]="i"
-                    [attr.card-face-element-id]="currentCardFaceElement.cardFaceElementId"
-                    #cardFaceElement
-                >
-                    <div class="example-custom-placeholder" *cdkDragPlaceholder></div>
-                    @switch (currentCardFaceElement.cardFaceElementType) {
-                        @case ("image") {
-                            <app-card-face-image
-                                [cardFaceImageAttr]="{cardFaceImage: getCardFaceImage(currentCardFaceElement.cardFaceElementId, currentCardFaceElement.cardFaceElementContent, currentCardFaceElement.style?.width, currentCardFaceElement.style?.height)}"
-                                (showImageEditor)="onOpenImageEditor($event)"
-                            >
-                                <span class="position">X: {{currentCardFaceElement.dndItem?.dndPosition?.x ?? 0}}, Y: {{currentCardFaceElement.dndItem?.dndPosition?.y ?? 0}}</span>
-                                <div class="example-handle" cdkDragHandle>
-                                    <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
-                                    <path d="M0 0h24v24H0z" fill="none"></path>
-                                    </svg>
-                                </div>
-                            </app-card-face-image>
-                        }
-                        @case ("rte") {
-                            <div id="card-face-rte">
-                                <button (click)="onOpenRteEditor($event, currentCardFaceElement.cardFaceElementId)">Change text</button>
-                                <angular-editor 
-                                    [config]="createCardFaceRte(currentCardFaceElement.cardFaceElementContent)" 
-                                    [(ngModel)]="currentCardFaceElement.cardFaceElementContent">
-                                </angular-editor>
-                            </div>
-                        }
-                    }
-                </div>
-
-                <div class="example-box" cdkDrag cdkDragBoundary=".card-editor-face" (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="onDragEnded($event)" [cdkDragData]="currentCardFaceElement">
-                    {{currentCardFaceElement}}
-                    <div class="example-handle" cdkDragHandle>
-                        <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
-                        <path d="M0 0h24v24H0z" fill="none"></path>
-                        </svg>
-                    </div>
-                </div>-->
-                <!--@if (currentCardFaceElement.isDraggable || currentCardFaceElement.isDroppable) {
-                    <app-dnd-wrapper
-                        [dragData]="currentCardFaceElement"
-                        [dragBoundary]="getDragBoundary()"
-
-                        (onDragMoveChange)="onDragMove($event)"
-                        (onDragEnteredChange)="onDragEntered($event)"
-                        (onDragDrop)="onDragDrop($event)"
-                        (onDragExited)="onDragExited($event)"
-                    />
-                }!
-            }!-->
-
-            @for (currentCardFaceElementDto of currentCardFaceElementsDto; track currentCardFaceElementDto; let i = $index) {
+            @for (currentCardFaceElementPerCardFace of currentCardFaceElementsPerCardFace; track currentCardFaceElementPerCardFace; let i = $index) {
                 <!-- FIXME: Temporary-->
                 <div 
                     class="dnd-wrapper" 
                     cdkDrag 
                     cdkDragBoundary=".card-editor-face" 
-                    (cdkDragStarted)="changeZIndex($event, currentCardFaceElementDto)" 
+                    (cdkDragStarted)="changeZIndex($event, currentCardFaceElementPerCardFace)" 
                     (cdkDragMoved)="onDragMoved($event)" 
                     (cdkDragDropped)="onDragDropped($event)"
-                    [cdkDragData]="currentCardFaceElementDto" 
-                    [style.left.px]="currentCardFaceElementDto.dndItemDto.dndPosition.x ?? 0"
-                    [style.top.px]="currentCardFaceElementDto.dndItemDto.dndPosition.y ?? 0"
-                    [style.z-index]="currentCardFaceElementDto.cardFaceElement.style?.zIndex ?? 'inherit'"
+                    [cdkDragData]="currentCardFaceElementPerCardFace" 
+                    [style.left.px]="currentCardFaceElementPerCardFace.dndPosition.x ?? 0"
+                    [style.top.px]="currentCardFaceElementPerCardFace.dndPosition.y ?? 0"
+                    [style.z-index]="currentCardFaceElementPerCardFace.cardFaceElement.style?.zIndex ?? 'inherit'"
                     [attr.element-index]="i"
-                    [attr.card-face-element-id]="currentCardFaceElementDto.cardFaceElement.cardFaceElementId"
+                    [attr.card-face-element-id]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
                     #cardFaceElement
                 >
                     <div class="example-custom-placeholder" *cdkDragPlaceholder></div>
                     <!-- TODO: Check the type of the element, depending on what type it is, render it a certain way-->
-                    @switch (currentCardFaceElementDto.cardFaceElement.cardFaceElementType) {
+                    @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
                         @case ("image") {
                             <app-card-face-image
-                                [cardFaceImageAttr]="{cardFaceImage: getCardFaceImage(currentCardFaceElementDto.cardFaceElement.cardFaceElementId, currentCardFaceElementDto.cardFaceElement.cardFaceElementContent, currentCardFaceElementDto.cardFaceElement.style?.width, currentCardFaceElementDto.cardFaceElement.style?.height)}"
+                                [cardFaceImageAttr]="{cardFaceImage: getCardFaceImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent, currentCardFaceElementPerCardFace.cardFaceElement.style?.width, currentCardFaceElementPerCardFace.cardFaceElement.style?.height)}"
                                 (showImageEditor)="onOpenImageEditor($event)"
                             >
-                                <span class="position">X: {{currentCardFaceElementDto.dndItemDto.dndPosition?.x ?? 0}}, Y: {{currentCardFaceElementDto.dndItemDto.dndPosition?.y ?? 0}}</span>
+                                <span class="position">X: {{currentCardFaceElementPerCardFace.dndPosition?.x ?? 0}}, Y: {{currentCardFaceElementPerCardFace.dndPosition.y}}</span>
                                 <div class="example-handle" cdkDragHandle>
                                     <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
@@ -125,36 +54,15 @@
                         }
                         @case ("rte") {
                             <div id="card-face-rte">
-                                <button (click)="onOpenRteEditor($event, currentCardFaceElementDto.cardFaceElement.cardFaceElementId)">Change text</button>
+                                <button (click)="onOpenRteEditor($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change text</button>
                                 <angular-editor 
-                                    [config]="createCardFaceRte(currentCardFaceElementDto.cardFaceElement.cardFaceElementContent)" 
-                                    [(ngModel)]="currentCardFaceElementDto.cardFaceElement.cardFaceElementContent">
+                                    [config]="createCardFaceRte(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent)" 
+                                    [(ngModel)]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent">
                                 </angular-editor>
                             </div>
                         }
                     }
                 </div>
-
-                <!--<div class="example-box" cdkDrag cdkDragBoundary=".card-editor-face" (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="onDragEnded($event)" [cdkDragData]="currentCardFaceElement">
-                    {{currentCardFaceElement}}
-                    <div class="example-handle" cdkDragHandle>
-                        <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
-                        <path d="M0 0h24v24H0z" fill="none"></path>
-                        </svg>
-                    </div>
-                </div>-->
-                <!--@if (currentCardFaceElement.isDraggable || currentCardFaceElement.isDroppable) {
-                    <app-dnd-wrapper
-                        [dragData]="currentCardFaceElement"
-                        [dragBoundary]="getDragBoundary()"
-
-                        (onDragMoveChange)="onDragMove($event)"
-                        (onDragEnteredChange)="onDragEntered($event)"
-                        (onDragDrop)="onDragDrop($event)"
-                        (onDragExited)="onDragExited($event)"
-                    />
-                }!-->
             }
         </div>
         <button (click)="flip($event)">Flip</button>
@@ -163,16 +71,6 @@
     </div>
     <!--TODO: Make the right column a drop list-->
     <div class="right-column" cdkDropList [cdkDropListConnectedTo]="[cefList]">
-        <!--TODO: Replace with the actual images of it-->
-        <!--<button (click)="onRteClick($event)">
-            <angular-editor 
-                [config]="createCardFaceRte('Rich Text Editor')">
-            </angular-editor>
-        </button>
-        <button (click)="onImageClick($event)">
-            <app-card-face-image/>
-        </button>-->
-
         <div 
             class="dnd-palette-wrapper" 
             cdkDrag 

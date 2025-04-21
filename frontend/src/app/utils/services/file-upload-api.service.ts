@@ -19,7 +19,9 @@ export class FileUploadApiService {
     {
       case "card-face":
         return this.http.get(`${this.apiUrl}/card-face/${fileName}`, { responseType: 'blob' });
-      default:
+      case "card-face-element-image":
+        return this.http.get(`${this.apiUrl}/card-face-element-image/${fileName}`, { responseType: 'blob' });
+        default:
         return this.http.get(`${this.apiUrl}/${fileName}`, { responseType: 'blob' });
     }
   }
@@ -33,6 +35,8 @@ export class FileUploadApiService {
     {
       case "card-face":
         return this.http.post<{id: string}>(`${this.apiUrl}/card-face`, formData);
+      case "card-face-element-image":
+        return this.http.post<{id: string}>(`${this.apiUrl}/card-face-element-image`, formData);
       default:
         return this.http.post<{id: string}>(`${this.apiUrl}`, formData/*, {headers}*/);
     }

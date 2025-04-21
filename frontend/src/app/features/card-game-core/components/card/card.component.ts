@@ -29,50 +29,23 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 })
 export class CardComponent {
   private cardFaceApiService: CardFaceApiService = inject(CardFaceApiService);
-  private dndBoardService: DndBoardService = inject(DndBoardService);
   
-  // TODO: If parent dimensions is larger than 0, then calculate the width and height
-  parentDimensionsInput = input<{width: number, height: number} | undefined>();
-
   // https://medium.com/@chandrashekharsingh25/angular-signals-explained-with-practical-examples-e45de6d00925
   // Might need computed signals then
-
-  parentDimensions: {width: number, height: number} = {
-    width: 0,
-    height: 0
-  };
 
   card = input<Card >({
     cardId: 0,
     frontCardFaceId: 0,
     backCardFaceId: 0,
     isFlipped: false,
-    dndItem: {
-      dndItemId: 0,
-      isDraggable: false,
-      isDroppable: false,
-    },
-    dndPosition: { x: 0, y: 0 },
-    style: {
-      styleId: 0,
-      height: '', // CHECKME: Aspect ratio set then what
-      width: '', // CHECKME: Aspect ratio set then what
-      margin: '50'
-    }
+    currentCardFaceIndex: 0
   });
 
-  cardStyle: Omit<Style, 'styleId'> = {
-    border: '2px dotted rgb(204, 204, 204)'
-  }
+  cardFaces: CardFace[] = [
 
-  frontCardFace: CardFace = {
-    cardFaceId: 0,
-    style: {
-      styleId: 0
-    }
-  }
+  ];
 
-  backCardFace: CardFace = {
+  currentCardFace: CardFace = {
     cardFaceId: 0,
     style: {
       styleId: 0
@@ -120,23 +93,28 @@ export class CardComponent {
     });
   }
 
+  // TODO: Rework this, use cardApiService to get the card face IDs, then use a switch map, pass it into the next then assign the cardFaces
   private loadCardFaces(card: Card): void {
-    forkJoin({
-      front: this.cardFaceApiService.getCardFace(card.frontCardFaceId),
-      back: this.cardFaceApiService.getCardFace(card.backCardFaceId)
-    }).subscribe(({ front, back }) => {
-      if (front && back) {
-        this.frontCardFace = front;
-        this.backCardFace = back;
-
-        console.log(`Front card face: ${JSON.stringify(this.frontCardFace)}`);
-        console.log(`Back card face: ${JSON.stringify(this.backCardFace)}`);
+    this.cardFaceApiService.getCardFacesPerCard$(card.cardId).subscribe((result: CardFace[] | undefined) => {
+      if (result != undefined) {
+        this.cardFaces = result;
+        this.currentCardFace = this.cardFaces[0];
       }
     });
-  }
 
-  // Don't use style service, dynamically create the styling here
-  cardFaces: Signal<readonly CardFaceComponent[]> = viewChildren(CardFaceComponent);
+    /*forkJoin({
+      front: this.cardFaceApiService.getCardFace$(card.frontCardFaceId as number),
+      back: this.cardFaceApiService.getCardFace$(card.backCardFaceId as number)
+    }).subscribe(({ front, back }) => {
+      if (front && back) {
+        this.currentCardFace = front;
+        this.backCardFace = back;
+
+        console.log(`Front card face: ${JSON.stringify(this.currentCardFace)}`);
+        console.log(`Back card face: ${JSON.stringify(this.backCardFace)}`);
+      }
+    });*/
+  }
 
   // TODO: Replace this
   flip(): boolean {

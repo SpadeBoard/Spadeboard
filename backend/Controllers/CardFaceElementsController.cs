@@ -14,9 +14,11 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardFaceElementsController(ICardFaceElementService cardFaceElementService) : ControllerBase
+    public class CardFaceElementsController(ICardFaceElementService cardFaceElementService, ICardFaceElementDtoService cardFaceElementDtoService) : ControllerBase
     {
         private readonly ICardFaceElementService _cardFaceElementService = cardFaceElementService;
+
+        private readonly ICardFaceElementDtoService _cardFaceElementDtoService = cardFaceElementDtoService;
 
         // GET: api/CardFaceElements
         [HttpGet]
@@ -61,7 +63,7 @@ namespace backend.Controllers
         [HttpGet("CardFace/dto/{id}")]
         public async Task<ActionResult<IEnumerable<CardFaceElementDto>>> GetCardFaceElementsDtoByCardFaceId(int id)
         {
-            var cardFaceElementsDto = await _cardFaceElementService.GetAllDtoByCardFaceIdAsync(id);
+            var cardFaceElementsDto = await _cardFaceElementDtoService.GetAllDtoByCardFaceIdAsync(id);
 
             if (cardFaceElementsDto == null)
             {

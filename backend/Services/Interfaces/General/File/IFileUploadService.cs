@@ -8,8 +8,14 @@ namespace Services
         
         public Task<FileStream?> GetCardFaceFileAsync(string fileName);
 
+        public Task<FileStream?> GetCardFaceElementImageFileAsync(string fileName);
+
         public Task<string?> UploadCardFaceFileAsync(IFormFile formFile);
     
-        public void ConvertBlobToFile(byte[] blob, string filePath);
+
+        public Task<string?> UploadCardFaceElementImageFileAsync(IFormFile formFile);
+
+
+        /*public void ConvertBlobToFile(byte[] blob, string filePath);*/
     }
 }

@@ -21,7 +21,6 @@ export class CardFaceElementComponent {
   cardFaceElementDtoInput = input<CardFaceElementDto>({
     cardFaceElement: {
       cardFaceElementId: 0,
-      cardFaceId: 0,
       cardFaceElementContent: '',
       cardFaceElementType: '',
     },
@@ -43,7 +42,6 @@ export class CardFaceElementComponent {
     cardFaceElementDtoInput: {
       cardFaceElement: {
         cardFaceElementId: 0,
-        cardFaceId: 0,
         cardFaceElementContent: '',
         cardFaceElementType: '',
       },
