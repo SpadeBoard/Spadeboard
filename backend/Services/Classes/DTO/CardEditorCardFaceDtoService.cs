@@ -70,11 +70,12 @@ namespace Services
 
         public async Task<CardEditorCardFaceDto?> GetDtoAsyncByCardFaceIdAsync(int id)
         {
+            var cardFace = await _cardFaceService.GetNavAsync(id);
             var elements = (await _cardFaceElementPerCardFaceService.GetAllNavByCardFaceIdAsync(id)).ToArray();
 
             // ASSUMPTION: All card elements have the same card face
             CardEditorCardFaceDto cfd =  new(){
-                CardFace = elements[0].CardFace ?? null,
+                CardFace = cardFace,
                 CardFaceElementsPerCardFace = elements
             };
 

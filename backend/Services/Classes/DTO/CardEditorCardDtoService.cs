@@ -35,25 +35,6 @@ namespace Services
                 if (dto.CardEditorCardFacesDto != null) {
                     await _cardEditorCardFaceDtoService.CreateAllDtoAsync(dto.CardEditorCardFacesDto);
                 }
-                
-                /*if (dto.FrontCardFaceElementsDto != null)
-                    await _cardFaceElementDtoService.CreateAllDtoAsync(dto.FrontCardFaceElementsDto, dto.FrontCardFace);
-
-                if (dto.BackCardFaceElementsDto != null)
-                    await _cardFaceElementDtoService.CreateAllDtoAsync(dto.BackCardFaceElementsDto, dto.BackCardFace);
-
-                Console.WriteLine("Card Face Elements Created - Front: {0}, Back: {1}",
-                    dto.FrontCardFaceElementsDto != null 
-                        ? JsonConvert.SerializeObject(dto.FrontCardFaceElementsDto, Formatting.Indented) 
-                        : "none",
-                    dto.BackCardFaceElementsDto != null 
-                        ? JsonConvert.SerializeObject(dto.BackCardFaceElementsDto, Formatting.Indented) 
-                        : "none");
-
-                dto.Card.FrontCardFace = dto.FrontCardFace;
-                dto.Card.BackCardFace = dto.BackCardFace;
-
-                Console.WriteLine(String.Format("Front card face ID: {0}, back card face ID: {1}", dto.FrontCardFace.CardFaceId, dto.BackCardFace.CardFaceId));*/
 
                 await  _cardService.CreateAsync(dto.Card);
 
@@ -125,32 +106,6 @@ namespace Services
             // TODO: Get all card faces by Card ID -> bridge table inside of CardEditorCardFAceDtoService to then grab the CardEditorCardFaceDto too
             dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.GetAllDtoByCardId(dto.Card.CardId)).ToArray();
 
-            /*CardFace? frontCardFace = await _cardFaceService.GetNavAsync(card.FrontCardFaceId);
-            CardFace? backCardFace = await _cardFaceService.GetNavAsync(card.BackCardFaceId);
-            
-            if (frontCardFace == null && backCardFace == null)
-            {
-                return null;
-            }
-
-            if (frontCardFace != null)
-                dto.FrontCardFace = frontCardFace;
-
-            if (backCardFace != null)
-                dto.BackCardFace = backCardFace;
-
-            // TODO: Modify it so that the elements are using the bridge table and not by foreign key relationships
-            var frontCardFaceElementsDto = await _cardFaceElementDtoService.GetAllDtoByCardFaceIdAsync(card.FrontCardFaceId);
-            var backCardFaceElementsDto = await _cardFaceElementDtoService.GetAllDtoByCardFaceIdAsync(card.BackCardFaceId);
-
-            if (frontCardFaceElementsDto != null) {
-                dto.FrontCardFaceElementsDto = frontCardFaceElementsDto.ToArray<CardFaceElementDto>();
-            }
-
-            if (backCardFaceElementsDto != null) {
-                dto.BackCardFaceElementsDto = backCardFaceElementsDto.ToArray<CardFaceElementDto>();
-            }*/
-
             CardPerOwner? cpo = await _cardPerOwnerService.GetByCardIdAsync(dto.Card.CardId);
 
             if (cpo != null) 
@@ -178,25 +133,9 @@ namespace Services
                 _context.Entry(dto.Card).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
-                /*if (dto.FrontCardFace != null) 
-                {
-                    await _cardFaceService.UpdateNavAsync(dto.FrontCardFace);
+                if (dto.CardEditorCardFacesDto != null) {
+                    await _cardEditorCardFaceDtoService.UpdateAllDtoAsync(dto.CardEditorCardFacesDto);
                 }
-
-                if (dto.BackCardFace != null) 
-                {
-                    await _cardFaceService.UpdateNavAsync(dto.BackCardFace);
-                }
-
-                if (dto.FrontCardFaceElementsDto != null)
-                {
-                    await _cardFaceElementDtoService.UpdateAllDtoAsync(dto.FrontCardFaceElementsDto);
-                }
-
-                if (dto.BackCardFaceElementsDto != null)
-                {
-                    await _cardFaceElementDtoService.UpdateAllDtoAsync(dto.BackCardFaceElementsDto);
-                }*/
 
                 await transaction.CommitAsync();
                 return true;

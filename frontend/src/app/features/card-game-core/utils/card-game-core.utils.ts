@@ -14,14 +14,11 @@ export function isCard(obj: any): obj is Card {
         && 'isFlipped' in obj;// Adjust based on Card properties
 }
 
-export function isCardDto(obj: any): obj is CardEditorCardDto {
+export function isCardEditorCardDto(obj: any): obj is CardEditorCardDto {
     return obj
         && typeof obj === 'object'
         && 'card' in obj
-        && 'frontCardFace' in obj
-        && 'backCardFace' in obj
-        // && 'frontCardFaceElements' in obj
-        // && 'backCardFaceElements' in obj
+        && 'cardEditorCardFacesDto' in obj
 }
 
 export function isDeck(obj: any): obj is Deck {

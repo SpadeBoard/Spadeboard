@@ -15,8 +15,6 @@ namespace Services
             var cardsPerOwner = await _context.CardPerOwner
                 .Where(cpo => cpo.OwnerId == ownerId)
                 .Include(cpo => cpo.Card)
-                .Include(cpo => cpo.Card.FrontCardFace)
-                .Include(cpo => cpo.Card.BackCardFace)
                 .ToListAsync();
 
             List<Card> cards = [];

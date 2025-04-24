@@ -15,7 +15,7 @@
             [style]="getCardEditorFaceStyle()" 
             cdkDropList cdkDropListSortingDisabled="true" 
             (cdkDropListDropped)="onDragDrop($event)" 
-            [cdkDropListData]="currentCardFaceElementsDto" 
+            [cdkDropListData]="currentCardFaceElementsPerCardFace" 
             #cardEditorFace 
             #cefList="cdkDropList">    
             @for (currentCardFaceElementPerCardFace of currentCardFaceElementsPerCardFace; track currentCardFaceElementPerCardFace; let i = $index) {

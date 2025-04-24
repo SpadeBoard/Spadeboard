@@ -100,27 +100,25 @@ export class CardApiService {
   For POST, UPDATE and DELETE requests, canceling might lead to unintended side effects, such as incomplete data submissions or updates. However, if you need similar functionality for these types of requests, you can use the effect() method to safely manage the operations.
   */
 
-  createCard$(cardEditorCardDto: CardEditorCardDto): Observable<Card | CardEditorCardDto | undefined> {
-    if (cardEditorCardDto.card === undefined) {
+  createCard$(card: Card): Observable<Card | undefined> {
+    if (card === undefined) {
+      return of(undefined);
+    } 
+    // TODO: Separate properties
+    return this.http.post<Card>(this.apiUrl, card);
+  }
+
+  createCardEditorCardDto$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
+    if (cardEditorCardDto === undefined) {
       return of(undefined);
     } 
 
-    // TODO: Refactor and make this check a function on its own
-    if (cardEditorCardDto.frontCardFace !== undefined 
-      && cardEditorCardDto.backCardFace !== undefined
-      ){
-      return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto`, cardEditorCardDto);
-    }
-
-    // TODO: Separate properties
-    return this.http.post<Card>(this.apiUrl, cardEditorCardDto.card);
+    return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto`, cardEditorCardDto);
   }
 
   // FIXME: Updating shouldn't be returning anything
   updateCard$(cardEditorCardDto: CardEditorCardDto): Observable<Card | CardEditorCardDto | void | undefined> {
-    if (cardEditorCardDto.frontCardFace !== undefined
-      && cardEditorCardDto.backCardFace !== undefined
-    ) {
+    if (cardEditorCardDto.cardEditorCardFacesDto !== undefined ) {
       // CHECKME: Do we need to update the owner ID too? But it's not gonna change
       return this.http.put<CardEditorCardDto>(`${this.apiUrl}/dto/${cardEditorCardDto.card.cardId}`, cardEditorCardDto);
     }

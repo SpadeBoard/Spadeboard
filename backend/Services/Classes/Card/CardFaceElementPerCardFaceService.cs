@@ -1,7 +1,14 @@
 using Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models.Bridge;
 using Models.Cards;
+using Newtonsoft.Json;
 
 namespace Services
 {
@@ -83,7 +90,7 @@ namespace Services
             if (e != null)
             {
                 nav = e;
-                Console.WriteLine("Card Face Element Per Card Face: Finished Create Nav Async");
+                Console.WriteLine("\nCard Face Element Per Card Face Service - Create Nav Async: {0}\n",  JsonConvert.SerializeObject(nav));
             }
         }
 
@@ -235,6 +242,8 @@ namespace Services
         {
             foreach (CardFaceElementPerCardFace c in cardFaceElementsPerCardFace) {
                 c.CardFace = cardFace;
+                await _cardFaceElementService.CreateNavAsync(c.CardFaceElement);
+
                 await CreateNavAsync(c);
             }
         }

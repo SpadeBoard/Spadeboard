@@ -32,7 +32,7 @@ export class CardFaceImageComponent {
           cardFaceImageStyle?: Style;
       } | undefined = this.cardFaceImageAttr();
 
-      console.log('Card face image attributes computed', cardFaceImageAttr);
+      // console.log('Card face image attributes computed', cardFaceImageAttr);
 
       if (cardFaceImageAttr === undefined)
         return undefined;
@@ -116,5 +116,13 @@ export class CardFaceImageComponent {
 
     if (cardFaceElementId !== undefined)
       this.showImageEditor.emit(cardFaceElementId);
+  }
+
+  onImageLoad(url: string) {
+    if (!url.startsWith('blob:'))
+      return;
+
+    URL.revokeObjectURL(url);
+    console.log('Blob URL revoked after image loaded');
   }
 }

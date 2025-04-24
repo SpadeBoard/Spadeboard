@@ -139,9 +139,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             new Card
             {
                 CardId = -1,
-                // FrontCardFaceId = -1,
-                // BackCardFaceId = -1,
-                IsFlipped = false
+                IsFlipped = false,
+                CurrentCardFaceIndex = 0
             }
         );
 

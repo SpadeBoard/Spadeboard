@@ -20,15 +20,8 @@ namespace Models.Cards
     public class CardEditorCardDto
     {
         public Card Card { get; set; }
-        public CardFace FrontCardFace { get; set; } // TODO: Remove
 
-        public CardFaceElementDto[]? FrontCardFaceElementsDto {get; set;}  // TODO: Remove
-
-        public CardFace BackCardFace { get; set; }  // TODO: Remove
-        
-        public CardFaceElementDto[]? BackCardFaceElementsDto {get; set;}  // TODO: Remove
-
-        public CardEditorCardFaceDto[]? CardEditorCardFacesDto {get; set;}
+        public CardEditorCardFaceDto[] CardEditorCardFacesDto {get; set;}
 
         public string OwnerId { get;set;}
     }
@@ -43,17 +36,6 @@ namespace Models.Cards
         // FIXED
         // Getting the navigation properties being required
         // So make them nullable
-
-        // TODO: Specify it's a foreign key
-        // FIXME: Allow nulls for now?
-        // At least the front card face should be required?
-        public int? FrontCardFaceId { get; set; }
-        [ForeignKey("FrontCardFaceId")]
-        public virtual CardFace? FrontCardFace { get; set; }
-
-        public int? BackCardFaceId { get; set; }
-        [ForeignKey("BackCardFaceId")]
-        public virtual CardFace? BackCardFace { get; set; } // TODO: This should be reworked to actually be the array of card face IDs
 
         [Required]
         public bool IsFlipped {get;set;} // TODO: This should be reworked to actually be the index of the current face
