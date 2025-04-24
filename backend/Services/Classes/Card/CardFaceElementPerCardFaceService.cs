@@ -177,7 +177,7 @@ namespace Services
                 .Include(a => a.DndItem)
                 .Include(a => a.DndPosition)
                 .Include(a => a.DndDragBoundary)
-                .FirstOrDefaultAsync(c => c.CardFaceElementPerCardFaceId == id);
+                .FirstOrDefaultAsync(cardFaceElementPerCardFace => cardFaceElementPerCardFace.CardFaceElementPerCardFaceId == id);
 
             return cfepcf;
         }
@@ -240,26 +240,40 @@ namespace Services
 
         public async Task CreateAllNavByCardFaceIdAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
         {
-            foreach (CardFaceElementPerCardFace c in cardFaceElementsPerCardFace) {
-                c.CardFace = cardFace;
-                await _cardFaceElementService.CreateNavAsync(c.CardFaceElement);
+            foreach (CardFaceElementPerCardFace cardFaceElementPerCardFace in cardFaceElementsPerCardFace) {
+                cardFaceElementPerCardFace.CardFace = cardFace;
+                await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
 
-                await CreateNavAsync(c);
+                await CreateNavAsync(cardFaceElementPerCardFace);
             }
         }
 
-        public async Task UpdateAllNavByCardFaceIdAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
+        public async Task<bool> UpdateAllNavByCardFaceIdAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
         {
             var updated = await _cardFaceService.UpdateNavAsync(cardFace);
 
             if (updated == false)
-                return;
+                return updated;
             
+            // PURPOSE: It's because some elements might be newly added and have an ID of 0
             foreach (var cardFaceElementPerCardFace in cardFaceElementsPerCardFace) 
             {
                 cardFaceElementPerCardFace.CardFace = cardFace;
-                await UpdateNavAsync(cardFaceElementPerCardFace);
+
+                if (!_cardFaceElementService.Exists(cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId)) {
+                    await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
+                    await CreateNavAsync(cardFaceElementPerCardFace);
+                    
+                    continue;
+                }
+
+                updated = await UpdateNavAsync(cardFaceElementPerCardFace);
+
+                if (updated == false)
+                    return updated;
             }
+
+            return updated;
         }
     }
 }

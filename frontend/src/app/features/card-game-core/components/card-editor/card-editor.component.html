@@ -39,8 +39,22 @@
                     <!-- TODO: Check the type of the element, depending on what type it is, render it a certain way-->
                     @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
                         @case ("image") {
-                            <app-card-face-image
+                            <!--<app-card-face-image
+                                [cardFaceImageSrc]="'currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent,"
                                 [cardFaceImageAttr]="{cardFaceImage: getCardFaceImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent, currentCardFaceElementPerCardFace.cardFaceElement.style?.width, currentCardFaceElementPerCardFace.cardFaceElement.style?.height)}"
+                                (showImageEditor)="onOpenImageEditor($event)"
+                            >
+                                <span class="position">X: {{currentCardFaceElementPerCardFace.dndPosition?.x ?? 0}}, Y: {{currentCardFaceElementPerCardFace.dndPosition.y}}</span>
+                                <div class="example-handle" cdkDragHandle>
+                                    <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
+                                    <path d="M0 0h24v24H0z" fill="none"></path>
+                                    </svg>
+                                </div>
+                            </app-card-face-image>!-->
+                            <app-card-face-image
+                                [cardFaceElementId]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
+                                [cardFaceImageSrc]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent"
                                 (showImageEditor)="onOpenImageEditor($event)"
                             >
                                 <span class="position">X: {{currentCardFaceElementPerCardFace.dndPosition?.x ?? 0}}, Y: {{currentCardFaceElementPerCardFace.dndPosition.y}}</span>

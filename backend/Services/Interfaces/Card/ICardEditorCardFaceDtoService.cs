@@ -12,9 +12,9 @@ namespace Services
 
         public Task<IEnumerable<CardEditorCardFaceDto>> GetAllDtoByCardId(int cardId);
 
-        public Task UpdateAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto);
+        public Task<bool> UpdateAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto);
 
-        public Task UpdateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto);
+        public Task<bool> UpdateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto);
 
         public Task CreateAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto);
 

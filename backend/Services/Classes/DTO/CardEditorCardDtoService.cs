@@ -130,15 +130,23 @@ namespace Services
                 // 2. Grab the foreign keys of the card
                 // 3. Get those card faces and card face elements based on the card Dto
                 // 4. Then update and return it
-                _context.Entry(dto.Card).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+
+                var updated = true;
+
+                updated = await _cardService.UpdateAsync(dto.Card.CardId, dto.Card);
+
+                if (updated == false)
+                    return updated;
 
                 if (dto.CardEditorCardFacesDto != null) {
-                    await _cardEditorCardFaceDtoService.UpdateAllDtoAsync(dto.CardEditorCardFacesDto);
+                   updated =  await _cardEditorCardFaceDtoService.UpdateAllDtoAsync(dto.CardEditorCardFacesDto);
                 }
 
+                if (updated == false)
+                    return updated;
+
                 await transaction.CommitAsync();
-                return true;
+                return updated;
             }
             catch (DbUpdateConcurrencyException)
             {

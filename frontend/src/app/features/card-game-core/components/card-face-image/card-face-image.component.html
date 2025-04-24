@@ -15,10 +15,10 @@
 <div class="image-container">
     <ng-content/>
     <img 
-        [src]="getImage().src"
-        [alt]="getImage().alt" 
-        [width]="getImage().width" 
-        [height]="getImage().height"
+        [src]="imageHTMLContent.src"
+        [alt]="imageHTMLContent.alt" 
+        [width]="imageHTMLContent.width" 
+        [height]="imageHTMLContent.height"
     />
     <button class="change-image-button" (click)="onOpenImageEditor($event)">Change image</button>
 </div>

@@ -408,13 +408,10 @@ export class CardEditorComponent implements AfterViewInit {
 
     // console.log(`Dragged item: ${event.source.data} \nX: ${viewportPoint.x}, Y: ${viewportPoint.y}\nX: ${position.x}%, Y: ${position.y}%`);
 
-    // TODO: Fix this, use isCardFaceElementPerCardFace
-    // TODO: Check to see if it's a card face element
     if (isCardFaceElementPerCardFace(event.source.data)) {
       let item = event.source.data;
       item.dndPosition = position;
 
-      // TODO: Update inside of card face elements, figure out specific card face and then get the card face elements from there
       if (this.updateCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, item)) {
         return;
       }
@@ -423,9 +420,6 @@ export class CardEditorComponent implements AfterViewInit {
 
   // TODO: Temporary, merge it as a function overload with onDragEnded
   onDragDropped(event: CdkDragDrop<any>) {
-    // TODO: Replace field with event.item.data
-    // TODO: Replace cardFaceElement with the cardFaceElementDto
-
     if (!isCardFaceElementPerCardFace(event.item.data))
       return;
 
@@ -741,6 +735,7 @@ Now 1 rem will be equal to 10 px
   }
 
   // Open the popup menu
+  // TODO: Instead of using outlets and injectors, we should be using services
   getCurrentPopupMenuComponent(): Type<any> | null {
     switch (this.currentPopupMenu) {
       case 0:
@@ -1115,10 +1110,13 @@ Now 1 rem will be equal to 10 px
               this.cardEditorCardDto = createResult;
               this.setOnCardFaceModifyBtnText();
 
-              this.getCardFaceElementsFileAndUpdateImageSrc$().subscribe(() => {
+              this.setCurrentCardEditorCardFaceDto();
+              this.setCurrentCardFaceElementsPerCardFace();
+
+              /*this.getCardFaceElementsFileAndUpdateImageSrc$().subscribe(() => {
                 this.setCurrentCardEditorCardFaceDto();
                 this.setCurrentCardFaceElementsPerCardFace();
-              });
+              });*/
             }
           },
           error: (err) => {
@@ -1129,6 +1127,7 @@ Now 1 rem will be equal to 10 px
     }
   }
 
+  // TODO: Don't use this
   getCardFaceElementsFileAndUpdateImageSrc$(): Observable<void> {
     // Collect all image fetch observables
     let observables$: Observable<any>[] = [];

@@ -82,16 +82,23 @@ namespace Services
             return cfd;
         }
 
-        public async Task UpdateAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto)
+        public async Task<bool> UpdateAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto)
         {
+            var updated = true;
+
             foreach (var cfd in cardEditorCardFacesDto) {
-                await UpdateDtoAsync(cfd);
+                updated = await UpdateDtoAsync(cfd);
+            
+                if (updated == false)
+                    return updated;
             }
+
+            return updated;
         }
 
-        public async Task UpdateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
+        public async Task<bool> UpdateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
         {
-            await _cardFaceElementPerCardFaceService.UpdateAllNavByCardFaceIdAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
+            return await _cardFaceElementPerCardFaceService.UpdateAllNavByCardFaceIdAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
         }
     }
 }

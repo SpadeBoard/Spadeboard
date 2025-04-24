@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -82,6 +83,50 @@ namespace Services
             return null;
         }
 
+        public async Task<bool> ReplaceFileAsync(IFormFile formFile, string targetFilePath, float maxLength)
+        {
+            if (formFile.Length <= 0 || formFile.Length > maxLength || string.IsNullOrEmpty(targetFilePath))
+                return false;
+
+            // Save the uploaded file to a temp file
+            string tempFilePath = Path.GetTempFileName();
+
+            try
+            {
+                using (var tempStream = System.IO.File.Create(tempFilePath))
+                {
+                    await formFile.CopyToAsync(tempStream);
+                }
+
+                // Optionally, create a backup of the target file
+                string backupFilePath = targetFilePath + ".bak";
+
+                File.Replace(tempFilePath, targetFilePath, backupFilePath);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+            finally
+            {
+                // Clean up the temp file if it still exists
+                if (File.Exists(tempFilePath))
+                    File.Delete(tempFilePath);
+            }
+        }
+
+        public async Task<bool> ReplaceCardFaceFileAsync(IFormFile formFile, string targetFilePath)
+        {
+            return await ReplaceFileAsync(formFile, targetFilePath, maxFileSizeCardFaceElementImage);
+        }
+
+        public async Task<bool> ReplaceCardFaceElementImageFileAsync(IFormFile formFile, string targetFilePath)
+        {
+            return await ReplaceFileAsync(formFile, targetFilePath, maxFileSizeCardFaceElementImage);
+        }
 
         public async Task<FileStream?> GetCardFaceFileAsync(string fileName)
         {
