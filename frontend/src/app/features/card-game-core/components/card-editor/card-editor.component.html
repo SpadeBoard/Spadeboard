@@ -29,7 +29,7 @@
                     (cdkDragDropped)="onDragDropped($event)"
                     [cdkDragData]="currentCardFaceElementPerCardFace" 
                     [style.left.px]="currentCardFaceElementPerCardFace.dndPosition.x ?? 0"
-                    [style.top.px]="currentCardFaceElementPerCardFace.dndPosition.y ?? 0"
+                    [style.top.px]="currentCardFaceElementPerCardFace.dndPosition.y"
                     [style.z-index]="currentCardFaceElementPerCardFace.cardFaceElement.style?.zIndex ?? 'inherit'"
                     [attr.element-index]="i"
                     [attr.card-face-element-id]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"

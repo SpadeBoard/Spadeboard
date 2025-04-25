@@ -786,7 +786,10 @@ Now 1 rem will be equal to 10 px
 
       console.log("Before adding new component: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
 
-      let newCardFaceElementPerCardFaceId = this.currentCardFaceElementsPerCardFace.length;
+      // ASSUMPTION: If card already exists, get the last element's ID + 1 for new ID to avoid duplicate IDs with the latest
+      let newCardFaceElementPerCardFaceId = (this.cardEditorCardDto.card.cardId <= 0) 
+      ? this.currentCardFaceElementsPerCardFace.length
+      : this.currentCardFaceElementsPerCardFace[this.currentCardFaceElementsPerCardFace.length - 1].cardFaceElement.cardFaceElementId + 1;
 
       let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
         cardFaceElement: {

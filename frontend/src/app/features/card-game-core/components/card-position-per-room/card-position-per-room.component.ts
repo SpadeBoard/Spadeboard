@@ -1,12 +1,14 @@
 import { Component, effect, inject, Injectable, input  } from '@angular/core';
 import { CardPositionPerRoomApiService } from '../../services/card-game-core/card-position-per-room-api.service';
 import { CardPositionPerRoom } from '../../models/card';
-import { CdkDrag, CdkDragDrop, CdkDragMove} from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragMove, DragRef, Point} from '@angular/cdk/drag-drop';
 import { CardComponent } from '../card/card.component';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { GameRoomService } from '../../../game-room/services/game-room.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { mergeMap } from 'rxjs';
+import { snapToGridCentre, snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
+import { isCardPositionPerRoom } from '../../utils/card-game-core.utils';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -23,6 +25,8 @@ export class CardPositionPerRoomComponent {
   private gameRoomService: GameRoomService = inject(GameRoomService);
 
   cprs: CardPositionPerRoom[] = [];
+
+  private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
 
   constructor() {
     effect(() => {
@@ -102,13 +106,48 @@ export class CardPositionPerRoomComponent {
   }
 
   onDragMoved(event: CdkDragMove) {
+    // TODO: If snap to grid, then run snap to grid else do what we have currently
+
+   // const element = event.source.element.nativeElement; // Get the draggable element's DOM node
+
+   let snapToGrid: boolean = true;
+    
+    if (snapToGrid) {
+      console.log(`On drag move card position per room before snap: ${JSON.stringify(event.pointerPosition)}`);
+      event.pointerPosition = this.snapToGrid(50, event.pointerPosition);
+      this.snapToGridPosition = event.pointerPosition;
+      console.log(`On drag move card position per room after snap: ${JSON.stringify(event.pointerPosition)}`);
+    } 
   }
 
   onDragDrop(event: CdkDragDrop<any[]>, item: CardPositionPerRoom) {
-    item.dndPosition = {x: event.dropPoint.x, y: event.dropPoint.y};
+    // TODO: If snap to grid, then run snap to grid else do what we have currently
+    let snapToGrid: boolean = true;
 
+    item.dndPosition = snapToGrid ? this.snapToGridPosition: {x: event.dropPoint.x, y: event.dropPoint.y};
+    // item.dndPosition = {x: event.dropPoint.x, y: event.dropPoint.y};
     console.log(`On drag drop card position per room: ${JSON.stringify(item.dndPosition)}`);
 
     this.updateCardPositionPerRoom(item);
+  }
+
+  snapToGrid(gridSize: number, userPointerPosition: Point)
+  {
+    let { offsetX, offsetY } = snapToGridNearestVertex(gridSize, userPointerPosition.x, userPointerPosition.y);
+
+    console.log(`Offset snapToGrid: ${JSON.stringify({offsetX, offsetY})}`);
+
+    return { x: offsetX, y: offsetY };
+  }
+
+  // https://stackoverflow.com/a/69324787
+  // FIXME: Only works with standalone drags
+  computeDragRenderPos(userPointerPosition: Point, dragRef: DragRef, dimensions: DOMRect, pickupPositionInElement: Point) {
+    let gridSize: number = 50; 
+    let { offsetX, offsetY } = snapToGridCentre(gridSize, userPointerPosition.x, userPointerPosition.y);
+
+    console.log(`Offset computeDragRenderPos: ${JSON.stringify({offsetX, offsetY})}`);
+
+    return { x: offsetX, y: offsetY };
   }
 }
