@@ -322,11 +322,30 @@ export class CardEditorComponent implements AfterViewInit {
 
   private currentPopupMenu: number | null = 0;
 
+  private updateCardFaceImages$(cardFaceIndexToTakeImageOf: number): Observable<FormData[]> {
+    return from(this.flattenCardFaceToImage()).pipe(
+      map((value: FormData) => {
+        // Clone the array to avoid mutating the original if needed
+        console.log('Card face images on flip - index to store image:', cardFaceIndexToTakeImageOf);
+        console.log('Card face images on flip - before assignment:', this.cardFaceImages);
+        this.cardFaceImages[cardFaceIndexToTakeImageOf] = value;
+
+      console.log(`Card face images on flip - after assignment:: ${JSON.stringify(this.cardFaceImages)}`);
+      return this.cardFaceImages
+      })
+    );
+  }
 
   flip(event: Event): void {
     this.updateCardFaceElementsPerCardFace();
 
     this.isFlipped = !this.isFlipped;
+
+    let cardFaceIndexToTakeImageOf: number = this.cardEditorCardDto.card.currentCardFaceIndex;
+    
+    // ASSUMPTION: If there's no elements in the card face, don't make an image because there's no point of saving a blank card
+    if (this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.length > 0)
+      this.updateCardFaceImages$(cardFaceIndexToTakeImageOf);
 
     this.cardEditorCardDto.card.currentCardFaceIndex = (!this.isFlipped) ? 0 : 1;
     this.setCurrentCardEditorCardFaceDto();
@@ -545,6 +564,10 @@ export class CardEditorComponent implements AfterViewInit {
   }
 
   updateCard(): void {
+    // TODO: Have a check to only take a picture when there's actually changes to the card face
+    // Take current card face index, use that to compare current card face and information for that card face
+    // If they're different, take a picture
+
     this.cardApiService.updateCard$(
       this.cardEditorCardDto).subscribe((result: Card | CardEditorCardDto | void | undefined) => {
         // console.log(`On update card: ${(result) ? JSON.stringify(result) : result}`);
@@ -564,16 +587,18 @@ export class CardEditorComponent implements AfterViewInit {
     if (this.cardEditorCardDto === undefined || this.cardEditorCardDto.card === undefined)
       return;
 
-    // TODO: Have a preview image for the face that's not being looked at, that will be where the canvases will be stored and draw from
-    // TODO: Check to make sure that the card faces remain the same, if they don't remain the same, then continue on
+    this.updateCardFaceImages$(0).subscribe((imagesFormData: FormData[]) => {
+      // TODO: Have a preview image for the face that's not being looked at, that will be where the canvases will be stored and draw from
+      // TODO: Check to make sure that the card faces remain the same, if they don't remain the same, then continue on
 
-    // TODO: If the card was blank and updated, then create a new card, get the card ID to determine what to do
-    if (this.cardEditorCardDto.card.cardId !== undefined && this.cardEditorCardDto.card.cardId > 0) {
-      this.updateCard();
-      return;
-    }
+      // TODO: If the card was blank and updated, then create a new card, get the card ID to determine what to do
+      if (this.cardEditorCardDto.card.cardId > 0) {
+        this.updateCard();
+        return;
+      }
 
-    this.createCard();
+      this.createCard();
+    });
   }
 
   onOpenRteEditor(event: Event, cardFaceElementId: number) {
@@ -870,6 +895,8 @@ Now 1 rem will be equal to 10 px
 
   ];
 
+  // TODO: Make a function to loop through all the card faces, then add the card faces images to that
+
  // TODO: Use from to convert promise to observable, then chain it using pipe to use with uploading files
   flattenCardFaceToImage(/*cardFace: CardFace | Partial<CardFace>*/): Promise<FormData> {
     return new Promise((resolve, reject) => {
@@ -1047,38 +1074,26 @@ Now 1 rem will be equal to 10 px
     return of({ id: undefined });
   }
 
+  // When flipping and taking card face image, store that index somehow to actually assign the CardFormData at the correct image
+
   updateCardFacesThumbnailImages$(): Observable<CardEditorCardDto> {
     // Wrap the promise in an observable if needed
     // TODO: We eventually want to actually use this to have more than 2 faces
-    let cardFacesFormData$: Observable<ObservedValueOf<Promise<FormData>>> = from(this.flattenCardFaceToImage());
     
-    return forkJoin({
-      frontFormData: this.flattenCardFaceToImage(),
-      backFormData: this.flattenCardFaceToImage()
-    }).pipe(
-      switchMap(({ frontFormData, backFormData }) => {
-        if (!frontFormData || !backFormData) {
-          console.error('Error: Missing form data');
-          throw new Error('Form data for front or back is missing');
-        }
-        return forkJoin({
-          frontCardFaceThumbnailFileName: this.fileUploadApiService.uploadFile(frontFormData, 'card-face'),
-          backCardFaceThumbnailFileName: this.fileUploadApiService.uploadFile(backFormData, 'card-face')
+    let uploadCardFaceImages$ = this.cardFaceImages.map(formData =>
+      this.fileUploadApiService.uploadFile(formData, 'card-face')
+    );
+
+    // TODO: Replace the fork join with cardFacesFormData
+    return forkJoin(uploadCardFaceImages$).pipe(
+      tap((results: { id: string }[]) => {
+        // Map each result to the corresponding DTO
+        results.forEach((result, index) => {
+          this.cardEditorCardDto.cardEditorCardFacesDto[index].cardFace.cardFaceThumbnailFilePath =
+            result.id;
         });
       }),
-      tap((uploadFileResult: {
-        frontCardFaceThumbnailFileName: {
-            id: string;
-        };
-        backCardFaceThumbnailFileName: {
-            id: string;
-        };
-    }) => {
-        this.cardEditorCardDto.cardEditorCardFacesDto.forEach((cecf => {
-          cecf.cardFace.cardFaceThumbnailFilePath = uploadFileResult.frontCardFaceThumbnailFileName.id;
-        }));
-      }),
-      map(() => this.cardEditorCardDto) // void 0, void(0), undefined, should return something else
+      map(() => this.cardEditorCardDto)
     );
 
     // https://rxjs.dev/api/operators/tap
@@ -1092,12 +1107,16 @@ Now 1 rem will be equal to 10 px
   // https://stackoverflow.com/questions/49698640/flatmap-mergemap-switchmap-and-concatmap-in-rxjs
   createCard(): void {
     if (this.currentCardEditorCardFaceDto !== undefined) {
+      // ASSUMPTION: Always gotta have front face's image, and we might never flip
+      // FIXME: Problem is the below isn't going to run if there's no card face images
+      // this.updateCardFaceImages$(0);
+      
       // TODO: Try to make the this.uploadCardFaceElementsImagesAndUpdatePaths$ functions run simultaneously
       // Order of operations:
       // 1. this.updateCardFacesThumbnailImages$
       // 2. this.uploadCardFaceElementsImagesAndUpdatePaths$
       // 3. this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto) (waits for the other two to finish)
-
+      
       // https://blog.angular-university.io/rxjs-higher-order-mapping/
       this.updateCardFacesThumbnailImages$()
         .pipe(
