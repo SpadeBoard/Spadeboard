@@ -1,3 +1,7 @@
+<div style="text-align: center;">
+    <img src="frontend/public/Spadeboard_icon_Orange.svg" alt="Spadeboard icon" width=100 height=100/>
+</div>
+
 # SpadeBoard
 An app to prototype card creation.
 
