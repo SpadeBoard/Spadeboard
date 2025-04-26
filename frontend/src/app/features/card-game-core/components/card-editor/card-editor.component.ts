@@ -196,7 +196,7 @@ export class CardEditorComponent implements AfterViewInit {
           cardFaceThumbnailFilePath: ''
         },
         cardFaceElementsPerCardFace: [
-          {
+          /*{
             cardFaceElement: {
               cardFaceElementId: 0,
               cardFaceElementContent: '/alucard-castlevania-nocturne.png',
@@ -239,7 +239,7 @@ export class CardEditorComponent implements AfterViewInit {
               x: 0, // [style.top.px]="item.y"
               y: 0 // [style.left.px]="item.x"
             }
-          }
+          }*/
         ]
       },
       {

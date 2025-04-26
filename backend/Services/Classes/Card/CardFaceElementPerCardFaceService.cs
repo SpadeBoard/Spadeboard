@@ -146,6 +146,7 @@ namespace Services
             var cfepcfs = await _context.CardFaceElementPerCardFace
                 .Where(attribute => attribute.CardFaceId == cardFaceId)
                 .Include(a => a.CardFaceElement)
+                .Include(a => a.CardFaceElement.Style)
                 .Include(a => a.CardFace)
                 .Include(a => a.DndItem)
                 .Include(a => a.DndPosition)
@@ -247,6 +248,33 @@ namespace Services
                 await CreateNavAsync(cardFaceElementPerCardFace);
             }
         }
+
+        public async Task CreateAllNavByCardFaceIdFromExistingAllNavAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
+        {
+            foreach (CardFaceElementPerCardFace cardFaceElementPerCardFace in cardFaceElementsPerCardFace) {
+                // TODO: Put this in a separate utility function somewhere
+                cardFaceElementPerCardFace.CardFace = cardFace;
+                
+                cardFaceElementPerCardFace.CardFaceElementId = 0;
+                cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId = 0;
+                
+                cardFaceElementPerCardFace.CardFaceElement.StyleId = 0;
+                cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
+
+                cardFaceElementPerCardFace.DndItemId = 0;
+                cardFaceElementPerCardFace.DndItem.DndItemId =0;
+
+                cardFaceElementPerCardFace.DndPositionId = 0;
+                cardFaceElementPerCardFace.DndPosition.DndPositionId = 0;
+
+                // cardFaceElementPerCardFace.DndDragBoundaryId = 0;
+                // cardFaceElementPerCardFace.DndDragBoundary.DndDragBoundaryId =0;
+
+                await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
+                await CreateNavAsync(cardFaceElementPerCardFace);
+            }
+        }
+
 
         public async Task<bool> UpdateAllNavByCardFaceIdAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
         {

@@ -1,11 +1,12 @@
 import { Component, effect, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
-import { Card, CardPositionPerRoom } from '../../models/card';
+import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
 import { CardComponent } from '../card/card.component';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragMove, DragDropModule } from '@angular/cdk/drag-drop';
 import { catchError, map, Observable, of } from 'rxjs';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
+import { isCard } from '../../utils/card-game-core.utils';
 
 @Component({
   selector: 'app-cards-collection',
@@ -101,25 +102,38 @@ export class CardsCollectionComponent {
   }
 
   onDragDrop(event: CdkDragDrop<any[]>, item: any) {
-    // TODO: Check to see if it's outside of the menu, if it is, then emit
-    if (!event.isPointerOverContainer) {
-      let cpr: CardPositionPerRoom = {
-        cardPositionPerRoomId: 0,
-        card: item as Card,
-        dndItem: {
-          dndItemId: 1,
-          isDraggable: false,
-          isDroppable: false
-        },
-        dndPosition: {x: event.dropPoint.x, y: event.dropPoint.y} as DndPosition,
-        gameRoom: {
-          gameRoomId: 1
-        }
-      };
+    if (!event.isPointerOverContainer && isCard(item)) {
+      this.cardApiService.getCardEditorCardDto$(item.cardId).subscribe((result: CardEditorCardDto | undefined) => {
+        if (result === undefined)
+          return;
 
-      this.createCardPositionPerRoom(cpr);
-      
-      console.log("Is outside the cards collection menu");
+        // NOTE: Cards in rooms should not have an owner
+        let cardEditorCardDto: CardEditorCardDto = result;
+        cardEditorCardDto.ownerId = '';
+
+        this.cardApiService.createCardEditorCardDtoForGameRoomFromExistingDto$(cardEditorCardDto).subscribe((result: CardEditorCardDto | undefined) => {
+          if (result === undefined)
+            return;
+
+          let cpr: CardPositionPerRoom = {
+            cardPositionPerRoomId: 0,
+            card: result.card as Card,
+            dndItem: {
+              dndItemId: 1,
+              isDraggable: false,
+              isDroppable: false
+            },
+            dndPosition: {x: event.dropPoint.x, y: event.dropPoint.y} as DndPosition,
+            gameRoom: {
+              gameRoomId: 1
+            }
+          };
+    
+          this.createCardPositionPerRoom(cpr);
+          
+          console.log("Is outside the cards collection menu");
+        })
+      })
     }
 
     console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);

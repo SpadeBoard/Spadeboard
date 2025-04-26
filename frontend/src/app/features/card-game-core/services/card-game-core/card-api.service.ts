@@ -92,6 +92,14 @@ export class CardApiService {
     return this.http.get<Card>(this.apiUrl);
   }
 
+  getCardEditorCardDto$(cardId: number): Observable<CardEditorCardDto | undefined> {
+    if (cardId === undefined) {
+      return of(undefined);
+    } 
+
+    return this.http.get<CardEditorCardDto>(`${this.apiUrl}/dto/${cardId}`);
+  }
+
   // TODO: Rewrite the post, update, and delete functions for everything
   // Because it's considered generally unsafe to use rxResource with them
   // Problem is they might be necessary since/if we're using signals
@@ -114,6 +122,14 @@ export class CardApiService {
     } 
 
     return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto`, cardEditorCardDto);
+  }
+
+  createCardEditorCardDtoForGameRoomFromExistingDto$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
+    if (cardEditorCardDto === undefined) {
+      return of(undefined);
+    } 
+
+    return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto/game-room`, cardEditorCardDto);
   }
 
   // FIXME: Updating shouldn't be returning anything

@@ -35,8 +35,6 @@ export class CardComponent {
 
   card = input<Card >({
     cardId: 0,
-    frontCardFaceId: 0,
-    backCardFaceId: 0,
     isFlipped: false,
     currentCardFaceIndex: 0
   });

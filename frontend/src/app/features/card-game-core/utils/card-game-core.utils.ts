@@ -8,10 +8,7 @@ export function isCard(obj: any): obj is Card {
     return obj
         && typeof obj === 'object'
         && 'cardId' in obj
-        && 'frontFaceCardId' in obj
-        && 'backCardFaceId' in obj
-        && 'ownerId' in obj
-        && 'dndItemId' in obj
+        && 'currentCardFaceIndex' in obj
         && 'isFlipped' in obj;// Adjust based on Card properties
 }
 

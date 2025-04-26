@@ -9,6 +9,8 @@ namespace Services
     
         public Task CreateAllNavByCardFaceIdAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace);
 
+        public Task CreateAllNavByCardFaceIdFromExistingAllNavAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace);
+
         public Task<IEnumerable<CardFaceElementPerCardFace>> GetAllNavByCardFaceIdAsync(int cardFaceId);
         
         public Task<bool> UpdateAllNavByCardFaceIdAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace);

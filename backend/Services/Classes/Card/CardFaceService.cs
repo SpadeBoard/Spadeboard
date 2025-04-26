@@ -162,7 +162,12 @@ namespace Services
                 nav.Style.StyleId = 0;
             }
 
-            Console.WriteLine("nav.CardFaceId after style: " + nav.CardFaceId);
+            Console.WriteLine(
+                "nav.CardFaceId after style: {0}, nav.StyleId: {1}, nav.Style.StyleId: {2}",
+                nav.CardFaceId,
+                nav.StyleId,
+                nav.Style != null ? nav.Style.StyleId.ToString() : "null"
+            );
 
             nav.CardFaceId = 0;
             await _context.CardFace.AddAsync(nav);

@@ -9,9 +9,7 @@ import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace } from 
 export interface Card {
     cardId: number;
     currentCardFaceIndex: number;
-    frontCardFaceId?: number
-    backCardFaceId?: number;
-    isFlipped: boolean,
+    isFlipped: boolean;
     // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
     // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
 }

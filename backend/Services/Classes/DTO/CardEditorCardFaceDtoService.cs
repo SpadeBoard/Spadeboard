@@ -31,6 +31,33 @@ namespace Services
             }
         }
 
+        public async Task CreateAllDtoFromExistingAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto) {
+            foreach (var cfd in cardEditorCardFacesDto) {
+                await  CreateDtoForGameRoomFromExistingDtoAsync(cfd);
+            }
+        }
+
+        public async Task CreateDtoForGameRoomFromExistingDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
+        {
+            cardEditorCardFaceDto.CardFace.CardFaceId = 0;
+
+            cardEditorCardFaceDto.CardFace.StyleId = 0;
+            cardEditorCardFaceDto.CardFace.Style.StyleId = 0;
+
+            Console.WriteLine(
+                "cardEditorCardFaceDto.CardFace.CardFaceId: {0}, cardEditorCardFaceDto.CardFace.StyleId: {1}, cardEditorCardFaceDto.CardFace.Style.StyleId: {2}",
+                cardEditorCardFaceDto.CardFace.CardFaceId,
+                cardEditorCardFaceDto.CardFace.StyleId,
+                cardEditorCardFaceDto.CardFace.Style != null ?  cardEditorCardFaceDto.CardFace.Style.StyleId.ToString() : "null"
+            );
+
+            Console.WriteLine("Card Editor Card Face Dto Service: Create DTO Async");
+            await _cardFaceService.CreateNavAsync(cardEditorCardFaceDto.CardFace);
+
+            Console.WriteLine("Card Editor Card Face Dto Service: Finished Card Face Service Create Nav Async");
+            await _cardFaceElementPerCardFaceService.CreateAllNavByCardFaceIdFromExistingAllNavAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
+        }
+
         public async Task CreateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
         {
             Console.WriteLine("Card Editor Card Face Dto Service: Create DTO Async");

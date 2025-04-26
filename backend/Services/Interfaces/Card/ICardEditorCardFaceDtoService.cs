@@ -19,5 +19,9 @@ namespace Services
         public Task CreateAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto);
 
         public Task CreateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto);
+
+        public Task CreateAllDtoFromExistingAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto);
+    
+        public Task CreateDtoForGameRoomFromExistingDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto);
     }
 }

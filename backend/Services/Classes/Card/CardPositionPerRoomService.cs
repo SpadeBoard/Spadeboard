@@ -132,8 +132,7 @@ namespace Services
             return cprs;
         }
 
-        // ASSUMPTION:
-        // Navigation properties of the properties aren't being passed in
+        // ASSUMPTION: Navigation properties of the properties aren't being passed in
         public async Task CreateNavAsync(CardPositionPerRoom nav)
         {
             if (nav.Card != null && _cardService.Exists(nav.Card.CardId))
