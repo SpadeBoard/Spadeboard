@@ -1135,10 +1135,9 @@ Now 1 rem will be equal to 10 px
               this.setCurrentCardEditorCardFaceDto();
               this.setCurrentCardFaceElementsPerCardFace();
 
-              /*this.getCardFaceElementsFileAndUpdateImageSrc$().subscribe(() => {
-                this.setCurrentCardEditorCardFaceDto();
-                this.setCurrentCardFaceElementsPerCardFace();
-              });*/
+              // TODO: Temporary, there needs to be a check for whether the card's in a room or not, if not in a room then add to the cards collection? 
+              // ASSUMPTION: You can only create a card as a user,, or save a new card from a card in the room for that user
+              this.cardGameCoreService.onCreateCardEditorCardDto(this.cardEditorCardDto);
             }
           },
           error: (err) => {

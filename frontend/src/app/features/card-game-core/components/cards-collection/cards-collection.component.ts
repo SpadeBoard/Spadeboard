@@ -39,6 +39,10 @@ export class CardsCollectionComponent {
       }
     });
   }
+
+  ngOnInit() {
+    this.onCreateCardEditorCardDto();
+  }
   
   getCards(): void {
     this.cardApiService.getCards$(
@@ -52,31 +56,8 @@ export class CardsCollectionComponent {
   }
 
   // https://v17.angular.io/guide/observables
-  // ASSUMPTION: Checks to see if there needs to be a new card added to the menu
-  private doesUserHaveMoreCards(): Observable<boolean> {
-    return this.cardApiService.getCards$(this.userId).pipe(
-      map((result: Card[] | undefined) => {
-        return result !== undefined && result.length > this.cards.length;
-      }),
-      catchError((err: any) => {
-        console.error('Does user have more cards emitted an error: ' + err);
-        return of(false);
-      })
-    );
-  }
-
   // https://rxjs.dev/api/operators/catchError
   // https://angular.dev/guide/templates/pipes
-
-  private getLatestCard(id: number): void {
-    this.cardApiService.getCard$(
-      id, this.userId).subscribe((result: Card | undefined) => {
-        if (result !== undefined)
-        {
-          this.cards.push(result);
-        }
-    });
-  }
 
   // TODO: Make a component for the cards menu, and what we wanna do
     // is if the amount of cards is less than the amount of cards in the database for this user
@@ -85,15 +66,25 @@ export class CardsCollectionComponent {
     if (this.cards.length <= 0) {
       this.getCards();
       console.log(`On cards: ${JSON.stringify(this.cards)}`);
-
-      return;
     }
+  }
 
-    // ASSUMPTION: Postgres records start from 1, so grab the length of the cards and add 1 to get correct index
-    this.doesUserHaveMoreCards().subscribe((userHasMore: boolean) => {
-      if (userHasMore) {
-        this.getLatestCard(this.cards.length + 1);
+  /* 
+  Potential Issues / Considerations
+  Only adds one card per call:
+  If the server has many new cards, you’ll need to call onCreateCardEditorCardDto() repeatedly (or use a loop/recursion) to fully sync.
+  */
+  private onCreateCardEditorCardDto() {
+    // ASSUMPTION:
+    // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
+    // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
+    this.cardGameCoreService.onCreateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+      if (cardEditorCardDto && this.cards.length > 0) {
+        this.cards.push(cardEditorCardDto.card);
+        return;
       }
+
+      this.populateCardsCollection();
     });
   }
 
