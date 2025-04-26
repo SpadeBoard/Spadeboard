@@ -7,6 +7,12 @@
 </div>!-->
 
 <div class ="dnd-board" cdkDropList cdkDropListSortingDisabled="true">
-    <div class = "cell"></div>
+    <div #grid class = "grid"
+        [style.width.px]="gridWidthScreen"
+        [style.height.px]="gridHeightScreen"
+        [style.backgroundSize]="cellSizeScreen + 'px ' + cellSizeScreen + 'px'"
+        [style.transform]="transform()"
+        >
+    </div>
     <app-card-position-per-room/>
 </div>

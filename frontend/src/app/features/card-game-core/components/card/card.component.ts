@@ -1,9 +1,9 @@
-import { Component, Signal, viewChildren, output, input, inject, effect, computed, SimpleChanges } from '@angular/core';
+import { Component, Signal, viewChildren, output, input, inject, effect, computed, SimpleChanges, InputSignal, Input } from '@angular/core';
 
 import { Card } from '../../models/card';
 import { cardFlipAnimation } from './card.animations';
 
-import { DndBoardService } from '../../services/dnd-board.service';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { DndContentDirective } from '../../../drag-and-drop/directives/dnd-content.directive';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 
@@ -33,7 +33,7 @@ export class CardComponent {
   // https://medium.com/@chandrashekharsingh25/angular-signals-explained-with-practical-examples-e45de6d00925
   // Might need computed signals then
 
-  card = input<Card >({
+  card: InputSignal<Card> = input<Card >({
     cardId: 0,
     isFlipped: false,
     currentCardFaceIndex: 0
@@ -79,6 +79,13 @@ export class CardComponent {
     this.actionContextMenuItemsChange.emit(this.actionContextMenuItems);
   }
   /*********************************/
+
+  zoomLevel: InputSignal<number> =  input<number>(1);
+  scaleLevel: number = 1;
+
+  transform() {
+    return `scale(${this.scaleLevel})`;
+  }
   
   constructor() {
     effect(() => {
@@ -87,6 +94,12 @@ export class CardComponent {
       // https://builtin.com/software-engineering-perspectives/forkjoin
       if (card !== undefined) {
         this.loadCardFaces(card);
+      }
+
+      let zoomLevel: number | undefined = this.zoomLevel();
+
+      if (zoomLevel !== undefined && zoomLevel !== 0) {
+        this.scaleLevel = zoomLevel;
       }
     });
   }

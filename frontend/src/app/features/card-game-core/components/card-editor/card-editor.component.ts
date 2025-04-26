@@ -326,11 +326,11 @@ export class CardEditorComponent implements AfterViewInit {
     return from(this.flattenCardFaceToImage()).pipe(
       map((value: FormData) => {
         // Clone the array to avoid mutating the original if needed
-        console.log('Card face images on flip - index to store image:', cardFaceIndexToTakeImageOf);
-        console.log('Card face images on flip - before assignment:', this.cardFaceImages);
+        // console.log('Card face images on flip - index to store image:', cardFaceIndexToTakeImageOf);
+        // console.log('Card face images on flip - before assignment:', this.cardFaceImages);
         this.cardFaceImages[cardFaceIndexToTakeImageOf] = value;
 
-      console.log(`Card face images on flip - after assignment:: ${JSON.stringify(this.cardFaceImages)}`);
+      // console.log(`Card face images on flip - after assignment:: ${JSON.stringify(this.cardFaceImages)}`);
       return this.cardFaceImages
       })
     );
@@ -524,7 +524,7 @@ export class CardEditorComponent implements AfterViewInit {
     if (value !== undefined)
       cardFaceElementPerCardFace = value;
 
-    console.log(`Get card face element per card face: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
+    // console.log(`Get card face element per card face: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
 
     return cardFaceElementPerCardFace;
   }
@@ -537,11 +537,11 @@ export class CardEditorComponent implements AfterViewInit {
     if (index > -1) {
       cardFaceElementsPerCardFace[index] = { ...cardFaceElementPerCardFace };
       
-      console.log(`Update card face element per card face - true: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
+      // console.log(`Update card face element per card face - true: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
       return true;
     }
 
-    console.log(`Update card face element per card face - false: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
+    // console.log(`Update card face element per card face - false: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
     return false;
   }
 
@@ -619,7 +619,7 @@ export class CardEditorComponent implements AfterViewInit {
   }
 
   onOpenImageEditor(cardFaceElementId: number) {
-    console.log(`On open image editor: ${JSON.stringify(this.currentCardFaceElementsPerCardFace,)}`);
+    // console.log(`On open image editor: ${JSON.stringify(this.currentCardFaceElementsPerCardFace,)}`);
     
     this.currentPopupMenu = 0;
 
@@ -674,7 +674,7 @@ export class CardEditorComponent implements AfterViewInit {
       // console.log("croppedImage:", base64Image); // Check if it starts with "data:image/"
 
       let updated = this.updateCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, cardFaceElementPerCardFace);
-      console.log("After set card face image element source: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
+      // console.log("After set card face image element source: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
     });
   }
 
@@ -713,7 +713,7 @@ export class CardEditorComponent implements AfterViewInit {
 
     let hasUpdated: boolean = this.updateCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, currentCardFaceElementPerCardFace);
 
-    console.log("Set Rte Html Content: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
+    // console.log("Set Rte Html Content: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
 
     // console.log('Has updated: ', hasUpdated);
     // this._cdr.detectChanges();
@@ -809,7 +809,7 @@ Now 1 rem will be equal to 10 px
         return;
       }
 
-      console.log("Before adding new component: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
+      // console.log("Before adding new component: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
 
       // ASSUMPTION: If card already exists, get the last element's ID + 1 for new ID to avoid duplicate IDs with the latest
       let newCardFaceElementPerCardFaceId = (this.cardEditorCardDto.card.cardId <= 0) 
@@ -884,7 +884,7 @@ Now 1 rem will be equal to 10 px
 
       // Adds in correct order
       this.currentCardFaceElementsPerCardFace.push(cardFaceElementPerCardFace);
-      console.log("Added new component: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
+      // console.log("Added new component: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
     }
   }
 
@@ -990,7 +990,7 @@ Now 1 rem will be equal to 10 px
   
   // FIXME: This isn't ever going to actually update the correct images because cardFaceElementsPerFace have more elements than what's being passed in.
   updateCardFaceElementsImagesFilePath(cardFaceElementsPerFace: CardFaceElementPerCardFace[], originalCardFaceElementId: number, filePath: string) {
-    console.log(`Update card face elements images file path: ${JSON.stringify(cardFaceElementsPerFace)}`);
+    // console.log(`Update card face elements images file path: ${JSON.stringify(cardFaceElementsPerFace)}`);
     
     let targetElement = cardFaceElementsPerFace.find(element => 
       element.cardFaceElement.cardFaceElementId === originalCardFaceElementId

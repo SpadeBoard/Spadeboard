@@ -7,8 +7,9 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { GameRoomService } from '../../../game-room/services/game-room.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { mergeMap } from 'rxjs';
-import { snapToGridCentre, snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
+import { snapToGridCellCentre, snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 import { isCardPositionPerRoom } from '../../utils/card-game-core.utils';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -22,11 +23,14 @@ import { isCardPositionPerRoom } from '../../utils/card-game-core.utils';
 export class CardPositionPerRoomComponent {
   private cardPositionPerRoomApiService = inject(CardPositionPerRoomApiService);
   private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
+  private dndBoardService: DndBoardService = inject(DndBoardService);
   private gameRoomService: GameRoomService = inject(GameRoomService);
 
   cprs: CardPositionPerRoom[] = [];
 
   private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
+  
+  cardsZoomLevel: number = 1;
 
   constructor() {
     effect(() => {
@@ -39,12 +43,19 @@ export class CardPositionPerRoomComponent {
   ngOnInit() {
     this.createCardPositionPerRoom();
     this.updateCardPositionPerRoomOnSave();
+    this.setCardsZoomLevel();
   }
 
   private getCardPositionPerRoom() {
     this.cardGameCoreService.cardPositionPerRoomId$.subscribe((idx: number) => {
       
     });
+  }
+
+  private setCardsZoomLevel(): void {
+    this.dndBoardService.zoomLevel$.subscribe((zoomLevel: number) => {
+      this.cardsZoomLevel = zoomLevel;
+    })
   }
   
   // Reference: https://www.angularspace.com/creating-custom-rxresource-api-with-observables/
@@ -91,7 +102,7 @@ export class CardPositionPerRoomComponent {
     this.gameRoomService.onSaveGameRoom$.subscribe(() => {
       this.cardPositionPerRoomApiService.updateCardsPositionPerRoom(this.cprs).subscribe((cprs: CardPositionPerRoom[] | undefined) => {
         if (cprs !== undefined) {
-          console.log(`Updated CPRs on save: ${JSON.stringify(cprs)}`);
+          // console.log(`Updated CPRs on save: ${JSON.stringify(cprs)}`);
         }
       });
     });
@@ -113,10 +124,12 @@ export class CardPositionPerRoomComponent {
    let snapToGrid: boolean = true;
     
     if (snapToGrid) {
-      console.log(`On drag move card position per room before snap: ${JSON.stringify(event.pointerPosition)}`);
-      event.pointerPosition = this.snapToGrid(50, event.pointerPosition);
-      this.snapToGridPosition = event.pointerPosition;
-      console.log(`On drag move card position per room after snap: ${JSON.stringify(event.pointerPosition)}`);
+      // console.log(`On drag move card position per room before snap: ${JSON.stringify(event.pointerPosition)}`);
+      let cellSizeScreen = this.dndBoardService.cellSizeScreen * this.dndBoardService.zoom;
+      
+      // event.pointerPosition = this.snapToGrid(cellSizeScreen, event.pointerPosition);
+      this.snapToGridPosition = this.snapToGrid(cellSizeScreen, event.pointerPosition);
+      // console.log(`On drag move card position per room after snap: ${JSON.stringify(event.pointerPosition)}`);
     } 
   }
 
@@ -126,8 +139,10 @@ export class CardPositionPerRoomComponent {
 
     item.dndPosition = snapToGrid ? this.snapToGridPosition: {x: event.dropPoint.x, y: event.dropPoint.y};
     // item.dndPosition = {x: event.dropPoint.x, y: event.dropPoint.y};
-    console.log(`On drag drop card position per room: ${JSON.stringify(item.dndPosition)}`);
+    // console.log(`On drag drop card position per room: ${JSON.stringify(item.dndPosition)}`);
 
+    console.log(`Positioning of CPR: AU - ${JSON.stringify(this.dndBoardService.screenToAUCoordinates(item.dndPosition.x, item.dndPosition.y))}), Screen PX - ${JSON.stringify(item.dndPosition)}`);
+    
     this.updateCardPositionPerRoom(item);
   }
 
@@ -135,7 +150,7 @@ export class CardPositionPerRoomComponent {
   {
     let { offsetX, offsetY } = snapToGridNearestVertex(gridSize, userPointerPosition.x, userPointerPosition.y);
 
-    console.log(`Offset snapToGrid: ${JSON.stringify({offsetX, offsetY})}`);
+    // console.log(`Offset snapToGrid: ${JSON.stringify({offsetX, offsetY})}`);
 
     return { x: offsetX, y: offsetY };
   }
@@ -144,9 +159,9 @@ export class CardPositionPerRoomComponent {
   // FIXME: Only works with standalone drags
   computeDragRenderPos(userPointerPosition: Point, dragRef: DragRef, dimensions: DOMRect, pickupPositionInElement: Point) {
     let gridSize: number = 50; 
-    let { offsetX, offsetY } = snapToGridCentre(gridSize, userPointerPosition.x, userPointerPosition.y);
+    let { offsetX, offsetY } = snapToGridCellCentre(gridSize, userPointerPosition.x, userPointerPosition.y);
 
-    console.log(`Offset computeDragRenderPos: ${JSON.stringify({offsetX, offsetY})}`);
+    // console.log(`Offset computeDragRenderPos: ${JSON.stringify({offsetX, offsetY})}`);
 
     return { x: offsetX, y: offsetY };
   }

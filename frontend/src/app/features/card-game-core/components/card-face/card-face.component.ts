@@ -70,29 +70,31 @@ export class CardFaceComponent {
           image.src = objectUrl;
           
           image.onload = () => {
-            console.log('Image loaded:', image.naturalWidth, image.naturalHeight);
+            // console.log('Image loaded:', image.naturalWidth, image.naturalHeight);
             resolve(image); // Resolve first then release because it has to be rendered first
             
             // Need to revoke the object URL after, make sure the blob is already rendered beforehand
             setTimeout(() => {
               URL.revokeObjectURL(objectUrl);
-              console.log('Blob URL revoked');
+              // console.log('Blob URL revoked');
             }, 30); // Use setTimeout to ensure revocation happens after rendering
           }
   
           image.onerror = () => {
-            console.log(`Image on error`);
+            // console.log(`Image on error`);
             URL.revokeObjectURL(objectUrl); // Release on error
             resolve(undefined);
           };
         },
         error: (err: any) => {
-          console.log(`Error: ${JSON.stringify(err)}`);
+          // console.log(`Error: ${JSON.stringify(err)}`);
           resolve(undefined) // Handle API errors
         }
       });
     });
   }
+
+  // TODO: How to figure out subscribing to scaling
 
   constructor() {
     effect(() => {

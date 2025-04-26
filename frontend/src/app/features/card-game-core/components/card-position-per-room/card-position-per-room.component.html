@@ -9,7 +9,10 @@
         (cdkDragMoved)="onDragMoved($event)"
         (cdkDragDropped)="onDragDrop($event, cpr)"
     >
-        <app-card [card]="cpr.card"/>
+        <app-card 
+            [zoomLevel]="cardsZoomLevel"
+            [card]="cpr.card"
+            />
     </div>
     <!--
     <div 

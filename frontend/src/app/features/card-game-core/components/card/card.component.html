@@ -4,7 +4,7 @@
     <!-- TODO: Fix this, show the images-->
 
 <!--TODO: Modify this so that the inside of the component for the card, it actually switches between multicard faces-->
-<div>
+<div [style.transform]="transform()">
     <app-card-face [cardFaceInput]="currentCardFace" />
 </div>
 

@@ -16,8 +16,18 @@ An open source self-hostable app where you can create rooms to design your table
 [Get Docker for your platform here](https://docs.docker.com/get-docker/)
 
 ### Executing program
-Note: these commands should be ran from the project directory and currently changes in code don't automatically update the actual app, you need to build the project again
+1. [Clone the files for SpadeBoard or download the zip file for SpadeBoard](https://github.com/SpadeBoard/Spadeboard/archive/refs/heads/prototype-angular-asp.net-core-postgres.zip)
 
-Starting: `docker compose -f docker-compose.yml up -d`
+<div style="text-align: center;">
+    <img src="/frontend/public/spadeboard-instructions-step-one.png" width=417 height=317>
+</div>
 
-Stopping: `docker compose -f docker-compose.yml down --volumes --rmi all`
+2. [Install Docker for your platform](https://docs.docker.com/get-docker/)
+
+3. After verifying Docker is on your system, open a new terminal, either in Docker, or just a terminal on your OS, head to the root directory of your files.
+
+4. Type `docker compose -f docker-compose.yml up -d` and press enter. This will start the app, it will load.
+
+5. Open `http://localhost:4200/` to head to SpadeBoard
+
+6. To stop the program, either run `docker compose -f docker-compose.yml down` or press the square on your container inside of Docker Desktop to stop it. If you want to delete your volumes and images, run `docker compose -f docker-compose.yml down --volumes --rmi all`, or delete them via Docker Desktop.

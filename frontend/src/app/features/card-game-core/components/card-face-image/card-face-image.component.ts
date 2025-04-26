@@ -109,7 +109,7 @@ export class CardFaceImageComponent {
   onOpenImageEditor(event: Event) {
     let cardFaceElementId: number | undefined = this.cardFaceElementId();
 
-    console.log(`Card face image component - Card face element ID: ${cardFaceElementId}`);
+    // console.log(`Card face image component - Card face element ID: ${cardFaceElementId}`);
 
     if (cardFaceElementId !== undefined)
       this.showImageEditor.emit(cardFaceElementId);
@@ -120,6 +120,6 @@ export class CardFaceImageComponent {
       return;
 
     URL.revokeObjectURL(url);
-    console.log('Blob URL revoked after image loaded');
+    // console.log('Blob URL revoked after image loaded');
   }
 }

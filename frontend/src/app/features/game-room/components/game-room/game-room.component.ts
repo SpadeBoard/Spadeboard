@@ -9,9 +9,9 @@ import { CdkDrag, CdkDragDrop, CdkDragHandle, DragDropModule } from '@angular/cd
 import { CardApiService } from '../../../card-game-core/services/card-game-core/card-api.service';
 import { CardComponent } from '../../../card-game-core/components/card/card.component';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
-import { DndBoardComponent } from '../../../card-game-core/components/dnd-board/dnd-board.component';
+import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/dnd-board.component';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { DndBoardService } from '../../../card-game-core/services/dnd-board.service';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { GameRoomService } from '../../services/game-room.service';
 import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
 

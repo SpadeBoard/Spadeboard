@@ -65,7 +65,7 @@ export class CardsCollectionComponent {
   private populateCardsCollection() {
     if (this.cards.length <= 0) {
       this.getCards();
-      console.log(`On cards: ${JSON.stringify(this.cards)}`);
+      // console.log(`On cards: ${JSON.stringify(this.cards)}`);
     }
   }
 
@@ -122,12 +122,12 @@ export class CardsCollectionComponent {
     
           this.createCardPositionPerRoom(cpr);
           
-          console.log("Is outside the cards collection menu");
+          // console.log("Is outside the cards collection menu");
         })
       })
     }
 
-    console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);
+    // console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);
   }
 
   private createCardPositionPerRoom(cpr: CardPositionPerRoom) {
