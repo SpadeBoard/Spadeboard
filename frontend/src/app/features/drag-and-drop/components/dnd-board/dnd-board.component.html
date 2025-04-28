@@ -6,7 +6,7 @@
     </div>
 </div>!-->
 
-<div class ="dnd-board" cdkDropList cdkDropListSortingDisabled="true">
+<div #dndBoard class ="dnd-board" (scroll)="onScroll($event)" cdkDropList cdkDropListSortingDisabled="true">
     <div #grid class = "grid"
         [style.width.px]="gridWidthScreen"
         [style.height.px]="gridHeightScreen"
@@ -14,5 +14,5 @@
         [style.transform]="transform()"
         >
     </div>
-    <app-card-position-per-room/>
+    <app-card-position-per-room />
 </div>

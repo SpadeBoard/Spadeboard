@@ -28,11 +28,20 @@ export class CardPositionPerRoomComponent {
 
   cprs: CardPositionPerRoom[] = [];
 
+  // NOTE: For rendering only
+  unculledCprs: CardPositionPerRoom[] = [];
+
   private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
   
+  // TODO: Refactor the bloody architecture
   cardsZoomLevel: number = 1;
+  gridWidthScreen: number = 50000;
+  gridHeightScreen: number = 50000;
 
   constructor() {
+    this.gridWidthScreen = this.dndBoardService.getScaledDndBoardSizeScreen();
+    this.gridHeightScreen = this.dndBoardService.getScaledDndBoardSizeScreen();
+
     effect(() => {
       if (this.gameRoomService.currentGameRoomId() > 0) {
         this.getCardsPositionPerRoomByRoomId(this.gameRoomService.currentGameRoomId());
@@ -43,17 +52,52 @@ export class CardPositionPerRoomComponent {
   ngOnInit() {
     this.createCardPositionPerRoom();
     this.updateCardPositionPerRoomOnSave();
+    
     this.setCardsZoomLevel();
+    this.setOnScreenCprs();
   }
 
-  private getCardPositionPerRoom() {
-    this.cardGameCoreService.cardPositionPerRoomId$.subscribe((idx: number) => {
-      
+
+  // TODO: Make an observable that filters out all items not in camera viewport
+  // Have a function to replace cprs and then render them
+  private setOnScreenCprs(): void {
+    this.dndBoardService.screenPxDimensions$.subscribe(({ x, y }: { x: number; y: number; }) => {
+
+      if (this.cprs.length > 0) {
+        this.unculledCprs = this.getOnScreenCprs(x, y);
+        console.log(`Card position per room set on screen CPRs: ${JSON.stringify(this.unculledCprs)}`);
+      }
     });
   }
 
+  getOnScreenCprs(screenPxX: number, screenPxY: number) {
+    return this.cprs.filter(cpr => this.dndBoardService.isPositionInCameraSpace(cpr.dndPosition.x, cpr.dndPosition.y, screenPxX, screenPxY) == true);
+  }
+
+  // NOTE: Assumes the dndPosition is in AU
+  // FIXME: Recalculate every card's screen position every time the zoom or camera changes
+  calculateCardPositionPerRoomScreenPosition(dndPositionAU: DndPosition): {
+    screenX: number;
+    screenY: number;
+  } {
+    let cprScreenCoordinates = this.dndBoardService.aUToScreenCoordinates(dndPositionAU.x, dndPositionAU.y);
+
+    console.log(`Calculate CPR screen position - AU coordinates: ${JSON.stringify(dndPositionAU)}, Screen coordinates: ${JSON.stringify(cprScreenCoordinates)}`);
+
+    return cprScreenCoordinates;
+  }
+
+  private updateGridSize() {
+    this.gridWidthScreen = this.dndBoardService.getScaledDndBoardSizeScreen();
+    this.gridHeightScreen = this.dndBoardService.getScaledDndBoardSizeScreen();
+
+    // console.log(`On update Card Position Per Room Grid Size: Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}`);
+  }
+
   private setCardsZoomLevel(): void {
-    this.dndBoardService.zoomLevel$.subscribe((zoomLevel: number) => {
+    this.dndBoardService.zoomLevel$.subscribe((zoomLevel: number) => {     
+      this.updateGridSize();
+
       this.cardsZoomLevel = zoomLevel;
     })
   }
@@ -72,18 +116,23 @@ export class CardPositionPerRoomComponent {
     return this.cprs.find((cpr) => cpr.card.cardId == cardId);
   }
 
+  // 50830.3 * 50 * 1 = 2,541,515
   private createCardPositionPerRoom() { 
     this.cardGameCoreService.cardPositionPerRoom$
-      .pipe(
-        mergeMap((cpr: CardPositionPerRoom) =>
-          this.cardPositionPerRoomApiService.createCardPositionPerRoom(cpr)
-        )
-      )
-      .subscribe((result: CardPositionPerRoom | undefined) => {
-        if (result !== undefined) {
-          this.cprs.push(result);
-        }
-      });
+    .pipe(
+      mergeMap((cpr: CardPositionPerRoom) => {
+        return this.cardPositionPerRoomApiService.createCardPositionPerRoom(cpr);
+      })
+    )
+    .subscribe((result: CardPositionPerRoom | undefined) => {
+      if (result !== undefined) {
+        console.log(`Create card position per room: ${JSON.stringify(result)}`);
+        this.cprs.push(result);
+
+        // NOTE: The reason why we push into the unculledCprs is because we're literally seeing everything on screen and therefore don't need to calculate if it's in the camera's viewport, assuming the camera's position is correct
+        this.unculledCprs.push(result);
+      }
+    });
   }
 
   // TODO: Get the card via the ID as well as position
@@ -125,10 +174,13 @@ export class CardPositionPerRoomComponent {
     
     if (snapToGrid) {
       // console.log(`On drag move card position per room before snap: ${JSON.stringify(event.pointerPosition)}`);
-      let cellSizeScreen = this.dndBoardService.cellSizeScreen * this.dndBoardService.zoom;
+      let cellSizeScreen = this.dndBoardService.getScaledCellSize();
       
       // event.pointerPosition = this.snapToGrid(cellSizeScreen, event.pointerPosition);
-      this.snapToGridPosition = this.snapToGrid(cellSizeScreen, event.pointerPosition);
+     let mouseScreenCoordinates = this.dndBoardService.getMouseScreenCoordinates();
+     this.snapToGridPosition = this.snapToGrid(cellSizeScreen, {x: mouseScreenCoordinates.screenX, y: mouseScreenCoordinates.screenY});
+      
+     // this.snapToGridPosition = this.snapToGrid(cellSizeScreen, event.pointerPosition);
       // console.log(`On drag move card position per room after snap: ${JSON.stringify(event.pointerPosition)}`);
     } 
   }
@@ -137,11 +189,14 @@ export class CardPositionPerRoomComponent {
     // TODO: If snap to grid, then run snap to grid else do what we have currently
     let snapToGrid: boolean = true;
 
-    item.dndPosition = snapToGrid ? this.snapToGridPosition: {x: event.dropPoint.x, y: event.dropPoint.y};
+    // item.dndPosition = snapToGrid ? this.snapToGridPosition: {x: event.dropPoint.x, y: event.dropPoint.y};
+    let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+    item.dndPosition = {x: mouseAUCoordinates.gridX, y: mouseAUCoordinates.gridY};
+    
     // item.dndPosition = {x: event.dropPoint.x, y: event.dropPoint.y};
     // console.log(`On drag drop card position per room: ${JSON.stringify(item.dndPosition)}`);
 
-    console.log(`Positioning of CPR: AU - ${JSON.stringify(this.dndBoardService.screenToAUCoordinates(item.dndPosition.x, item.dndPosition.y))}), Screen PX - ${JSON.stringify(item.dndPosition)}`);
+    console.log(`Positioning of CPR: AU - ${JSON.stringify(item.dndPosition)}), Screen PX - ${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(item.dndPosition.x, item.dndPosition.y))}`);
     
     this.updateCardPositionPerRoom(item);
   }

@@ -2,7 +2,7 @@
     height:  100vh;
     width: 100vw;
     overflow: auto;
-    position: absolute;
+    position: relative;
 }
 
 /* Vertical Scrollbar */
@@ -38,29 +38,13 @@
 
 /* TODO: Modify this so that you can use this CSS anywhere, probably should be dynamic, set the background size*/
 .grid {
-    /*position: absolute;
-    inset: inherit;*/
-    position: relative;
+    position: absolute;
+    inset: inherit;
     transform-origin: top left;
     z-index: 0;
     pointer-events: none;
     background-image:
         linear-gradient(to right, rgb(203 213 225) 1px, transparent 1px),
         linear-gradient(to bottom, rgb(203 213 225) 1px, transparent 1px);
-    /*background-size: 50px 50px;
-    width: 100%;
-    height: 100%;*/
+    background-color: #F0F0F0;
 }
-
-/*
-.dnd-board {
-  width: 100vw;
-  height: 100vh;
-  overflow: scroll;
-}
-
-.grid {
-  transform-origin: top left;
-  position: relative;
-}
- */

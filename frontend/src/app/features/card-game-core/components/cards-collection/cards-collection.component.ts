@@ -7,6 +7,7 @@ import { catchError, map, Observable, of } from 'rxjs';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { isCard } from '../../utils/card-game-core.utils';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 
 @Component({
   selector: 'app-cards-collection',
@@ -24,7 +25,8 @@ export class CardsCollectionComponent {
 
   cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
   private cardApiService: CardApiService = inject(CardApiService);
-  
+  private dndBoardService: DndBoardService = inject(DndBoardService);
+
   cards: Card[] =[];
 
   constructor() {
@@ -106,15 +108,23 @@ export class CardsCollectionComponent {
           if (result === undefined)
             return;
 
+          // TODO: Refactor later, this isn't optimal
+          let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+
+          let dndPosiiton: {
+            gridX: number;
+            gridY: number;
+          } = this.dndBoardService.getMouseAUCoordinates();
+
           let cpr: CardPositionPerRoom = {
             cardPositionPerRoomId: 0,
             card: result.card as Card,
             dndItem: {
-              dndItemId: 1,
+              dndItemId: 0,
               isDraggable: false,
               isDroppable: false
             },
-            dndPosition: {x: event.dropPoint.x, y: event.dropPoint.y} as DndPosition,
+            dndPosition: {x: dndPosiiton.gridX, y: dndPosiiton.gridY} as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
             gameRoom: {
               gameRoomId: 1
             }
