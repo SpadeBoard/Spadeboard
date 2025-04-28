@@ -1,7 +1,7 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { CardPositionPerRoomApiService } from './card-position-per-room-api.service';
-import { CardDto, CardPositionPerRoom } from '../../models/card';
+import { CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 
 @Injectable({
   providedIn: 'root'
@@ -9,29 +9,38 @@ import { CardDto, CardPositionPerRoom } from '../../models/card';
 export class CardGameCoreService {
   // https://medium.com/@jaydeepvpatil225/observables-and-subjects-in-angular-a4d73dfa5bb
   // Dynamic multicast delegates?
-  private cardPositionPerRoomId = new Subject<number>();
-  cardPositionPerRoomId$ = this.cardPositionPerRoomId.asObservable();
+  private cardPositionPerRoomId$$: Subject<number> = new Subject<number>();
+  cardPositionPerRoomId$: Observable<number> = this.cardPositionPerRoomId$$.asObservable();
 
-  private cardPositionPerRoom = new Subject<CardPositionPerRoom>();
-  cardPositionPerRoom$ = this.cardPositionPerRoom.asObservable();
+  private cardPositionPerRoom$$ = new Subject<CardPositionPerRoom>();
+  cardPositionPerRoom$: Observable<CardPositionPerRoom> = this.cardPositionPerRoom$$.asObservable();
+
+  private onCreateCardEditorCardDto$$ = new Subject<CardEditorCardDto>();
+  onCreateCardEditorCardDto$: Observable<CardEditorCardDto> = this.onCreateCardEditorCardDto$$.asObservable();
 
   userId: WritableSignal<string> = signal<string>('');
 
   isCardsCollectionMenuOpen: WritableSignal<boolean>=  signal<boolean>(false);
 
-  cardEditorCardDto: WritableSignal<CardDto> = signal<CardDto> ({
+  cardEditorCardDto: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
     card: {
       cardId: 0,
-      frontCardFaceId: 0,
-      backCardFaceId: 0,
       isFlipped: false,
-      dndItem: {
-        dndItemId: 0,
-        isDraggable: false,
-        isDroppable: false
-      }
+      currentCardFaceIndex: 0
     },
-    ownerId: ''
+    ownerId: '',
+    cardEditorCardFacesDto: []
+  });
+
+  // NOTE: Use this with the card collection to load latest
+  createdCardEditorCardDtoForCardCollection: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
+    card: {
+      cardId: 0,
+      isFlipped: false,
+      currentCardFaceIndex: 0
+    },
+    ownerId: '',
+    cardEditorCardFacesDto: []
   });
 
   // https://medium.com/@dev.ashaysawarkar/communicating-between-sibling-components-in-angular-using-rxjs-subject-4e5382dcca34
@@ -44,7 +53,7 @@ export class CardGameCoreService {
     this.userId.set(newUserId);
   }
 
-  setCardEditorCardDto(newCardEditorCardDto: CardDto) {
+  setCardEditorCardDto(newCardEditorCardDto: CardEditorCardDto) {
     this.cardEditorCardDto.set(newCardEditorCardDto);
   }
 
@@ -53,6 +62,10 @@ export class CardGameCoreService {
   }
 
   createCardPositionPerRoom(cpr: CardPositionPerRoom ): void {
-    this.cardPositionPerRoom.next(cpr);
+    this.cardPositionPerRoom$$.next(cpr);
+  }
+
+  onCreateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
+    this.onCreateCardEditorCardDto$$.next(cardEditorCardDto);
   }
 }

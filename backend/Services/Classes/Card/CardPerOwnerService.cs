@@ -15,8 +15,6 @@ namespace Services
             var cardsPerOwner = await _context.CardPerOwner
                 .Where(cpo => cpo.OwnerId == ownerId)
                 .Include(cpo => cpo.Card)
-                .Include(cpo => cpo.Card.FrontCardFace)
-                .Include(cpo => cpo.Card.BackCardFace)
                 .ToListAsync();
 
             List<Card> cards = [];
@@ -37,13 +35,21 @@ namespace Services
 
         // TODO: Probably fix this considering you can have multiple cards with multiple owners, might actually need a surrogate key instead of composite
         // Or something else, maybe the game room?
-        public async Task<CardPerOwner?> GetCardPerOwnerByCardIdAsync(int cardId)
+        public async Task<CardPerOwner?> GetByCardIdAsync(int cardId)
         {
             return await _context.CardPerOwner
                 .FirstOrDefaultAsync(cpo => cpo.CardId == cardId);
         }
 
-        public async Task<CardPerOwner?> GetCardPerOwnerByCardIdAndOwnerIdAsync(int cardId, string ownerId)
+        public async Task<CardPerOwner?> GetNavByCardIdAsync(int cardId)
+        {
+            return await _context.CardPerOwner
+                .Include(cpo => cpo.Card)
+                .Include(cpo => cpo.Owner)
+                .FirstOrDefaultAsync(cpo => cpo.CardId == cardId);
+        }
+
+        public async Task<CardPerOwner?> GetByCardIdAndOwnerIdAsync(int cardId, string ownerId)
         {
             return await _context.CardPerOwner
                 .FirstOrDefaultAsync(cpo => cpo.CardId == cardId && cpo.OwnerId == ownerId);
@@ -85,13 +91,5 @@ namespace Services
         {
             return _context.Entry(item).Properties.Any(p => p.IsModified);
         }
-
-        /*public async Task<CardPerOwner> UpdateCardPerOwnerAsync(int cardId, string ownerId)
-        {
-            await _context.CardPerOwner.AddAsync(cpo);
-            await _context.SaveChangesAsync();
-
-            return cpo;
-        }*/
     }
 }

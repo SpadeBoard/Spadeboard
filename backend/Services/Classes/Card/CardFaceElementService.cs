@@ -11,9 +11,10 @@ using Models.Cards;
 
 namespace Services
 {
-    public class CardFaceElementService(ApplicationDbContext context, IDndItemService dndItemService, IStyleService styleService) : ICardFaceElementService
+    public class CardFaceElementService(ApplicationDbContext context,  ICardFaceService cardFaceService, IDndItemService dndItemService, IStyleService styleService) : ICardFaceElementService
     {
         private readonly ApplicationDbContext _context = context;
+        private readonly ICardFaceService _cardFaceService = cardFaceService;
         private readonly IDndItemService _dndItemService = dndItemService;
         private readonly IStyleService _styleService = styleService;
 
@@ -22,21 +23,6 @@ namespace Services
             return await _context.CardFaceElement
                 .Where(element => element.CardFaceId == cardFaceId)
                 .ToListAsync();
-        }
-
-        public async Task CreateAllDtoAsync(CardFaceElementDto[] cardFaceElementsDto, CardFace cardFace)
-        {
-            foreach (CardFaceElementDto cardFaceElementDto in cardFaceElementsDto) {
-                cardFaceElementDto.CardFaceElement.CardFace = cardFace;
-                await CreateDtoAsync(cardFaceElementDto);
-            }
-        }
-
-        public async Task CreateDtoAsync(CardFaceElementDto cardFaceElementDto)
-        {
-            await CreateNavAsync(cardFaceElementDto.CardFaceElement);
-
-            await _dndItemService.CreateCardFaceElementPerCardFaceAsync(cardFaceElementDto);
         }
 
         public async Task CreateAllNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace)
@@ -76,55 +62,6 @@ namespace Services
             catch (DbUpdateConcurrencyException)
             {
                 if (!Exists(cardFaceElement.CardFaceElementId))
-                {
-                    throw;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        public async Task UpdateAllDtoAsync(CardFaceElementDto[] cardFaceElementsDto)
-        {
-            foreach (CardFaceElementDto cardFaceElementDto in cardFaceElementsDto)
-            {
-                await UpdateDtoAsync(cardFaceElementDto);
-            }
-        }
-
-        public async Task UpdateDtoAsync(CardFaceElementDto cardFaceElementDto)
-        {
-            if (cardFaceElementDto.CardFaceElement.Style != null)
-            {
-                _context.Entry(cardFaceElementDto.CardFaceElement.Style).State = EntityState.Modified;
-            }
-
-            if (cardFaceElementDto.DndItemDto.DndItem != null)
-            {
-                _context.Entry(cardFaceElementDto.DndItemDto.DndItem).State = EntityState.Modified;
-            }
-
-            if (cardFaceElementDto.DndItemDto.DndPosition != null)
-            {
-                _context.Entry(cardFaceElementDto.DndItemDto.DndPosition).State = EntityState.Modified;
-            }
-
-            if (cardFaceElementDto.DndItemDto.DndDragBoundary != null)
-            {
-                _context.Entry(cardFaceElementDto.DndItemDto.DndDragBoundary).State = EntityState.Modified;
-            }
-
-            context.Entry(cardFaceElementDto.CardFaceElement).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Exists(cardFaceElementDto.CardFaceElement.CardFaceElementId))
                 {
                     throw;
                 }
@@ -256,72 +193,47 @@ namespace Services
             return cardFaceElement;
         }
 
-        public async Task<IEnumerable<CardFaceElementDto>> GetAllDtoByCardFaceIdAsync(int cardFaceId) 
-        {
-            var cardFaceElements = await GetAllNavByCardFaceId(cardFaceId) ?? throw new Exception();
-            var cardFaceElementsDto = new List<CardFaceElementDto>();
-
-            foreach (CardFaceElement cardFaceElement in cardFaceElements) 
-            {   
-                // Object reference not set to an instance of an object.
-                var cardFaceElementDto  = await GetDtoAsync(cardFaceElement.CardFaceElementId, cardFaceId);
-            
-                if (cardFaceElementDto != null) {
-                    cardFaceElementsDto.Add(cardFaceElementDto);
-                }
-            }
-
-            return cardFaceElementsDto;
-        }
-
-        // TODO: Pass in the card face ID
-        public async Task<CardFaceElementDto?> GetDtoAsync(int cardFaceElementId, int cardFaceId)
-        {
-            var cardFaceElementPerCardFaceAsync = await _dndItemService.GetCardFaceElementPerCardFaceByCardFaceIdAsync(cardFaceElementId, cardFaceId);
-            if (cardFaceElementPerCardFaceAsync == null)
-            {
-                return null;
-            }
-
-            var cardFaceElement = await GetNavAsync(cardFaceElementPerCardFaceAsync.CardFaceElementId);
-            if (cardFaceElement == null)
-            {
-                return null;
-            }
-
-            var dndItemDto = await _dndItemService.GetDndItemDtoByDndItemIdAndDndPositionIdAsync(cardFaceElementPerCardFaceAsync.DndItemId, cardFaceElementPerCardFaceAsync.DndPositionId);
-            
-            if (dndItemDto == null) {
-                return null;
-            }
-            
-            // Object reference not set to an instance of an object.
-            CardFaceElementDto cardFaceElementDto = new() { // Object reference not set to an instance of an object
-                CardFaceElement = cardFaceElement,
-                DndItemDto = dndItemDto
-            };
-
-            return cardFaceElementDto;
-        }
-
-        public async Task CreateNavAsync(CardFaceElement cardFaceElement)
+        public async Task CreateNavAsync(CardFaceElement nav)
         {
             // TODO: Make a style service, and use Exists as a check
-            if (cardFaceElement.Style != null)
+            if (nav.Style != null && _styleService.Exists(nav.Style.StyleId))
             {
-                cardFaceElement.Style.StyleId = 0;
-                await _context.Style.AddAsync(cardFaceElement.Style);
+                nav.StyleId = nav.Style.StyleId;
+                nav.Style = null;
+            }
+            else if (nav.Style != null)
+            {
+                nav.Style.StyleId = 0;
             }
 
             // TODO: Refactor the thing so that 1 card face element can be on multiple faces
-            if (cardFaceElement.CardFace != null)
+            /*if (nav.CardFace != null && _cardFaceService.Exists(nav.CardFace.CardFaceId))
             {
-                cardFaceElement.CardFace.CardFaceId = 0;
-                await _context.CardFace.AddAsync(cardFaceElement.CardFace);
+                nav.CardFace.CardFaceId = nav.CardFace.CardFaceId;
+                nav.CardFace = null;
             }
+            else if (nav.CardFace != null)
+            {
+                nav.CardFace.CardFaceId = 0;
+            }*/
 
-            cardFaceElement.CardFaceElementId = 0;
-            await _context.CardFaceElement.AddAsync(cardFaceElement);
+            nav.CardFaceElementId = 0;
+            
+            await _context.CardFaceElement.AddAsync(nav);
+            int changes = await _context.SaveChangesAsync();
+
+            if (changes <= 0)
+                throw new Exception("No changes were made");
+
+            var e = await _context.CardFaceElement
+                .Include(e=> e.Style)
+                .Include(e => e.CardFace)
+                .FirstOrDefaultAsync(e=> e.CardFaceElementId == nav.CardFaceElementId);
+
+            if (e != null)
+            {
+                nav = e;
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, ViewChild } from '@angular/core';
-import { Card, CardDto, CardPositionPerRoom } from '../../../card-game-core/models/card';
+import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../../card-game-core/models/card';
 import { CardFace } from '../../../card-game-core/models/card-face';
 import { CardFaceElement } from '../../../card-game-core/models/card-face-element';
 import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
@@ -9,9 +9,9 @@ import { CdkDrag, CdkDragDrop, CdkDragHandle, DragDropModule } from '@angular/cd
 import { CardApiService } from '../../../card-game-core/services/card-game-core/card-api.service';
 import { CardComponent } from '../../../card-game-core/components/card/card.component';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
-import { DndBoardComponent } from '../../../card-game-core/components/dnd-board/dnd-board.component';
+import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/dnd-board.component';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { DndBoardService } from '../../../card-game-core/services/dnd-board.service';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { GameRoomService } from '../../services/game-room.service';
 import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
 
@@ -43,22 +43,6 @@ export class GameRoomComponent implements AfterViewChecked{
 
   private ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a";
 
-   // ASSUMPTION: We're opening editor without having an already existing card
-  cardDto: CardDto = {
-    card: {
-      cardId: 0,
-      frontCardFaceId: 0,
-      backCardFaceId: 0,
-      isFlipped: false,
-      dndItem: {
-        dndItemId: 0,
-        isDraggable: false,
-        isDroppable: false
-      }
-    },
-    ownerId: this.ownerId
-  }
-
   constructor() {
     this.gameRoomService.setCurrentGameRoomId(1);
     this.gameRoomService.onAutosaveTimeout();
@@ -81,8 +65,8 @@ export class GameRoomComponent implements AfterViewChecked{
 
   onCardEditor(event: Event): void {
     this.isCardEditorOpen = !this.isCardEditorOpen;
-    this.cardGameCoreService.setCardEditorCardDto(this.cardDto);
-    console.log(`Card editor state: ${this.isCardEditorOpen}`);
+    // this.cardGameCoreService.setCardEditorCardDto(this.cardEditorCardDto);
+    // console.log(`Card editor state: ${this.isCardEditorOpen}`);
   }
 
   onCardsCollection(event: Event): void {

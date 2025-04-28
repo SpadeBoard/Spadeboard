@@ -5,7 +5,7 @@ using Models.Styles;
 
 namespace Models.Cards
 {
-    // TODO: Use the DTO instead of CardFaceElement for the CardDto as well as the services
+    // TODO: Use the DTO instead of CardFaceElement for the CardEditorCardDto as well as the services
     public class CardFaceElementDto
     {
         public CardFaceElement CardFaceElement {get; set;}
@@ -40,7 +40,7 @@ namespace Models.Cards
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CardFaceElementId { get; set; }
 
-        public int CardFaceId {get; set;}
+        public int? CardFaceId {get; set;}
         [ForeignKey("CardFaceId")]
         public virtual CardFace? CardFace { get; set; }
 
@@ -51,13 +51,5 @@ namespace Models.Cards
         public int? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style {get; set;}
-
-        // TODO: Do we need a DndItem here as well as DndPosiiton? How does this work?
-        /*
-        FIXME: MessageText: insert or update on table "DndItems" violates foreign key constraint "FK_DndItems_DndDragBoundaries_DndDragBoundaryId"
-        */
-        /*public int? DndItemId {get; set;}
-        [ForeignKey("DndItemId")]
-        public virtual DndItem? DndItem {get; set;}*/
     }
 }

@@ -1,11 +1,11 @@
 import { AngularEditorConfig } from "@kolkov/angular-editor";
-import { DndItemDto } from "../../drag-and-drop/models/dnd-item";
+import { DndItem, DndItemDto } from "../../drag-and-drop/models/dnd-item";
 import { Style } from "../../style/models/style";
+import { DndDragBoundary, DndPosition } from "../../drag-and-drop/models/dnd-types";
 
 // TODO: Make a CardFaceElementDto and use that instead for frontend
 export interface CardFaceElement {
     cardFaceElementId: number;
-    cardFaceId: number; // THIS SHOULD BE FINE BECAUSE DND ITEM HAS STYLING REFERENCE
     cardFaceElementContent: string;
     cardFaceElementType?: string;
     style?: Style;
@@ -16,6 +16,13 @@ export interface CardFaceElementDto {
     cardFaceElement: CardFaceElement;
     dndItemDto: DndItemDto;
     // style?: Style;
+}
+
+export interface CardFaceElementPerCardFace {
+    cardFaceElement: CardFaceElement;
+    dndItem: DndItem;
+    dndPosition: DndPosition;
+    dndDragBoundary?: DndDragBoundary;
 }
 
 export type CardFaceRte = CardFaceElement & AngularEditorConfig;

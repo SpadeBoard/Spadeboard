@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 import { Card } from '../../models/card';
-import { DndBoardService } from '../../services/dnd-board.service';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 

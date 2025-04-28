@@ -1,7 +1,7 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { CardPositionPerRoomApiService } from '../../card-game-core/services/card-game-core/card-position-per-room-api.service';
 import { CardPositionPerRoom } from '../../card-game-core/models/card';
-import { DndBoardService } from '../../card-game-core/services/dnd-board.service';
+import { DndBoardService } from '../../drag-and-drop/services/dnd-board.service';
 import { BehaviorSubject, interval, Subject } from 'rxjs';
 
 @Injectable({

@@ -31,34 +31,30 @@ export class CardFaceComponent {
       styleId: 0,
       width: '0px',
       height: '0px'
-    }
+    },
+    cardFaceThumbnailFilePath: '/blank-card-canvas.png'
   });
-  readonly cardFaceComputed: Signal<CardFace | undefined> = computed(() => this.cardFaceInput());
-
-  cardFace: CardFace = {
-    cardFaceId: 0,
-    style: {
-      styleId: 0
-    }
-  }
 
   // TODO: Card face image here
   // https://stackoverflow.com/a/27197907
-  cardFaceImageSrc: string = '';
-
   private destroy$ = new Subject<void>();
 
-  image: HTMLImageElement | undefined;
+  image= {
+    src: '/blank-card-canvas.png',
+    alt: '',
+    width: 154,
+    height: 215
+  };
 
-  getCardFaceImageSrc(): Promise<HTMLImageElement | undefined> {
-    if (!this.cardFace.cardFaceThumbnailFilePath) {
+  getCardFaceImageSrc(cardFace: CardFace): Promise<HTMLImageElement | undefined> {
+    if (!cardFace.cardFaceThumbnailFilePath) {
       return Promise.resolve(undefined);
     }
 
     // https://www.learnrxjs.io/learn-rxjs/operators/filtering/takeuntil
     return new Promise((resolve) => {
       this.fileUploadApiService.getFile(
-        this.cardFace.cardFaceThumbnailFilePath as string,
+        cardFace.cardFaceThumbnailFilePath as string,
         'card-face'
       ).pipe(
         // takeUntil(this.destroy$) // Call on ngDestroy, prevents memory leaks
@@ -74,39 +70,46 @@ export class CardFaceComponent {
           image.src = objectUrl;
           
           image.onload = () => {
-            console.log('Image loaded:', image.naturalWidth, image.naturalHeight);
+            // console.log('Image loaded:', image.naturalWidth, image.naturalHeight);
             resolve(image); // Resolve first then release because it has to be rendered first
             
             // Need to revoke the object URL after, make sure the blob is already rendered beforehand
             setTimeout(() => {
               URL.revokeObjectURL(objectUrl);
-              console.log('Blob URL revoked');
+              // console.log('Blob URL revoked');
             }, 30); // Use setTimeout to ensure revocation happens after rendering
           }
   
           image.onerror = () => {
-            console.log(`Image on error`);
+            // console.log(`Image on error`);
             URL.revokeObjectURL(objectUrl); // Release on error
             resolve(undefined);
           };
         },
         error: (err: any) => {
-          console.log(`Error: ${JSON.stringify(err)}`);
+          // console.log(`Error: ${JSON.stringify(err)}`);
           resolve(undefined) // Handle API errors
         }
       });
     });
   }
 
+  // TODO: How to figure out subscribing to scaling
+
   constructor() {
     effect(() => {
-      let cardFace = this.cardFaceComputed();
+      let cardFace = this.cardFaceInput();
       
       if (cardFace !== undefined && cardFace.cardFaceId !== 0) {
-        this.cardFace = cardFace;
 
-        this.getCardFaceImageSrc().then((image: HTMLImageElement | undefined) => {
-          this.image = image;
+        this.getCardFaceImageSrc(cardFace).then((image: HTMLImageElement | undefined) => {
+          if (image === undefined)
+            return;
+
+          this.image.src = image.src;
+          this.image.width = image.width;
+          this.image.alt = image.alt;
+          this.image.height = image.height;
         })
       }
     });

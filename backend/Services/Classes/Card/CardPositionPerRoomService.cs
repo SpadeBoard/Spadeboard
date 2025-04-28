@@ -19,9 +19,7 @@ namespace Services
 
         public async Task<CardPositionPerRoom?> GetAsync(int id)
         {
-            var cpr = await _context.CardPositionPerRoom.FirstOrDefaultAsync(cpr => cpr.CardPositionPerRoomId == id);
-
-            return cpr;
+            return await _context.CardPositionPerRoom.FirstOrDefaultAsync(cpr => cpr.CardPositionPerRoomId == id);
         }
 
         public async Task<IEnumerable<CardPositionPerRoom>> GetAllNavByRoomIdAsync(int gameRoomId)
@@ -134,8 +132,7 @@ namespace Services
             return cprs;
         }
 
-        // ASSUMPTION:
-        // Navigation properties of the properties aren't being passed in
+        // ASSUMPTION: Navigation properties of the properties aren't being passed in
         public async Task CreateNavAsync(CardPositionPerRoom nav)
         {
             if (nav.Card != null && _cardService.Exists(nav.Card.CardId))
@@ -143,11 +140,19 @@ namespace Services
                 nav.CardId = nav.Card.CardId;
                 nav.Card = null;
             }
+            else if (nav.Card != null)
+            {
+                nav.Card.CardId = 0;
+            }
 
             if (nav.DndItem != null && _dndItemService.Exists(nav.DndItem.DndItemId)) 
             {
                 nav.DndItemId = nav.DndItem.DndItemId;
                 nav.DndItem = null;
+            }
+            else if (nav.DndItem != null)
+            {
+                nav.DndItem.DndItemId = 0;
             }
 
             if (nav.DndPosition != null && _dndPositionService.Exists(nav.DndPosition.DndPositionId))
@@ -155,11 +160,21 @@ namespace Services
                 nav.DndPositionId = nav.DndPosition.DndPositionId;
                 nav.DndPosition = null;
             }
+            else if (nav.DndPosition != null)
+            {
+                nav.DndPosition.DndPositionId = 0;
+            }
 
             if (nav.GameRoom != null && _gameRoomService.Exists(nav.GameRoom.GameRoomId)) {
                 nav.GameRoomId = nav.GameRoom.GameRoomId;
                 nav.GameRoom = null;
             }
+            else if (nav.GameRoom != null)
+            {
+                nav.GameRoom.GameRoomId = 0;
+            }
+
+            // Do we need to set all the Ids as 0?
 
             await _context.CardPositionPerRoom.AddAsync(nav);
             int changes = await _context.SaveChangesAsync();
@@ -224,7 +239,7 @@ namespace Services
                     throw;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
@@ -250,7 +265,7 @@ namespace Services
 
                 return true;
             }
-            catch (Exception ex) 
+            catch (Exception) 
             {
                 throw;
             }

@@ -139,9 +139,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             new Card
             {
                 CardId = -1,
-                FrontCardFaceId = -1,
-                BackCardFaceId = -1,
-                IsFlipped = false
+                IsFlipped = false,
+                CurrentCardFaceIndex = 0
             }
         );
 
@@ -204,4 +203,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<CardFaceElementPerCardFace> CardFaceElementPerCardFace{ get; set; } = default!;
 
     public DbSet<CardPerOwner> CardPerOwner{ get; set; } = default!;
+
+    public DbSet<CardFacePerCard> CardFacePerCard { get; set; } = default!;
 }

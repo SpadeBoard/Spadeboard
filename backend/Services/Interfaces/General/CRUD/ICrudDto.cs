@@ -4,7 +4,7 @@ namespace Services
     {
         public Task<T?> GetDtoAsync(int id);
         public Task CreateDtoAsync(T dto);
-        public Task UpdateDtoAsync(T dto);
-        public Task<bool> DeleteDtoAsync(T dto);
+        public Task<bool> UpdateDtoAsync(int id, T dto);
+        public Task<bool> DeleteDtoAsync(int id);
     }
 }

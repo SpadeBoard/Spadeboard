@@ -1,11 +1,12 @@
 import { Component, effect, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
-import { Card, CardPositionPerRoom } from '../../models/card';
+import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
 import { CardComponent } from '../card/card.component';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragMove, DragDropModule } from '@angular/cdk/drag-drop';
 import { catchError, map, Observable, of } from 'rxjs';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
+import { isCard } from '../../utils/card-game-core.utils';
 
 @Component({
   selector: 'app-cards-collection',
@@ -38,9 +39,13 @@ export class CardsCollectionComponent {
       }
     });
   }
+
+  ngOnInit() {
+    this.onCreateCardEditorCardDto();
+  }
   
   getCards(): void {
-    this.cardApiService.getCards(
+    this.cardApiService.getCards$(
       this.userId).subscribe((result: Card[] | undefined) => {
         if (result !== undefined)
         {
@@ -51,31 +56,8 @@ export class CardsCollectionComponent {
   }
 
   // https://v17.angular.io/guide/observables
-  // ASSUMPTION: Checks to see if there needs to be a new card added to the menu
-  private doesUserHaveMoreCards(): Observable<boolean> {
-    return this.cardApiService.getCards(this.userId).pipe(
-      map((result: Card[] | undefined) => {
-        return result !== undefined && result.length > this.cards.length;
-      }),
-      catchError((err: any) => {
-        console.error('Does user have more cards emitted an error: ' + err);
-        return of(false);
-      })
-    );
-  }
-
   // https://rxjs.dev/api/operators/catchError
   // https://angular.dev/guide/templates/pipes
-
-  private getLatestCard(id: number): void {
-    this.cardApiService.getCard(
-      id, this.userId).subscribe((result: Card | undefined) => {
-        if (result !== undefined)
-        {
-          this.cards.push(result);
-        }
-    });
-  }
 
   // TODO: Make a component for the cards menu, and what we wanna do
     // is if the amount of cards is less than the amount of cards in the database for this user
@@ -83,16 +65,26 @@ export class CardsCollectionComponent {
   private populateCardsCollection() {
     if (this.cards.length <= 0) {
       this.getCards();
-      console.log(`On cards: ${JSON.stringify(this.cards)}`);
-
-      return;
+      // console.log(`On cards: ${JSON.stringify(this.cards)}`);
     }
+  }
 
-    // ASSUMPTION: Postgres records start from 1, so grab the length of the cards and add 1 to get correct index
-    this.doesUserHaveMoreCards().subscribe((userHasMore: boolean) => {
-      if (userHasMore) {
-        this.getLatestCard(this.cards.length + 1);
+  /* 
+  Potential Issues / Considerations
+  Only adds one card per call:
+  If the server has many new cards, you’ll need to call onCreateCardEditorCardDto() repeatedly (or use a loop/recursion) to fully sync.
+  */
+  private onCreateCardEditorCardDto() {
+    // ASSUMPTION:
+    // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
+    // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
+    this.cardGameCoreService.onCreateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+      if (cardEditorCardDto && this.cards.length > 0) {
+        this.cards.push(cardEditorCardDto.card);
+        return;
       }
+
+      this.populateCardsCollection();
     });
   }
 
@@ -101,28 +93,41 @@ export class CardsCollectionComponent {
   }
 
   onDragDrop(event: CdkDragDrop<any[]>, item: any) {
-    // TODO: Check to see if it's outside of the menu, if it is, then emit
-    if (!event.isPointerOverContainer) {
-      let cpr: CardPositionPerRoom = {
-        cardPositionPerRoomId: 0,
-        card: item as Card,
-        dndItem: {
-          dndItemId: 1,
-          isDraggable: false,
-          isDroppable: false
-        },
-        dndPosition: {x: event.dropPoint.x, y: event.dropPoint.y} as DndPosition,
-        gameRoom: {
-          gameRoomId: 1
-        }
-      };
+    if (!event.isPointerOverContainer && isCard(item)) {
+      this.cardApiService.getCardEditorCardDto$(item.cardId).subscribe((result: CardEditorCardDto | undefined) => {
+        if (result === undefined)
+          return;
 
-      this.createCardPositionPerRoom(cpr);
-      
-      console.log("Is outside the cards collection menu");
+        // NOTE: Cards in rooms should not have an owner
+        let cardEditorCardDto: CardEditorCardDto = result;
+        cardEditorCardDto.ownerId = '';
+
+        this.cardApiService.createCardEditorCardDtoForGameRoomFromExistingDto$(cardEditorCardDto).subscribe((result: CardEditorCardDto | undefined) => {
+          if (result === undefined)
+            return;
+
+          let cpr: CardPositionPerRoom = {
+            cardPositionPerRoomId: 0,
+            card: result.card as Card,
+            dndItem: {
+              dndItemId: 1,
+              isDraggable: false,
+              isDroppable: false
+            },
+            dndPosition: {x: event.dropPoint.x, y: event.dropPoint.y} as DndPosition,
+            gameRoom: {
+              gameRoomId: 1
+            }
+          };
+    
+          this.createCardPositionPerRoom(cpr);
+          
+          // console.log("Is outside the cards collection menu");
+        })
+      })
     }
 
-    console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);
+    // console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);
   }
 
   private createCardPositionPerRoom(cpr: CardPositionPerRoom) {

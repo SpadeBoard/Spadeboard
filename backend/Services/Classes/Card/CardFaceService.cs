@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
 using System.Net.Sockets;
+using Newtonsoft.Json;
 
 namespace Services
 {
@@ -17,39 +18,28 @@ namespace Services
 
         private readonly IStyleService _styleService = styleService;
 
-        public async Task CreateNavAsync(CardFace cardFace){
-            if (cardFace.Style != null) {
-                cardFace.Style.StyleId = 0;
-                _context.Style.Add(cardFace.Style);
-                cardFace.StyleId = cardFace.Style.StyleId;
-            }
 
-            cardFace.CardFaceId = 0;
-            _context.CardFace.Add(cardFace);
-            await _context.SaveChangesAsync();
-        }
-        
-        public async Task<bool> DeleteNavAsync(CardFace cardFace)
+        public async Task<bool> DeleteNavAsync(CardFace nav)
         {
-            _context.CardFace.Remove(cardFace);
+            _context.CardFace.Remove(nav);
 
-            if (cardFace.Style != null)
+            if (nav.Style != null)
             {
-                _context.Style.Remove(cardFace.Style);
+                _context.Style.Remove(nav.Style);
             }
 
             int changes = await _context.SaveChangesAsync();
             return changes > 0;
         }
 
-        public async Task<bool> UpdateNavAsync(CardFace cardFace)
+        public async Task<bool> UpdateNavAsync(CardFace nav)
         {
-            if (cardFace.Style != null && _styleService.IsModified(cardFace.Style))
+            if (nav.Style != null && _styleService.IsModified(nav.Style))
             {
-                _context.Entry(cardFace.Style).State = EntityState.Modified;
+                _context.Entry(nav.Style).State = EntityState.Modified;
             }
 
-            _context.Entry(cardFace).State = EntityState.Modified;
+            _context.Entry(nav).State = EntityState.Modified;
 
             try
             {
@@ -57,9 +47,9 @@ namespace Services
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!Exists(cardFace.CardFaceId))
+                if (!Exists(nav.CardFaceId))
                 {
-                    throw;
+                    return false;
                 }
                 else
                 {
@@ -67,6 +57,7 @@ namespace Services
                 }
             }
         }
+
 
         public bool Exists(int id)
         {
@@ -155,6 +146,45 @@ namespace Services
         public bool IsModified(CardFace item)
         {
             return _context.Entry(item).Properties.Any(p => p.IsModified);
+        }
+
+        public async Task CreateNavAsync(CardFace nav)
+        {
+            Console.WriteLine("nav.CardFaceId before query: " + nav.CardFaceId);
+
+            if (nav.Style != null && _styleService.Exists(nav.Style.StyleId))
+            {
+                nav.StyleId = nav.Style.StyleId;
+                nav.Style = null;
+            }
+            else if (nav.Style != null)
+            {
+                nav.Style.StyleId = 0;
+            }
+
+            Console.WriteLine(
+                "nav.CardFaceId after style: {0}, nav.StyleId: {1}, nav.Style.StyleId: {2}",
+                nav.CardFaceId,
+                nav.StyleId,
+                nav.Style != null ? nav.Style.StyleId.ToString() : "null"
+            );
+
+            nav.CardFaceId = 0;
+            await _context.CardFace.AddAsync(nav);
+            int changes = await _context.SaveChangesAsync();
+
+            if (changes <= 0)
+                throw new Exception("No changes were made");
+
+            var cf = await _context.CardFace
+                .Include(cpr => cpr.Style)
+                .FirstOrDefaultAsync(cf => cf.CardFaceId == nav.CardFaceId);
+
+            if (cf != null)
+            {
+                nav = cf;
+                Console.WriteLine("Card face nav: {0}", JsonConvert.SerializeObject(nav));
+            }
         }
     }
 }

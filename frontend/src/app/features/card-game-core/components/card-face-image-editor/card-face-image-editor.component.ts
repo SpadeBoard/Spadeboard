@@ -35,9 +35,9 @@ export class CardFaceImageEditorComponent {
 
       //this.setImage(cardFaceImageAttr.cardFaceImage);
 
-      if (cardFaceImageAttr.cardFaceImageStyle)
-        console.log('Has image style');
-        //this.setImageStyle(cardFaceImageAttr.cardFaceImageStyle);
+      /*if (cardFaceImageAttr.cardFaceImageStyle)
+        // console.log('Has image style');
+        //this.setImageStyle(cardFaceImageAttr.cardFaceImageStyle);*/
     }); 
     
   imageChangedEvent: Event | null = null;

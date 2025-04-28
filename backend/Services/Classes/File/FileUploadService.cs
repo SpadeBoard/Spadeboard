@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,8 +15,11 @@ namespace Services
     {
         // TODO: Use switch statement to switch between file types and where to store them
         // TODO: Modify this to read from the environment instead, maybe pass in the volume path instead as a parameter
-        private readonly string volumePath = "/app/backend/card-face-thumbnail-images";
+        private readonly string cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
+        private readonly string cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
         private readonly float maxFileSizeCardFace = 30000; // TODO: Read from environment variable
+
+        private readonly float maxFileSizeCardFaceElementImage = 1000000; // TODO: Read from environment variable
 
         // TODO: Replace with entire path? Because the fileName should include the volume path too
         public async Task<FileStream?> GetFileAsync(string fileName, string volumePath)
@@ -79,23 +83,77 @@ namespace Services
             return null;
         }
 
+        public async Task<bool> ReplaceFileAsync(IFormFile formFile, string targetFilePath, float maxLength)
+        {
+            if (formFile.Length <= 0 || formFile.Length > maxLength || string.IsNullOrEmpty(targetFilePath))
+                return false;
+
+            // Save the uploaded file to a temp file
+            string tempFilePath = Path.GetTempFileName();
+
+            try
+            {
+                using (var tempStream = System.IO.File.Create(tempFilePath))
+                {
+                    await formFile.CopyToAsync(tempStream);
+                }
+
+                // Optionally, create a backup of the target file
+                string backupFilePath = targetFilePath + ".bak";
+
+                File.Replace(tempFilePath, targetFilePath, backupFilePath);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+            finally
+            {
+                // Clean up the temp file if it still exists
+                if (File.Exists(tempFilePath))
+                    File.Delete(tempFilePath);
+            }
+        }
+
+        public async Task<bool> ReplaceCardFaceFileAsync(IFormFile formFile, string targetFilePath)
+        {
+            return await ReplaceFileAsync(formFile, targetFilePath, maxFileSizeCardFaceElementImage);
+        }
+
+        public async Task<bool> ReplaceCardFaceElementImageFileAsync(IFormFile formFile, string targetFilePath)
+        {
+            return await ReplaceFileAsync(formFile, targetFilePath, maxFileSizeCardFaceElementImage);
+        }
 
         public async Task<FileStream?> GetCardFaceFileAsync(string fileName)
         {
-            return await GetFileAsync(fileName, volumePath);
+            return await GetFileAsync(fileName, cardFaceFilePath);
         }
 
         public async Task<string?> UploadCardFaceFileAsync(IFormFile formFile)
         {
             // TODO: To be modified, this should be specifically for images
-            return await UploadFileAsync(formFile, maxFileSizeCardFace, volumePath);
+            return await UploadFileAsync(formFile, maxFileSizeCardFace, cardFaceFilePath);
+        }
+
+        public async Task<FileStream?> GetCardFaceElementImageFileAsync(string fileName)
+        {
+            return await GetFileAsync(fileName, cardFaceElementImageFilePath);
+        }
+
+        public async Task<string?> UploadCardFaceElementImageFileAsync(IFormFile formFile)
+        {
+            return await UploadFileAsync(formFile, maxFileSizeCardFaceElementImage, cardFaceElementImageFilePath);
         }
 
         // TODO: figure out how to fix this
-        public void ConvertBlobToFile(byte[] blob, string filePath) {
+        /*public void ConvertBlobToFile(byte[] blob, string filePath) {
             try 
             {
-                filePath = Path.Combine(volumePath, filePath);
+                filePath = Path.Combine(cardFaceFilePath, filePath);
 
                 using FileStream fs = new(filePath, FileMode.Create);
                 using BinaryWriter bw = new(fs);
@@ -107,7 +165,7 @@ namespace Services
             {
                 Console.Error.WriteLine("An error occurred while writing the file: " + ex.Message);
             }
-        }
+        }*/
 
         // TODO: Delete files at a certain point if there's no user reference to it
     }

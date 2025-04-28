@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Models.DndItems;
 using Models.Styles;
 
@@ -15,51 +16,14 @@ https://www.learnentityframeworkcore.com/configuration/fluent-api/valuegenerated
 */
 namespace Models.Cards
 {
-    public class CardDto
+    // TODO: Rename this to CardEditorCardDto
+    public class CardEditorCardDto
     {
         public Card Card { get; set; }
-        public CardFace FrontCardFace { get; set; }
-        // public CardFaceElement[]? FrontCardFaceElements {get; set;}
 
-        public CardFaceElementDto[]? FrontCardFaceElementsDto {get; set;}
-
-        public CardFace BackCardFace { get; set; }
-        // public CardFaceElement[]? BackCardFaceElements {get; set;}
-        
-        public CardFaceElementDto[]? BackCardFaceElementsDto {get; set;}
-        
-        // public Style[]? BackCardFaceElementStyles {get;set;}
-        
-        public DndItem? DndItem { get; set; } // TEMP
+        public CardEditorCardFaceDto[] CardEditorCardFacesDto {get; set;}
 
         public string OwnerId { get;set;}
-    }
-
-    public class CardBatchCreateDto 
-    {
-        public CardCreateDto Card {get;set; }
-
-        public CardFaceCreateDto FrontCardFace { get; set; }
-        public StyleCreateDto FrontCardFaceStyle { get; set; } // TEMP
-        public CardFaceElement[]? FrontCardFaceElements {get; set;}
-
-        public CardFaceCreateDto BackCardFace { get; set; }
-        public StyleCreateDto BackCardFaceStyle { get; set; } // TEMP
-        public CardFaceElement[]? BackCardFaceElements {get; set;}
-        
-        public DndItemCreateDto? DndItem { get; set; } // TEMP
-    }
-
-    public class CardCreateDto
-    {
-        [Required]
-        public int FrontCardFaceId { get; set; }
-
-        [Required]
-        public int BackCardFaceId { get; set; }
-
-        [Required]
-        public bool IsFlipped { get; set; }
     }
 
     [Table("Cards")] // Maps this entity to the "Cards" table
@@ -73,20 +37,10 @@ namespace Models.Cards
         // Getting the navigation properties being required
         // So make them nullable
 
-        // TODO: Specify it's a foreign key
-        // FIXME: Allow nulls for now?
-        // At least the front card face should be required?
         [Required]
-        public int FrontCardFaceId { get; set; }
-        [ForeignKey("FrontCardFaceId")]
-        public virtual CardFace? FrontCardFace { get; set; }
+        public bool IsFlipped {get;set;} // TODO: This should be reworked to actually be the index of the current face
 
-        [Required]
-        public int BackCardFaceId { get; set; }
-        [ForeignKey("BackCardFaceId")]
-        public virtual CardFace? BackCardFace { get; set; }
-
-        [Required]
-        public bool IsFlipped {get;set;}
+        // TODO: Make this required, remove IsFlipped
+        public int? CurrentCardFaceIndex { get; set;}
     }
 }

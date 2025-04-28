@@ -16,14 +16,25 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
-        public Task CreateAsync(DndPosition item)
+        public async Task CreateAsync(DndPosition item)
         {
-            throw new NotImplementedException();
+            item.DndPositionId = 0;
+            await _context.DndPosition.AddAsync(item);
+            await _context.SaveChangesAsync();
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var dndPosition= await GetAsync(id);
+            if (dndPosition== null)
+            {
+                return false;
+            }
+
+            _context.DndPosition.Remove(dndPosition);
+            int changes =  await _context.SaveChangesAsync();
+
+            return changes > 0;
         }
 
         public bool Exists(int id)
@@ -36,19 +47,39 @@ namespace Services
             return _context.Entry(item).Properties.Any(p => p.IsModified);
         }
 
-        public Task<IEnumerable<DndPosition>> GetAllAsync()
+        public async Task<IEnumerable<DndPosition>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.DndPosition.ToListAsync();
         }
 
-        public Task<DndPosition?> GetAsync(int id)
+        public async Task<DndPosition?> GetAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.DndPosition.FindAsync(id);
         }
 
-        public Task<bool> UpdateAsync(int id, DndPosition item)
+        public async Task<bool> UpdateAsync(int id, DndPosition item)
         {
-            throw new NotImplementedException();
+            if (id != item.DndPositionId)
+                return false;
+
+            _context.Entry(item).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!Exists(id))
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
     }
 }

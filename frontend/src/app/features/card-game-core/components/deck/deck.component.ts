@@ -5,7 +5,7 @@ import { fisherYatesShuffle } from '../../utils/shuffle-algorithms.utils';
 
 import { DndContentDirective } from '../../../drag-and-drop/directives/dnd-content.directive';
 
-import { DndBoardService } from '../../services/dnd-board.service';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 
 import { shuffleAnimation } from './deck.animations';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';

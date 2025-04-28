@@ -17,19 +17,14 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardsController(ApplicationDbContext context, ICardDtoService cardDtoService, ICardService cardService, ICardFaceService cardFaceService, ICardPerOwnerService cardPerOwnerService, ICardFaceElementService cardFaceElementService) : ControllerBase
+    public class CardsController(ICardEditorCardDtoService cardEditorCardDtoService, ICardService cardService, ICardPerOwnerService cardPerOwnerService) : ControllerBase
     {
-        private readonly ApplicationDbContext _context = context;
-
         private readonly ICardService _cardService = cardService;
 
         private readonly ICardPerOwnerService _cardPerOwnerService = cardPerOwnerService;
-
-        private readonly ICardFaceService _cardFaceService = cardFaceService;
-
-        private readonly ICardFaceElementService _cardFaceElementService = cardFaceElementService;
-
-        private readonly ICardDtoService _cardDtoService = cardDtoService;
+        
+        private readonly ICardEditorCardDtoService _cardEditorCardDtoService = cardEditorCardDtoService;
+        
         // GET: api/Cards
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Card>>> GetCard()
@@ -60,16 +55,16 @@ namespace backend.Controllers
 
         // FIXME: Pass in ID instead
         [HttpGet("dto/{id}")]
-        public async Task<ActionResult<CardDto>> GetCardDto(int id)
+        public async Task<ActionResult<CardEditorCardDto>> GetCardEditorCardDto(int id)
         {
-            var cardDto = await _cardDtoService.GetDtoAsync(id);
+            var cardEditorCardDto = await _cardEditorCardDtoService.GetDtoAsync(id);
 
-            if (cardDto == null)
+            if (cardEditorCardDto == null)
             {
                 return NotFound();
             }
 
-            return cardDto;
+            return cardEditorCardDto;
         }
 
         [HttpGet("owner/{ownerId}")]
@@ -88,7 +83,7 @@ namespace backend.Controllers
         [HttpGet("owner/{ownerId}/{cardId}")]
         public async Task<ActionResult<Card>> GetCardByOwner(string ownerId, int cardId)
         {
-            var cpo = await _cardPerOwnerService.GetCardPerOwnerByCardIdAndOwnerIdAsync(cardId, ownerId);
+            var cpo = await _cardPerOwnerService.GetByCardIdAndOwnerIdAsync(cardId, ownerId);
 
             if (cpo == null)
             {
@@ -197,64 +192,19 @@ namespace backend.Controllers
         // FIXME: "message": "An error occurred while processing the request",
         // "error": "The database operation was expected to affect 1 row(s), but actually affected 0 row(s); data may have been modified or deleted since entities were loaded. See https://go.microsoft.com/fwlink/?LinkId=527962 for information on understanding and handling optimistic concurrency exceptions."}
         [HttpPut("dto/{id}")]
-        public async Task<IActionResult> PutCardDto(int id, CardDto cardDto)
+        public async Task<IActionResult> PutCardEditorCardDto(int id, CardEditorCardDto cardEditorCardDto)
         {
-            if (id != cardDto.Card.CardId)
-            {
-                return BadRequest();
-            }
-
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // TODO
-                // 1. Grab the card
-                // 2. Grab the foreign keys of the card
-                // 3. Get those card faces and card face elements based on the card Dto
-                // 4. Then update and return it
-                _context.Entry(cardDto.Card).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-
-                if (cardDto.FrontCardFace != null) 
-                {
-                    await _cardFaceService.UpdateNavAsync(cardDto.FrontCardFace);
-                }
-
-                if (cardDto.BackCardFace != null) 
-                {
-                    await _cardFaceService.UpdateNavAsync(cardDto.BackCardFace);
-                }
-
-                if (cardDto.FrontCardFaceElementsDto != null)
-                {
-                    await _cardFaceElementService.UpdateAllDtoAsync(cardDto.FrontCardFaceElementsDto);
-                }
-
-                if (cardDto.BackCardFaceElementsDto != null)
-                {
-                    await _cardFaceElementService.UpdateAllDtoAsync(cardDto.BackCardFaceElementsDto);
-                }
-
-                await transaction.CommitAsync();
-                return Ok(cardDto);
+                var updated = await _cardEditorCardDtoService.UpdateDtoAsync(id, cardEditorCardDto);         
+                return updated ? Ok(cardEditorCardDto) : BadRequest();
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                await transaction.RollbackAsync();
-
-                if (!CardExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
-                }
+                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
             }
             catch (Exception ex) 
             {
-                await transaction.RollbackAsync();
-                
                 return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
             }
         }
@@ -276,58 +226,39 @@ namespace backend.Controllers
         // https://learn.microsoft.com/en-us/aspnet/core/mvc/models/model-binding?view=aspnetcore-9.0
         // https://learn.microsoft.com/en-us/aspnet/web-api/overview/data/using-web-api-with-entity-framework/part-5
         [HttpPost("dto")]
-        public async Task<ActionResult<CardDto>> PostCardDto(CardDto cardDto)
+        public async Task<ActionResult<CardEditorCardDto>> PostCardEditorCardDto(CardEditorCardDto cardEditorCardDto)
         {
-            // TODO: Pass in the DndItem and DndPosition separately, add those to CardDto, make sure that the frontend also pass them in separately somehow?
+            Console.WriteLine("Post card DTO");
+
+            // TODO: Pass in the DndItem and DndPosition separately, add those to CardEditorCardDto, make sure that the frontend also pass them in separately somehow?
             // TODO:  When adding elements, there will be a style, so that should be handled
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // FIXME: Can add styling and card face even though card already exists, so what we want to do is check the model state?
-                // https://learn.microsoft.com/en-us/ef/core/saving/transactions
-                // Might have to use transactions to control this
-                await _cardFaceService.CreateNavAsync(cardDto.FrontCardFace);
-                await _cardFaceService.CreateNavAsync(cardDto.BackCardFace);
-                
-                if (cardDto.FrontCardFaceElementsDto != null)
-                    await _cardFaceElementService.CreateAllDtoAsync(cardDto.FrontCardFaceElementsDto, cardDto.FrontCardFace);
-
-                if (cardDto.BackCardFaceElementsDto != null)
-                    await _cardFaceElementService.CreateAllDtoAsync(cardDto.BackCardFaceElementsDto, cardDto.BackCardFace);
-
-                if (cardDto.FrontCardFaceElementsDto != null || cardDto.BackCardFaceElementsDto != null)
-                    await _context.SaveChangesAsync();
-
-                Console.WriteLine("Card Face Elements Created - Front: {0}, Back: {1}",
-                    cardDto.FrontCardFaceElementsDto != null 
-                        ? JsonConvert.SerializeObject(cardDto.FrontCardFaceElementsDto, Formatting.Indented) 
-                        : "none",
-                    cardDto.BackCardFaceElementsDto != null 
-                        ? JsonConvert.SerializeObject(cardDto.BackCardFaceElementsDto, Formatting.Indented) 
-                        : "none");
-
-                cardDto.Card.FrontCardFace = cardDto.FrontCardFace;
-                cardDto.Card.BackCardFace = cardDto.BackCardFace;
-
-                Console.WriteLine(String.Format("Front card face ID: {0}, back card face ID: {1}", cardDto.FrontCardFace.CardFaceId, cardDto.BackCardFace.CardFaceId));
-
-                await  _cardService.CreateAsync(cardDto.Card);
-
-                CardPerOwner cpo = new(){
-                    Card = cardDto.Card,
-                    OwnerId = cardDto.OwnerId
-                };
-
-                await _cardPerOwnerService.CreateAsync(cpo);
-
-                await transaction.CommitAsync();
-
                 // TODO: Don't return the card, return the DTO
-                return CreatedAtAction("GetCardDto", new { id = cardDto.Card.CardId }, cardDto);
+                await _cardEditorCardDtoService.CreateDtoAsync(cardEditorCardDto);
+                return CreatedAtAction("GetCardEditorCardDto", new { id = cardEditorCardDto.Card.CardId }, cardEditorCardDto);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
+            }
+        }
+
+         [HttpPost("dto/game-room")]
+        public async Task<ActionResult<CardEditorCardDto>> PostCardEditorCardDtoFromExistingDto(CardEditorCardDto cardEditorCardDto)
+        {
+            Console.WriteLine("Post card DTO");
+
+            // TODO: Pass in the DndItem and DndPosition separately, add those to CardEditorCardDto, make sure that the frontend also pass them in separately somehow?
+            // TODO:  When adding elements, there will be a style, so that should be handled
+            try
+            {
+                // TODO: Don't return the card, return the DTO
+                await _cardEditorCardDtoService.CreateDtoForGameRoomFromExistingDtoAsync(cardEditorCardDto);
+                return CreatedAtAction("GetCardEditorCardDto", new { id = cardEditorCardDto.Card.CardId }, cardEditorCardDto);
+            }
+            catch (Exception ex)
+            {
                 return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
             }
         }
@@ -336,60 +267,22 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCard(int id)
         {
-            var card = await _context.Card.FindAsync(id);
-            if (card == null)
-            {
-                return NotFound();
-            }
-
-            _context.Card.Remove(card);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            var deleted = await _cardService.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
 
         [HttpDelete("dto/{id}")]
-        public async Task<IActionResult> DeleteCardDto(int id)
+        public async Task<IActionResult> DeleteCardEditorCardDto(int id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var cardDto = (await GetCardDto(id)).Value;
-                if (cardDto == null)
-                {
-                    return NotFound();
-                }
-
-                _context.Card.Remove(cardDto.Card);
-                await _context.SaveChangesAsync();
-
-                // TODO: Delete from cardPerOwner table
-
-                if (cardDto.FrontCardFace != null)
-                {
-                    Console.WriteLine("Delete front card face");
-                    await _cardFaceService.DeleteNavAsync(cardDto.FrontCardFace);
-                }
-
-                if (cardDto.BackCardFace != null)
-                {
-                    Console.WriteLine("Delete back card face");
-                    await _cardFaceService.DeleteNavAsync(cardDto.BackCardFace);
-                }
-
-                await transaction.CommitAsync();
-                return NoContent();
+                var deleted = await _cardEditorCardDtoService.DeleteDtoAsync(id);
+                return deleted ? NoContent() : NotFound();
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
             }
-        }
-
-        private bool CardExists(int id)
-        {
-            return _context.Card.Any(e => e.CardId == id);
         }
     }
 }

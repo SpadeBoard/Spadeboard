@@ -51,11 +51,11 @@ Show less
 
       let html: string | undefined = this.htmlContentComputed();
 
-      console.log('HTML input: ', html);
+      // console.log('HTML input: ', html);
 
       if (html !== undefined && html !== '') {
         this.htmlContent = html;
-        console.log('HTML content: ', this.htmlContent);
+        // console.log('HTML content: ', this.htmlContent);
       }
 
       let ae = this.angularEditorConfigComputed();
