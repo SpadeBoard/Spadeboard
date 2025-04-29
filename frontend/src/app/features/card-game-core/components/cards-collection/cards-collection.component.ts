@@ -114,7 +114,7 @@ export class CardsCollectionComponent {
           let dndPosiiton: {
             gridX: number;
             gridY: number;
-          } = this.dndBoardService.getMouseAUCoordinates();
+          } = mouseAUCoordinates;
 
           let cpr: CardPositionPerRoom = {
             cardPositionPerRoomId: 0,

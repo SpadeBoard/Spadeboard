@@ -61,8 +61,10 @@ export class DndBoardService {
   // TODO: Make zoom variable private
   zoom: number = 1; // 1 = 100%, 2 = 200%, 0.5 = 50%
   private readonly maxZoom: number = 3;
-  private readonly minZoom: number = 0.5;
+  private readonly minZoom: number = 0.1;
 
+  private viewportWidthPx: number = this.getScaledDndBoardSizeScreen(); 
+  private viewportHeightPx: number = this.getScaledDndBoardSizeScreen();
   // AU
   // TODO: Make separate conversion functions for mouse position
   private mouseAUCoordinates: { gridX: number; gridY: number; } = {
@@ -81,7 +83,7 @@ export class DndBoardService {
     gridX: number;
     gridY: number;
   } {
-    console.log(`Get mouse AU coordinates: ${JSON.stringify(this.mouseAUCoordinates)}`);
+    // console.log(`Get mouse AU coordinates: ${JSON.stringify(this.mouseAUCoordinates)}`);
     return this.mouseAUCoordinates;
   }
 
@@ -98,13 +100,27 @@ export class DndBoardService {
   private screenPxDimensions$$ = new Subject<{x: number, y: number}>();
   screenPxDimensions$: Observable<{x: number,  y: number}> = this.screenPxDimensions$$.asObservable();
 
+  private onMouseMove$$ = new Subject<{mouseScreenX: number, mouseScreenY: number, mouseX: number, mouseY: number}>();
+  onMouseMove$: Observable<{mouseScreenX: number, mouseScreenY: number, mouseX: number, mouseY: number}> = this.onMouseMove$$.asObservable();
+
+  private onUpdateCamera$$ = new Subject<void>();
+  onUpdateCamera$: Observable<void> = this.onUpdateCamera$$.asObservable();
+
+  onUpdateCamera() {
+    this.onUpdateCamera$$.next();
+  }
+  
+  setOnMouseMove(mouseScreenX: number, mouseScreenY: number, mouseX: number, mouseY: number) {
+    this.onMouseMove$$.next({mouseScreenX, mouseScreenY, mouseX, mouseY});
+  }
+
   setZoomLevel(zoomLevel?: number): void {
     if (zoomLevel) {
       this.zoomLevel$$.next(zoomLevel);
       return;
     }
 
-    this.zoomLevel$$.next(this.zoom);
+    this.zoomLevel$$.next(this.getItemRenderScale());
   }
 
   // Grid X: 10, Grid Y: 10, CameraX: 10, cameraY: 10
@@ -115,26 +131,29 @@ export class DndBoardService {
     If your cameraX or cameraY is greater than the item's gridX or gridY,
     then (gridX - cameraX) will be negative.
   */
+
+  // For BOARD ITEMS (cards/grid):
   aUToScreenCoordinates(gridX: number, gridY: number): {
     screenX: number;
     screenY: number;
   } {
-    let screenX = (gridX - this.cameraX) * this.cellSizeScreen * this.zoom;
-    let screenY = (gridY - this.cameraY) * this.cellSizeScreen * this.zoom;
+    let screenX = (gridX - this.cameraX) * this.getScaledCellSize();
+    let screenY = (gridY - this.cameraY) * this.getScaledCellSize();
 
     return { screenX, screenY };
   }
 
+  // screen coordinates relative to the wrapper
+  // For VIEWPORT POSITIONING:
   screenToAUCoordinates(screenX: number, screenY: number): {
     gridX: number;
     gridY: number;
   }{
-    let gridX = this.clamp(screenX / (this.cellSizeScreen * this.zoom) + this.cameraX, 0 , this.dndBoardSizeAU);
-    let gridY =  this.clamp(screenY / (this.cellSizeScreen * this.zoom) + this.cameraY, 0 , this.dndBoardSizeAU);
+    let gridX = this.clamp(screenX / this.getScaledCellSize() + this.cameraX, 0 , this.dndBoardSizeAU);
+    let gridY =  this.clamp(screenY / this.getScaledCellSize() + this.cameraY, 0 , this.dndBoardSizeAU);
 
     return {gridX, gridY};
   }
-  // ================================
 
   // https://stackoverflow.com/questions/38534900/how-to-make-angular2-listen-to-pinchmove-and-pan-event-simultaneously
   // https://github.com/angular/angular/issues/10328
@@ -144,19 +163,11 @@ export class DndBoardService {
   }
 
   zoomIn(value: number): void {
-    // console.log(`On zoom in before: ${this.zoom * value} Min zoom: ${this.minZoom}, Max zoom: ${this.maxZoom}`);
-
-    this.zoom = this.clamp(this.zoom * value, this.minZoom, this.maxZoom);
-
-    // console.log(`On zoom in after: ${this.zoom} Min zoom: ${this.minZoom}, Max zoom: ${this.maxZoom}`);
+    this.zoom = this.clamp(parseFloat((this.zoom * value).toFixed(2)), this.minZoom, this.maxZoom);
   }
   
   zoomOut(value: number): void {
-    // console.log(`On zoom out before: ${this.zoom * value} Min zoom: ${this.minZoom}, Max zoom: ${this.maxZoom}`);
-
-    this.zoom = this.clamp(this.zoom / value, this.minZoom, this.maxZoom);
-
-    // console.log(`On zoom out after: ${this.zoom} Min zoom: ${this.minZoom}, Max zoom: ${this.maxZoom}`);
+    this.zoom = this.clamp(parseFloat((this.zoom / value).toFixed(2)), this.minZoom, this.maxZoom);
   }
   
   // TODO: Put in utils
@@ -176,12 +187,19 @@ export class DndBoardService {
     let maxCameraX = Math.max(0, boardWidthAU - visibleWidthAU);
     let maxCameraY = Math.max(0, boardHeightAU - visibleHeightAU);
 
+    this.viewportWidthPx = screenWidthPx;
+    this.viewportHeightPx = screenHeightPx;
+
     this.cameraX = this.clamp(cameraX, 0, maxCameraX);
     this.cameraY = this.clamp(cameraY, 0, maxCameraY);
   }
 
+  getViewportDimensions(): {viewportWidthPx: number, viewportHeightPx: number} {
+    return {viewportWidthPx: this.viewportWidthPx, viewportHeightPx: this.viewportHeightPx};
+  }
+
   getVisibleDimensionAU(screenPx: number): number {
-    return screenPx / (this.cellSizeScreen * this.zoom);
+    return screenPx / this.getScaledCellSize();
   }
 
   getGridSizeAU(): number {
@@ -195,21 +213,27 @@ export class DndBoardService {
     return { cameraX: this.cameraX, cameraY: this.cameraY };
   }
 
-  // Item pixel: Raw position on virtual board
+  // Item Position AU: Raw position on virtual board
   // Original: Physical image dimensions
-  getScaledItemRenderData(itemPixelX: number, itemPixelY: number, originalWidth: number, originalHeight: number): {
+  getScaledItemRenderData(itemPositionXAU: number, itemPositionYAU: number, originalWidth: number, originalHeight: number): {
     screenX: number;
     screenY: number;
     scaledWidth: number;
     scaledHeight: number;
   } {
-    let screenX = (itemPixelX - this.cameraX * this.cellSizeScreen) * this.zoom;
-    let screenY = (itemPixelY - this.cameraY * this.cellSizeScreen) * this.zoom;
-  
-    let scaledWidth = originalWidth * this.zoom;
-    let scaledHeight = originalHeight * this.zoom;
+    let { screenX, screenY } = this.aUToScreenCoordinates(itemPositionXAU, itemPositionYAU);
+
+    let scale = this.getItemRenderScale();
+
+    // Scale width and height
+    let scaledWidth = originalWidth * scale;
+    let scaledHeight = originalHeight * scale;
   
     return { screenX, screenY, scaledWidth, scaledHeight };
+  }
+
+  getItemRenderScale() {
+    return this.getScaledCellSize() / this.cellSizeScreen;
   }
 
   getScaledCellSize(): number {
@@ -241,12 +265,15 @@ export class DndBoardService {
     let visibleWidthAU = this.getVisibleDimensionAU(screenWidthPx);
     let visibleHeightAU = this.getVisibleDimensionAU(screenHeightPx);
   
-    let left = this.cameraX;
-    let top = this.cameraY;
-    let right = left + visibleWidthAU;
-    let bottom = top + visibleHeightAU;
+    let desiredBufferPx = 50; // 1 AU
+    let buffer = desiredBufferPx / this.getScaledCellSize();
 
-    console.log({
+    let left = this.cameraX - buffer;
+    let top = this.cameraY - buffer;
+    let right = left + visibleWidthAU + buffer; // Allows for some leeway, item gets dragged off screen
+    let bottom = top + visibleHeightAU + buffer; // Allows for some leeway, item gets dragged off screen
+
+    /*console.log({
       "Item Grid X": gridX,
       "Item Grid Y": gridY,
       "Camera X (AU)": this.cameraX,
@@ -257,7 +284,7 @@ export class DndBoardService {
       "Camera Right Bound (AU)": right,
       "Camera Top Bound (AU)": top,
       "Camera Bottom Bound (AU)": bottom
-    });
+    });*/
   
     return (
       gridX >= left &&
@@ -265,5 +292,30 @@ export class DndBoardService {
       gridY >= top &&
       gridY < bottom
     );
+  }
+
+  updateMouseAUCoordinatesFromScreen(
+    screenX: number,
+    screenY: number,
+    dndBoardElement: HTMLElement
+  ) {
+    // Get bounding rect and scroll
+    let rect = dndBoardElement.getBoundingClientRect();
+    
+    let mouseX = screenX - rect.left;
+    let mouseY = screenY - rect.top;
+    
+    let  scaledCellSize = this.getScaledCellSize();
+    let  offsetXAU = mouseX / scaledCellSize;
+    let  offsetYAU = mouseY / scaledCellSize;
+
+    // Get the current camera position in AU (already updated by updateCamera)
+    let  { cameraX, cameraY } = this.getCameraCoordinates(); // Or this.dndBoardService.getCameraCoordinates()
+
+    // Mouse AU = camera AU + offset in AU
+    let  gridX = this.clamp(cameraX + offsetXAU, 0, this.getGridSizeAU());
+    let  gridY = this.clamp(cameraY + offsetYAU, 0, this.getGridSizeAU());
+ 
+     this.setMouseAUCoordinates({ gridX, gridY });
   }
 }

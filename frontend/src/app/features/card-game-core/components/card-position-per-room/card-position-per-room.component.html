@@ -1,10 +1,15 @@
-<div [style.width.px]="gridWidthScreen" [style.height.px]="gridHeightScreen">
+<div #dndBoard class="grid"
+    [style.position]="'absolute'"
+    [style.transform]="getViewportTransform()"
+    [style.width.px]="viewportWidth" [style.height.px]="viewportHeight">
     @for (cpr of unculledCprs; track cpr) {
         <div cdkDrag class="cpr-cdk" [style.left.px]="calculateCardPositionPerRoomScreenPosition(cpr.dndPosition).screenX"
             [style.top.px]="calculateCardPositionPerRoomScreenPosition(cpr.dndPosition).screenY"
-            [style.width]="'fit-content'" [style.height]="'fit-content'" (cdkDragMoved)="onDragMoved($event)"
+            [style.width]="'fit-content'" [style.height]="'fit-content'" 
+            (cdkDragStarted)="onDragStarted($event, cpr)"
+            (cdkDragMoved)="onDragMoved($event)"
             (cdkDragDropped)="onDragDrop($event, cpr)">
-        <app-card [zoomLevel]="cardsZoomLevel" [card]="cpr.card" />
+            <app-card [zoomLevel]="cardsZoomLevel" [card]="cpr.card" />
         </div>
     }
 </div>

@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, input, output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, inject, input, output, ViewChild } from '@angular/core';
 import { DndBoardService } from '../../services/dnd-board.service';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { map, Subscription } from 'rxjs';
@@ -14,6 +14,7 @@ import { CardFaceElement } from '../../../card-game-core/models/card-face-elemen
 import { CardPositionPerRoomService } from '../../../card-game-core/services/card-game-core/card-position-per-room.service';
 import { CardPositionPerRoomComponent } from '../../../card-game-core/components/card-position-per-room/card-position-per-room.component';
 import { GameRoomService } from '../../../game-room/services/game-room.service';
+import { DndBoardGridComponent } from '../dnd-board-grid/dnd-board-grid.component';
 
 // ROLE: AUTOLOAD
 
@@ -29,12 +30,13 @@ app-dnd-board (root)          ↑
   selector: 'app-dnd-board',
   imports: [
     CdkDropList,
-    CardPositionPerRoomComponent
+    CardPositionPerRoomComponent,
+    DndBoardGridComponent
   ],
   templateUrl: './dnd-board.component.html',
   styleUrl: './dnd-board.component.css'
 })
-export class DndBoardComponent {
+export class DndBoardComponent implements AfterViewInit {
   @ViewChild('grid') grid!: ElementRef<HTMLDivElement>;
   @ViewChild('dndBoard') dndBoard!: ElementRef<HTMLDivElement>;
   // TODO:
@@ -47,38 +49,6 @@ export class DndBoardComponent {
   gameRoomId: number = 1;
   ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a"; // TODO: Should be admin of room
 
-  gridWidthScreen: number = 0;
-  gridHeightScreen: number = 0;
-  cellSizeScreen: number = 0;
-
-  scaleLevel: number = this.dndBoardService.zoom;
-
-  getOffset(scrollValue: number, mousePosition: number, scaleLevel: number) {
-    // console.log(`Get offset: Scroll value - ${scrollValue}, Mouse Position - ${mousePosition}, Scale level - ${scaleLevel}, Camera position = ${cameraPosition}`);
-
-    return (scrollValue + mousePosition) / scaleLevel/* + cameraPosition*/;
-  }
-
-  getMouseContentPosition(clientCoordinates: {clientX: number, clientY: number}) {
-    let wrapper = this.dndBoard.nativeElement;
-    let rect = wrapper.getBoundingClientRect();
-
-    // Mouse position relative to the wrapper
-    let mouseX = clientCoordinates.clientX - rect.left;
-    let mouseY = clientCoordinates.clientY - rect.top;
-
-    console.log(`Mouse position relative to the wrapper: AU - ${JSON.stringify(this.dndBoardService.screenToAUCoordinates(mouseX, mouseY))}, screen: ${mouseX},px ${mouseY}px`);
-
-    // Scroll positions before zoom
-    let scrollLeft = wrapper.scrollLeft;
-    let scrollTop = wrapper.scrollTop;
-
-    let cameraX = this.dndBoardService.getCameraCoordinates().cameraX;
-    let cameraY = this.dndBoardService.getCameraCoordinates().cameraY;
-    
-    return {screenX: this.getOffset(scrollLeft, mouseX, this.dndBoardService.zoom), screenY: this.getOffset(scrollTop, mouseY,  this.dndBoardService.zoom) }
-  }
-
   mouseMoveLog: string = '';
 
   /* 
@@ -87,16 +57,7 @@ export class DndBoardComponent {
   getOffset	No	Yes	Yes	Yes	Hybrid/unknown
   getMouseContentPosition	No	Yes	Yes	Yes	Hybrid/unknown
   */
-  setDndBoardMousePosition(mousePositionX: number, mousePositionY: number) {
-    let mouseContentPosition = this.getMouseContentPosition({clientX: mousePositionX, clientY: mousePositionY})
-
-    // Calculate mouse position relative to the content
-    let mouseAUCoordinates = this.dndBoardService.screenToAUCoordinates(mouseContentPosition.screenX, mouseContentPosition.screenY);
-    this.dndBoardService.setMouseAUCoordinates(mouseAUCoordinates);
-    
-    // console.log(`On Set Dnd Board Mouse Position: Mouse AU coordinates: ${JSON.stringify(mouseAUCoordinates)}, Mouse content position: ${JSON.stringify(mouseContentPosition)}, conversion function: ${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(mouseAUCoordinates.gridX, mouseAUCoordinates.gridY))}`);
-  }
-
+  
   /* 
     Action	Camera Coordinates Change?	Why?
     User scrolls	Yes	Scroll offset → new camera AU position
@@ -107,6 +68,10 @@ export class DndBoardComponent {
     Mouse drag to pan	Yes	Camera follows drag
     Hover/select item	No	Camera stays put
   */
+ ngAfterViewInit(): void {
+  this.updateCamera();
+ }
+ 
   updateCamera() {
     let wrapper = this.dndBoard.nativeElement;
 
@@ -124,8 +89,9 @@ export class DndBoardComponent {
     let viewportHeightPx = wrapper.clientHeight;
   
     this.dndBoardService.setCameraCoordinates(cameraX, cameraY, viewportWidthPx, viewportHeightPx);
-    this.dndBoardService.setScreenPxDimensions(viewportWidthPx, viewportHeightPx);
-    console.log(`On update camera - Set Dnd Board Camera: Camera AU coordinates: ${JSON.stringify(this.dndBoardService.getCameraCoordinates())}, Camera screen coordinates: ${JSON.stringify({scrollLeft, scrollTop})}`);
+    // this.dndBoardService.setScreenPxDimensions(viewportWidthPx, viewportHeightPx);
+    // console.log(`On update camera - Set Dnd Board Camera: Camera AU coordinates: ${JSON.stringify(this.dndBoardService.getCameraCoordinates())}, Camera screen coordinates: ${JSON.stringify({scrollLeft, scrollTop})}`);
+    this.dndBoardService.onUpdateCamera();
   }
 
   onScroll(event: Event) {
@@ -138,20 +104,29 @@ export class DndBoardComponent {
   let mouseScreenX = event.clientX;
   let mouseScreenY = event.clientY;
 
-  this.setDndBoardMousePosition(mouseScreenX, mouseScreenY);
+  let rect = this.dndBoard.nativeElement.getBoundingClientRect();
+  let mouseX = event.clientX - rect.left;
+  let mouseY = event.clientY - rect.top;
+
+  this.dndBoardService.updateMouseAUCoordinatesFromScreen(event.clientX, event.clientY, this.dndBoard.nativeElement);
+  // this.setDndBoardMousePosition(mouseScreenX, mouseScreenY);
   // 2. Convert to AU coordinates
-  let mouseAUCoordinates = this.dndBoardService.screenToAUCoordinates(mouseScreenX, mouseScreenY);
+  // let mouseAUCoordinates = this.dndBoardService.screenToAUCoordinates(mouseScreenX, mouseScreenY);
   
-  this.mouseMoveLog = `On Mouse Move:
-     Mouse Screen coordinates: (${mouseScreenX}, ${mouseScreenY})
-     Mouse AU coordinates: (${JSON.stringify(mouseAUCoordinates)})
+ //  let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+  this.dndBoardService.setOnMouseMove(mouseScreenX, mouseScreenY, mouseX, mouseY);
+
+    /*this.mouseMoveLog = `On Mouse Move:
+     Mouse Screen coordinates (clientX, clientY): (${mouseScreenX}, ${mouseScreenY})
+      Mouse relative to board (mouseX, mouseY): (${mouseX}, ${mouseY})
+     Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates().gridX, this.dndBoardService.getMouseAUCoordinates().gridY))})
      Grid size AU: ${this.dndBoardService.getGridSizeAU()}
      Grid size screen: (${this.gridWidthScreen}, ${this.gridHeightScreen})
      Zoom Level: ${this.dndBoardService.zoom}
      Cell size screen: ${this.cellSizeScreen}`;
 
   // 3. Log everything
-  // console.log(this.mouseMoveLog);
+    console.log(this.mouseMoveLog);*/
   }
 
   // NOTE: Call this.updateCamera immediately after zooming, scrolling, or resizing, using the current viewport size.
@@ -163,18 +138,16 @@ export class DndBoardComponent {
     if (event.deltaY < 0) this.dndBoardService.zoomIn(1.1);
     else this.dndBoardService.zoomOut(1.1);
 
-    this.setDndBoardMousePosition(event.clientX, event.clientY);
-    this.dndBoardService.setZoomLevel();
 
     this.updateCamera();
+
+    // this.setDndBoardMousePosition(event.clientX, event.clientY);
+    this.dndBoardService.updateMouseAUCoordinatesFromScreen(event.clientX, event.clientY, this.dndBoard.nativeElement);   
+    this.dndBoardService.setZoomLevel();
     
     // console.log(`On Wheel: Grid size AU: ${JSON.stringify(this.dndBoardService.screenToAUCoordinates(this.gridWidthScreen, this.gridHeightScreen))} Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}, Cell Size: ${this.cellSizeScreen}`);
 
     // 1.1 = 10%
-  }
-
-  transform() {
-    return `scale(${this.scaleLevel})`;
   }
 
   /* 
@@ -213,31 +186,5 @@ Mouse move for highlight	No	Only need to update highlight
   onPanEnd(event: any): void {
     // Handle the end of the pan gesture
     // console.log('Pan ended', event);
-  }
-
-  constructor() {
-    this.updateGridSize();
-
-    // console.log(`Grid size: ${this.gridWidthScreen}, ${this.gridHeightScreen}`);
-  }
-
-  ngOnInit() {
-    this.onZoomLevel();
-  }
-
-  private onZoomLevel(): void {
-    this.dndBoardService.zoomLevel$.subscribe((zoomLevel: number) => {     
-      this.updateGridSize();
-    })
-  }
-
-  private updateGridSize() {
-    // Dynamically update the background-size of the grid
-    this.cellSizeScreen = this.dndBoardService.getScaledCellSize(); // Base cell size (50px) scaled by zoom
-    
-    this.gridWidthScreen = this.dndBoardService.getScaledDndBoardSizeScreen();
-    this.gridHeightScreen = this.dndBoardService.getScaledDndBoardSizeScreen();
-
-    // console.log(`On update Grid Size: Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}, Cell Size: ${this.cellSizeScreen}`);
   }
 }
