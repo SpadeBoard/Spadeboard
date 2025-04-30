@@ -1,11 +1,3 @@
 .cpr-cdk {
     position: absolute;
 }
-
-/* TODO: Modify this so that you can use this CSS anywhere, probably should be dynamic, set the background size*/
-.grid {
-    position: absolute;
-    inset: inherit;
-    border: 2px solid red; 
-    /*overflow: auto;*/
-}

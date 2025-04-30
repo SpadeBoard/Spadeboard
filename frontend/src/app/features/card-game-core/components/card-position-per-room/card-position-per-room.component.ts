@@ -26,8 +26,6 @@ export class CardPositionPerRoomComponent {
   private dndBoardService: DndBoardService = inject(DndBoardService);
   private gameRoomService: GameRoomService = inject(GameRoomService);
 
-  @ViewChild('dndBoard') dndBoard!: ElementRef<HTMLDivElement>;
-  
   cprs: CardPositionPerRoom[] = [];
 
   // NOTE: For rendering only
@@ -38,14 +36,6 @@ export class CardPositionPerRoomComponent {
   // TODO: Refactor the bloody architecture
   cardsZoomLevel: number = 1;
   
-  viewportWidth!: number;
-  viewportHeight!: number;
-  
-  viewportLeft!: number;
-  viewportTop!: number;
-
-  cellSizeScreen: number = 0;
-
   private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
 
   constructor() {
@@ -59,23 +49,18 @@ export class CardPositionPerRoomComponent {
   }
 
   ngOnInit() {
-    this.viewportWidth = window.innerWidth;
-    this.viewportHeight = window.innerHeight;
-
-    this.getViewportTransform();
-
     this.createCardPositionPerRoom();
     this.updateCardPositionPerRoomOnSave();
     
     this.onUpdateCamera();
     this.onMouseMove();
     this.setCardsZoomLevel();
+    
     this.setOnScreenCprs();
   }
 
   private onUpdateCamera() {
     this.dndBoardService.onUpdateCamera$.subscribe(() => {
-      this.updateGridSize();
       this.setOnScreenCprs();
     })
   }
@@ -85,7 +70,12 @@ export class CardPositionPerRoomComponent {
   // Have a function to replace cprs and then render them
   private setOnScreenCprs(): void {
     if (this.cprs.length > 0) {
-      this.unculledCprs = this.getOnScreenCprs(this.viewportWidth, this.viewportHeight);
+      let getViewportDimensions = this.dndBoardService.getViewportDimensions();
+
+      let viewportWidth = getViewportDimensions.viewportWidthPx;
+      let viewportHeight = getViewportDimensions.viewportHeightPx;
+
+      this.unculledCprs = this.getOnScreenCprs(viewportWidth, viewportHeight);
       // console.log(`Card position per room set on screen CPRs: ${JSON.stringify(this.unculledCprs)}`);
     }
   }
@@ -115,7 +105,6 @@ export class CardPositionPerRoomComponent {
       Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates().gridX, this.dndBoardService.getMouseAUCoordinates().gridY))})
       Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
       Grid size AU: ${this.dndBoardService.getGridSizeAU()}
-      Viewport size: (${this.viewportWidth}, ${this.viewportHeight})
       Zoom Level: ${this.dndBoardService.zoom}`;
 
       // 3. Log everything
@@ -123,29 +112,9 @@ export class CardPositionPerRoomComponent {
     })
   }
 
-  // FIXME: Need to update the grid size everytime the screen gets resized.
-  private updateGridSize() {
-    this.cellSizeScreen = this.dndBoardService.getScaledCellSize();
-
-    let getViewportDimensions = this.dndBoardService.getViewportDimensions();
-
-    this.viewportWidth = getViewportDimensions.viewportWidthPx;
-    this.viewportHeight = getViewportDimensions.viewportHeightPx;
-    
-    this.getViewportTransform();
-    // console.log(`On update Card Position Per Room Grid Size: Viewport size: ${this.viewportWidth}, ${this.viewportHeight}, Zoom Level: ${this.dndBoardService.zoom}`);
-  }
-
   // TODO: Refactor this into the dndBoardService
-  getViewportTransform() {
-    let camera = this.dndBoardService.getCameraCoordinates();
-    let cellSize = this.dndBoardService.getScaledCellSize();
-    return `translate(${camera.cameraX * cellSize}px, ${camera.cameraY * cellSize}px)`;
-  }
-
   private setCardsZoomLevel(): void {
     this.dndBoardService.zoomLevel$.subscribe((zoomLevel: number) => {     
-      this.updateGridSize();
       this.cardsZoomLevel = zoomLevel;
     })
   }
@@ -191,6 +160,8 @@ export class CardPositionPerRoomComponent {
     let cprToReplace = this.findCardPositionPerRoom(updatedCpr.card.cardId);
 
     if (cprToReplace !== undefined) {
+      console.log(`Cpr to replace: ${JSON.stringify(cprToReplace)}, Updated CPR: ${JSON.stringify(updatedCpr)}`);
+
       Object.assign(cprToReplace, updatedCpr);
 
       // Force unculled refresh
@@ -208,6 +179,7 @@ export class CardPositionPerRoomComponent {
       this.cardPositionPerRoomApiService.updateCardsPositionPerRoom(this.cprs).subscribe((cprs: CardPositionPerRoom[] | undefined) => {
         if (cprs !== undefined) {
           // console.log(`Updated CPRs on save: ${JSON.stringify(cprs)}`);
+          this.cprs = cprs;
         }
       });
     });
@@ -264,7 +236,6 @@ Board pans programmatically (cameraX/Y)	Only if you adjust math	You must factor 
      Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.getMouseAUCoordinates())})
      Grid size AU: ${this.dndBoardService.getGridSizeAU()}
      Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
-     Viewport size: (${this.viewportWidth}, ${this.viewportHeight})
      Zoom Level: ${this.dndBoardService.zoom}
      Scaled cell size screen: ${this.dndBoardService.getScaledCellSize()}`;
 
@@ -308,7 +279,10 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
 
     // Can't use auToScreenCoordinates in this case because mouse position is offsetted
     
-    item.dndPosition = {x: mouseAUCoordinates.gridX - this.dragOffset.x, y: mouseAUCoordinates.gridY - this.dragOffset.y};
+    item.dndPosition = {
+      dndPositionId: item.dndPosition.dndPositionId,
+      x: mouseAUCoordinates.gridX - this.dragOffset.x, 
+      y: mouseAUCoordinates.gridY - this.dragOffset.y};
     
     let mouseMoveLog: string = `On Drag Dropped:
      Mouse coordinates relative to viewport: (${event.dropPoint.x}, ${event.dropPoint.y})
@@ -317,7 +291,6 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
      Dnd Position: (${JSON.stringify(item.dndPosition)})
      Viewport dimensions: (${JSON.stringify(this.dndBoardService.getViewportDimensions())})
      Grid size AU: ${this.dndBoardService.getGridSizeAU()}
-     Viewport size: (${this.viewportWidth}, ${this.viewportHeight})
      Zoom Level: ${this.dndBoardService.zoom}
      Scaled cell size screen: ${this.dndBoardService.getScaledCellSize()}`;
 

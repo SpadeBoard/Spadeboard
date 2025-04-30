@@ -15,6 +15,7 @@ import { CardPositionPerRoomService } from '../../../card-game-core/services/car
 import { CardPositionPerRoomComponent } from '../../../card-game-core/components/card-position-per-room/card-position-per-room.component';
 import { GameRoomService } from '../../../game-room/services/game-room.service';
 import { DndBoardGridComponent } from '../dnd-board-grid/dnd-board-grid.component';
+import { DndBoardLayerComponent } from '../dnd-board-layer/dnd-board-layer.component';
 
 // ROLE: AUTOLOAD
 
@@ -31,7 +32,8 @@ app-dnd-board (root)          ↑
   imports: [
     CdkDropList,
     CardPositionPerRoomComponent,
-    DndBoardGridComponent
+    DndBoardGridComponent,
+    DndBoardLayerComponent
   ],
   templateUrl: './dnd-board.component.html',
   styleUrl: './dnd-board.component.css'

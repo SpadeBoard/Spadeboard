@@ -124,7 +124,8 @@ export class CardsCollectionComponent {
               isDraggable: false,
               isDroppable: false
             },
-            dndPosition: {x: dndPosiiton.gridX, y: dndPosiiton.gridY} as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
+            dndPosition: {
+              dndPositionId: 0, x: dndPosiiton.gridX, y: dndPosiiton.gridY} as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
             gameRoom: {
               gameRoomId: 1
             }

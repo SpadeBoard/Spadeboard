@@ -63,8 +63,8 @@ export class DndBoardService {
   private readonly maxZoom: number = 3;
   private readonly minZoom: number = 0.1;
 
-  private viewportWidthPx: number = this.getScaledDndBoardSizeScreen(); 
-  private viewportHeightPx: number = this.getScaledDndBoardSizeScreen();
+  private viewportWidthPx: number = window.innerWidth; 
+  private viewportHeightPx: number = window.innerHeight;
   // AU
   // TODO: Make separate conversion functions for mouse position
   private mouseAUCoordinates: { gridX: number; gridY: number; } = {
