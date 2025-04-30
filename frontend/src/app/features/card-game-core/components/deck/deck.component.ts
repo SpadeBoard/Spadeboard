@@ -29,7 +29,10 @@ export class DeckComponent {
     dndItemId: -1,
     isDraggable: false,
     isDroppable: false,
-    dndPosition: {x: 0, y: 0},
+    dndPosition: {
+      x: 0, y: 0,
+      dndPositionId: 0
+    },
 
     style: {
       styleId: 0,

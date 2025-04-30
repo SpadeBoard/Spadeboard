@@ -100,8 +100,14 @@ namespace backend.Controllers
                 Console.WriteLine("Put CPR all nav: CPRS length is higher than 0");
 
                 bool updated = await _cardPositionPerRoomService.UpdateAllNavAsync(cprs);
+                
+                Console.WriteLine("Has updated: {0}", updated);
+
                 if (updated)
+                {
+                    await transaction.CommitAsync();
                     return Ok(cprs);
+                }
 
                 return BadRequest();
             }

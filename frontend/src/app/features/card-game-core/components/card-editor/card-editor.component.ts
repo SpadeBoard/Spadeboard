@@ -316,7 +316,10 @@ export class CardEditorComponent implements AfterViewInit {
     // console.log(`Set current card face elements per card face: ${JSON.stringify(this.currentCardFaceElementsPerCardFace)}`);
   }
 
-  position: DndPosition = { x: 0, y: 0 };
+  position: DndPosition = {
+    x: 0, y: 0,
+    dndPositionId: 0
+  };
 
   // TODO: Use ngx-color-picker for picking colors on the card face
 
@@ -389,7 +392,10 @@ export class CardEditorComponent implements AfterViewInit {
     // FIXME: I think the fact that the pointer is at the cursor might be causing issues
     let container = this.getCardFaceClientRect();
     let pointerPosition = event.pointerPosition;
-    let scale: DndPosition = { x: event.pointerPosition.x - container.left, y: event.pointerPosition.y - container.top };
+    let scale: DndPosition = {
+      x: event.pointerPosition.x - container.left, y: event.pointerPosition.y - container.top,
+      dndPositionId: 0
+    };
 
     // console.log(`Pointer position: ${pointerPosition.x}, ${pointerPosition.y}\nContainer width and height: ${container.width}, ${container.height}, Scale: ${scale.x}, ${scale.y}`);
 
@@ -410,7 +416,10 @@ export class CardEditorComponent implements AfterViewInit {
 
   onDragEnded(event: CdkDragEnd): void {
     // TODO: On drag end, update the item's position, grab event.source.data, get the ID, find the cardFaceElementId in the currentCardFaceElements, then update its positioning
-    let viewportPoint: DndPosition = { x: event.source.getFreeDragPosition().x, y: event.source.getFreeDragPosition().y };
+    let viewportPoint: DndPosition = {
+      x: event.source.getFreeDragPosition().x, y: event.source.getFreeDragPosition().y,
+      dndPositionId: 0
+    };
 
     // console.log(`Final free drag position - X: ${event.source.getFreeDragPosition().x}, Y: ${event.source.getFreeDragPosition().y}`);
 
@@ -513,7 +522,8 @@ export class CardEditorComponent implements AfterViewInit {
       },
       dndPosition: {
         x: 0,
-        y: 0
+        y: 0,
+        dndPositionId: 0
       }
     };
 
@@ -787,7 +797,8 @@ Now 1 rem will be equal to 10 px
 
       let dndPosition: DndPosition = {
         x: event.dropPoint.x - container.left,
-        y: event.dropPoint.y - container.top
+        y: event.dropPoint.y - container.top,
+        dndPositionId: 0
       };
 
       // console.log(`Palette drop point: ${event.dropPoint.x}, ${event.dropPoint.y}`);

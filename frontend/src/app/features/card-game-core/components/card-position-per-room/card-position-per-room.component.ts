@@ -176,6 +176,8 @@ export class CardPositionPerRoomComponent {
 
   private updateCardPositionPerRoomOnSave() {
     this.gameRoomService.onSaveGameRoom$.subscribe(() => {
+      console.log(`Update card position per room on save: ${JSON.stringify(this.cprs)}`);
+      
       this.cardPositionPerRoomApiService.updateCardsPositionPerRoom(this.cprs).subscribe((cprs: CardPositionPerRoom[] | undefined) => {
         if (cprs !== undefined) {
           // console.log(`Updated CPRs on save: ${JSON.stringify(cprs)}`);

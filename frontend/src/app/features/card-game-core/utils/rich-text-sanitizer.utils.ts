@@ -334,7 +334,8 @@ export function bbCodeParser(html: string): bbCode {
       },
       dndPosition: {
         x: 0,
-        y: 0
+        y: 0,
+        dndPositionId: 0
       }
     },
     content: []

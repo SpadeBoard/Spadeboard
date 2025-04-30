@@ -111,7 +111,7 @@ export class CardsCollectionComponent {
           // TODO: Refactor later, this isn't optimal
           let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
 
-          let dndPosiiton: {
+          let dndPosition: {
             gridX: number;
             gridY: number;
           } = mouseAUCoordinates;
@@ -125,7 +125,7 @@ export class CardsCollectionComponent {
               isDroppable: false
             },
             dndPosition: {
-              dndPositionId: 0, x: dndPosiiton.gridX, y: dndPosiiton.gridY} as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
+              dndPositionId: 0, x: dndPosition.gridX, y: dndPosition.gridY} as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
             gameRoom: {
               gameRoomId: 1
             }

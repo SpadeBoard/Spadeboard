@@ -1,5 +1,5 @@
 export type DndPosition = {
-    dndPositionId?: number;
+    dndPositionId: number;
     x: number;
     y: number;
 }

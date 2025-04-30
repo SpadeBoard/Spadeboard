@@ -54,12 +54,14 @@ export function convertToRelativeCoordinates(
 
     if (asPercentage) {
         return {
+            dndPositionId: 0,
             x: (relativeX / width) * 100,
             y: (relativeY / height) * 100
         };
     }
 
     return {
+        dndPositionId: 0,
         x: relativeX,
         y: relativeY
     };
@@ -69,7 +71,7 @@ export function pageToLocalCoordinates(element: ElementRef<HTMLElement>, pageX: 
     let rect = element.nativeElement.getBoundingClientRect();
     const localX = pageX - (rect.left + windowPageXOffset);
     const localY = pageY - (rect.top + windowPageYOffset);
-    return { x: localX, y: localY };
+    return { dndPositionId: 0, x: localX, y: localY };
 }
 
 /*
