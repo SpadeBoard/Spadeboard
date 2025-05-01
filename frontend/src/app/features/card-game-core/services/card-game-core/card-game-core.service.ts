@@ -25,8 +25,8 @@ export class CardGameCoreService {
   cardEditorCardDto: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
     card: {
       cardId: 0,
-      isFlipped: false,
-      currentCardFaceIndex: 0
+      currentCardFaceIndex: 0,
+      cardName: ''
     },
     ownerId: '',
     cardEditorCardFacesDto: []
@@ -36,8 +36,8 @@ export class CardGameCoreService {
   createdCardEditorCardDtoForCardCollection: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
     card: {
       cardId: 0,
-      isFlipped: false,
-      currentCardFaceIndex: 0
+      currentCardFaceIndex: 0,
+      cardName: ''
     },
     ownerId: '',
     cardEditorCardFacesDto: []

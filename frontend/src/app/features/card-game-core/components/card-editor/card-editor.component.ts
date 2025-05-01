@@ -179,7 +179,7 @@ export class CardEditorComponent implements AfterViewInit {
     card: {
       cardId: 0,
       currentCardFaceIndex: 0,
-      isFlipped: false,
+      cardName: ''
     },
     ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
     cardEditorCardFacesDto: [
@@ -258,8 +258,6 @@ export class CardEditorComponent implements AfterViewInit {
       }
     ]
   };
-
-  isFlipped: boolean = this.cardEditorCardDto.card.isFlipped ?? false;
 
   cardEditorFaceStyle: Omit<Style, 'styleId'> = {
     aspectRatio: '63/88',
@@ -342,15 +340,13 @@ export class CardEditorComponent implements AfterViewInit {
   flip(event: Event): void {
     this.updateCardFaceElementsPerCardFace();
 
-    this.isFlipped = !this.isFlipped;
-
     let cardFaceIndexToTakeImageOf: number = this.cardEditorCardDto.card.currentCardFaceIndex;
     
     // ASSUMPTION: If there's no elements in the card face, don't make an image because there's no point of saving a blank card
     if (this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.length > 0)
       this.updateCardFaceImages$(cardFaceIndexToTakeImageOf);
 
-    this.cardEditorCardDto.card.currentCardFaceIndex = (!this.isFlipped) ? 0 : 1;
+    this.cardEditorCardDto.card.currentCardFaceIndex = (this.cardEditorCardDto.card.currentCardFaceIndex == 0) ? 1 : 0;
     this.setCurrentCardEditorCardFaceDto();
     this.setCurrentCardFaceElementsPerCardFace();
   }

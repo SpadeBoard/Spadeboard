@@ -8,8 +8,8 @@ export function isCard(obj: any): obj is Card {
     return obj
         && typeof obj === 'object'
         && 'cardId' in obj
+        && 'cardName' in obj
         && 'currentCardFaceIndex' in obj
-        && 'isFlipped' in obj;// Adjust based on Card properties
 }
 
 export function isCardEditorCardDto(obj: any): obj is CardEditorCardDto {
