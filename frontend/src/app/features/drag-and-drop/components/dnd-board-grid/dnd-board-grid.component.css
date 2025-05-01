@@ -1,0 +1,12 @@
+/* TODO: Modify this so that you can use this CSS anywhere, probably should be dynamic, set the background size*/
+.grid {
+    position: absolute;
+    inset: inherit;
+    transform-origin: top left;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(to right, rgb(203 213 225) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(203 213 225) 1px, transparent 1px);
+    background-color: #F0F0F0;
+}

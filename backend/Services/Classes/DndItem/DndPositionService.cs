@@ -62,12 +62,10 @@ namespace Services
             if (id != item.DndPositionId)
                 return false;
 
-            _context.Entry(item).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-                return true;
+                _context.Entry(item).State = EntityState.Modified;
+                return await _context.SaveChangesAsync() > 0;
             }
             catch (DbUpdateConcurrencyException)
             {

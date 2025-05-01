@@ -100,9 +100,30 @@ namespace Services
             await _context.SaveChangesAsync();
         }
 
-        public Task<bool> UpdateAsync(int id, DndItem item)
+        public async Task<bool> UpdateAsync(int id, DndItem item)
         {
-            throw new NotImplementedException();
+            if (id != item.DndItemId)
+            {
+                return false;
+            }
+
+            try
+            {
+                _context.Entry(item).State = EntityState.Modified;
+
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!Exists(id))
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         public Task<bool> DeleteAsync(int id)

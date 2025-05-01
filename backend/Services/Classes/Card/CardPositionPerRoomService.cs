@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Models.Bridge;
 
 namespace Services
@@ -197,36 +198,40 @@ namespace Services
         // TODO: Figure out whether UpdateNavAsync would return a boolean
         public async Task<bool> UpdateNavAsync(CardPositionPerRoom nav)
         {
-            if (nav.Card != null && _cardService.IsModified(nav.Card)) 
-            {
-                _context.Entry(nav.Card).State = EntityState.Modified;
-                Console.WriteLine("CPR Card modified");
-            }
-
-            if (nav.DndItem != null && _dndItemService.IsModified(nav.DndItem))
-            {
-                _context.Entry(nav.DndItem).State = EntityState.Modified;
-                Console.WriteLine("CPR Dnd Item modified");
-            }
-
-            if (nav.DndPosition != null && _dndPositionService.IsModified(nav.DndPosition)) 
-            {
-                _context.Entry(nav.DndPosition).State = EntityState.Modified;
-                Console.WriteLine("CPR Dnd Position modified");
-            }
-
-            if (nav.GameRoom != null && _gameRoomService.IsModified(nav.GameRoom)) 
-            {
-                _context.Entry(nav.GameRoom ).State = EntityState.Modified;
-                Console.WriteLine("CPR Game Room modified");
-            }
-            
-            _context.Entry(nav).State = EntityState.Modified;
-            Console.WriteLine("CPR modified");
-        
             try
             {
-                return await _context.SaveChangesAsync() > 0;
+                // FIXME: All IsModified is not going to work due to how it actually works
+                if (nav.Card != null /*&& _cardService.IsModified(nav.Card)*/)
+                {
+                    await _cardService.UpdateAsync(nav.CardId, nav.Card);
+                    Console.WriteLine("CPR Card modified");
+                }
+
+                if (nav.DndItem != null /*&& !_dndItemService.IsModified(nav.DndItem)*/)
+                {
+                    await _dndItemService.UpdateAsync(nav.DndItemId, nav.DndItem);
+                    Console.WriteLine("CPR Dnd Item modified");
+                }
+
+                if (nav.DndPosition != null /*&& !_dndPositionService.IsModified(nav.DndPosition)*/)
+                {
+                    await _dndPositionService.UpdateAsync(nav.DndPositionId, nav.DndPosition);
+                    Console.WriteLine("CPR Dnd Position modified");
+                }
+
+                // ASSUMPTION: We're updating all at once for the same room, 
+                /*
+                {
+                    "message": "An error occurred while processing the request",
+                    "error": "The instance of entity type 'GameRoom' cannot be tracked because another instance with the same key value for {'GameRoomId'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the conflicting key values."
+                }
+                */
+                /*if (nav.GameRoom != null  && !_gameRoomService.IsModified(nav.GameRoom))
+                {
+                    await _gameRoomService.UpdateAsync(nav.GameRoomId, nav.GameRoom);
+                }*/
+
+                return true;
             }
             catch (DbUpdateConcurrencyException)
             {

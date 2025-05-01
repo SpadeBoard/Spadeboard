@@ -17,8 +17,8 @@ export class GameRoomService {
   
   private isSavingGameRoom: boolean = false;
 
-  private onSaveGameRoom = new Subject<void>();
-  onSaveGameRoom$ = this.onSaveGameRoom.asObservable();
+  private onSaveGameRoom$$ = new Subject<void>();
+  onSaveGameRoom$ = this.onSaveGameRoom$$.asObservable();
 
   constructor() { }
 
@@ -50,6 +50,6 @@ export class GameRoomService {
 
   onSave(): void {
     // TODO: Sends a message to the other subscribed functions to run their saving
-    this.onSaveGameRoom.next();
+    this.onSaveGameRoom$$.next();
   }
 }

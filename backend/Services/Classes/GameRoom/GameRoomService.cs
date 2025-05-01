@@ -1,5 +1,6 @@
 using Data;
 using Models.GameRooms;
+using Microsoft.EntityFrameworkCore;
 
 namespace Services
 {
@@ -37,9 +38,28 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateAsync(int id, GameRoom item)
+        public async Task<bool> UpdateAsync(int id, GameRoom item)
         {
-            throw new NotImplementedException();
+            if (id != item.GameRoomId)
+                return false;
+
+            try
+            {
+                _context.Entry(item).State = EntityState.Modified;
+
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!Exists(id))
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
     }
 }
