@@ -1,24 +1,14 @@
-<!--<div class="image-container">
-    TODO: Nest the dnd wrapper in here, use ngContext
-    <ng-content/>
-    TODO: If there's already an image, then show this, else show the + button
-    <img 
-        [src]="getImage().src"
-        (load)="onImageLoad(getImage().src)" 
-        [alt]="getImage().alt" 
-        [width]="getImage().width" 
-        [height]="getImage().height"
-    />
-    <button class="change-image-button" (click)="onOpenImageEditor($event)">Change image</button>
-</div>!-->
-
 <div class="image-container">
     <ng-content/>
     <img 
-        [src]="imageHTMLContent.src"
-        [alt]="imageHTMLContent.alt" 
-        [width]="imageHTMLContent.width" 
-        [height]="imageHTMLContent.height"
+        [src]="imageHtmlContent.src"
+        [alt]="imageHtmlContent.alt" 
+        [width]="imageHtmlContent.width" 
+        [height]="imageHtmlContent.height"
     />
-    <button class="change-image-button" (click)="onOpenImageEditor($event)">Change image</button>
+    <svg (mousedown)='onCornerClick($event, bottomRightResize)' class="resize-indicator" width="5" height="5" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"
+        pointer-events="auto">
+        <polyline points="0,20 20,0 20,20" stroke="#555" stroke-width="2" fill="none" />
+        <polyline points="5,20 20,5" stroke="#555" stroke-width="2" fill="none" />
+    </svg>
 </div>

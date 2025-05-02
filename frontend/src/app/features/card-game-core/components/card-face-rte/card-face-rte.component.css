@@ -1,0 +1,4 @@
+.angular-editor-textarea {
+    background-color: #f5f5f5; /* Light gray background */
+    cursor: not-allowed;       /* Show not-allowed cursor */
+  }

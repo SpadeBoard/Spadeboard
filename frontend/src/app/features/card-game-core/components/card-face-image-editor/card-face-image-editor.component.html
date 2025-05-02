@@ -4,7 +4,7 @@
         @if (croppedImage !== ""){
             <button (click)="onModifyCardFaceImage($event)">Upload</button>
         }
-        <button (click)="onCloseCardFaceImageEditor($event)">Close</button>
+        <button (click)="onDisableImageEditor($event)">Close</button>
         <image-cropper
             [imageChangedEvent]="imageChangedEvent"
             [maintainAspectRatio]="true"

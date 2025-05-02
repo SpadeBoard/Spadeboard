@@ -5,10 +5,10 @@
     
     <div class ="game-room-player-layer">
         <nav class="game-room-nav">
-            <button>Settings</button>
-            <button (click)="onCardEditor($event)">Card editor</button>
-            <button (click)="onCardsCollection($event)">Cards collection</button>
-            <button (click)="onSaveGameRoom($event)">Save</button>
+            <button disabled><img src="/game-room-nav_game-settings-icon.svg"/>Settings</button>
+            <button (click)="onCardEditor($event)"><img src="/game-room-nav_card-editor-icon.svg"/>Card editor</button>
+            <button (click)="onCardsCollection($event)"><img src="/game-room-nav_card-collection-icon.svg"/>Cards collection</button>
+            <button (click)="onSaveGameRoom($event)"><img src="/save-game-room-icon.svg"/></button>
         </nav>
 
         <app-cards-collection />

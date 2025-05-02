@@ -17,14 +17,7 @@ export interface Card {
 // TODO: Rename this to CardEditorCardDto
 export interface CardEditorCardDto {
     card: Card;
-    frontCardFace?: CardFace;
-    frontCardFaceElementsDto?: Array<CardFaceElementDto>;
-    
     cardEditorCardFacesDto: Array<CardEditorCardFaceDto>;
-
-    backCardFace?: CardFace;
-    backCardFaceElementsDto?: Array<CardFaceElementDto>;
-
     ownerId?: string;
 }
 

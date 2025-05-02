@@ -46,7 +46,7 @@ export class DndBoardGridComponent {
       Cell size screen: ${this.cellSizeScreen}`;
 
       // 3. Log everything
-      console.log(mouseMoveLog);
+      // console.log(mouseMoveLog);
     })
   }
 

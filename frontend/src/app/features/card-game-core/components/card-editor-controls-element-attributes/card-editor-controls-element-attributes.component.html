@@ -1,0 +1,17 @@
+<div class="container">
+    <span class="element">Element: {{currentElementId}}</span>
+    <table>
+        <tr>
+            <td>W:</td>
+            <td><input id="width" type="number" placeholder="W" min="0" (input)="onWidthChange($event)"></td>
+            <td>X:</td>
+            <td><input type="number" id="x" placeholder="X" min="0" (input)="onXChange($event)"></td>
+        </tr>
+        <tr>
+            <td>H:</td>
+            <td><input type="number" id="height" placeholder="H" min="0" (input)="onHeightChange($event)"></td>
+            <td>Y:</td>
+            <td><input type="number" id="y" placeholder="Y" min="0" (input)="onYChange($event)"></td>
+        </tr>
+    </table>
+</div>

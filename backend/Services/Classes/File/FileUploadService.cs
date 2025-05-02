@@ -17,7 +17,7 @@ namespace Services
         // TODO: Modify this to read from the environment instead, maybe pass in the volume path instead as a parameter
         private readonly string cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
         private readonly string cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
-        private readonly float maxFileSizeCardFace = 30000; // TODO: Read from environment variable
+        private readonly float maxFileSizeCardFace = 1000000; // TODO: Read from environment variable
 
         private readonly float maxFileSizeCardFaceElementImage = 1000000; // TODO: Read from environment variable
 
@@ -58,7 +58,7 @@ namespace Services
         public async Task<string?> UploadFileAsync(IFormFile formFile, float maxLength, string volumePath)
         {
             // TODO: To be modified, this should be specifically for images
-            if (formFile.Length > 0 && formFile.Length < maxLength && volumePath != null)
+            if (formFile.Length > 0 /*&& formFile.Length < maxLength*/ && volumePath != null)
             {
                 // TODO: Replace -1 for the card face ID in the other function
                 // string fileName = String.Format("{0}-{1}", -1, Guid.NewGuid().ToString());

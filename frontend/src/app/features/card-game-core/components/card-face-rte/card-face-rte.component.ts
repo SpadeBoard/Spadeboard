@@ -5,6 +5,7 @@ import { HttpClientModule, HttpClient, HttpEvent, HttpRequest } from '@angular/c
 import { Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { RTE_HTML_CONTENT } from '../../../../shared/tokens';
+import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
 
 @Component({
   selector: 'app-card-face-rte',
@@ -34,37 +35,30 @@ Show less
   */
   private http = inject(HttpClient);
 
-  htmlContent: string = '';
-  readonly htmlContentInput : InputSignal<string | undefined>= input<string | undefined>("");
-  readonly htmlContentComputed: Signal<string | undefined> = computed(() => {
-    if (this.htmlContentInput() === undefined)
-      return undefined;
+   private cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
 
-    return this.htmlContentInput();
-  });
+  htmlContent: string = '';
+  isEditable: boolean = false;
   
-  rteHtmlContentInject: (htmlContent: string) => void  = inject(RTE_HTML_CONTENT);
+  readonly isEditableInput: InputSignal<boolean | undefined> = input<boolean | undefined>(false);
+  readonly htmlContentInput : InputSignal<string | undefined>= input<string | undefined>("");
+  
+  // rteHtmlContentInject: (htmlContent: string) => void  = inject(RTE_HTML_CONTENT);
   // TODO: Have an injector to pass back up the htmlContent
 
   constructor() {
+    this.onEnableRte();
+    this.onDisableRte();
+    
     effect(() => {
 
-      let html: string | undefined = this.htmlContentComputed();
+      let html: string | undefined = this.htmlContentInput();
 
       // console.log('HTML input: ', html);
 
       if (html !== undefined && html !== '') {
         this.htmlContent = html;
         // console.log('HTML content: ', this.htmlContent);
-      }
-
-      let ae = this.angularEditorConfigComputed();
-      
-      if (ae !== undefined) 
-      {
-        this.angularEditorConfig = {
-          ...ae,
-        }
       }
     });
   }
@@ -97,35 +91,73 @@ upload:: This is the name of the function.
   */
   private uploadUrl = '/upload/to/';
 
-  angularEditorConfig: AngularEditorConfig = {
-    editable: true,
-    spellcheck: true,
-    height: '38rem', // Set desired height
-    minHeight: '5rem', // Set minimum height
-    // maxHeight: 
-    // width:
-    // minWidth: 
-    enableToolbar: true,
-    showToolbar: true,
-    placeholder: 'Enter text here...',
-    sanitize: true,
-    uploadUrl: 'v1/image',
-    upload: (file: File): Observable<HttpEvent<UploadResponse>> => { 
-      // FIXME: Actually return the object of this type
-      let request = new HttpRequest('POST', this.uploadUrl, {
-        reportProgress: true,
-        observe: 'events' // Receive all HTTP events
-      });
+  getAngularEditorConfig(): AngularEditorConfig {
+    return {
+      editable: this.isEditable,
+      spellcheck: true,
+      // height: '38rem', // Set desired height
+      // minHeight: '5rem', // Set minimum height
+      minHeight: '135px',
+      height: '135px',
+      maxHeight: '135px',
+      // maxHeight: 
+      // width:
+      // minWidth: 
+      enableToolbar: true,
+      showToolbar: true,
+      placeholder: (this.isEditable) ? 'Enter text here...' : '',
+      sanitize: true,
+      fonts: [
+        { class: 'arial', name: 'Arial' },
+        { class: 'times-new-roman', name: 'Times New Roman' },
+        { class: 'calibri', name: 'Calibri' },
+        { class: 'comic-sans-ms', name: 'Comic Sans MS' },
+        { class: 'courier-new', name: 'Courier New' },
+        { class: 'georgia', name: 'Georgia' },
+        { class: 'helvetica', name: 'Helvetica' },
+        { class: 'impact', name: 'Impact' },
+        { class: 'lucida-console', name: 'Lucida Console' },
+        { class: 'tahoma', name: 'Tahoma' },
+        { class: 'trebuchet-ms', name: 'Trebuchet MS' },
+        { class: 'verdana', name: 'Verdana' },
+        { class: 'roboto', name: 'Roboto' },
+      ],
+      uploadUrl: 'v1/image',
+      upload: (file: File): Observable<HttpEvent<UploadResponse>> => {
+        // FIXME: Actually return the object of this type
+        let request = new HttpRequest('POST', this.uploadUrl, {
+          reportProgress: true,
+          observe: 'events' // Receive all HTTP events
+        });
 
-      return this.http.request<UploadResponse>(request);
-    },
-    uploadWithCredentials: false,
+        return this.http.request<UploadResponse>(request);
+      },
+      uploadWithCredentials: false,
+      toolbarHiddenButtons: [
+        ['youtube', 'insertImage', 'insertVideo', 'link'] // TODO: Hide other buttons if needed
+      ],
+    }
   }
 
-  onRteClose(event: Event) {
-    // TODO: Pass back htmlContent up
-    this.rteHtmlContentInject(this.htmlContent);
+  onEnableRte() {
+    this.cardEditorControlsDesignRteService.onEnableRte$.subscribe((text: string) => {
+      this.isEditable = true;
+      this.htmlContent = text;
+    })
   }
 
-  // TODO: Figure out two way binding for the resizable wrapper component
+  // TODO: Make a disable rte editor too?
+
+  onDisableRte() {
+    this.cardEditorControlsDesignRteService.onDisableRte$.subscribe(() => {
+      this.isEditable = false;
+    })
+  }
+
+  onContentChange(updatedHtml: string) {
+    // Your logic here
+    console.log('Editor content changed:', updatedHtml);
+
+    this.cardEditorControlsDesignRteService.setOnRteTextChange(updatedHtml);
+  }
 }

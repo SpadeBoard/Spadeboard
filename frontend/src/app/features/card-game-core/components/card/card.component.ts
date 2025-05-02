@@ -109,19 +109,6 @@ export class CardComponent {
         this.currentCardFace = this.cardFaces[0];
       }
     });
-
-    /*forkJoin({
-      front: this.cardFaceApiService.getCardFace$(card.frontCardFaceId as number),
-      back: this.cardFaceApiService.getCardFace$(card.backCardFaceId as number)
-    }).subscribe(({ front, back }) => {
-      if (front && back) {
-        this.currentCardFace = front;
-        this.backCardFace = back;
-
-        console.log(`Front card face: ${JSON.stringify(this.currentCardFace)}`);
-        console.log(`Back card face: ${JSON.stringify(this.backCardFace)}`);
-      }
-    });*/
   }
 
   // TODO: Replace this

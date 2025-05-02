@@ -1,0 +1,51 @@
+<div class="card-editor-face" [style]="getDropListStyle()" cdkDropList cdkDropListSortingDisabled="true" #cardEditorFace>
+    @for (currentCardFaceElementPerCardFace of currentCardFaceElementsPerCardFace; track
+    currentCardFaceElementPerCardFace) {
+    <div class="dnd-wrapper" cdkDrag cdkDragBoundary=".card-editor-face" 
+        (cdkDragStarted)="onDragStarted($event, currentCardFaceElementPerCardFace)"
+        (cdkDragMoved)="onDragMoved($event)"
+        (cdkDragDropped)="onDragDropped($event)" 
+        (cdkDragEnded)="onDragEnded($event, currentCardFaceElementPerCardFace)"
+        [cdkDragData]="currentCardFaceElementPerCardFace"
+        [style.left.px]="currentCardFaceElementPerCardFace.dndPosition.x"
+        [style.top.px]="currentCardFaceElementPerCardFace.dndPosition.y"
+        [style.z-index]="currentCardFaceElementPerCardFace.cardFaceElement.style?.zIndex ?? 'inherit'"
+        [attr.card-face-element-id]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
+        #cardFaceElement>
+        @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
+            @case ("rte") {
+                <app-card-face-rt 
+                    (mousedown)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    [content]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent">
+                    <div class="example-handle" cdkDragHandle>
+                        <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z">
+                            </path>
+                            <path d="M0 0h24v24H0z" fill="none"></path>
+                        </svg>
+                    </div>
+                </app-card-face-rt>
+                }
+            @case ("image") {
+                <app-card-face-image 
+                    (mousedown)="setElementAttributes(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    [cardFaceImageSrc]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent"
+                    [cardFaceImageWidth]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
+                    [cardFaceImageHeight]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height"
+                    (imageHtmlContentChange)="onImageHtmlContentChange($event)"> <!--TODO: Need to set the current ID on this, or move the resizing function outside-->
+                    <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
+                    <div class="example-handle" cdkDragHandle>
+                        <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z">
+                            </path>
+                            <path d="M0 0h24v24H0z" fill="none"></path>
+                        </svg>
+                    </div>
+                </app-card-face-image>
+            }
+        }
+    </div>
+    }
+</div>

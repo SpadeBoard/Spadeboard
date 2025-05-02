@@ -1,65 +1,58 @@
-import { Component, effect, input } from '@angular/core';
+import { Component, effect, input, InputSignal } from '@angular/core';
 import { bbCodeToHtml, html, decodeHtml } from '../../utils/rich-text-sanitizer.utils';
 import { CardFaceElementDto } from '../../models/card-face-element';
+import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-card-face-rt',
-  imports: [],
+  imports: [AngularEditorModule, FormsModule,
+      CommonModule],
   templateUrl: './card-face-rt.component.html',
   styleUrl: './card-face-rt.component.css'
 })
 export class CardFaceRtComponent {
-  cardFaceElementDtoInput = input<CardFaceElementDto>({
-    cardFaceElement: {
-      cardFaceElementId: 0,
-      cardFaceElementContent: '',
-      cardFaceElementType: '',
-    },
-    dndItemDto: {
-      dndItem: {
-        dndItemId: 0,
-        isDraggable: false,
-        isDroppable: false
-      },
-      dndPosition: {
-        x: 0,
-        y: 0,
-        dndPositionId: 0
-      }
-    }
-  });
-  
-  // We grab the BBCode from the card face element
+  // https://dev.to/christiankohler/how-to-use-resizeobserver-with-angular-9l5
 
-  html: html = {
-    content: "",
-    attrs: {
-      style: {
-        styleId: 0
-      },
-      dndPosition: {
-        x: 0,
-        y: 0,
-        dndPositionId: 0
-      }
-    }
-  }
+  // We grab the BBCode from the card face element
+  content: InputSignal<string> = input<string>("");
+
+  html: string = "";
+
+  maxWidth: InputSignal<string> = input<string>("100%");
+  maxHeight: InputSignal<string> = input<string>("100px");
 
   // TODO: Effect in constructor, check to make sure its type is rte
   constructor() {
     effect(() => {
-      if (this.cardFaceElementDtoInput().cardFaceElement.cardFaceElementId > 0) {
-        let cardFaceElementDto: CardFaceElementDto = this.cardFaceElementDtoInput();
-        this.setHtml(cardFaceElementDto);
+      if (this.content() !== "") {
+        this.html = this.content();
       }
     });
   }
+
+  getAngularEditorConfig(): AngularEditorConfig {
+    return {
+      // Properties from AngularEditorConfig
+      editable: false,
+      spellcheck: false,
+      height: 'fit-content',
+      width: 'fit-content',
+      minHeight: 'fit-content',
+      minWidth: 'fit-content',
+      maxHeight: this.maxHeight(),
+      enableToolbar: false,
+      showToolbar: false,
+      outline: true
+    }
+  };
 
   // TODO: We have a card face element dto input
 
   // TODO: Pass in card face element content to bbCodeToHtml
   setHtmlContent(bbCode: string): void {
-    this.html.content = bbCodeToHtml(bbCode);
+    this.html = bbCodeToHtml(bbCode);
   }
 
   setHtml(cardFaceElementDto: CardFaceElementDto): void {
@@ -68,14 +61,14 @@ export class CardFaceRtComponent {
     if (cardFaceElementDto.cardFaceElement.style === undefined)
       return;
 
-    this.html.attrs = {
-      style: cardFaceElementDto.cardFaceElement.style,
-      dndPosition: cardFaceElementDto.dndItemDto.dndPosition
-    }
   }
 
   getInnerHtml(): string | null {
-    return decodeHtml(this.html.content);
+    return decodeHtml(this.html);
+  }
+
+  onResize() {
+    // TODO: Set the image width and height, call the element attributes service
   }
 
   // TODO: Create a style and grab the DndPosition

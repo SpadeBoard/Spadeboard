@@ -1,0 +1,12 @@
+<div cdkDropList cdkDropListOrientation="horizontal">
+    <div title="Rich text" class="dnd-palette-wrapper" cdkDrag (cdkDragDropped)="onDragDropped($event)" [style.z-index]="0"
+        [cdkDragData]="'rte'">
+        <img src="/card-editor-controls_card-face-elements-list_text-element-icon.svg"
+            alt="Placeholder square image" width="50" height="50" />
+    </div>
+    <div title="Image" class="dnd-palette-wrapper" cdkDrag (cdkDragDropped)="onDragDropped($event)" [style.z-index]="0"
+        [cdkDragData]="'image'">
+        <img src="/card-editor-controls_card-face-elements-list_image-element-icon.svg"
+            alt="Placeholder square image" width="50" height="50" />
+    </div>
+</div>
