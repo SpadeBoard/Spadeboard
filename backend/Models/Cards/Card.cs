@@ -33,14 +33,13 @@ namespace Models.Cards
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CardId { get; set; }
 
+        public string? CardName {get;set;} = "";
+
         // FIXED
         // Getting the navigation properties being required
         // So make them nullable
 
-        [Required]
-        public bool IsFlipped {get;set;} // TODO: This should be reworked to actually be the index of the current face
-
         // TODO: Make this required, remove IsFlipped
-        public int? CurrentCardFaceIndex { get; set;}
+        public int? CurrentCardFaceIndex { get; set;} = 0;
     }
 }

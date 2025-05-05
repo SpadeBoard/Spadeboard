@@ -6,6 +6,11 @@ body {
     height: 100%;
 }
 
+@font-face {
+    font-family: 'Roboto';
+    src: url('assets/fonts/Roboto/static/Roboto-Regular.ttf');
+  }
+
 angular-editor-toolbar button i {
     font-family: FontAwesome !important;
     color: black !important;

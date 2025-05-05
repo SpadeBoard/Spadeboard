@@ -1,24 +1,9 @@
-<!--<div class="image-container">
-    TODO: Nest the dnd wrapper in here, use ngContext
-    <ng-content/>
-    TODO: If there's already an image, then show this, else show the + button
-    <img 
-        [src]="getImage().src"
-        (load)="onImageLoad(getImage().src)" 
-        [alt]="getImage().alt" 
-        [width]="getImage().width" 
-        [height]="getImage().height"
-    />
-    <button class="change-image-button" (click)="onOpenImageEditor($event)">Change image</button>
-</div>!-->
-
 <div class="image-container">
     <ng-content/>
     <img 
-        [src]="imageHTMLContent.src"
-        [alt]="imageHTMLContent.alt" 
-        [width]="imageHTMLContent.width" 
-        [height]="imageHTMLContent.height"
+        [src]="imageHtmlContent.src"
+        [alt]="imageHtmlContent.alt" 
+        [width]="imageHtmlContent.width" 
+        [height]="imageHtmlContent.height"
     />
-    <button class="change-image-button" (click)="onOpenImageEditor($event)">Change image</button>
 </div>

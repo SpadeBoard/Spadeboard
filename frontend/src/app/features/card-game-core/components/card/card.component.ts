@@ -35,8 +35,8 @@ export class CardComponent {
 
   card: InputSignal<Card> = input<Card >({
     cardId: 0,
-    isFlipped: false,
-    currentCardFaceIndex: 0
+    currentCardFaceIndex: 0,
+    cardName: ''
   });
 
   cardFaces: CardFace[] = [
@@ -62,9 +62,6 @@ export class CardComponent {
   ];
 
   actionContextMenuItemsChange = output<ActionContextMenuItem[]>();
-  
-  // TODO: Temporary
-  isFlipped: boolean = true;
 
   /********* TO BE REFACTORED ************ */
   onRightClick(event: MouseEvent) {
@@ -112,26 +109,11 @@ export class CardComponent {
         this.currentCardFace = this.cardFaces[0];
       }
     });
-
-    /*forkJoin({
-      front: this.cardFaceApiService.getCardFace$(card.frontCardFaceId as number),
-      back: this.cardFaceApiService.getCardFace$(card.backCardFaceId as number)
-    }).subscribe(({ front, back }) => {
-      if (front && back) {
-        this.currentCardFace = front;
-        this.backCardFace = back;
-
-        console.log(`Front card face: ${JSON.stringify(this.currentCardFace)}`);
-        console.log(`Back card face: ${JSON.stringify(this.backCardFace)}`);
-      }
-    });*/
   }
 
   // TODO: Replace this
-  flip(): boolean {
-    this.card().isFlipped = !this.card().isFlipped;
+  flip(): void {
+    this.card().currentCardFaceIndex = (this.card().currentCardFaceIndex == 0) ? 1 : 0;
     this.cardChange.emit(this.card());
-
-    return this.card().isFlipped;
   }
 }

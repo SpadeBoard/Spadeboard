@@ -1,6 +1,7 @@
 import { Injectable, HostListener, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { DndPosition } from '../models/dnd-types';
+import { clamp } from '../../../utils/utils';
 @Injectable({
   providedIn: 'root'
 })
@@ -149,8 +150,8 @@ export class DndBoardService {
     gridX: number;
     gridY: number;
   }{
-    let gridX = this.clamp(screenX / this.getScaledCellSize() + this.cameraX, 0 , this.dndBoardSizeAU);
-    let gridY =  this.clamp(screenY / this.getScaledCellSize() + this.cameraY, 0 , this.dndBoardSizeAU);
+    let gridX = clamp(screenX / this.getScaledCellSize() + this.cameraX, 0 , this.dndBoardSizeAU);
+    let gridY =  clamp(screenY / this.getScaledCellSize() + this.cameraY, 0 , this.dndBoardSizeAU);
 
     return {gridX, gridY};
   }
@@ -163,19 +164,11 @@ export class DndBoardService {
   }
 
   zoomIn(value: number): void {
-    this.zoom = this.clamp(parseFloat((this.zoom * value).toFixed(2)), this.minZoom, this.maxZoom);
+    this.zoom = clamp(parseFloat((this.zoom * value).toFixed(2)), this.minZoom, this.maxZoom);
   }
   
   zoomOut(value: number): void {
-    this.zoom = this.clamp(parseFloat((this.zoom / value).toFixed(2)), this.minZoom, this.maxZoom);
-  }
-  
-  // TODO: Put in utils
-  clamp(value: number, min: number, max: number): number {
-    // console.log(`[CLAMP] value: ${value}, min: ${min}, max: ${max}`);
-
-    if (min > max) throw new Error(`Invalid clamp range`);
-    return Math.min(Math.max(value, min), max);
+    this.zoom = clamp(parseFloat((this.zoom / value).toFixed(2)), this.minZoom, this.maxZoom);
   }
 
   setCameraCoordinates(cameraX: number, cameraY: number, screenWidthPx: number, screenHeightPx: number) {
@@ -190,8 +183,8 @@ export class DndBoardService {
     this.viewportWidthPx = screenWidthPx;
     this.viewportHeightPx = screenHeightPx;
 
-    this.cameraX = this.clamp(cameraX, 0, maxCameraX);
-    this.cameraY = this.clamp(cameraY, 0, maxCameraY);
+    this.cameraX = clamp(cameraX, 0, maxCameraX);
+    this.cameraY = clamp(cameraY, 0, maxCameraY);
   }
 
   getViewportDimensions(): {viewportWidthPx: number, viewportHeightPx: number} {
@@ -313,8 +306,8 @@ export class DndBoardService {
     let  { cameraX, cameraY } = this.getCameraCoordinates(); // Or this.dndBoardService.getCameraCoordinates()
 
     // Mouse AU = camera AU + offset in AU
-    let  gridX = this.clamp(cameraX + offsetXAU, 0, this.getGridSizeAU());
-    let  gridY = this.clamp(cameraY + offsetYAU, 0, this.getGridSizeAU());
+    let  gridX = clamp(cameraX + offsetXAU, 0, this.getGridSizeAU());
+    let  gridY = clamp(cameraY + offsetYAU, 0, this.getGridSizeAU());
  
      this.setMouseAUCoordinates({ gridX, gridY });
   }

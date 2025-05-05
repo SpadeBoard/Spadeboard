@@ -1,0 +1,41 @@
+.container {
+    width: 20%;
+    height: 20%;
+    transform: scale(0.85);
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+.element {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #666667;
+    display: block;
+    font-family: 'Roboto', sans-serif;
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 12px 8px;
+    border-left: 3px solid #666667;
+}
+
+td {
+    vertical-align: middle;
+    font-weight: bold;
+    color: #666667;
+    font-family: 'Roboto', sans-serif;
+}
+
+input[type="number"] {
+    width: 60px;
+    padding: 5px 8px;
+    font-weight: bold;
+    border: 2px dotted #ccc;
+    background-color: #d1d0d0;
+    font-family: 'Roboto', sans-serif;
+}

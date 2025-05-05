@@ -1,0 +1,8 @@
+button {
+    background-color: #173552;
+    color: white;
+}
+
+button:disabled {
+    opacity: 0.5;
+}

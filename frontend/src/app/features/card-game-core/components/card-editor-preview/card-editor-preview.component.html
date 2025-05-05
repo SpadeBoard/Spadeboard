@@ -1,0 +1,7 @@
+<div class="card-editor-preview">
+    <input type="text" placeholder="Untitled card" [value]="getCardName()" (input)="onNameChange($event)"/>
+    <app-card-editor-face-preview #cardEditorFacePreview />
+    <app-card-editor-preview-change-face />
+    <app-card-editor-card-operations-button #cardOperationsBtn (handleCardCreate)="handleCardCreate()"
+        (handleCardSave)="handleCardSave()" />
+</div>

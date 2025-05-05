@@ -1,6 +1,9 @@
 import { SafeUrl } from "@angular/platform-browser";
 
 export function clamp(value: number, min: number, max: number): number {
+    // console.log(`[CLAMP] value: ${value}, min: ${min}, max: ${max}`);
+
+    if (min > max) throw new Error(`Invalid clamp range`);
     return Math.min(Math.max(value, min), max);
 }
 

@@ -139,7 +139,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             new Card
             {
                 CardId = -1,
-                IsFlipped = false,
+                CardName = "",
                 CurrentCardFaceIndex = 0
             }
         );

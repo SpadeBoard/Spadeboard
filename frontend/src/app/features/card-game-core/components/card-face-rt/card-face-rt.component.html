@@ -1,23 +1,9 @@
-<!-- TODO: Pass in ngStyle, grab the DndPosition too and set the style.px.left and style.px.top -->
-<div
-    [style.position]="'html.attrs.style.position'"
-    [style.width.px]="html.attrs.style.width"
-    [style.height.px]="html.attrs.style.height"
-    [style.left.px]="html.attrs.dndPosition.x"
-    [style.top.px]="html.attrs.dndPosition.y"
-    [innerHTML]="html.content"
->
-</div>
+<angular-editor
+    [config]="getAngularEditorConfig()"
+    [(ngModel)]="html">
+</angular-editor>
+<ng-content></ng-content>
 
-<!--FIXME: Left and top not working
-The position: static property prevents left from having an effect.
-Try setting position to something other than static.
--->
-
-<!-- 
-ANGULAR EDITOR -> Store to database -> Take information
-
--->
 
 <!--FIXED: 
 https://stackoverflow.com/questions/41334265/set-height-of-div-equal-to-height-of-window-angular

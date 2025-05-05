@@ -29,3 +29,13 @@
     top: 0;
     left: 0;
 }
+
+.resize-indicator {
+    position: absolute;
+    bottom: 7px;
+    right: 4px;
+    cursor: se-resize;
+    opacity: 0.7;
+    user-select: none;
+    pointer-events: auto;
+  }

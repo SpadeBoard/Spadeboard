@@ -160,7 +160,8 @@ export class CardPositionPerRoomComponent {
     let cprToReplace = this.findCardPositionPerRoom(updatedCpr.card.cardId);
 
     if (cprToReplace !== undefined) {
-      console.log(`Cpr to replace: ${JSON.stringify(cprToReplace)}, Updated CPR: ${JSON.stringify(updatedCpr)}`);
+      // TODO: Get rid of this whole function
+      // console.log(`Cpr to replace: ${JSON.stringify(cprToReplace)}, Updated CPR: ${JSON.stringify(updatedCpr)}`);
 
       Object.assign(cprToReplace, updatedCpr);
 
@@ -280,12 +281,13 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
     let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
 
     // Can't use auToScreenCoordinates in this case because mouse position is offsetted
-    
+
     item.dndPosition = {
       dndPositionId: item.dndPosition.dndPositionId,
-      x: mouseAUCoordinates.gridX - this.dragOffset.x, 
-      y: mouseAUCoordinates.gridY - this.dragOffset.y};
-    
+      x: mouseAUCoordinates.gridX - this.dragOffset.x,
+      y: mouseAUCoordinates.gridY - this.dragOffset.y
+    };
+
     let mouseMoveLog: string = `On Drag Dropped:
      Mouse coordinates relative to viewport: (${event.dropPoint.x}, ${event.dropPoint.y})
      Mouse AU coordinates: (${JSON.stringify(mouseAUCoordinates)})
@@ -296,14 +298,14 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
      Zoom Level: ${this.dndBoardService.zoom}
      Scaled cell size screen: ${this.dndBoardService.getScaledCellSize()}`;
 
-      // 3. Log everything
-      console.log(mouseMoveLog);
+    // 3. Log everything
+    // console.log(mouseMoveLog);
 
     // item.dndPosition = {x: event.dropPoint.x, y: event.dropPoint.y};
     // console.log(`On drag drop card position per room: ${JSON.stringify(item.dndPosition)}`);
 
     // console.log(`On drag drop: AU - ${JSON.stringify(item.dndPosition)}), Screen PX - ${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(item.dndPosition.x, item.dndPosition.y))}`);
-    
+
     this.updateCardPositionPerRoom(item);
   }
 

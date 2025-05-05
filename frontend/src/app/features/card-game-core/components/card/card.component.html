@@ -1,22 +1,4 @@
-<!--<div [ngStyle]="cardStyle">!-->
-<!--<div class="card" (click)="flip()" (contextmenu)="onRightClick($event); false">!-->
-    <!--<div class="card-inner" [@cardFlip]="isFlipped ? 'flipped' : 'default'">!-->
-    <!-- TODO: Fix this, show the images-->
-
 <!--TODO: Modify this so that the inside of the component for the card, it actually switches between multicard faces-->
 <div [style.transform]="transform()">
     <app-card-face [cardFaceInput]="currentCardFace" />
 </div>
-
-    <!--<div>
-    <div class="card-inner">
-        <div class="card-front">
-            NOTE: With signals, it's (), not just its name
-            <app-card-face [cardFaceInput]="frontCardFace" />
-        </div>
-        <div class="card-back">
-            <app-card-face [cardFaceInput]="backCardFace" />
-        </div>
-    </div>
-    <ng-content/>
-</div>!-->

@@ -65,8 +65,6 @@ export class GameRoomComponent implements AfterViewChecked{
 
   onCardEditor(event: Event): void {
     this.isCardEditorOpen = !this.isCardEditorOpen;
-    // this.cardGameCoreService.setCardEditorCardDto(this.cardEditorCardDto);
-    // console.log(`Card editor state: ${this.isCardEditorOpen}`);
   }
 
   onCardsCollection(event: Event): void {

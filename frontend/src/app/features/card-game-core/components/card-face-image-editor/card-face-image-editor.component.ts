@@ -7,6 +7,7 @@ import { ImageCropperComponent, ImageCroppedEvent, LoadedImage } from 'ngx-image
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CLOSE_IMAGE_EDITOR_TOKEN, CROPPED_IMAGE_TOKEN } from '../../../../shared/tokens';
 import { onLoadReadBlobAsBase64, safeUrlToBlob } from '../../../../utils/utils';
+import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 
 @Component({
   selector: 'app-card-face-image-editor',
@@ -18,6 +19,8 @@ import { onLoadReadBlobAsBase64, safeUrlToBlob } from '../../../../utils/utils';
   styleUrl: './card-face-image-editor.component.css'
 })
 export class CardFaceImageEditorComponent {
+  private cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
+
   // https://cloudinary.com/guides/automatic-image-cropping/5-ways-to-crop-images-in-html-css#:~:text=0%2C%205%25);%20%7D-,Crop%20with%20the%20clip-path()%20Function,of%20the%20image%20is%20hidden.
   // https://www.youtube.com/watch?v=lCClcI3Lt2A
   // https://stackblitz.com/edit/image-cropper?file=src%2Fimage-cropper%2Fcomponent%2Fimage-cropper.component.ts%3AL255
@@ -42,12 +45,14 @@ export class CardFaceImageEditorComponent {
     
   imageChangedEvent: Event | null = null;
   croppedImage: SafeUrl = '';
-
-  closeImageEditorInject: (showImageEditor: boolean) => void  = inject(CLOSE_IMAGE_EDITOR_TOKEN);
-  cardFaceImageElementSrcInject: (croppedImage: string) => void  = inject(CROPPED_IMAGE_TOKEN);
   
   // fileUploadComponent: FileUploadComponent = inject(FileUploadComponent);
   private sanitizer: DomSanitizer = inject(DomSanitizer);
+  private src: string = "";
+
+  constructor() {
+    this.onEnableImageEditor();
+  }
 
   fileChangeEvent(event: Event): void {
     this.imageChangedEvent = event;
@@ -69,40 +74,23 @@ export class CardFaceImageEditorComponent {
     // show message
   }
 
-  // TODO: On submit the card face editor, upload the file to the database
-  // And then emit that
-  /*async*/ onModifyCardFaceImage(event: Event): void /*Promise<void>*/ {
-    /*try
-    {
-      let blob: Blob | null = await safeUrlToBlob(this.croppedImage);
-      
-      // TODO: Replace with file blob url
-      let src: string | null = this.sanitizer.sanitize(SecurityContext.URL, this.croppedImage);
-
-      /*if (blob !== null) {
-        // Convert the Blob to a Base64 string
-        let src: string = await onLoadReadBlobAsBase64(blob);
-  
-        // Use the Base64 string as the source for the card face image
-        this.cardFaceImageElementSrcInject(src);
-      } else {
-        console.error('Failed to convert SafeURL to Blob.');
-      }
-    }
-    catch (error) {
-
-    }*/
-
+  onModifyCardFaceImage(event: Event): void /*Promise<void>*/ {
     let src: string | null = this.sanitizer.sanitize(SecurityContext.URL, this.croppedImage);
 
     if (src) {
-      this.cardFaceImageElementSrcInject(src);
+      this.src = src;
     }
   }
 
   // TODO: Inside of card-face-image, we'd want to load that image if it exists
+  onEnableImageEditor() {
+    this.cardEditorControlsDesignImageService.onEnableImageEditor$.subscribe(() => {
+      // TODO: Open image editor and make the image in here?
+    })
+  }
 
-  onCloseCardFaceImageEditor(event: Event): void {
-    this.closeImageEditorInject(false);
+
+  onDisableImageEditor(event: Event): void {
+    this.cardEditorControlsDesignImageService.setOnDisableImageEditor(this.src);
   }
 }

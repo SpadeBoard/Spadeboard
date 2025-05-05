@@ -1,0 +1,46 @@
+.card-editor-face {
+    position: relative;
+    overflow: hidden;
+}
+
+/*absolute: positions to closest ancestory that's RELATIVE*/
+.dnd-wrapper {
+    position: absolute;
+    /*background: rgba(0,0,0,0.1);*/
+    width: fit-content;
+    height: fit-content;
+}
+
+.dnd-wrapper .example-handle {
+    z-index: 2; /* TODO: Make this relative*/
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    color: #ccc;
+    cursor: move;
+    width: 24px;
+    height: 24px;
+}
+
+.dnd-wrapper .position {
+    z-index: 2;
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+    font-size: 12px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.change-image-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.change-image-button:hover {
+    opacity: 1;
+}

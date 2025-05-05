@@ -8,10 +8,8 @@ import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace } from 
 // TODO: Instead of having DndItem itself, have the card extends the item
 export interface Card {
     cardId: number;
+    cardName: string;
     currentCardFaceIndex: number;
-    isFlipped: boolean;
-    // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
-    // TODO: Get rid of this for the card, just use the CardPositionPerRoom data somehow
 }
 
 // TODO: Make a CardEditorCardDto which has everything including DndPosition
@@ -19,14 +17,7 @@ export interface Card {
 // TODO: Rename this to CardEditorCardDto
 export interface CardEditorCardDto {
     card: Card;
-    frontCardFace?: CardFace;
-    frontCardFaceElementsDto?: Array<CardFaceElementDto>;
-    
     cardEditorCardFacesDto: Array<CardEditorCardFaceDto>;
-
-    backCardFace?: CardFace;
-    backCardFaceElementsDto?: Array<CardFaceElementDto>;
-
     ownerId?: string;
 }
 
