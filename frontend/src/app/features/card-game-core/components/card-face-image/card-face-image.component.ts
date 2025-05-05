@@ -56,12 +56,8 @@ export class CardFaceImageComponent {
     if (this.imageHtmlContent.src.match(guidPattern))
     {
       this.getImageFromStorage$(this.imageHtmlContent.src).subscribe((image: HTMLImageElement) =>{
-        this.imageHtmlContent = {
-          src: image.src,
-          alt: image.alt,
-          width: image.naturalWidth,
-          height: image.naturalHeight
-        };
+        this.imageHtmlContent.src = image.src;
+        this.imageHtmlContent.alt = image.alt;
       })
     }
   }
