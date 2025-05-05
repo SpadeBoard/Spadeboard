@@ -26,7 +26,8 @@ export class CardGameCoreService {
     card: {
       cardId: 0,
       currentCardFaceIndex: 0,
-      cardName: ''
+      cardName: '',
+      isTemplate: false
     },
     ownerId: '',
     cardEditorCardFacesDto: []
@@ -37,7 +38,8 @@ export class CardGameCoreService {
     card: {
       cardId: 0,
       currentCardFaceIndex: 0,
-      cardName: ''
+      cardName: '',
+      isTemplate: false
     },
     ownerId: '',
     cardEditorCardFacesDto: []

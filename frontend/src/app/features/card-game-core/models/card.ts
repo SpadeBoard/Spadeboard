@@ -9,6 +9,7 @@ import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace } from 
 export interface Card {
     cardId: number;
     cardName: string;
+    isTemplate: boolean;
     currentCardFaceIndex: number;
 }
 

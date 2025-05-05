@@ -37,7 +37,8 @@ export class CardEditorPreviewService {
     card: {
       cardId: 0,
       currentCardFaceIndex: 0,
-      cardName: ''
+      cardName: '',
+      isTemplate: false
     },
     ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
     cardEditorCardFacesDto: [
@@ -82,13 +83,17 @@ export class CardEditorPreviewService {
   private onCreateCardFaceElementPerCardFace$$: Subject<{type: string, dndPosition: DndPosition}> = new Subject<{type: string, dndPosition: DndPosition}>();
   onCreateCardFaceElementPerCardFace$: Observable<{type: string, dndPosition: DndPosition}> = this.onCreateCardFaceElementPerCardFace$$.asObservable();
 
+  private onSetCardEditorCardDtoByCardTemplateId$$: Subject<void> = new Subject<void>();
+  onSetCardEditorCardDtoByCardTemplateId$: Observable<void> = this.onSetCardEditorCardDtoByCardTemplateId$$.asObservable();
+
   // NOTE: For when clicking on a blank card template
   setBlankCardTemplate() {
     this.cardEditorCardDto = {
       card: {
         cardId: 0,
         currentCardFaceIndex: 0,
-        cardName: ''
+        cardName: '',
+        isTemplate: false
       },
       ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
       cardEditorCardFacesDto: [
@@ -111,6 +116,27 @@ export class CardEditorPreviewService {
         }
       ]
     };
+  }
+
+  setCardEditorCardDtoByCardTemplateId(cardId: number) {
+    if (cardId <= 0) {
+      this.setBlankCardTemplate() ;
+      this.reloadCurrentCardEditorCardFaceDto();
+      this.setOnSetCardEditorCardDtoByCardTemplateId();
+      return;
+    }
+
+    this.cardApiService.getCardEditorCardDto$(cardId).subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
+      if (cardEditorCardDto) {
+        this.cardEditorCardDto = cardEditorCardDto;
+        this.reloadCurrentCardEditorCardFaceDto();
+        this.setOnSetCardEditorCardDtoByCardTemplateId();
+      }
+    })
+  }
+
+  setOnSetCardEditorCardDtoByCardTemplateId() {
+    this.onSetCardEditorCardDtoByCardTemplateId$$.next();
   }
 
   setCardName(value: string) {

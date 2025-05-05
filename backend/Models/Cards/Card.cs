@@ -35,6 +35,8 @@ namespace Models.Cards
 
         public string? CardName {get;set;} = "";
 
+        public bool? IsTemplate {get; set;} = false;
+
         // FIXED
         // Getting the navigation properties being required
         // So make them nullable

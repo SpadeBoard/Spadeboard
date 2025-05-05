@@ -147,7 +147,8 @@ export class CardEditorComponent implements AfterViewInit {
     card: {
       cardId: 0,
       currentCardFaceIndex: 0,
-      cardName: ''
+      cardName: '',
+      isTemplate: false
     },
     ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
     cardEditorCardFacesDto: [
