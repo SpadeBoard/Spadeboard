@@ -20,18 +20,6 @@ export class CardFaceImageComponent {
   cardFaceImageWidth: InputSignal<number> = input<number>(100);
   cardFaceImageHeight: InputSignal<number> = input<number>(100);
 
-  imageHtmlContentChange: OutputEmitterRef<{
-    src: string;
-    alt: string;
-    width: number;
-    height: number;
-  }> = output<{
-    src: string;
-    alt: string;
-    width: number;
-    height: number;
-  }>();
-
   imageHtmlContent: {
     src: string;
     alt: string;
@@ -43,24 +31,6 @@ export class CardFaceImageComponent {
     width: 0,
     height: 0
   };
-
-  draggingAttributes: {
-    draggingWindow: boolean;
-    draggingCorner: boolean;
-    x: number;
-    y: number;
-    px: number;
-    py: number;
-    resizer: Function | undefined;
-  } = {
-    draggingWindow: false,
-    draggingCorner: false,
-    x: 300,
-    y: 100,
-    px: 0,
-    py: 0,
-    resizer: undefined
-  }
 
   setInitialImage() {
     this.imageHtmlContent = {
@@ -106,10 +76,12 @@ export class CardFaceImageComponent {
 
       if (this.cardFaceImageWidth() > 0) {
         this.imageHtmlContent.width = this.cardFaceImageWidth();
+        console.log(`Card face image width change: ${this.imageHtmlContent.width}`);
       }
 
       if (this.cardFaceImageHeight() > 0) {
         this.imageHtmlContent.height = this.cardFaceImageHeight();
+        console.log(`Card face image height change: ${this.imageHtmlContent.height}`);
       }
     });
   }
@@ -163,60 +135,5 @@ export class CardFaceImageComponent {
 
     URL.revokeObjectURL(url);
     // console.log('Blob URL revoked after image loaded');
-  }
-
-  // https://dev.to/zchtodd/creating-a-resizable-draggable-component-in-angular2-9cl
-  // TODO: Refactor this functionality into its own component eventually or service?
-  bottomRightResize(imageHtmlContent: {
-    src: string;
-    alt: string;
-    width: number;
-    height: number;
-  }, offsetX: number, offsetY: number) {
-    console.log(`Bottom right resize: ${JSON.stringify(imageHtmlContent)}`);
-    if (!imageHtmlContent) return;
-    
-    clamp(imageHtmlContent.width += offsetX, 0.01, 400);
-    clamp(imageHtmlContent.height += offsetY, 0.01, 400);
-  }
-
-  onCornerClick(event: MouseEvent, resizer?: Function) {
-    this.draggingAttributes.draggingCorner = true;
-    
-    this.draggingAttributes.px = event.clientX;
-    this.draggingAttributes.py = event.clientY;
-    
-    this.draggingAttributes.resizer = resizer;
-    
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  @HostListener('document:mousemove', ['$event'])
-  onCornerMove(event: MouseEvent) {
-    if (!this.draggingAttributes.draggingCorner) {
-        return;
-    }
-    let offsetX = event.clientX - this.draggingAttributes.px;
-    let offsetY = event.clientY - this.draggingAttributes.py;
-
-    let resizer = this.draggingAttributes.resizer;
-
-    console.log(`Resizer function: ${resizer}`);
-
-    if (resizer) {
-      resizer(this.imageHtmlContent, offsetX, offsetY);
-    }
-
-    this.draggingAttributes.px = event.clientX;
-    this.draggingAttributes.py = event.clientY;
-  }
-
-  @HostListener('document:mouseup', ['$event'])
-  onCornerRelease(event: MouseEvent) {
-    this.draggingAttributes.draggingWindow = false;
-    this.draggingAttributes.draggingCorner = false;
-  
-    this.imageHtmlContentChange.emit(this.imageHtmlContent);
   }
 }

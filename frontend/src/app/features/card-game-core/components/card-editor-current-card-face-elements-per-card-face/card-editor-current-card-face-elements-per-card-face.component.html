@@ -15,7 +15,7 @@
         @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
             @case ("rte") {
                 <app-card-face-rt 
-                    (mousedown)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    (mouseenter)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                     [content]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent">
                     <div class="example-handle" cdkDragHandle>
                         <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
@@ -29,11 +29,10 @@
                 }
             @case ("image") {
                 <app-card-face-image 
-                    (mousedown)="setElementAttributes(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    (mouseenter)="onFocusImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                     [cardFaceImageSrc]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent"
                     [cardFaceImageWidth]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
-                    [cardFaceImageHeight]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height"
-                    (imageHtmlContentChange)="onImageHtmlContentChange($event)"> <!--TODO: Need to set the current ID on this, or move the resizing function outside-->
+                    [cardFaceImageHeight]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
                     <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
                     <div class="example-handle" cdkDragHandle>
                         <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
@@ -44,6 +43,10 @@
                         </svg>
                     </div>
                 </app-card-face-image>
+                <app-resizable-wrapper 
+                    [dimensions]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    (resizableChange)="onResizableChange($event)"
+                />
             }
         }
     </div>

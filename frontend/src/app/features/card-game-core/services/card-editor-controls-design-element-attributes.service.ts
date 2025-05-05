@@ -23,10 +23,57 @@ export class CardEditorControlsDesignElementAttributesService {
   private onSetX$$ = new Subject<number>();
   onSetX$: Observable<number> = this.onSetX$$.asObservable();
 
-  currentCardFaceElementId: WritableSignal<number> = signal<number>(-1);
-
+  // currentCardFaceElementId: WritableSignal<number> = signal<number>(-1);
+  // https://stackoverflow.com/questions/42504918/difference-between-ngmodel-and-ngmodel-for-binding-state-to-property
+  private currentCardFaceElementId: number = -1;
+  
+  private _height: number = 0;
+  private _width: number = 0;
+  private _x: number = 0;
+  private _y: number = 0;
 
   constructor() { }
+
+  get height(): number {
+    return this._height;
+  }
+
+  get width(): number {
+    return this._width;
+  }
+
+  get x(): number {
+    return this._x;
+  }
+
+  get y(): number {
+    return this._y;
+  }
+
+  // NOTE: In the resizable component, use - distinctUntilChanged()
+  set height(height: number) {
+    this._height = height;
+  }
+
+  set width( width: number) {
+    this._width =  width;
+  }
+
+  set y(y: number) {
+    this._y = y;
+  }
+
+  set x( x: number) {
+    this._x =  x;
+  }
+
+  setCurrentCardFaceElementId(currentCardFaceElementId: number): void {
+    this.currentCardFaceElementId = currentCardFaceElementId;
+  }
+
+  getCurrentCardFaceElementId(): number {
+    return this.currentCardFaceElementId;
+  }
 
   setY(y: number) {
     this.onSetY$$.next(y);

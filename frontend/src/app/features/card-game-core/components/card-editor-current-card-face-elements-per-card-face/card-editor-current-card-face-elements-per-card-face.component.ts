@@ -14,11 +14,13 @@ import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 import { blobToDataURL } from '../../../../utils/utils';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
+import { distinctUntilChanged } from 'rxjs';
+import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
   imports: [CdkDrag, CdkDragHandle, DragDropModule, CardFaceImageComponent, 
-    CommonModule, CardFaceRtComponent],
+    CommonModule, CardFaceRtComponent, ResizableWrapperComponent],
   templateUrl: './card-editor-current-card-face-elements-per-card-face.component.html',
   styleUrl: './card-editor-current-card-face-elements-per-card-face.component.css'
 })
@@ -368,8 +370,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   setElementAttributesPosition(position: DndPosition) {
-    this.cardEditorControlsDesignElementAttributesService.setX(position.x);
-    this.cardEditorControlsDesignElementAttributesService.setY(position.y);
+    this.cardEditorControlsDesignElementAttributesService.x = position.x;
+    this.cardEditorControlsDesignElementAttributesService.y = position.y;
   }
 
   updateCurrentCardEditorCardFaceDto() {
@@ -417,21 +419,25 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   setElementAttributes(cardFaceElementId: number) {
     this.setCurrentCardFaceElementId(cardFaceElementId);
 
+    console.log(`Set element attributes - Card face element ID: ${cardFaceElementId}, Current edited card face element ID: ${this.currentEditedCardFaceElementId}`);
+
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
     if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
       this.setElementAttributesDndPosition(cardFaceElementPerCardFace.dndPosition);
       this.setElementAttributesDimensions(cardFaceElementPerCardFace.cardFaceElement.style);
+    
+      console.log(`After setting the other attributes - Card face element ID: ${cardFaceElementId}, Current edited card face element ID: ${this.currentEditedCardFaceElementId}`)
     }
   }
 
   setCurrentCardFaceElementId(cardFaceElementId: number) {
     this.currentEditedCardFaceElementId = cardFaceElementId;
-    this.cardEditorControlsDesignElementAttributesService.currentCardFaceElementId.set(this.currentEditedCardFaceElementId);
+    this.cardEditorControlsDesignElementAttributesService.setCurrentCardFaceElementId(this.currentEditedCardFaceElementId);
   }
 
   setElementAttributesDndPosition(dndPosition: DndPosition) {
-    this.cardEditorControlsDesignElementAttributesService.setX(dndPosition.x);
-    this.cardEditorControlsDesignElementAttributesService.setY(dndPosition.y);
+    this.cardEditorControlsDesignElementAttributesService.x = dndPosition.x;
+    this.cardEditorControlsDesignElementAttributesService.y = dndPosition.y;
   }
 
   setElementAttributesDimensions(style: Style) {
@@ -440,8 +446,13 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       height: number
     } = { width: parseFloat(style.width as string), height: parseFloat(style.height as string) };
 
-    this.cardEditorControlsDesignElementAttributesService.setWidth(dimensions.width);
-    this.cardEditorControlsDesignElementAttributesService.setHeight(dimensions.height);
+    this.cardEditorControlsDesignElementAttributesService.width = dimensions.width;
+    this.cardEditorControlsDesignElementAttributesService.height = dimensions.height;
+  }
+
+  onFocusImage(cardFaceElementId: number) {
+    this.setElementAttributes(cardFaceElementId);
+    this.onDisableRte();
   }
 
   onEnableImageEditor(cardFaceElementId: number) {
@@ -465,7 +476,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       }
     }
 
-    return {width: 100, height: 100};
+    return {width: -1, height: -1};
   }
 
   onDisableImageEditor() {
@@ -482,56 +493,69 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     })
   }
 
-  onImageHtmlContentChange(imageHtmlContent: {
-    src: string;
-    alt: string;
+  onResizableChange(dimensions: {
     width: number;
     height: number;
-  }) { 
-    this.cardEditorControlsDesignElementAttributesService.setWidth(imageHtmlContent.width);
-    this.cardEditorControlsDesignElementAttributesService.setHeight(imageHtmlContent.height);
+  }) {
+    console.log(`On Dimensions change - Current edited card face element ID: ${this.currentEditedCardFaceElementId}, Image HTML Content Attributes: ${JSON.stringify(dimensions)}`);
 
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
     if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-      cardFaceElementPerCardFace.cardFaceElement.style.width = `${imageHtmlContent.width}`;
-      cardFaceElementPerCardFace.cardFaceElement.style.height = `${imageHtmlContent.height}`;
+      cardFaceElementPerCardFace.cardFaceElement.style.width = `${dimensions.width}`;
+      cardFaceElementPerCardFace.cardFaceElement.style.height = `${dimensions.height}`;
     }
+
+    // NOTE: Setting the label
+    this.cardEditorControlsDesignElementAttributesService.width =dimensions.width;
+    this.cardEditorControlsDesignElementAttributesService.height =dimensions.height;
   }
 
   onSetWidth() {
-    this.cardEditorControlsDesignElementAttributesService.onSetWidth$.subscribe((width: number) => {
+    this.cardEditorControlsDesignElementAttributesService.onSetWidth$
+      .pipe(distinctUntilChanged())
+      .subscribe((width: number) => {
       let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
       if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
         cardFaceElementPerCardFace.cardFaceElement.style.width = `${width}`;
+
+        console.log(`On set width - Card face element width: ${cardFaceElementPerCardFace.cardFaceElement.style.width}`);
       }
     })
   }
 
   onSetHeight() {
-    this.cardEditorControlsDesignElementAttributesService.onSetHeight$.subscribe((height: number) => {
-      let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-      if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-        cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}`;
-      }
-    })
+    this.cardEditorControlsDesignElementAttributesService.onSetHeight$
+      .pipe(distinctUntilChanged())
+      .subscribe((height: number) => {
+        let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+        if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
+          cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}`;
+
+          console.log(`On set height - Card face element height: ${cardFaceElementPerCardFace.cardFaceElement.style.height}`);
+        }
+      })
   }
 
   onSetX() {
-    this.cardEditorControlsDesignElementAttributesService.onSetX$.subscribe((x: number) => {
-      let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-      if (cardFaceElementPerCardFace) {
-        cardFaceElementPerCardFace.dndPosition.x = x;
-      }
-    })
+    this.cardEditorControlsDesignElementAttributesService.onSetX$
+      .pipe(distinctUntilChanged())
+      .subscribe((x: number) => {
+        let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+        if (cardFaceElementPerCardFace) {
+          cardFaceElementPerCardFace.dndPosition.x = x;
+        }
+      })
   }
 
   onSetY() {
-    this.cardEditorControlsDesignElementAttributesService.onSetY$.subscribe((y: number) => {
-      let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-      if (cardFaceElementPerCardFace) {
-        cardFaceElementPerCardFace.dndPosition.y = y;
-      }
-    })
+    this.cardEditorControlsDesignElementAttributesService.onSetY$
+      .pipe(distinctUntilChanged())
+      .subscribe((y: number) => {
+        let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+        if (cardFaceElementPerCardFace) {
+          cardFaceElementPerCardFace.dndPosition.y = y;
+        }
+      })
   }
 
   setCardFaceImageElementSrc(croppedImage: string): void {

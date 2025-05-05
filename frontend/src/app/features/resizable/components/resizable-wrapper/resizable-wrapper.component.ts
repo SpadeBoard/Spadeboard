@@ -1,5 +1,6 @@
-import { Component, ElementRef, input, output, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, input, InputSignal, output, OutputEmitterRef, Signal, ViewChild } from '@angular/core';
 import { Style } from '../../../style/models/style';
+import { clamp } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-resizable-wrapper',
@@ -9,7 +10,7 @@ import { Style } from '../../../style/models/style';
 })
 export class ResizableWrapperComponent {
   // CHECKME: isResizable should be in here?
-  isResizable = input<boolean>(false);
+  /*isResizable = input<boolean>(false);
 
   parentWidth = input<number>(0);
   parentHeight = input<number>(0);
@@ -67,5 +68,104 @@ export class ResizableWrapperComponent {
     // Remove event listeners when isResizableis complete
     document.removeEventListener('mousemove', (e) => this.onMouseMove(e, null!));
     document.removeEventListener('mouseup', this.onMouseUp);
-  };
+  };*/
+
+  // https://dev.to/zchtodd/creating-a-resizable-draggable-component-in-angular2-9cl
+  // TODO: Refactor this functionality into its own component eventually or service?
+  
+
+  dimensions: InputSignal<{ width: number, height: number }> = input<{ width: number, height: number }>({
+    width: 0.01,
+    height: 0.01
+  });
+
+  private dimensionsComputed: Signal<{
+    width: number;
+    height: number;
+  }> = computed(() => {
+    let value = this.dimensions();
+
+    value = {
+      width: (value.width > 0) ? value.width : 0.01,
+      height: (value.height) > 0 ? value.height : 0.01
+    }
+
+    return value;
+  });
+
+  resizableChange: OutputEmitterRef<{
+    width: number;
+    height: number;
+  }> = output<{
+    width: number;
+    height: number;
+  }>();
+
+  private draggingAttributes: {
+    draggingWindow: boolean;
+    draggingCorner: boolean;
+    x: number;
+    y: number;
+    px: number;
+    py: number;
+    resizer: Function | undefined;
+    corner: string;
+  } = {
+      draggingWindow: false,
+      draggingCorner: false,
+      x: 300,
+      y: 100,
+      px: 0,
+      py: 0,
+      resizer: undefined,
+      corner: ""
+    }
+
+  constructor() {
+  }
+
+
+  bottomRightResize(offsetX: number, offsetY: number) {
+    let current = this.dimensionsComputed();
+    let newWidth = clamp(current.width + offsetX, 0.01, 400);
+    let newHeight = clamp(current.height + offsetY, 0.01, 400);
+
+    this.resizableChange.emit({ width: newWidth, height: newHeight });
+  }
+
+  onCornerClick(event: MouseEvent, corner: string) {
+    this.draggingAttributes.draggingCorner = true;
+
+    this.draggingAttributes.px = event.clientX;
+    this.draggingAttributes.py = event.clientY;
+
+    this.draggingAttributes.corner = corner;
+
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onCornerMove(event: MouseEvent) {
+    if (!this.draggingAttributes.draggingCorner) {
+      return;
+    }
+    let offsetX = event.clientX - this.draggingAttributes.px;
+    let offsetY = event.clientY - this.draggingAttributes.py;
+
+    let corner = this.draggingAttributes.corner;
+
+    if (corner === "bottom-right") {
+      this.bottomRightResize(offsetX, offsetY);
+    }
+
+    this.draggingAttributes.px = event.clientX;
+    this.draggingAttributes.py = event.clientY;
+  }
+
+  @HostListener('document:mouseup', ['$event'])
+  onCornerRelease(event: MouseEvent) {
+    this.draggingAttributes.draggingWindow = false;
+    this.draggingAttributes.draggingCorner = false;
+  }
 }
