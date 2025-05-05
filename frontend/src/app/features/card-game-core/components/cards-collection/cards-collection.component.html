@@ -10,9 +10,7 @@
     <!-- The configured tracking expression (track by identity) caused re-creation of the entire collection of size 2. This is an expensive operation requiring destruction and subsequent creation of DOM nodes, directives, components etc. Please review the "track expression" and make sure that it uniquely identifies items in a collection. Find more at -->
     <!--https://angular.dev/guide/image-optimization-->
     <!--Use ngSrc with nonstatic images-->
-        
-    <!--<img src="blank-card-canvas.png"  width="154px" height="215px"/>
-    <img src="editor-default-size-canvas.png"  width="154px" height="215px"/>!-->
+
     <!--TODO: Implement caching for the images !-->
     @for (card of cards; track card) {
         <!--TODO: Wrap the draggable out of there-->

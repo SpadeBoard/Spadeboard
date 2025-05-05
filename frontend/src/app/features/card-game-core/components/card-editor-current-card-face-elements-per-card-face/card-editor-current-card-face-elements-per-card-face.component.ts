@@ -64,6 +64,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     return this.cardEditorPreviewService.getCurrentCardFace().style;
   }
 
+  onSetCardEditorCardDtoByCardTemplateId(): void {
+   this.cardEditorPreviewService.onSetCardEditorCardDtoByCardTemplateId$.subscribe(() => {
+    this.getCurrentCardFaceElementsPerCardFace();
+   })
+  }
+
   getDragDroppedBounds(): {left: number, top: number, width: number, height: number} {
     let {left, top, width, height} = this.getCardFaceClientRect();
     return {
@@ -84,6 +90,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   constructor() {
     this.getCurrentCardFaceElementsPerCardFace();
+    this.onSetCardEditorCardDtoByCardTemplateId();
+    
     this.onRteTextChange();
     this.onDisableImageEditor();
 
