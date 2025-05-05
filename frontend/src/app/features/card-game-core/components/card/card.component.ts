@@ -36,7 +36,8 @@ export class CardComponent {
   card: InputSignal<Card> = input<Card >({
     cardId: 0,
     currentCardFaceIndex: 0,
-    cardName: ''
+    cardName: '',
+    isTemplate: false
   });
 
   cardFaces: CardFace[] = [
