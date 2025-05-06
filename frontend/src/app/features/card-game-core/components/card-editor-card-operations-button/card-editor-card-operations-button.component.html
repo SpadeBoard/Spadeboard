@@ -1,7 +1,7 @@
 <button (click)="onCardCreate($event)">{{ hasCreated ? 'Save As New' : 'Create' }}</button>
 
 @if (hasCreated) {
-    <button (click)="onCardSave($event)" disabled>Save</button>
+    <button (click)="onCardSave($event)">Save</button>
 }
 
 <button (click)="onSaveTemplate($event)">Save Template</button>

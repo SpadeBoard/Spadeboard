@@ -1,8 +1,8 @@
 import { effect, inject, Injectable } from '@angular/core';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardEditorCardDto } from '../models/card';
-import { CardFaceElementPerCardFace } from '../models/card-face-element';
-import { catchError, concatMap, forkJoin, from, map, mergeMap, Observable, of, Subject, switchMap, tap } from 'rxjs';
+import { CardFaceElement, CardFaceElementPerCardFace } from '../models/card-face-element';
+import { catchError, concatMap, EMPTY, forkJoin, from, map, mergeMap, Observable, of, Subject, switchMap, tap } from 'rxjs';
 import { FileUploadApiService } from '../../../utils/services/file-upload-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
 import { CardApiService } from './card-game-core/card-api.service';
@@ -85,6 +85,9 @@ export class CardEditorPreviewService {
 
   private onCreateCard$$: Subject<void> = new Subject<void>();
   onCreateCard$: Observable<void> = this.onCreateCard$$.asObservable();
+
+  private onUpdateCard$$: Subject<void> = new Subject<void>();
+  onUpdateCard$: Observable<void> = this.onUpdateCard$$.asObservable();
 
   private onDeleteCardFaceElement$$: Subject<void> = new Subject<void>();
   onDeleteCardFaceElement$: Observable<void> = this.onDeleteCardFaceElement$$.asObservable();
@@ -179,7 +182,7 @@ export class CardEditorPreviewService {
     while (this.cardFaceElementsDelete.length > 0) {
      let id: number | undefined = this.cardFaceElementsDelete.pop();
 
-     this.cardFaceElementApiService.deleteCardFaceElement(id as number);
+     this.cardFaceElementApiService.deleteCardFaceElement$(id as number);
     }
   } 
 
@@ -233,7 +236,7 @@ export class CardEditorPreviewService {
     this.setCurrentCardEditorCardFaceDto();
   }
 
-  private updateCardFacesThumbnailImages$(cardFaceImages: FormData[]): Observable<CardEditorCardDto> {
+  private createCardFacesThumbnailImages$(cardFaceImages: FormData[]): Observable<CardEditorCardDto> {
       // Wrap the promise in an observable if needed
       // TODO: We eventually want to actually use this to have more than 2 faces
       console.log(`Update card face thumbnail images - card face images: ${cardFaceImages}`);
@@ -260,6 +263,36 @@ export class CardEditorPreviewService {
         map(() => this.cardEditorCardDto)
       );
   
+      // https://rxjs.dev/api/operators/tap
+    }
+
+    private replaceCardFacesThumbnailImages$(cardFaceImages: FormData[]): Observable<CardEditorCardDto> {
+      // Wrap the promise in an observable if needed
+      // TODO: We eventually want to actually use this to have more than 2 faces
+      console.log(`Replace card face thumbnail images - card face images: ${cardFaceImages}`);
+
+      if (cardFaceImages.length <= 0) {
+        return of(this.cardEditorCardDto);
+      }
+
+      let replaceCardFaceImages$ = cardFaceImages.map((formData: FormData, idx: number) => {
+        let cardFaceThumbnailFilePath = this.cardEditorCardDto.cardEditorCardFacesDto[idx].cardFace.cardFaceThumbnailFilePath;
+        return this.fileUploadApiService.replaceFile(formData, cardFaceThumbnailFilePath as string, 'card-face');
+      });
+  
+      // TODO: Replace the fork join with cardFacesFormData
+      return forkJoin(replaceCardFaceImages$).pipe(
+        tap((results: { id: string }[]) => {
+          // Map each result to the corresponding DTO
+          console.log(`Update card face images observable: ${JSON.stringify(results)}`);
+
+          results.forEach((result, index) => {
+            this.cardEditorCardDto.cardEditorCardFacesDto[index].cardFace.cardFaceThumbnailFilePath =
+              result.id;
+          });
+        }),
+        map(() => this.cardEditorCardDto)
+      );
       // https://rxjs.dev/api/operators/tap
     }
 
@@ -359,60 +392,193 @@ export class CardEditorPreviewService {
     
       return cardFaceElementsImages$;
     }
-    // TODO:
-    // https://stackoverflow.com/questions/35676451/observable-forkjoin-and-array-argument
-    // Upload the card face elements image files in parallel
-    uploadCardFaceElementImage$(cardFaceElementPerCardFace: CardFaceElementPerCardFace): Observable<{
-      id: string | undefined;
-    }> {
-      if (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType !== 'image')
-        return of({ id: undefined });
-  
-      // CHECKME: Is this correct?
-      let content: string = cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent;
-  
-      // let dataUrl: string = cardFaceElementPerCardFace.cardFaceElement?.cardFaceElementContent.replace(/^data:image\/\w+;base64,/, '');
-  
-      // https://stackoverflow.com/questions/11876175/how-to-get-a-file-or-blob-from-an-object-url
-      // let blob = await fetch(url).then(r => r.blob());
-      // Handle blob: URL
-  
-      // TODO: Have a message showing that the element image faces are too big and don't create if that's the case
-      if (content.startsWith('blob:') || content.endsWith('.png')) {
-        return from(fetch(content).then(res => res.blob())).pipe(
-          switchMap(blob => {
-            let formData = new FormData();
-            formData.append('formFile', blob);
-  
-            console.log(`Card face element image blob: ${blob.text()}`);
-  
-            return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
-          })
-        );
-      }
-  
-      // Handle data: URL (base64)
-      if (content.startsWith('data:image/')) {
-        let base64 = content.replace(/^data:image\/\w+;base64,/, '');
-        let byteString = atob(base64);
-        let arrayBuffer = new ArrayBuffer(byteString.length);
-        let intArray = new Uint8Array(arrayBuffer);
-  
-        for (let i = 0; i < byteString.length; i++) {
-          intArray[i] = byteString.charCodeAt(i);
-        }
-  
-        let blob = new Blob([intArray], { type: 'image/png' });
-        let formData = new FormData();
-        formData.append('formFile', blob);
-  
-        console.log(`Card face element image data url: ${blob.text()}`);
-        return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
-      }
-  
+  // TODO:
+  // https://stackoverflow.com/questions/35676451/observable-forkjoin-and-array-argument
+  // Upload the card face elements image files in parallel
+  uploadCardFaceElementImage$(cardFaceElementPerCardFace: CardFaceElementPerCardFace): Observable<{
+    id: string | undefined;
+  }> {
+    if (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType !== 'image')
       return of({ id: undefined });
+
+    // CHECKME: Is this correct?
+    let content: string = cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent;
+
+    // let dataUrl: string = cardFaceElementPerCardFace.cardFaceElement?.cardFaceElementContent.replace(/^data:image\/\w+;base64,/, '');
+
+    // https://stackoverflow.com/questions/11876175/how-to-get-a-file-or-blob-from-an-object-url
+    // let blob = await fetch(url).then(r => r.blob());
+    // Handle blob: URL
+
+    // TODO: Have a message showing that the element image faces are too big and don't create if that's the case
+    if (content.startsWith('blob:') || content.endsWith('.png')) {
+      return from(fetch(content).then(res => res.blob())).pipe(
+        switchMap(blob => {
+          let formData = new FormData();
+          formData.append('formFile', blob);
+
+          console.log(`Card face element image blob: ${blob.text()}`);
+
+          return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
+        })
+      );
     }
 
+    // Handle data: URL (base64)
+    if (content.startsWith('data:image/')) {
+      let base64 = content.replace(/^data:image\/\w+;base64,/, '');
+      let byteString = atob(base64);
+      let arrayBuffer = new ArrayBuffer(byteString.length);
+      let intArray = new Uint8Array(arrayBuffer);
+
+      for (let i = 0; i < byteString.length; i++) {
+        intArray[i] = byteString.charCodeAt(i);
+      }
+
+      let blob = new Blob([intArray], { type: 'image/png' });
+      let formData = new FormData();
+      formData.append('formFile', blob);
+
+      console.log(`Card face element image data url: ${blob.text()}`);
+      return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
+    }
+
+    return of({ id: undefined });
+  }
+
+  replaceCardFaceElementsImagesAndUpdatePaths$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]): Observable<CardEditorCardDto> {
+    if (cardFaceElementsPerFace.length <=0) {
+      return of(this.cardEditorCardDto);
+    }
+
+    // Question is is this mutable, or is there something going on with the asynchronous
+    // FIXME: Why is this out of order?
+    let imageElementIndexes: number[] = cardFaceElementsPerFace
+      .map((el: CardFaceElementPerCardFace, idx: number) =>
+        el.cardFaceElement.cardFaceElementType === 'image' ? idx : -1
+      )
+      .filter(idx => idx !== -1);
+
+    // Create array preserving original indexes
+    let imageElementsWithIndexes = imageElementIndexes.map(idx => ({
+      element: cardFaceElementsPerFace[idx],
+     originalCardFaceElementId: cardFaceElementsPerFace[idx].cardFaceElement.cardFaceElementId
+    }));
+
+    // Sort by ID while keeping original indexes
+    imageElementsWithIndexes.sort((a, b) =>
+      a.element.cardFaceElement.cardFaceElementId -
+      b.element.cardFaceElement.cardFaceElementId
+    );
+
+    // Extract sorted elements for upload
+    let sortedImageElements = imageElementsWithIndexes.map(x => x.element);
+    let cardFaceElementsImages$ = this.replaceCardFaceElementsImages$(sortedImageElements);
+
+    if (cardFaceElementsImages$) {
+      return forkJoin(cardFaceElementsImages$).pipe(
+        tap((cardFaceElementsImages: { id: string | undefined }[]) => {
+          cardFaceElementsImages.forEach((dto, uploadIdx) => {
+            if (dto.id) {
+              // Use the preserved original index from sorted array
+              let originalId= imageElementsWithIndexes[uploadIdx].originalCardFaceElementId;
+              
+              this.updateCardFaceElementsImagesFilePath(
+                cardFaceElementsPerFace,
+                originalId,
+                dto.id
+              );
+            }
+          });
+        }),
+        map(() => this.cardEditorCardDto),
+        catchError((err) => {
+          console.error('Error uploading card face element images:', err);
+          return of(this.cardEditorCardDto);
+        })
+      );
+    }
+  
+    console.warn('No cardFaceElementsImages to upload');
+    return of(this.cardEditorCardDto); // safer than null
+  }
+
+  replaceCardFaceElementsImages$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]) {
+    let cardFaceElementsImages$: Observable<{
+      id: string | undefined;
+    }>[] = [];
+
+    if (cardFaceElementsPerFace === undefined)
+      return [];
+
+    cardFaceElementsPerFace.forEach((dto) => {
+      cardFaceElementsImages$.push(this.replaceCardFaceElementImage$(dto as CardFaceElementPerCardFace));
+    });
+
+    // console.log(`Added to cardFaceElementsImages$`);
+
+    return cardFaceElementsImages$;
+  }
+
+  replaceCardFaceElementImage$(cardFaceElementPerCardFace: CardFaceElementPerCardFace): Observable<{
+    id: string | undefined;
+  }> {
+    if (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType !== 'image')
+      return of({ id: undefined });
+
+    // CHECKME: Is this correct?
+    let newFile: string = cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent;
+
+    return this.cardFaceElementApiService.getCardFaceElement$(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).pipe(
+      switchMap((result: CardFaceElement | undefined) => {
+        if (result === undefined) {
+          return of({ id: undefined });
+        }
+  
+        let fileName: string = result.cardFaceElementContent;
+  
+        // Handle blob or .png URL
+        if (newFile.startsWith('blob:') || newFile.endsWith('.png')) {
+          return from(fetch(newFile).then(res => res.blob())).pipe(
+            switchMap(blob => {
+              let formData = new FormData();
+              formData.append('formFile', blob);
+  
+              // console.log(`Card face element image blob: ${blob.text()}`);
+  
+              return this.fileUploadApiService.replaceFile(formData, fileName, 'card-face-element-image');
+            })
+          );
+        }
+  
+        // Handle data: URL (base64)
+        if (newFile.startsWith('data:image/')) {
+          let base64 = newFile.replace(/^data:image\/\w+;base64,/, '');
+          let byteString = atob(base64);
+          let arrayBuffer = new ArrayBuffer(byteString.length);
+          let intArray = new Uint8Array(arrayBuffer);
+  
+          for (let i = 0; i < byteString.length; i++) {
+            intArray[i] = byteString.charCodeAt(i);
+          }
+  
+          let blob = new Blob([intArray], { type: 'image/png' });
+          let formData = new FormData();
+          formData.append('formFile', blob);
+  
+          // console.log(`Card face element image data url: ${blob.text()}`);
+          return this.fileUploadApiService.replaceFile(formData, fileName, 'card-face-element-image');
+        }
+  
+        // If not handled, return undefined
+        return of({ id: undefined });
+      })
+    );
+  }
+
+  private getCardFaceElementImageFilePath(cardFaceElementId: number) {
+
+  }
 
 
 
@@ -434,12 +600,12 @@ export class CardEditorPreviewService {
 
     // TODO: Try to make the this.uploadCardFaceElementsImagesAndUpdatePaths$ functions run simultaneously
     // Order of operations:
-    // 1. this.updateCardFacesThumbnailImages$
+    // 1. this.createCardFacesThumbnailImages$
     // 2. this.uploadCardFaceElementsImagesAndUpdatePaths$
     // 3. this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto) (waits for the other two to finish)
 
     // https://blog.angular-university.io/rxjs-higher-order-mapping/
-    this.updateCardFacesThumbnailImages$(this.cardFaceImages)
+    this.createCardFacesThumbnailImages$(this.cardFaceImages)
       .pipe(
         // mergeMap((cardEditorCardDto: CardEditorCardDto) => this.processAllCardFaces$(cardEditorCardDto)), // TODO: Replace the below with this
         mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace)), 
@@ -450,7 +616,7 @@ export class CardEditorPreviewService {
           } else {
             // NOTE: Clear the elements to delete because we're creating a new card from an existing DTO, so we're not actually modifying the original card
             this.cardFaceElementsDelete = [];
-            return this.cardApiService. createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
+            return this.cardApiService.createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
           }
         }) // NOTE: Need to return an actual value
       )
@@ -474,7 +640,39 @@ export class CardEditorPreviewService {
           console.error('Something went wrong:', err);
         }
       }
-      );
+    );
+  }
+
+  updateCard(): void {
+    this.deleteSavedCardFaceElements();
+    
+    this.replaceCardFacesThumbnailImages$(this.cardFaceImages)
+      .pipe(
+        // mergeMap((cardEditorCardDto: CardEditorCardDto) => this.processAllCardFaces$(cardEditorCardDto)), // TODO: Replace the below with this
+        mergeMap((cardEditorCardDto: CardEditorCardDto) => this.replaceCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace)),
+        mergeMap((cardEditorCardDto: CardEditorCardDto) => this.replaceCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace)),
+        concatMap((cardEditorCardDto: CardEditorCardDto) => this.cardApiService.updateCardEditorCardDto$(cardEditorCardDto)) // NOTE: Need to return an actual value
+      )
+      .subscribe({
+        next: (updateResult: CardEditorCardDto | undefined) => {
+          // console.log('Card successfully created:', createResult);
+
+          if (isCardEditorCardDto(updateResult)) {
+            console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
+            
+            this.cardEditorCardDto = updateResult;
+
+            this.reloadCurrentCardEditorCardFaceDto();
+            this.setOnUpdateCard();
+
+            this.cardGameCoreService.onUpdateCardEditorCardDto(this.cardEditorCardDto);
+          }
+        },
+        error: (err) => {
+          console.error('Something went wrong:', err);
+        }
+      }
+    );
   }
 
   reloadCurrentCardEditorCardFaceDto() {
@@ -483,6 +681,10 @@ export class CardEditorPreviewService {
 
   setOnCreateCard() {
     this.onCreateCard$$.next();
+  }
+
+  setOnUpdateCard() {
+    this.onUpdateCard$$.next();
   }
 
   updateCurrentCardFaceStyle(currentCardFaceStyle: Style) {

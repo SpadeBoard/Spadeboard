@@ -58,8 +58,6 @@ export class CardEditorComponent implements AfterViewInit {
 
   private currentCardFaceElementId: number = -1;
 
-  onCardFaceModifyBtnText: string = "Create";
-
   constructor() {
     effect(() => {
       if (this.cardGameCoreService.cardEditorCardDto().card.cardId !== undefined && this.cardGameCoreService.cardEditorCardDto().card.cardId as number > 0) {
@@ -205,117 +203,6 @@ export class CardEditorComponent implements AfterViewInit {
 
   private currentPopupMenu: number | null = 0;
 
-  /*onDragMoved(event: CdkDragMove<any>): void {
-    // Calculates relative position of pointer in container
-    // FIXME: I think the fact that the pointer is at the cursor might be causing issues
-    let container = this.getCardFaceClientRect();
-    let scale: DndPosition = {
-      x: event.pointerPosition.x - container.left, y: event.pointerPosition.y - container.top,
-      dndPositionId: 0
-    };
-
-    // console.log(`Pointer position: ${pointerPosition.x}, ${pointerPosition.y}\nContainer width and height: ${container.width}, ${container.height}, Scale: ${scale.x}, ${scale.y}`);
-
-    // CHECKME: Not sure if this is even necessary
-    scale.x = Math.max(0, Math.min(scale.x, container.width));
-    scale.y = Math.max(0, Math.min(scale.y, container.height));
-
-    this.position = scale;
-  }
-
-  // TODO: Make sure that when you're updating a card face, convert the card face elements from % to px
-
-  // https://stackoverflow.com/questions/69932412/free-drag-with-cdkdroplist
-  // https://stackblitz.com/edit/angular-ivy-2imxxu?file=src%2Fapp%2Fapp.component.ts
-
-  // HTML
-  //  (cdkDragEnded)="onDragEnded($event)"
-
-  onDragEnded(event: CdkDragEnd): void {
-    // TODO: On drag end, update the item's position, grab event.source.data, get the ID, find the cardFaceElementId in the currentCardFaceElements, then update its positioning
-    let viewportPoint: DndPosition = {
-      x: event.source.getFreeDragPosition().x, y: event.source.getFreeDragPosition().y,
-      dndPositionId: 0
-    };
-
-    // console.log(`Final free drag position - X: ${event.source.getFreeDragPosition().x}, Y: ${event.source.getFreeDragPosition().y}`);
-
-    // It's measuring from the top left corner of our dragged item
-    // Card corners
-    // top-left: 0, 0
-    // top-right: 441.84, 0
-    // bottom-left: 0, 615.59
-    // bottom-right: 441.84, 615.59
-    let rect = this.getCardFaceClientRect();
-    // console.log('Size in onDragEnded:', rect.width, rect.height);
-
-    let position: DndPosition = convertToRelativeCoordinates(viewportPoint, this.cardEditorFace, true);
-
-    // console.log(`Dragged item: ${event.source.data} \nX: ${viewportPoint.x}, Y: ${viewportPoint.y}\nX: ${position.x}%, Y: ${position.y}%`);
-
-    if (isCardFaceElementPerCardFace(event.source.data)) {
-      let item = event.source.data;
-      item.dndPosition = position;
-
-      if (this.updateCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, item)) {
-        return;
-      }
-    }
-  }
-
-  // TODO: Temporary, merge it as a function overload with onDragEnded
-  onDragDropped(event: CdkDragDrop<any>) {
-    if (!isCardFaceElementPerCardFace(event.item.data))
-      return;
-
-    // console.log(`Drop point: ${event.dropPoint.x}, ${event.dropPoint.y}`);
-
-    let rect = this.getCardFaceClientRect();
-    /* let item = event.item.element.nativeElement.getBoundingClientRect();
-
-    let scaleY = item.height / rect.height;
-    let scaleX = item.width / rect.width;
-
-    // this._pointerPosition.y-this.off.-this.dropZone.nativeElement
-    // pointerPosition uses page coordinate system. This means that the position is measured relative to the top-left corner of the entire rendered document
-   // x_local = x_page - x_item
-   // y_local = y_page - y_item
-    let localDistance: DndPosition = pageToLocalCoordinates(this.cardEditorFace, event.distance.x, event.distance.y, window.scrollX, window.scrollY);
-    
-    let y: number = +event.dropPoint.x; //+event.item.data.dndPosition.y + (event.distance.y * scaleY);
-    let x: number = +event.dropPoint.y; //+event.item.data.dndPosition.x + (event.distance.x * scaleX);
-
-    // console.log(`Math: ${+event.item.data.dndPosition.x} + (${event.distance.x} * ${scaleX}), ${+event.item.data.dndPosition.y} + (${event.distance.y} * ${scaleY})\nItem position: ${x}, ${y}\nDrop point: ${event.dropPoint.x}, ${event.dropPoint.y}\nHeight constraint: ${rect.height - item.height}\nWidth constraint: ${rect.width - item.width}`);
-
-    // FIXME: Why is it always outside?
-    // Might have to create a function for scaling properly?
-    // Use pointer position to get exact scale?
-    // let out = this.position.y < 0 || this.position.x < 0 || (this.position.y > (rect.height - item.height)) || (this.position.x > (rect.width - item.width));
-
-    let out = this.position.y < 0 || this.position.x < 0 || this.position.y > rect.height || this.position.x > rect.width;
-
-
-    if (!out) {
-      // console.log('Not out');
-
-      if (event.item.data.dndPosition === undefined)
-        return;
-
-      event.item.data.dndPosition = this.position;
-
-      // Tells the currentCardFaceElements how to sort, as in the order
-      // FIXME: Whatever's being dragged on top should always be on top
-      this.currentCardFaceElementsPerCardFace =this.currentCardFaceElementsPerCardFace.sort((a, b) => {
-        if (a.cardFaceElement.style === undefined || b.cardFaceElement.style === undefined || a.cardFaceElement.style['zIndex'] === undefined || b.cardFaceElement.style['zIndex'] === undefined) return 1;
-
-        return a.cardFaceElement.style['zIndex'] > b.cardFaceElement.style['zIndex']
-          ? 1 : a.cardFaceElement.style['zIndex'] < b.cardFaceElement.style['zIndex']
-            ? -1 : 0;
-      });
-
-      // If it's out, potentially put it to the closest corner?
-    }
-  }*/
 
   getCardFaceElementPerCardFace(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementId: number): CardFaceElementPerCardFace | null {
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
@@ -373,58 +260,6 @@ export class CardEditorComponent implements AfterViewInit {
     // console.log(`Set current card editor card face DTO: ${JSON.stringify(this.currentCardEditorCardFaceDto)}`);
   }
 
-  updateCard(): void {
-    // TODO: Have a check to only take a picture when there's actually changes to the card face
-    // Take current card face index, use that to compare current card face and information for that card face
-    // If they're different, take a picture
-
-    this.cardApiService.updateCard$(
-      this.cardEditorCardDto).subscribe((result: Card | CardEditorCardDto | void | undefined) => {
-        // console.log(`On update card: ${(result) ? JSON.stringify(result) : result}`);
-
-        // FIXME: Updating shouldn't be returning anything
-        if (isCardEditorCardDto(result)) {
-          this.cardEditorCardDto = result;
-          
-          this.setCurrentCardEditorCardFaceDto();
-          this.setCurrentCardFaceElementsPerCardFace();
-        }
-      });
-  }
-
-  onOpenImageEditor(cardFaceElementId: number) {
-    // console.log(`On open image editor: ${JSON.stringify(this.currentCardFaceElementsPerCardFace,)}`);
-    
-    this.currentPopupMenu = 0;
-
-    this.isCurrentPopupMenuOpen = true;
-
-    this.currentCardFaceElementId = cardFaceElementId;
-    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | null = this.getCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, this.currentCardFaceElementId);
-
-    if (!cardFaceElementPerCardFace)
-      return;
-
-    this.popupMenuInputs.cardFaceImageAttr = {
-      cardFaceImage: {
-        imageId: cardFaceElementId,
-        src: cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent,
-        alt: ''
-      },
-      cardFaceImageStyle: {
-        styleId: 0,
-        width: '100',
-        height: '150',
-      }
-    };
-
-    // FIXME: Current card face element ID is -1, pass into the app-card-face-image as part of input then pass it back up?
-    // console.log(`On open image editor current card face element ID: ${this.currentCardFaceElementId}`);
-  }
-
-  onCloseImageEditor(showImageEditor: boolean) {
-    this.isCurrentPopupMenuOpen = false;
-  }
 
   // Wait, why store the blob? Wouldn't it change everytime?
   setCardFaceImageElementSrc(croppedImage: string): void {

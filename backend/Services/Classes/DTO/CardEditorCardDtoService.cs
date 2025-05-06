@@ -190,21 +190,23 @@ namespace Services
                 // 1. Grab the card
                 // 2. Grab the foreign keys of the card
                 // 3. Get those card faces and card face elements based on the card Dto
-                // 4. Then update and return it
+                var updated = false;
 
-                var updated = true;
+                // 4. Then update and return it
+                if (dto.CardEditorCardFacesDto != null) {
+                   updated =  await  _cardEditorCardFaceDtoService.UpdateAllDtoAsync(dto.CardEditorCardFacesDto);
+                }
 
                 updated = await _cardService.UpdateAsync(dto.Card.CardId, dto.Card);
 
                 if (updated == false)
                     return updated;
 
-                if (dto.CardEditorCardFacesDto != null) {
-                   updated =  await _cardEditorCardFaceDtoService.UpdateAllDtoAsync(dto.CardEditorCardFacesDto);
-                }
 
                 if (updated == false)
                     return updated;
+
+                // await _cardFaceService
 
                 await transaction.CommitAsync();
                 return updated;

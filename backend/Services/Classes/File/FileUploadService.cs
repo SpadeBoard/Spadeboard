@@ -83,49 +83,63 @@ namespace Services
             return null;
         }
 
-        public async Task<bool> ReplaceFileAsync(IFormFile formFile, string targetFilePath, float maxLength)
+        public async Task<bool> ReplaceFileAsync(IFormFile formFile, string volumePath, string fileName, float maxLength)
         {
-            if (formFile.Length <= 0 || formFile.Length > maxLength || string.IsNullOrEmpty(targetFilePath))
+            if (formFile.Length <= 0 /*|| formFile.Length > maxLength*/ || string.IsNullOrEmpty(fileName))
                 return false;
 
-            // Save the uploaded file to a temp file
             string tempFilePath = Path.GetTempFileName();
+            string destinationFilePath = Path.Combine(volumePath, fileName);
+            string backupFilePath = Path.Combine(volumePath, fileName + ".bak");
+
+            /*
+                System.IO.IOException: Cross-device link
+                at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+                at Interop.CheckIo(Int64 result, String path, Boolean isDirError)
+                at System.IO.FileSystem.ReplaceFile(String sourceFullPath, String destFullPath, String destBackupFullPath, Boolean ignoreMetadataErrors)
+                at Services.FileUploadService.ReplaceFileAsync(IFormFile formFile, String volumePath, String fileName, Single maxLength) in /app/backend/Services/Classes/File/FileUploadService.cs:line 110
+            */
 
             try
             {
+                // NOTE: File.Replace and File.Move require both files to be on the same filesystem because they use atomic operations that rely on hard links, which are not possible across filesystems
+                // Write uploaded file to temp file
                 using (var tempStream = System.IO.File.Create(tempFilePath))
                 {
                     await formFile.CopyToAsync(tempStream);
                 }
 
-                // Optionally, create a backup of the target file
-                string backupFilePath = targetFilePath + ".bak";
+                // Backup the original file if needed
+                if (File.Exists(destinationFilePath))
+                {
+                    File.Copy(destinationFilePath, backupFilePath, overwrite: true);
+                }
 
-                File.Replace(tempFilePath, targetFilePath, backupFilePath);
+                // Overwrite the destination with the temp file
+                File.Copy(tempFilePath, destinationFilePath, overwrite: true);
 
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.ToString());
                 return false;
             }
             finally
             {
-                // Clean up the temp file if it still exists
                 if (File.Exists(tempFilePath))
                     File.Delete(tempFilePath);
             }
         }
 
-        public async Task<bool> ReplaceCardFaceFileAsync(IFormFile formFile, string targetFilePath)
+        public async Task<bool> ReplaceCardFaceFileAsync(IFormFile formFile, string fileName)
         {
-            return await ReplaceFileAsync(formFile, targetFilePath, maxFileSizeCardFaceElementImage);
+            return await ReplaceFileAsync(formFile, cardFaceFilePath, fileName, maxFileSizeCardFaceElementImage);
         }
 
-        public async Task<bool> ReplaceCardFaceElementImageFileAsync(IFormFile formFile, string targetFilePath)
+        public async Task<bool> ReplaceCardFaceElementImageFileAsync(IFormFile formFile, string fileName)
         {
-            return await ReplaceFileAsync(formFile, targetFilePath, maxFileSizeCardFaceElementImage);
+            return await ReplaceFileAsync(formFile, cardFaceElementImageFilePath, fileName, maxFileSizeCardFaceElementImage);
         }
 
         public async Task<FileStream?> GetCardFaceFileAsync(string fileName)
@@ -147,6 +161,30 @@ namespace Services
         public async Task<string?> UploadCardFaceElementImageFileAsync(IFormFile formFile)
         {
             return await UploadFileAsync(formFile, maxFileSizeCardFaceElementImage, cardFaceElementImageFilePath);
+        }
+
+        public async Task DeleteFileAsync(string volumePath, string fileName)
+        {
+            string fullPath = Path.Combine(volumePath, fileName);
+            if (File.Exists(fullPath))
+            {
+                await Task.Run(() => File.Delete(fullPath));
+            }
+            else
+            {
+                // Optionally handle the case where the file doesn't exist
+                // For example, throw an exception or just return
+            }
+        }
+
+        public async Task DeleteCardFaceFileAsync(string fileName)
+        {
+            await DeleteFileAsync(cardFaceFilePath, fileName);
+        }
+
+        public async Task DeleteCardFaceElementImageFileAsync(string fileName)
+        {
+            await DeleteFileAsync(cardFaceElementImageFilePath, fileName);
         }
 
         // TODO: figure out how to fix this

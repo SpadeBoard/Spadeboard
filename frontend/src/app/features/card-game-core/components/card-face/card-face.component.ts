@@ -32,7 +32,7 @@ export class CardFaceComponent {
       width: '0px',
       height: '0px'
     },
-    cardFaceThumbnailFilePath: '/blank-card-canvas.png'
+    cardFaceThumbnailFilePath: '/blank-card-canvas.svg'
   });
 
   // TODO: Card face image here
@@ -40,7 +40,7 @@ export class CardFaceComponent {
   private destroy$ = new Subject<void>();
 
   image= {
-    src: '/blank-card-canvas.png',
+    src: '/blank-card-canvas.svg',
     alt: '',
     width: 154,
     height: 215

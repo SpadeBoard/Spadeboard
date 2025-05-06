@@ -107,6 +107,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.onCreateCard();
     this.onCreateCardFaceElementPerCardFace();
     this.onDeleteCardFaceElement();
+    this.onUpdateCard();
   }
 
   ngAfterViewInit() {
@@ -114,6 +115,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   private onCreateCard() {
     this.cardEditorPreviewService.onCreateCard$.subscribe(() => {
+      this.getCurrentCardFaceElementsPerCardFace();
+    })
+  }
+
+  private onUpdateCard() {
+    this.cardEditorPreviewService.onUpdateCard$.subscribe(() => {
       this.getCurrentCardFaceElementsPerCardFace();
     })
   }

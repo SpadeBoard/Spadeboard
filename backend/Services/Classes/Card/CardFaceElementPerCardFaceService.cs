@@ -195,17 +195,26 @@ namespace Services
 
         public async Task<bool> UpdateNavAsync(CardFaceElementPerCardFace nav)
         {
-            if (nav.CardFaceElement != null && _cardFaceElementService.IsModified(nav.CardFaceElement))
+            if (nav.CardFaceElement != null /*&& _cardFaceElementService.IsModified(nav.CardFaceElement)*/)
             {
                 _context.Entry(nav.CardFaceElement).State = EntityState.Modified;
             }
 
-            if (nav.DndItem != null && _dndItemService.IsModified(nav.DndItem))
+            if (nav.DndItem != null /*&& _dndItemService.IsModified(nav.DndItem)*/)
             {
                 _context.Entry(nav.DndItem).State = EntityState.Modified;
             }
 
-            if (nav.DndPosition != null && _dndPositionService.IsModified(nav.DndPosition))
+            /*
+                Detail: Key (DndPositionId)=(0) is not present in table "DndPositions".
+                SchemaName: public
+                TableName: CardFaceElementPerCardFace
+                ConstraintName: FK_CardFaceElementPerCardFace_DndPositions_DndPositionId
+                File: ri_triggers.c
+                Line: 2599
+                Routine: ri_ReportViolation
+            */
+            if (nav.DndPosition != null /*&& _dndPositionService.IsModified(nav.DndPosition)*/)
             {
                 _context.Entry(nav.DndPosition).State = EntityState.Modified;
             }
@@ -215,7 +224,7 @@ namespace Services
                 _context.Entry(nav.DndDragBoundary).State = EntityState.Modified;
             }*/
 
-            if (nav.CardFace != null && _cardFaceService.IsModified(nav.CardFace))
+            if (nav.CardFace != null /*&& _cardFaceService.IsModified(nav.CardFace)*/)
             {
                 _context.Entry(nav.CardFace).State = EntityState.Modified;
             }
@@ -283,11 +292,11 @@ namespace Services
             if (updated == false)
                 return updated;
             
-            // PURPOSE: It's because some elements might be newly added and have an ID of 0
             foreach (var cardFaceElementPerCardFace in cardFaceElementsPerCardFace) 
             {
                 cardFaceElementPerCardFace.CardFace = cardFace;
 
+                // PURPOSE: It's because some elements might be newly added and have an ID of 0
                 if (!_cardFaceElementService.Exists(cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId)) {
                     await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
                     await CreateNavAsync(cardFaceElementPerCardFace);

@@ -87,6 +87,19 @@ namespace backend.Controllers
             return cardFaceElement;
         }
 
+        [HttpGet("nav/{id}")]
+        public async Task<ActionResult<CardFaceElement>> GetCardFaceElementNav(int id)
+        {
+            var cardFaceElement = await _cardFaceElementService.GetNavAsync(id);
+
+            if (cardFaceElement == null)
+            {
+                return NotFound();
+            }
+
+            return cardFaceElement;
+        }
+
         // PUT: api/CardFaceElements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
