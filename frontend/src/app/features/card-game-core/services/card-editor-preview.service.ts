@@ -9,6 +9,7 @@ import { CardApiService } from './card-game-core/card-api.service';
 import { isCardEditorCardDto } from '../utils/card-game-core.utils';
 import { Style } from '../../style/models/style';
 import { DndPosition } from '../../drag-and-drop/models/dnd-types';
+import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,7 @@ export class CardEditorPreviewService {
   private readonly cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
   private readonly cardApiService: CardApiService = inject(CardApiService);
   private readonly fileUploadApiService = inject(FileUploadApiService);
+  private readonly cardFaceElementApiService: CardFaceElementApiService = inject(CardFaceElementApiService);
   
   defaultCardEditorFaceStyle: Style = {
     styleId: 0,
@@ -74,11 +76,18 @@ export class CardEditorPreviewService {
 
   cardFaceImages: FormData[] = [];
 
+  private cardFaceElementsDelete: number[] = [
+
+  ];
+
   private onFlip$$: Subject<void> = new Subject<void>();
   onFlip$: Observable<void> = this.onFlip$$.asObservable();
 
   private onCreateCard$$: Subject<void> = new Subject<void>();
   onCreateCard$: Observable<void> = this.onCreateCard$$.asObservable();
+
+  private onDeleteCardFaceElement$$: Subject<void> = new Subject<void>();
+  onDeleteCardFaceElement$: Observable<void> = this.onDeleteCardFaceElement$$.asObservable();
 
   private onCreateCardFaceElementPerCardFace$$: Subject<{type: string, dndPosition: DndPosition}> = new Subject<{type: string, dndPosition: DndPosition}>();
   onCreateCardFaceElementPerCardFace$: Observable<{type: string, dndPosition: DndPosition}> = this.onCreateCardFaceElementPerCardFace$$.asObservable();
@@ -155,6 +164,24 @@ export class CardEditorPreviewService {
   setCurrentCardFaceElementsPerCardFace(currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[]) {
     this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace = currentCardFaceElementsPerCardFace;
   }
+
+  deleteCardFaceElement(cardFaceElementId: number) {
+    if (cardFaceElementId > 0 && this.cardEditorCardDto.card.cardId > 0) {
+      this.cardFaceElementsDelete.push(cardFaceElementId);
+    }
+
+    this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace = this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.filter(c => c.cardFaceElement.cardFaceElementId !== cardFaceElementId);
+    this.onDeleteCardFaceElement$$.next();
+  }
+
+  // / TODO: Only delete the backend on update card or template, keep track of IDs to delete
+  private deleteSavedCardFaceElements() {
+    while (this.cardFaceElementsDelete.length > 0) {
+     let id: number | undefined = this.cardFaceElementsDelete.pop();
+
+     this.cardFaceElementApiService.deleteCardFaceElement(id as number);
+    }
+  } 
 
   constructor() {
     // this.setBlankCardTemplate();
@@ -421,6 +448,8 @@ export class CardEditorPreviewService {
           if (cardEditorCardDto.card.cardId <= 0) {
             return this.cardApiService.createCardEditorCardDto$(cardEditorCardDto);
           } else {
+            // NOTE: Clear the elements to delete because we're creating a new card from an existing DTO, so we're not actually modifying the original card
+            this.cardFaceElementsDelete = [];
             return this.cardApiService. createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
           }
         }) // NOTE: Need to return an actual value

@@ -78,12 +78,19 @@ namespace Services
             foreach (CardFaceElement cardFaceElement in cardFaceElements)
             {
                 CardFaceElement elementToDelete = cardFaceElement;
-                await DeleteNavAsync(elementToDelete);
+                await DeleteNavAsync(elementToDelete.CardFaceElementId);
             }
         }
 
-        public async Task<bool> DeleteNavAsync(CardFaceElement cardFaceElement) 
+        public async Task<bool> DeleteNavAsync(int id) 
         {
+            var cardFaceElement= await GetNavAsync(id);
+            
+            if (cardFaceElement == null)
+            {
+                return false;
+            }
+
             _context.CardFaceElement.Remove(cardFaceElement);
 
             if (cardFaceElement.Style != null)

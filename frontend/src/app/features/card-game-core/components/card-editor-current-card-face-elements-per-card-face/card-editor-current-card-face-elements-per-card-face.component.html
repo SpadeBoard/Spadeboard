@@ -26,6 +26,9 @@
                         </svg>
                     </div>
                 </app-card-face-rt>
+                <app-card-editor-element-delete-button 
+                    [cardFaceElementId]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
+                />
                 }
             @case ("image") {
                 <app-card-face-image 
@@ -43,6 +46,9 @@
                         </svg>
                     </div>
                 </app-card-face-image>
+                <app-card-editor-element-delete-button 
+                    [cardFaceElementId]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
+                />
                 <app-resizable-wrapper 
                     [dimensions]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                     (resizableChange)="onResizableChange($event)"

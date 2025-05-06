@@ -35,7 +35,7 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteNavAsync(DndItemDto nav)
+        public Task<bool> DeleteNavAsync(int id)
         {
             throw new NotImplementedException();
         }

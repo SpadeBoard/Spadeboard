@@ -2,7 +2,7 @@ using Models.Cards;
 
 namespace Services
 {
-    public interface ICardFaceElementService : ICrud<CardFaceElement>
+    public interface ICardFaceElementService : ICrud<CardFaceElement>, ICrudNav<CardFaceElement>
     {
         public Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(int cardFaceId);
 
@@ -17,8 +17,6 @@ namespace Services
         public Task CreateAllNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace);
     
         public Task DeleteAllNavAsync(CardFaceElement[] cardFaceElements) ;
-
-        public Task<bool> DeleteNavAsync(CardFaceElement cardFaceElement) ;
 
         public Task<bool> UpdateAllNavAsync(CardFaceElement[] cardFaceElements);
 

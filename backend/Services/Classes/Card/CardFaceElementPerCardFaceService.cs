@@ -108,7 +108,7 @@ namespace Services
             return changes > 0;
         }
 
-        public async Task<bool> DeleteNavAsync(CardFaceElementPerCardFace nav)
+        public async Task<bool> DeleteNavAsync(int id)
         {
             throw new NotImplementedException();
         }

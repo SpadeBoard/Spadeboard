@@ -126,5 +126,17 @@ namespace backend.Controllers
 
             return NoContent();
         }
+
+        [HttpDelete("nav/{id}")]
+        public async Task<IActionResult> DeleteCardFaceElementNav(int id)
+        {
+            var deleted = await _cardFaceElementService.DeleteNavAsync(id);
+            if (deleted == false)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
     }
 }
