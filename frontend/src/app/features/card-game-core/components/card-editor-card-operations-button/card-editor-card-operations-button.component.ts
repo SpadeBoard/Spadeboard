@@ -32,6 +32,8 @@ export class CardEditorCardOperationsButtonComponent {
   }
 
   onCardCreate(event: Event): void {
+    // NOTE: This is because depending on whether we start from a fresh card or not, it's going to have that isTemplate's value
+    this.cardEditorPreviewService.cardEditorCardDto.card.isTemplate = false;
     this.handleCardCreate.emit();
   }
 

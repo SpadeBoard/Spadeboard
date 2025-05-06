@@ -86,6 +86,36 @@ namespace Services
             }
         }
 
+         public async Task CreateDtoFromExistingDtoAsync(CardEditorCardDto dto)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (dto.CardEditorCardFacesDto != null) {
+                    await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto);
+                }
+
+                dto.Card.CardId = 0;
+                await  _cardService.CreateAsync(dto.Card);
+
+                CardPerOwner cpo = new(){
+                    Card = dto.Card,
+                    OwnerId = dto.OwnerId
+                };
+
+                await _cardPerOwnerService.CreateAsync(cpo);
+
+                await _cardFacePerCardService.CreateAsyncFromCardEditorCardDto(dto);
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<bool> DeleteDtoAsync(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
