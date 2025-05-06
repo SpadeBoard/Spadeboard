@@ -1,8 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { CardComponent } from '../card/card.component';
-import { Card } from '../../models/card';
+import { Card, CardEditorCardDto } from '../../models/card';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
+import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
@@ -11,8 +12,9 @@ import { CardApiService } from '../../services/card-game-core/card-api.service';
   styleUrl: './card-editor-controls-cards-template-collection.component.css'
 })
 export class CardEditorControlsCardsTemplateCollectionComponent {
-  private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
-  private cardApiService: CardApiService = inject(CardApiService);
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly cardApiService: CardApiService = inject(CardApiService);
+  private readonly cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
 
   cards: Card[] = [
     {
@@ -25,6 +27,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
 
   constructor() {
     this.getCardTemplates();
+    this.onCreateCardEditorCardDto();
   }
 
   getCardTemplates() {
@@ -48,4 +51,16 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   onClickCard(event: Event, cardId: number) {
     this.cardEditorPreviewService.setCardEditorCardDtoByCardTemplateId(cardId);
   }
+
+  private onCreateCardEditorCardDto() {
+      // ASSUMPTION:
+      // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
+      // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
+      this.cardGameCoreService.onCreateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+        if (cardEditorCardDto && this.cards.length > 0 && cardEditorCardDto.card.isTemplate) {
+          this.cards.push(cardEditorCardDto.card);
+          return;
+        }
+      });
+    }
 }

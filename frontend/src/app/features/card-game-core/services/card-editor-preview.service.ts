@@ -417,7 +417,13 @@ export class CardEditorPreviewService {
         // mergeMap((cardEditorCardDto: CardEditorCardDto) => this.processAllCardFaces$(cardEditorCardDto)), // TODO: Replace the below with this
         mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace)), 
         mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace)), 
-        concatMap((cardEditorCardDto: CardEditorCardDto) => this.cardApiService.createCardEditorCardDto$(cardEditorCardDto)), // NOTE: Need to return an actual value
+        concatMap((cardEditorCardDto: CardEditorCardDto) => {
+          if (cardEditorCardDto.card.cardId <= 0) {
+            return this.cardApiService.createCardEditorCardDto$(cardEditorCardDto);
+          } else {
+            return this.cardApiService. createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
+          }
+        }) // NOTE: Need to return an actual value
       )
       .subscribe({
         next: (createResult: CardEditorCardDto | undefined) => {
