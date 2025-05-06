@@ -1,7 +1,9 @@
 .cropped-image-preview {
     position: absolute;
-    top: -10%;
-    right: -10%;
+    top: -10px;
+    right: -10px;
     background-color: #E6E6FA;
     padding: 1%;
+    max-width: 100px;
+    max-height: 100px;
 }
