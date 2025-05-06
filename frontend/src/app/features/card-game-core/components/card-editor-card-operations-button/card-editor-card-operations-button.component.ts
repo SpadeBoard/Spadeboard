@@ -38,4 +38,9 @@ export class CardEditorCardOperationsButtonComponent {
   onCardSave(event: Event): void {
     this.handleCardSave.emit();
   }
+
+  onSaveTemplate(event: Event) {
+    this.cardEditorPreviewService.cardEditorCardDto.card.isTemplate = true;
+    this.handleCardCreate.emit();
+  }
 }
