@@ -4,7 +4,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 
 import { environment } from '../../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { catchError, Observable, of, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +24,17 @@ export class CardFaceElementApiService {
     }
     
     return this.http.get<CardFaceElement[]>(`${this.apiUrl}`);
+  }
+
+  deleteCardFaceElement(cardFaceElementId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/nav/${cardFaceElementId}`).pipe(
+      catchError((error) => {
+        if (error.status === 404) {
+          console.error('Card face element not found');
+        }
+        return throwError(error);
+      })
+    );
   }
 
   /*getCardFaceElements(): ResourceRef<CardFaceElement[] | undefined>;
@@ -72,17 +83,6 @@ export class CardFaceElementApiService {
         cardFaceElement: CardFaceElement;
       }>): Observable<CardFaceElement> => {
         return this.http.put<CardFaceElement>(`${this.apiUrl}/${params.request.cardFaceElement.cardFaceElementId}`, params.request.cardFaceElement);
-      }
-    });
-  }
-
-  deleteCardFaceElement(cardFaceElementId: number): ResourceRef<void | undefined> {
-    return rxResource<void | undefined, { cardFaceElementId: number}>({
-      request: () => ({ cardFaceElementId }),
-      loader: (params: ResourceLoaderParams<{
-        cardFaceElementId: number;
-      }>): Observable<void | undefined> => {
-        return this.http.delete<void | undefined>(`${this.apiUrl}/${params.request.cardFaceElementId}`);
       }
     });
   }*/

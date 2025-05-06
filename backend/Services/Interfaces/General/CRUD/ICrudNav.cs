@@ -8,6 +8,6 @@ namespace Services
         public Task<bool> UpdateNavAsync(T nav);
 
         // https://stackoverflow.com/questions/61283974/how-to-check-if-a-delete-operation-succeeds-in-asp-net-mvc-using-entity-framewor
-        public Task<bool> DeleteNavAsync(T nav);
+        public Task<bool> DeleteNavAsync(int id);
     }
 }

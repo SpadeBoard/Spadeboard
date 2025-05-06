@@ -19,8 +19,15 @@ namespace Services
         private readonly IStyleService _styleService = styleService;
 
 
-        public async Task<bool> DeleteNavAsync(CardFace nav)
+        public async Task<bool> DeleteNavAsync(int id)
         {
+            var nav = await GetNavAsync(id);
+
+            if (nav == null)
+            {
+                return false;
+            }
+            
             _context.CardFace.Remove(nav);
 
             if (nav.Style != null)

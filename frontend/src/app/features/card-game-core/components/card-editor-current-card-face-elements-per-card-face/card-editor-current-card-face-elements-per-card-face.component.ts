@@ -16,11 +16,12 @@ import { CardEditorControlsDesignImageService } from '../../services/card-editor
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { distinctUntilChanged } from 'rxjs';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
+import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
   imports: [CdkDrag, CdkDragHandle, DragDropModule, CardFaceImageComponent, 
-    CommonModule, CardFaceRtComponent, ResizableWrapperComponent],
+    CommonModule, CardFaceRtComponent, ResizableWrapperComponent, CardEditorElementDeleteButtonComponent],
   templateUrl: './card-editor-current-card-face-elements-per-card-face.component.html',
   styleUrl: './card-editor-current-card-face-elements-per-card-face.component.css'
 })
@@ -105,6 +106,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   ngOnInit() {
     this.onCreateCard();
     this.onCreateCardFaceElementPerCardFace();
+    this.onDeleteCardFaceElement();
   }
 
   ngAfterViewInit() {
@@ -112,6 +114,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   private onCreateCard() {
     this.cardEditorPreviewService.onCreateCard$.subscribe(() => {
+      this.getCurrentCardFaceElementsPerCardFace();
+    })
+  }
+
+  private onDeleteCardFaceElement() {
+    this.cardEditorPreviewService.onDeleteCardFaceElement$.subscribe(() => {
       this.getCurrentCardFaceElementsPerCardFace();
     })
   }

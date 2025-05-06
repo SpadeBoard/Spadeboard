@@ -250,7 +250,7 @@ namespace Services
             }
         }
 
-        public Task<bool> DeleteNavAsync(CardPositionPerRoom nav)
+        public Task<bool> DeleteNavAsync(int id)
         {
             throw new NotImplementedException();
         }

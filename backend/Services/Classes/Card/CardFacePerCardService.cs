@@ -37,7 +37,7 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteNavAsync(CardFacePerCard nav)
+        public Task<bool> DeleteNavAsync(int nav)
         {
             throw new NotImplementedException();
         }
