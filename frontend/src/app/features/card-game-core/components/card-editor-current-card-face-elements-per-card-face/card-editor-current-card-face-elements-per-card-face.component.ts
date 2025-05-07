@@ -378,7 +378,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       let draggedItem = event.item.data;
       let cardFaceElementId = draggedItem.cardFaceElement.cardFaceElementId;
 
-      event.item.data.dndPosition = this.clampDndPosition(cardFaceElementId, this.position);
+      let clampedDndPosition = this.clampDndPosition(cardFaceElementId, this.position);
+
+      event.item.data.dndPosition = 
+      {
+        dndPositionId: event.item.data.dndPosition.dndPosiitonId,
+        x: clampedDndPosition.x,
+        y: clampedDndPosition.y
+      }
       return;
       // Only update position if within bounds
       /*event.item.data.dndPosition = {
@@ -387,7 +394,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       };*/
     }
 
-    event.item.data.dndPosition = this.position;
+    event.item.data.dndPosition.x = this.position.x;
+    event.item.data.dndPosition.y = this.position.y;
+
     this.updateCurrentCardEditorCardFaceDto();
     this.setElementAttributesPosition(this.position);
   }
