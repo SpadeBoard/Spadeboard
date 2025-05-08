@@ -36,6 +36,6 @@ export class CardEditorPreviewComponent {
   }
 
   handleCardSave() {
-
+    this.cardEditorFacePreview.saveCard();
   }
 }

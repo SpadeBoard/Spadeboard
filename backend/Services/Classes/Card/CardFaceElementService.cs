@@ -11,12 +11,13 @@ using Models.Cards;
 
 namespace Services
 {
-    public class CardFaceElementService(ApplicationDbContext context,  ICardFaceService cardFaceService, IDndItemService dndItemService, IStyleService styleService) : ICardFaceElementService
+    public class CardFaceElementService(ApplicationDbContext context,  ICardFaceService cardFaceService, IDndItemService dndItemService, IStyleService styleService, IFileUploadService fileUploadService) : ICardFaceElementService
     {
         private readonly ApplicationDbContext _context = context;
         private readonly ICardFaceService _cardFaceService = cardFaceService;
         private readonly IDndItemService _dndItemService = dndItemService;
         private readonly IStyleService _styleService = styleService;
+        private readonly IFileUploadService _fileUploadService = fileUploadService;
 
         public async Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(int cardFaceId)
         {
@@ -89,6 +90,10 @@ namespace Services
             if (cardFaceElement == null)
             {
                 return false;
+            }
+
+            if (cardFaceElement.CardFaceElementType == "image") {
+                await _fileUploadService.DeleteCardFaceFileAsync(cardFaceElement.CardFaceElementContent);
             }
 
             _context.CardFaceElement.Remove(cardFaceElement);

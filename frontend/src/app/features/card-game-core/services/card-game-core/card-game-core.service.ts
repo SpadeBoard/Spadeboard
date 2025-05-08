@@ -18,6 +18,9 @@ export class CardGameCoreService {
   private onCreateCardEditorCardDto$$ = new Subject<CardEditorCardDto>();
   onCreateCardEditorCardDto$: Observable<CardEditorCardDto> = this.onCreateCardEditorCardDto$$.asObservable();
 
+  private onUpdateCardEditorCardDto$$ = new Subject<CardEditorCardDto>();
+  onUpdateCardEditorCardDto$: Observable<CardEditorCardDto> = this.onUpdateCardEditorCardDto$$.asObservable();
+
   userId: WritableSignal<string> = signal<string>('');
 
   isCardsCollectionMenuOpen: WritableSignal<boolean>=  signal<boolean>(false);
@@ -69,5 +72,9 @@ export class CardGameCoreService {
 
   onCreateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
     this.onCreateCardEditorCardDto$$.next(cardEditorCardDto);
+  }
+
+  onUpdateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
+    this.onUpdateCardEditorCardDto$$.next(cardEditorCardDto);
   }
 }

@@ -74,5 +74,19 @@ namespace backend.Controllers
 
             return Ok(new { id = fileName });
         }
+
+        [HttpPut("card-face/{fileName}")]
+        public async Task<ActionResult<string>> ReplaceCardFaceFileAsync(string fileName, IFormFile formFile)
+        {
+            var replaced = await _fileUploadService.ReplaceCardFaceFileAsync(formFile, fileName);
+            return replaced ? Ok(new { id = fileName }) : BadRequest();
+        }
+
+        [HttpPut("card-face-element-image/{fileName}")]
+        public async Task<ActionResult<string>> ReplaceCardFaceElementImageFileAsync(string fileName, IFormFile formFile)
+        {
+            var replaced = await _fileUploadService.ReplaceCardFaceElementImageFileAsync(formFile, fileName);
+            return replaced ? Ok(new { id = fileName }) : BadRequest();
+        }
     }
 }

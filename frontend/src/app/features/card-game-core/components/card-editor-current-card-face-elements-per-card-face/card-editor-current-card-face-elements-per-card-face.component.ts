@@ -107,6 +107,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.onCreateCard();
     this.onCreateCardFaceElementPerCardFace();
     this.onDeleteCardFaceElement();
+    this.onUpdateCard();
   }
 
   ngAfterViewInit() {
@@ -114,6 +115,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   private onCreateCard() {
     this.cardEditorPreviewService.onCreateCard$.subscribe(() => {
+      this.getCurrentCardFaceElementsPerCardFace();
+    })
+  }
+
+  private onUpdateCard() {
+    this.cardEditorPreviewService.onUpdateCard$.subscribe(() => {
       this.getCurrentCardFaceElementsPerCardFace();
     })
   }
@@ -134,6 +141,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
       let dndPosition = this.getRelativeDropPosition({ x: result.dndPosition.x, y: result.dndPosition.y });
 
+      // FIXME: This isn't going to work because of multiusers, are we genuinely going to need another field for this like a UUID
       let cardFaceElementPerCardFaceId = (this.cardEditorPreviewService.isNewCardEditorCardDto())
         ? this.currentCardFaceElementsPerCardFace.length
         : this.currentCardFaceElementsPerCardFace[this.currentCardFaceElementsPerCardFace.length - 1].cardFaceElement.cardFaceElementId + 1;
@@ -371,7 +379,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       let draggedItem = event.item.data;
       let cardFaceElementId = draggedItem.cardFaceElement.cardFaceElementId;
 
-      event.item.data.dndPosition = this.clampDndPosition(cardFaceElementId, this.position);
+      let clampedDndPosition = this.clampDndPosition(cardFaceElementId, this.position);
+
+      event.item.data.dndPosition = 
+      {
+        dndPositionId: event.item.data.dndPosition.dndPosiitonId,
+        x: clampedDndPosition.x,
+        y: clampedDndPosition.y
+      }
       return;
       // Only update position if within bounds
       /*event.item.data.dndPosition = {
@@ -380,7 +395,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       };*/
     }
 
-    event.item.data.dndPosition = this.position;
+    event.item.data.dndPosition.x = this.position.x;
+    event.item.data.dndPosition.y = this.position.y;
+
     this.updateCurrentCardEditorCardFaceDto();
     this.setElementAttributesPosition(this.position);
   }

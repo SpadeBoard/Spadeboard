@@ -28,6 +28,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   constructor() {
     this.getCardTemplates();
     this.onCreateCardEditorCardDto();
+    this.onUpdateCardEditorCardDto();
   }
 
   getCardTemplates() {
@@ -53,14 +54,28 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   }
 
   private onCreateCardEditorCardDto() {
-      // ASSUMPTION:
-      // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
-      // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-      this.cardGameCoreService.onCreateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
-        if (cardEditorCardDto && this.cards.length > 0 && cardEditorCardDto.card.isTemplate) {
-          this.cards.push(cardEditorCardDto.card);
-          return;
+    // ASSUMPTION:
+    // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
+    // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
+    this.cardGameCoreService.onCreateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+      if (cardEditorCardDto && this.cards.length > 0 && cardEditorCardDto.card.isTemplate) {
+        this.cards.push(cardEditorCardDto.card);
+      }
+    });
+  }
+
+  private onUpdateCardEditorCardDto() {
+    // ASSUMPTION:
+    // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
+    // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
+    this.cardGameCoreService.onUpdateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+      if (cardEditorCardDto && this.cards.length > 0 && cardEditorCardDto.card.isTemplate) {
+        let index = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
+
+        if (index !== -1) {
+          this.cards[index] = cardEditorCardDto.card;
         }
-      });
-    }
+      }
+    });
+  }
 }

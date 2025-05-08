@@ -236,6 +236,7 @@ namespace backend.Controllers
             {
                 // TODO: Don't return the card, return the DTO
                 await _cardEditorCardDtoService.CreateDtoAsync(cardEditorCardDto);
+                // FIXME: How is DndPositionId different than the navigation property's
                 return CreatedAtAction("GetCardEditorCardDto", new { id = cardEditorCardDto.Card.CardId }, cardEditorCardDto);
             }
             catch (Exception ex)

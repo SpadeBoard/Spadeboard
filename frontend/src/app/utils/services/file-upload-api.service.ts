@@ -42,6 +42,20 @@ export class FileUploadApiService {
     }
   }
 
+  replaceFile(formData: FormData, fileName: string, type?: string): Observable<{
+    id: string;
+  }> {
+    switch (type)
+    {
+      case "card-face":
+        return this.http.put<{id: string}>(`${this.apiUrl}/card-face/${fileName}`, formData);
+      case "card-face-element-image":
+        return this.http.put<{id: string}>(`${this.apiUrl}/card-face-element-image/${fileName}`, formData);
+      default:
+        return this.http.put<{id: string}>(`${this.apiUrl}`, formData/*, {headers}*/);
+    }
+  }
+
   /*
   deleteFile(fileId: number): ResourceRef<void | undefined> {
     return rxResource<void, [number]>({

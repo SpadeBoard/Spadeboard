@@ -142,4 +142,15 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       this.cardEditorPreviewService.createCard();
     });
   }
+
+  saveCard() {
+    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex()).subscribe((images: FormData[]) => {
+      if (images.length <= 0)
+        return;
+      
+      this.cardFaceElementsPerCardFace.setCurrentCardFaceElementsPerCardFace(); 
+      this.cardEditorPreviewService.updateCardEditorCardFaceDto();
+      this.cardEditorPreviewService.updateCard();
+    });
+  }
 }

@@ -150,6 +150,11 @@ export class CardApiService {
     return this.http.put<void>(`${this.apiUrl}/${cardEditorCardDto.card.cardId}`, cardEditorCardDto.card);
   }
 
+  updateCardEditorCardDto$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
+    // CHECKME: Do we need to update the owner ID too? But it's not gonna change
+    return this.http.put<CardEditorCardDto>(`${this.apiUrl}/dto/${cardEditorCardDto.card.cardId}`, cardEditorCardDto);
+  }
+
   deleteCard$(cardId: number, deleteAllAttributesAssociatedWithCard: boolean): Observable<void | undefined> {
     if (deleteAllAttributesAssociatedWithCard) {
       return this.http.delete<void>(`${this.apiUrl}/dto/${cardId}`);
