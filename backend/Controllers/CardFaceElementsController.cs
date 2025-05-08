@@ -14,11 +14,13 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardFaceElementsController(ICardFaceElementService cardFaceElementService, ICardFaceElementDtoService cardFaceElementDtoService) : ControllerBase
+    public class CardFaceElementsController(ICardFaceElementService cardFaceElementService, ICardFaceElementDtoService cardFaceElementDtoService, ICardFaceElementPerCardFaceService cardFaceElementPerCardFaceService) : ControllerBase
     {
         private readonly ICardFaceElementService _cardFaceElementService = cardFaceElementService;
 
         private readonly ICardFaceElementDtoService _cardFaceElementDtoService = cardFaceElementDtoService;
+
+        private readonly ICardFaceElementPerCardFaceService _cardFaceElementPerCardFaceService = cardFaceElementPerCardFaceService;
 
         // GET: api/CardFaceElements
         [HttpGet]
@@ -144,6 +146,18 @@ namespace backend.Controllers
         public async Task<IActionResult> DeleteCardFaceElementNav(int id)
         {
             var deleted = await _cardFaceElementService.DeleteNavAsync(id);
+            if (deleted == false)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete("nav/card-face-element-per-card-face/{id}")]
+        public async Task<IActionResult> DeleteCardFaceElementPerCardFaceNav(int id)
+        {
+            var deleted = await _cardFaceElementPerCardFaceService.DeleteNavAsync(id);
             if (deleted == false)
             {
                 return NotFound();

@@ -76,7 +76,7 @@ export class CardEditorPreviewService {
 
   cardFaceImages: FormData[] = [];
 
-  private cardFaceElementsDelete: number[] = [
+  private cardFaceElementsPerCardFaceDelete: number[] = [
 
   ];
 
@@ -89,8 +89,8 @@ export class CardEditorPreviewService {
   private onUpdateCard$$: Subject<void> = new Subject<void>();
   onUpdateCard$: Observable<void> = this.onUpdateCard$$.asObservable();
 
-  private onDeleteCardFaceElement$$: Subject<void> = new Subject<void>();
-  onDeleteCardFaceElement$: Observable<void> = this.onDeleteCardFaceElement$$.asObservable();
+  private onDeleteCardFaceElementPerCardFace$$: Subject<void> = new Subject<void>();
+  onDeleteCardFaceElementPerCardFace$: Observable<void> = this.onDeleteCardFaceElementPerCardFace$$.asObservable();
 
   private onCreateCardFaceElementPerCardFace$$: Subject<{type: string, dndPosition: DndPosition}> = new Subject<{type: string, dndPosition: DndPosition}>();
   onCreateCardFaceElementPerCardFace$: Observable<{type: string, dndPosition: DndPosition}> = this.onCreateCardFaceElementPerCardFace$$.asObservable();
@@ -168,23 +168,40 @@ export class CardEditorPreviewService {
     this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace = currentCardFaceElementsPerCardFace;
   }
 
-  deleteCardFaceElement(cardFaceElementId: number) {
-    if (cardFaceElementId > 0 && this.cardEditorCardDto.card.cardId > 0) {
-      this.cardFaceElementsDelete.push(cardFaceElementId);
+  deleteCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: number) {
+    if (!this.isNewCardEditorCardDto() && this.doesCardFaceElementPerCardFaceToDeleteExistInDatabase(cardFaceElementPerCardFaceId)) {
+      this.cardFaceElementsPerCardFaceDelete.push(cardFaceElementPerCardFaceId);
+
+      console.log(`Delete card face element per card face: ${this.cardFaceElementsPerCardFaceDelete}`);
     }
 
-    this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace = this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.filter(c => c.cardFaceElement.cardFaceElementId !== cardFaceElementId);
-    this.onDeleteCardFaceElement$$.next();
+    this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace = this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.filter(c => c.cardFaceElementPerCardFaceId !== cardFaceElementPerCardFaceId);
+    this.onDeleteCardFaceElementPerCardFace$$.next();
+  }
+
+  // TODO: Fix how this check actually works, just check whether it exists in the database because we gotta use the Snowflake Algorithm
+  doesCardFaceElementPerCardFaceToDeleteExistInDatabase(cardFaceElementPerCardFaceId: number): boolean {
+    return cardFaceElementPerCardFaceId <= this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.length;
   }
 
   // / TODO: Only delete the backend on update card or template, keep track of IDs to delete
-  private deleteSavedCardFaceElements() {
-    while (this.cardFaceElementsDelete.length > 0) {
-     let id: number | undefined = this.cardFaceElementsDelete.pop();
-
-     this.cardFaceElementApiService.deleteCardFaceElement$(id as number);
+  private deleteSavedCardFaceElementsPerCardFace$(): Observable<any[]> {
+    console.log(`Delete saved card face elements per card face: ${this.cardFaceElementsPerCardFaceDelete}`);
+    if (this.cardFaceElementsPerCardFaceDelete.length <= 0) {
+      return of([]);
     }
-  } 
+    
+    let deleteObservables: Observable<void>[] = [];
+    while (this.cardFaceElementsPerCardFaceDelete.length > 0) {
+      let id: number | undefined = this.cardFaceElementsPerCardFaceDelete.pop();
+      if (id !== undefined) {
+        deleteObservables.push(this.cardFaceElementApiService.deleteCardFaceElementPerCardFace$(id));
+      }
+    }
+  
+    // Return a single observable that completes when all deletes are done
+    return forkJoin(deleteObservables);
+  }
 
   constructor() {
     // this.setBlankCardTemplate();
@@ -616,7 +633,7 @@ export class CardEditorPreviewService {
             return this.cardApiService.createCardEditorCardDto$(cardEditorCardDto);
           } else {
             // NOTE: Clear the elements to delete because we're creating a new card from an existing DTO, so we're not actually modifying the original card
-            this.cardFaceElementsDelete = [];
+            this.cardFaceElementsPerCardFaceDelete = [];
             return this.cardApiService.createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
           }
         }) // NOTE: Need to return an actual value
@@ -645,35 +662,41 @@ export class CardEditorPreviewService {
   }
 
   updateCard(): void {
-    this.deleteSavedCardFaceElements();
-    
-    this.replaceCardFacesThumbnailImages$(this.cardFaceImages)
-      .pipe(
-        // mergeMap((cardEditorCardDto: CardEditorCardDto) => this.processAllCardFaces$(cardEditorCardDto)), // TODO: Replace the below with this
-        mergeMap((cardEditorCardDto: CardEditorCardDto) => this.replaceCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace)),
-        mergeMap((cardEditorCardDto: CardEditorCardDto) => this.replaceCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace)),
-        concatMap((cardEditorCardDto: CardEditorCardDto) => this.cardApiService.updateCardEditorCardDto$(cardEditorCardDto)) // NOTE: Need to return an actual value
+    this.deleteSavedCardFaceElementsPerCardFace$()
+    .pipe(
+      catchError(err => {
+        console.error('Delete error (ignored):', err);
+        return of([]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
+      }),
+      switchMap(() => this.replaceCardFacesThumbnailImages$(this.cardFaceImages)),
+      mergeMap((cardEditorCardDto: CardEditorCardDto) =>
+        this.replaceCardFaceElementsImagesAndUpdatePaths$(
+          cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace
+        )
+      ),
+      mergeMap((cardEditorCardDto: CardEditorCardDto) =>
+        this.replaceCardFaceElementsImagesAndUpdatePaths$(
+          cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace
+        )
+      ),
+      concatMap((cardEditorCardDto: CardEditorCardDto) =>
+        this.cardApiService.updateCardEditorCardDto$(cardEditorCardDto)
       )
-      .subscribe({
-        next: (updateResult: CardEditorCardDto | undefined) => {
-          // console.log('Card successfully created:', createResult);
-
-          if (isCardEditorCardDto(updateResult)) {
-            console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
-
-            this.cardEditorCardDto = updateResult;
-
-            this.reloadCurrentCardEditorCardFaceDto();
-            this.setOnUpdateCard();
-
-            this.cardGameCoreService.onUpdateCardEditorCardDto(this.cardEditorCardDto);
-          }
-        },
-        error: (err) => {
-          console.error('Something went wrong:', err);
+    )
+    .subscribe({
+      next: (updateResult: CardEditorCardDto | undefined) => {
+        if (isCardEditorCardDto(updateResult)) {
+          console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
+          this.cardEditorCardDto = updateResult;
+          this.reloadCurrentCardEditorCardFaceDto();
+          this.setOnUpdateCard();
+          this.cardGameCoreService.onUpdateCardEditorCardDto(this.cardEditorCardDto);
         }
+      },
+      error: (err) => {
+        console.error('Something went wrong:', err);
       }
-    );
+    });
   }
 
   reloadCurrentCardEditorCardFaceDto() {

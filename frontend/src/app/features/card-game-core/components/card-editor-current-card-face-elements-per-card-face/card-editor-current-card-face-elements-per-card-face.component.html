@@ -27,7 +27,7 @@
                     </div>
                 </app-card-face-rt>
                 <app-card-editor-element-delete-button 
-                    [cardFaceElementId]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
+                    [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
                 />
                 }
             @case ("image") {
@@ -47,7 +47,7 @@
                     </div>
                 </app-card-face-image>
                 <app-card-editor-element-delete-button 
-                    [cardFaceElementId]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
+                    [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
                 />
                 <app-resizable-wrapper 
                     [dimensions]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"

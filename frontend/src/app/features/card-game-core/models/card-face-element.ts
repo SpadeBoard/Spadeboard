@@ -19,6 +19,7 @@ export interface CardFaceElementDto {
 }
 
 export interface CardFaceElementPerCardFace {
+    cardFaceElementPerCardFaceId: number;
     cardFaceElement: CardFaceElement;
     dndItem: DndItem;
     dndPosition: DndPosition;

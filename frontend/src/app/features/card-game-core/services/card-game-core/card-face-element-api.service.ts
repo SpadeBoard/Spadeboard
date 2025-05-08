@@ -30,8 +30,8 @@ export class CardFaceElementApiService {
     return this.http.get<CardFaceElement>(`${this.apiUrl}/nav/${cardFaceElementId}`);
   }
 
-  deleteCardFaceElement$(cardFaceElementId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/nav/${cardFaceElementId}`).pipe(
+  deleteCardFaceElementPerCardFace$(cardFaceElementPerCardFaceId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/nav/card-face-element-per-card-face/${cardFaceElementPerCardFaceId}`).pipe(
       catchError((error) => {
         if (error.status === 404) {
           console.error('Card face element not found');
