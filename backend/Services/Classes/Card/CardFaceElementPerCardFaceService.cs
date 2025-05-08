@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Models.Bridge;
 using Models.Cards;
 using Newtonsoft.Json;
+using System.Net;
 
 namespace Services
 {
@@ -110,7 +111,35 @@ namespace Services
 
         public async Task<bool> DeleteNavAsync(int id)
         {
-            throw new NotImplementedException();
+            CardFaceElementPerCardFace? cardFaceElementPerCardFaceToDelete = await GetAsync(id);
+
+            if (cardFaceElementPerCardFaceToDelete == null) {
+                return false;
+            }
+
+            bool deleted = await DeleteAsync(id);
+
+            if (!deleted)
+                return deleted;
+
+            deleted = await _cardFaceElementService.DeleteNavAsync(cardFaceElementPerCardFaceToDelete.CardFaceElementId);
+
+            if (!deleted)
+                return deleted;
+
+            deleted = await _dndItemService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndItemId);
+            
+            if (!deleted)
+                return deleted;
+
+            deleted = await _dndPositionService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndPositionId);
+
+            if (!deleted)
+                return deleted;
+
+            return deleted;
+
+            // NOTE: Don't delete the card face because all card face element per card face might share teh same card face
         }
 
         public bool Exists(int id)
@@ -271,21 +300,32 @@ namespace Services
                 cardFaceElementPerCardFace.CardFace = cardFace;
                 
                 cardFaceElementPerCardFace.CardFaceElementId = 0;
-                cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId = 0;
                 
-                cardFaceElementPerCardFace.CardFaceElement.StyleId = 0;
-                cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
+                if (cardFaceElementPerCardFace.CardFaceElement != null) {
+                    cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId = 0;
+                    cardFaceElementPerCardFace.CardFaceElement.StyleId = 0;
+
+                    if (cardFaceElementPerCardFace.CardFaceElement.Style != null) {
+                        cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
+                    }
+
+                    await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
+                }
 
                 cardFaceElementPerCardFace.DndItemId = 0;
-                cardFaceElementPerCardFace.DndItem.DndItemId =0;
+
+                if (cardFaceElementPerCardFace.DndItem != null) {
+                     cardFaceElementPerCardFace.DndItem.DndItemId =0;
+                }
 
                 cardFaceElementPerCardFace.DndPositionId = 0;
-                cardFaceElementPerCardFace.DndPosition.DndPositionId = 0;
+
+                if (cardFaceElementPerCardFace.DndPosition != null) {
+                    cardFaceElementPerCardFace.DndPosition.DndPositionId = 0;
+                }
 
                 // cardFaceElementPerCardFace.DndDragBoundaryId = 0;
                 // cardFaceElementPerCardFace.DndDragBoundary.DndDragBoundaryId =0;
-
-                await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
                 await CreateNavAsync(cardFaceElementPerCardFace);
             }
         }

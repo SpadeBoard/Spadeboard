@@ -126,9 +126,18 @@ namespace Services
             }
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var dndItem = await GetAsync(id);
+            if (dndItem == null)
+            {
+                return false;
+            }
+
+            _context.DndItem.Remove(dndItem);
+            int changes =  await _context.SaveChangesAsync();
+
+            return changes > 0;
         }
 
         public bool IsModified(DndItem item)

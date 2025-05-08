@@ -222,7 +222,8 @@ export class CardEditorComponent implements AfterViewInit {
         x: 0,
         y: 0,
         dndPositionId: 0
-      }
+      },
+      cardFaceElementPerCardFaceId: 0
     };
 
     let value = cardFaceElementsPerCardFace.find(

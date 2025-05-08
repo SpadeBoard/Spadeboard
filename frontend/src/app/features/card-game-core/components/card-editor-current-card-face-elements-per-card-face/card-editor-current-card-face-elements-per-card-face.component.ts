@@ -107,7 +107,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   ngOnInit() {
     this.onCreateCard();
     this.onCreateCardFaceElementPerCardFace();
-    this.onDeleteCardFaceElement();
+    this.onDeleteCardFaceElementPerCardFace();
     this.onUpdateCard();
   }
 
@@ -126,8 +126,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     })
   }
 
-  private onDeleteCardFaceElement() {
-    this.cardEditorPreviewService.onDeleteCardFaceElement$.subscribe(() => {
+  private onDeleteCardFaceElementPerCardFace() {
+    this.cardEditorPreviewService.onDeleteCardFaceElementPerCardFace$.subscribe(() => {
       this.getCurrentCardFaceElementsPerCardFace();
     })
   }
@@ -145,7 +145,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       // FIXME: This isn't going to work because of multiusers, are we genuinely going to need another field for this like a UUID
       let cardFaceElementPerCardFaceId = (this.cardEditorPreviewService.isNewCardEditorCardDto())
         ? this.currentCardFaceElementsPerCardFace.length
-        : this.currentCardFaceElementsPerCardFace[this.currentCardFaceElementsPerCardFace.length - 1].cardFaceElement.cardFaceElementId + 1;
+        : this.currentCardFaceElementsPerCardFace.length + 1;
 
       this.createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId, result.type, dndPosition);
 
@@ -160,8 +160,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.currentCardFaceElementsPerCardFace[idx].dndPosition = this.clampDndPosition(idx, latestDndPosition);
   }
   
+  // FXME: Card face element per card face and card face element should not share the same ID
   createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: number, type: string, dndPosition: DndPosition) {
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
+      cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
       cardFaceElement: {
         cardFaceElementId: cardFaceElementPerCardFaceId,
         cardFaceElementContent: '',
@@ -174,12 +176,13 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         isDraggable: false,
         isDroppable: false,
       },
-      dndPosition: dndPosition
+      dndPosition: dndPosition,
     }
 
     switch (type) {
       case 'rte':
         cardFaceElementPerCardFace = {
+          cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
           cardFaceElement: {
             cardFaceElementId:  cardFaceElementPerCardFaceId, // TODO: Replace with this.currentCardEditorCardFaceDto.cardFaceElementPerCardFaces.length + 1
             cardFaceElementContent: '',
@@ -201,6 +204,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         break;
       case 'image':
         cardFaceElementPerCardFace = {
+          cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
           cardFaceElement: {
             cardFaceElementId:  cardFaceElementPerCardFaceId,
             cardFaceElementContent: 'https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg',
