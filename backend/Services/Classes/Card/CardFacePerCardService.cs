@@ -32,17 +32,17 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public Task<bool> DeleteAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteNavAsync(int nav)
+        public Task<bool> DeleteNavAsync(long nav)
         {
             throw new NotImplementedException();
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             throw new NotImplementedException();
         }
@@ -57,7 +57,7 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<CardFacePerCard>> GetAllNavByCardId(int cardId)
+        public async Task<IEnumerable<CardFacePerCard>> GetAllNavByCardId(long cardId)
         {
             return await _context.CardFacePerCard
                 .Where(c => c.CardId == cardId)
@@ -66,19 +66,19 @@ namespace Services
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<CardFacePerCard>> GetAllByCardId(int cardId)
+        public async Task<IEnumerable<CardFacePerCard>> GetAllByCardId(long cardId)
         {
             return await _context.CardFacePerCard
                 .Where(c => c.CardId == cardId)
                 .ToListAsync();
         }
 
-        public Task<CardFacePerCard?> GetAsync(int id)
+        public Task<CardFacePerCard?> GetAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<CardFacePerCard?> GetNavAsync(int id)
+        public Task<CardFacePerCard?> GetNavAsync(long id)
         {
             throw new NotImplementedException();
         }
@@ -88,7 +88,7 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateAsync(int id, CardFacePerCard item)
+        public Task<bool> UpdateAsync(long id, CardFacePerCard item)
         {
             throw new NotImplementedException();
         }
@@ -101,7 +101,7 @@ namespace Services
         // TODO: Create card faces per card from CardEditorCardFaceDto and cardId
         public async Task CreateAsyncFromCardEditorCardDto(CardEditorCardDto cardEditorCardDto)
         {
-            int cardId = cardEditorCardDto.Card.CardId;
+            long cardId = cardEditorCardDto.Card.CardId;
 
             // FIXME: How is this null
             if (cardEditorCardDto.CardEditorCardFacesDto == null)

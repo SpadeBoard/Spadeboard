@@ -25,7 +25,7 @@ namespace backend.Controllers
 
         // GET: api/GameRooms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<GameRoom>> GetGameRoom(int id)
+        public async Task<ActionResult<GameRoom>> GetGameRoom(long id)
         {
             var gameRoom = await _context.GameRoom.FindAsync(id);
 
@@ -40,7 +40,7 @@ namespace backend.Controllers
         // PUT: api/GameRooms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGameRoom(int id, GameRoom gameRoom)
+        public async Task<IActionResult> PutGameRoom(long id, GameRoom gameRoom)
         {
             if (id != gameRoom.GameRoomId)
             {
@@ -81,7 +81,7 @@ namespace backend.Controllers
 
         // DELETE: api/GameRooms/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGameRoom(int id)
+        public async Task<IActionResult> DeleteGameRoom(long id)
         {
             var gameRoom = await _context.GameRoom.FindAsync(id);
             if (gameRoom == null)
@@ -95,7 +95,7 @@ namespace backend.Controllers
             return NoContent();
         }
 
-        private bool GameRoomExists(int id)
+        private bool GameRoomExists(long id)
         {
             return _context.GameRoom.Any(e => e.GameRoomId == id);
         }

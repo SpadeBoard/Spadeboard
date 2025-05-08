@@ -30,17 +30,17 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public Task<bool> DeleteAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteNavAsync(int id)
+        public Task<bool> DeleteNavAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             throw new NotImplementedException();
         }
@@ -55,12 +55,12 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<DndItemDto?> GetAsync(int id)
+        public Task<DndItemDto?> GetAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<DndItemDto?> GetByDndItemIdAndDndPositionIdAsync(int dndItemId, int dndPositionId)
+        public async Task<DndItemDto?> GetByDndItemIdAndDndPositionIdAsync(long dndItemId, long dndPositionId)
         {
             var dndItem = await _dndItemService.GetAsync(dndItemId);
         
@@ -79,7 +79,7 @@ namespace Services
             return dndItemDto;
         }
 
-        public Task<DndItemDto?> GetNavAsync(int id)
+        public Task<DndItemDto?> GetNavAsync(long id)
         {
             throw new NotImplementedException();
         }
@@ -89,7 +89,7 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateAsync(int id, DndItemDto item)
+        public Task<bool> UpdateAsync(long id, DndItemDto item)
         {
             throw new NotImplementedException();
         }

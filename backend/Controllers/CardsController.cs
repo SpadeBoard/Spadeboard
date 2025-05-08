@@ -41,7 +41,7 @@ namespace backend.Controllers
 
         // GET: api/Cards/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Card>> GetCard(int id)
+        public async Task<ActionResult<Card>> GetCard(long id)
         {
             var card = await _cardService.GetAsync(id);
 
@@ -55,7 +55,7 @@ namespace backend.Controllers
 
         // FIXME: Pass in ID instead
         [HttpGet("dto/{id}")]
-        public async Task<ActionResult<CardEditorCardDto>> GetCardEditorCardDto(int id)
+        public async Task<ActionResult<CardEditorCardDto>> GetCardEditorCardDto(long id)
         {
             var cardEditorCardDto = await _cardEditorCardDtoService.GetDtoAsync(id);
 
@@ -81,7 +81,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("owner/{ownerId}/{cardId}")]
-        public async Task<ActionResult<Card>> GetCardByOwner(string ownerId, int cardId)
+        public async Task<ActionResult<Card>> GetCardByOwner(string ownerId, long cardId)
         {
             var cpo = await _cardPerOwnerService.GetByCardIdAndOwnerIdAsync(cardId, ownerId);
 
@@ -103,7 +103,7 @@ namespace backend.Controllers
         // PUT: api/Cards/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCard(int id, Card card)
+        public async Task<IActionResult> PutCard(long id, Card card)
         {
             var result = await _cardService.UpdateAsync(id, card);
 
@@ -192,7 +192,7 @@ namespace backend.Controllers
         // FIXME: "message": "An error occurred while processing the request",
         // "error": "The database operation was expected to affect 1 row(s), but actually affected 0 row(s); data may have been modified or deleted since entities were loaded. See https://go.microsoft.com/fwlink/?LinkId=527962 for information on understanding and handling optimistic concurrency exceptions."}
         [HttpPut("dto/{id}")]
-        public async Task<IActionResult> PutCardEditorCardDto(int id, CardEditorCardDto cardEditorCardDto)
+        public async Task<IActionResult> PutCardEditorCardDto(long id, CardEditorCardDto cardEditorCardDto)
         {
             try
             {
@@ -285,14 +285,14 @@ namespace backend.Controllers
 
         // DELETE: api/Cards/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCard(int id)
+        public async Task<IActionResult> DeleteCard(long id)
         {
             var deleted = await _cardService.DeleteAsync(id);
             return deleted ? NoContent() : NotFound();
         }
 
         [HttpDelete("dto/{id}")]
-        public async Task<IActionResult> DeleteCardEditorCardDto(int id)
+        public async Task<IActionResult> DeleteCardEditorCardDto(long id)
         {
             try
             {

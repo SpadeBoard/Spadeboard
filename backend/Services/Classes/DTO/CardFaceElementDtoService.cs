@@ -39,7 +39,7 @@ namespace Services
             cardFaceElementDto.DndItemDto.DndPosition = c.DndPosition;
         }
 
-        public async Task<IEnumerable<CardFaceElementDto>> GetAllDtoByCardFaceIdAsync(int cardFaceId)
+        public async Task<IEnumerable<CardFaceElementDto>> GetAllDtoByCardFaceIdAsync(long cardFaceId)
         {
             throw new NotImplementedException();
             // TODO: Replace with the CardEditorCardFaceDto
@@ -65,7 +65,7 @@ namespace Services
             return list;*/
         }
 
-        public async Task<CardFaceElementDto?> GetDtoAsync(int id)
+        public async Task<CardFaceElementDto?> GetDtoAsync(long id)
         {
             throw new NotImplementedException();
             /*var cardFaceElementPerCardFaceAsync = await _cardFaceElementPerCardFaceService.GetAllNavByCardFaceElementIdAndCardFaceIdAsync(cardFaceElementId, cardFaceId);

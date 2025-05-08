@@ -25,7 +25,7 @@ namespace backend.Controllers
 
         // GET: api/DndItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<DndItem>> GetDndItem(int id)
+        public async Task<ActionResult<DndItem>> GetDndItem(long id)
         {
             var dndItem = await _context.DndItem.FindAsync(id);
 
@@ -40,7 +40,7 @@ namespace backend.Controllers
         // PUT: api/DndItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDndItem(int id, DndItem dndItem)
+        public async Task<IActionResult> PutDndItem(long id, DndItem dndItem)
         {
             if (id != dndItem.DndItemId)
             {
@@ -81,7 +81,7 @@ namespace backend.Controllers
 
         // DELETE: api/DndItems/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDndItem(int id)
+        public async Task<IActionResult> DeleteDndItem(long id)
         {
             var dndItem = await _context.DndItem.FindAsync(id);
             if (dndItem == null)
@@ -95,7 +95,7 @@ namespace backend.Controllers
             return NoContent();
         }
 
-        private bool DndItemExists(int id)
+        private bool DndItemExists(long id)
         {
             return _context.DndItem.Any(e => e.DndItemId == id);
         }

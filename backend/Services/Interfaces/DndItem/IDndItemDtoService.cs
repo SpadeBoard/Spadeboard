@@ -6,6 +6,6 @@ namespace Services
 {
     public interface IDndItemDtoService: ICrud<DndItemDto>, ICrudNav<DndItemDto>
     {
-        public Task<DndItemDto?> GetByDndItemIdAndDndPositionIdAsync(int dndItemId, int dndPositionId);
+        public Task<DndItemDto?> GetByDndItemIdAndDndPositionIdAsync(long dndItemId, long dndPositionId);
     }
 }

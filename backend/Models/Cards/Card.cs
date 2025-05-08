@@ -31,7 +31,7 @@ namespace Models.Cards
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int CardId { get; set; }
+        public long CardId { get; set; }
 
         public string? CardName {get;set;} = "";
 
@@ -42,6 +42,6 @@ namespace Models.Cards
         // So make them nullable
 
         // TODO: Make this required, remove IsFlipped
-        public int? CurrentCardFaceIndex { get; set;} = 0;
+        public long? CurrentCardFaceIndex { get; set;} = 0;
     }
 }

@@ -10,9 +10,9 @@ namespace Models.Cards
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int CardFaceId { get; set; }
+        public long CardFaceId { get; set; }
 
-        public int? StyleId {get; set;}
+        public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style { get; set; }
 

@@ -19,24 +19,24 @@ namespace Models.Bridge
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int CardPositionPerRoomId { get; set; }
+        public long CardPositionPerRoomId { get; set; }
 
         [Required]
-        public int CardId { get; set; }
+        public long CardId { get; set; }
         [ForeignKey("CardId")]
         public virtual Card? Card { get; set; }
 
-        public int DndItemId { get; set; }
+        public long DndItemId { get; set; }
         [ForeignKey("DndItemId")]
         public virtual DndItem? DndItem { get; set; }
 
         [Required]
-        public int DndPositionId {get; set;}
+        public long DndPositionId {get; set;}
         [ForeignKey("DndPositionId")]
         public virtual DndPosition? DndPosition {get; set;}
 
         [Required]
-        public int GameRoomId {get; set;}
+        public long GameRoomId {get; set;}
         [ForeignKey("GameRoomId")]
         public virtual GameRoom? GameRoom {get; set;}
     }

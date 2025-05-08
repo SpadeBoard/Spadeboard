@@ -17,15 +17,15 @@ namespace Models.Bridge
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int CardFacePerCardId { get; set; }
+        public long CardFacePerCardId { get; set; }
 
         [Required]
-        public int CardId { get; set; }
+        public long CardId { get; set; }
         [ForeignKey("CardId")]
         public virtual Card? Card { get; set; }
 
         [Required]
-        public int CardFaceId {get; set;}
+        public long CardFaceId {get; set;}
         [ForeignKey("CardFaceId")]
         public virtual CardFace? CardFace {get; set;}
     }

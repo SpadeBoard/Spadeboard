@@ -36,7 +36,7 @@ namespace backend.Controllers
 
         // GET: api/CardPositionPerRooms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<CardPositionPerRoom>> GetCardPositionPerRoom(int id)
+        public async Task<ActionResult<CardPositionPerRoom>> GetCardPositionPerRoom(long id)
         {
             var cardPositionPerRoom = await _cardPositionPerRoomService.GetAsync(id);
 
@@ -49,7 +49,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("nav/{id}")]
-        public async Task<ActionResult<CardPositionPerRoom>> GetCardPositionPerRoomNav(int id)
+        public async Task<ActionResult<CardPositionPerRoom>> GetCardPositionPerRoomNav(long id)
         {
             var cardPositionPerRoom = await _cardPositionPerRoomService.GetNavAsync(id);
 
@@ -62,7 +62,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("nav/room/{gameRoomId}")]
-        public async Task<ActionResult<IEnumerable<CardPositionPerRoom>>> GetCardsPositionPerRoomNavByRoomId(int gameRoomId)
+        public async Task<ActionResult<IEnumerable<CardPositionPerRoom>>> GetCardsPositionPerRoomNavByRoomId(long gameRoomId)
         {
             var cprs = await _cardPositionPerRoomService.GetAllNavByRoomIdAsync(gameRoomId);
 
@@ -72,7 +72,7 @@ namespace backend.Controllers
         // PUT: api/CardPositionPerRooms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCardPositionPerRoom(int id, CardPositionPerRoom cardPositionPerRoom)
+        public async Task<IActionResult> PutCardPositionPerRoom(long id, CardPositionPerRoom cardPositionPerRoom)
         {
             var result = await _cardPositionPerRoomService.UpdateAsync(id, cardPositionPerRoom);
 
@@ -157,7 +157,7 @@ namespace backend.Controllers
 
         // DELETE: api/CardPositionPerRooms/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCardPositionPerRoom(int id)
+        public async Task<IActionResult> DeleteCardPositionPerRoom(long id)
         {
             var deleted = await _cardPositionPerRoomService.DeleteAsync(id);
             if (deleted == false)

@@ -357,7 +357,7 @@ namespace Models.Styles
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int StyleId { get; set; }
+        public long StyleId { get; set; }
 
         public string? AccentColor { get; set; }
         public string? AlignContent { get; set; }

@@ -143,6 +143,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       let dndPosition = this.getRelativeDropPosition({ x: result.dndPosition.x, y: result.dndPosition.y });
 
       // FIXME: This isn't going to work because of multiusers, are we genuinely going to need another field for this like a UUID
+      // Backend needs to convert from long to string then pass it back to frontend
       let cardFaceElementPerCardFaceId = (this.cardEditorPreviewService.isNewCardEditorCardDto())
         ? this.currentCardFaceElementsPerCardFace.length
         : this.currentCardFaceElementsPerCardFace.length + 1;

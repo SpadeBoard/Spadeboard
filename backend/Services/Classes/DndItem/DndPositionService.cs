@@ -23,7 +23,7 @@ namespace Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(long id)
         {
             var dndPosition= await GetAsync(id);
             if (dndPosition== null)
@@ -37,7 +37,7 @@ namespace Services
             return changes > 0;
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return _context.DndPosition.Any(p => p.DndPositionId == id);
         }
@@ -52,12 +52,12 @@ namespace Services
             return await _context.DndPosition.ToListAsync();
         }
 
-        public async Task<DndPosition?> GetAsync(int id)
+        public async Task<DndPosition?> GetAsync(long id)
         {
             return await _context.DndPosition.FindAsync(id);
         }
 
-        public async Task<bool> UpdateAsync(int id, DndPosition item)
+        public async Task<bool> UpdateAsync(long id, DndPosition item)
         {
             if (id != item.DndPositionId)
                 return false;

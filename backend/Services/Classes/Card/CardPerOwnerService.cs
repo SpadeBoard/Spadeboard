@@ -35,13 +35,13 @@ namespace Services
 
         // TODO: Probably fix this considering you can have multiple cards with multiple owners, might actually need a surrogate key instead of composite
         // Or something else, maybe the game room?
-        public async Task<CardPerOwner?> GetByCardIdAsync(int cardId)
+        public async Task<CardPerOwner?> GetByCardIdAsync(long cardId)
         {
             return await _context.CardPerOwner
                 .FirstOrDefaultAsync(cpo => cpo.CardId == cardId);
         }
 
-        public async Task<CardPerOwner?> GetNavByCardIdAsync(int cardId)
+        public async Task<CardPerOwner?> GetNavByCardIdAsync(long cardId)
         {
             return await _context.CardPerOwner
                 .Include(cpo => cpo.Card)
@@ -49,7 +49,7 @@ namespace Services
                 .FirstOrDefaultAsync(cpo => cpo.CardId == cardId);
         }
 
-        public async Task<CardPerOwner?> GetByCardIdAndOwnerIdAsync(int cardId, string ownerId)
+        public async Task<CardPerOwner?> GetByCardIdAndOwnerIdAsync(long cardId, string ownerId)
         {
             return await _context.CardPerOwner
                 .FirstOrDefaultAsync(cpo => cpo.CardId == cardId && cpo.OwnerId == ownerId);
@@ -66,23 +66,23 @@ namespace Services
             return await _context.CardPerOwner.ToListAsync();
         }
 
-        public Task<CardPerOwner?> GetAsync(int id)
+        public Task<CardPerOwner?> GetAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateAsync(int id, CardPerOwner item)
+        public Task<bool> UpdateAsync(long id, CardPerOwner item)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public Task<bool> DeleteAsync(long id)
         {
             throw new NotImplementedException();
         }
 
         // TODO: Fix this, add a primary key?
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return true;
         }

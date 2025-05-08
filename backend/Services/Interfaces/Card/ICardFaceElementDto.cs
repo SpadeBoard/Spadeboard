@@ -4,9 +4,9 @@ namespace Services
 {
     public interface ICardFaceElementDtoService
     {
-        public Task<IEnumerable<CardFaceElementDto>> GetAllDtoByCardFaceIdAsync(int cardFaceId);
+        public Task<IEnumerable<CardFaceElementDto>> GetAllDtoByCardFaceIdAsync(long cardFaceId);
         
-        public Task<CardFaceElementDto?> GetDtoAsync(int id);
+        public Task<CardFaceElementDto?> GetDtoAsync(long id);
 
         public Task UpdateAllDtoAsync(CardFaceElementDto[] cardFaceElementsDto);
 

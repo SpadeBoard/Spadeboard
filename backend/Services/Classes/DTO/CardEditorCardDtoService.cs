@@ -116,7 +116,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteDtoAsync(int id)
+        public async Task<bool> DeleteDtoAsync(long id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -152,7 +152,7 @@ namespace Services
             }
         }
 
-        public async Task<CardEditorCardDto?> GetDtoAsync(int id)
+        public async Task<CardEditorCardDto?> GetDtoAsync(long id)
         {
             Card? card = await _cardService.GetAsync(id);
             
@@ -176,7 +176,7 @@ namespace Services
             return dto;
         }
 
-        public async Task<bool> UpdateDtoAsync(int id, CardEditorCardDto dto)
+        public async Task<bool> UpdateDtoAsync(long id, CardEditorCardDto dto)
         {
             if (id != dto.Card.CardId)
             {

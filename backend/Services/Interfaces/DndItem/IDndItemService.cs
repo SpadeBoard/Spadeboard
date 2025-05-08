@@ -6,7 +6,7 @@ namespace Services
 {
     public interface IDndItemService: ICrud<DndItem>
     {
-        // public Task<CardFaceElementPerCardFace?> GetAllNavByCardFaceElementIdAndCardFaceIdAsync(int cardFaceElementId, int cardFaceId);
+        // public Task<CardFaceElementPerCardFace?> GetAllNavByCardFaceElementIdAndCardFaceIdAsync(long cardFaceElementId, long cardFaceId);
 
         public Task CreateCardFaceElementPerCardFaceAsync(CardFaceElementDto cardFaceElementDto);
 
