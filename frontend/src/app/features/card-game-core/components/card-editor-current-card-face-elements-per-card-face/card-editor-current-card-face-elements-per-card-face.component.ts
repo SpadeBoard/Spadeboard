@@ -141,6 +141,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
       let dndPosition = this.getRelativeDropPosition({ x: result.dndPosition.x, y: result.dndPosition.y });
 
+      // FIXME: This isn't going to work because of multiusers, are we genuinely going to need another field for this like a UUID
       let cardFaceElementPerCardFaceId = (this.cardEditorPreviewService.isNewCardEditorCardDto())
         ? this.currentCardFaceElementsPerCardFace.length
         : this.currentCardFaceElementsPerCardFace[this.currentCardFaceElementsPerCardFace.length - 1].cardFaceElement.cardFaceElementId + 1;

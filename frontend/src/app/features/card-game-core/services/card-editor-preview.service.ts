@@ -411,39 +411,14 @@ export class CardEditorPreviewService {
     // Handle blob: URL
 
     // TODO: Have a message showing that the element image faces are too big and don't create if that's the case
-    if (content.startsWith('blob:') || content.endsWith('.png')) {
-      return from(fetch(content).then(res => res.blob())).pipe(
-        switchMap(blob => {
-          let formData = new FormData();
-          formData.append('formFile', blob);
-
-          console.log(`Card face element image blob: ${blob.text()}`);
-
-          return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
-        })
-      );
-    }
-
-    // Handle data: URL (base64)
-    if (content.startsWith('data:image/')) {
-      let base64 = content.replace(/^data:image\/\w+;base64,/, '');
-      let byteString = atob(base64);
-      let arrayBuffer = new ArrayBuffer(byteString.length);
-      let intArray = new Uint8Array(arrayBuffer);
-
-      for (let i = 0; i < byteString.length; i++) {
-        intArray[i] = byteString.charCodeAt(i);
-      }
-
-      let blob = new Blob([intArray], { type: 'image/png' });
-      let formData = new FormData();
-      formData.append('formFile', blob);
-
-      console.log(`Card face element image data url: ${blob.text()}`);
-      return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
-    }
-
-    return of({ id: undefined });
+    return this.getImageFormData$(content).pipe(
+      switchMap(formData => {
+        if (!formData) {
+          return of({ id: undefined });
+        }
+        return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
+      })
+    );
   }
 
   replaceCardFaceElementsImagesAndUpdatePaths$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]): Observable<CardEditorCardDto> {
@@ -520,60 +495,86 @@ export class CardEditorPreviewService {
     return cardFaceElementsImages$;
   }
 
-  replaceCardFaceElementImage$(cardFaceElementPerCardFace: CardFaceElementPerCardFace): Observable<{
-    id: string | undefined;
-  }> {
-    if (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType !== 'image')
+  replaceCardFaceElementImage$(
+    cardFaceElementPerCardFace: CardFaceElementPerCardFace
+  ): Observable<{ id: string | undefined }> {
+    let element = cardFaceElementPerCardFace.cardFaceElement;
+    
+    if (element.cardFaceElementType !== 'image') {
       return of({ id: undefined });
+    }
 
-    // CHECKME: Is this correct?
-    let newFile: string = cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent;
+    let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
 
-    return this.cardFaceElementApiService.getCardFaceElement$(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).pipe(
-      switchMap((result: CardFaceElement | undefined) => {
-        if (result === undefined) {
-          return of({ id: undefined });
-        }
+    // NOTE: Guard clausing against element type but also if it matches the pattern, that means that its content never changed
+    if (element.cardFaceElementContent.match(guidPattern)) {
+      return of({ id: element.cardFaceElementContent });
+    } // CHECKME: Should return the content, right?
   
-        let fileName: string = result.cardFaceElementContent;
+    let newFile: string = element.cardFaceElementContent;
   
-        // Handle blob or .png URL
-        if (newFile.startsWith('blob:') || newFile.endsWith('.png')) {
-          return from(fetch(newFile).then(res => res.blob())).pipe(
-            switchMap(blob => {
-              let formData = new FormData();
-              formData.append('formFile', blob);
+    return this.cardFaceElementApiService
+      .getCardFaceElement$(element.cardFaceElementId)
+      .pipe(
+        catchError(err => {
+          // NOTE: Treat this as undefined so that we can continue and upload the new file
+          return of(undefined);
+        }),
+        switchMap((result: CardFaceElement | undefined) =>
+          this.getImageFormData$(newFile).pipe(
+            switchMap(formData => {
+              if (!formData) {
+                console.log(`No form data.`);
+                return of({ id: undefined });
+              }
   
-              // console.log(`Card face element image blob: ${blob.text()}`);
-  
-              return this.fileUploadApiService.replaceFile(formData, fileName, 'card-face-element-image');
+              if (!result) {
+                // NOTE: For adding on image elements after updating: upload as new file
+                console.log(`Replace Card Face Element Image: No existing image element`);
+                return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
+              } 
+              else {
+                console.log(`Replace Card Face Element Image: Existing image element`);
+                let fileName: string = result.cardFaceElementContent;
+                return this.fileUploadApiService.replaceFile(formData, fileName, 'card-face-element-image');
+              }
             })
-          );
-        }
-  
-        // Handle data: URL (base64)
-        if (newFile.startsWith('data:image/')) {
-          let base64 = newFile.replace(/^data:image\/\w+;base64,/, '');
-          let byteString = atob(base64);
-          let arrayBuffer = new ArrayBuffer(byteString.length);
-          let intArray = new Uint8Array(arrayBuffer);
-  
-          for (let i = 0; i < byteString.length; i++) {
-            intArray[i] = byteString.charCodeAt(i);
-          }
-  
-          let blob = new Blob([intArray], { type: 'image/png' });
-          let formData = new FormData();
+          )
+        )
+      );
+  }
+
+  getImageFormData$(content: string): Observable<FormData | undefined> {
+    // Handle blob: URL or .png URL
+    if (content.startsWith('blob:') || content.endsWith('.png')) {
+      return from(fetch(content).then(res => res.blob())).pipe(
+        switchMap(blob => {
+          const formData = new FormData();
           formData.append('formFile', blob);
-  
-          // console.log(`Card face element image data url: ${blob.text()}`);
-          return this.fileUploadApiService.replaceFile(formData, fileName, 'card-face-element-image');
-        }
-  
-        // If not handled, return undefined
-        return of({ id: undefined });
-      })
-    );
+          return of(formData);
+        })
+      );
+    }
+
+    // Handle data: URL (base64)
+    if (content.startsWith('data:image/')) {
+      const base64 = content.replace(/^data:image\/\w+;base64,/, '');
+      const byteString = atob(base64);
+      const arrayBuffer = new ArrayBuffer(byteString.length);
+      const intArray = new Uint8Array(arrayBuffer);
+
+      for (let i = 0; i < byteString.length; i++) {
+        intArray[i] = byteString.charCodeAt(i);
+      }
+
+      const blob = new Blob([intArray], { type: 'image/png' });
+      const formData = new FormData();
+      formData.append('formFile', blob);
+      return of(formData);
+    }
+
+    // Unsupported type
+    return of(undefined);
   }
 
   private getCardFaceElementImageFilePath(cardFaceElementId: number) {
@@ -659,7 +660,7 @@ export class CardEditorPreviewService {
 
           if (isCardEditorCardDto(updateResult)) {
             console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
-            
+
             this.cardEditorCardDto = updateResult;
 
             this.reloadCurrentCardEditorCardFaceDto();
