@@ -51,7 +51,7 @@ namespace Services
 
         public async Task<bool> UpdateNavAsync(CardFaceElement cardFaceElement)
         {
-            if (cardFaceElement.Style != null && _styleService.IsModified(cardFaceElement.Style))
+            if (cardFaceElement.Style != null /*&& _styleService.IsModified(cardFaceElement.Style)*/)
                 _context.Entry(cardFaceElement.Style).State = EntityState.Modified;
             
             _context.Entry(cardFaceElement).State = EntityState.Modified;

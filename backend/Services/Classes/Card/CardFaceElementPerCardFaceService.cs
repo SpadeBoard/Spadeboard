@@ -193,47 +193,50 @@ namespace Services
             throw new NotImplementedException();
         }
 
+        // TODO: Write documentation on how updating bridge tables should work
         public async Task<bool> UpdateNavAsync(CardFaceElementPerCardFace nav)
         {
-            if (nav.CardFaceElement != null /*&& _cardFaceElementService.IsModified(nav.CardFaceElement)*/)
-            {
-                _context.Entry(nav.CardFaceElement).State = EntityState.Modified;
-            }
-
-            if (nav.DndItem != null /*&& _dndItemService.IsModified(nav.DndItem)*/)
-            {
-                _context.Entry(nav.DndItem).State = EntityState.Modified;
-            }
-
-            /*
-                Detail: Key (DndPositionId)=(0) is not present in table "DndPositions".
-                SchemaName: public
-                TableName: CardFaceElementPerCardFace
-                ConstraintName: FK_CardFaceElementPerCardFace_DndPositions_DndPositionId
-                File: ri_triggers.c
-                Line: 2599
-                Routine: ri_ReportViolation
-            */
-            if (nav.DndPosition != null /*&& _dndPositionService.IsModified(nav.DndPosition)*/)
-            {
-                _context.Entry(nav.DndPosition).State = EntityState.Modified;
-            }
-
-            /*if (nav.DndDragBoundary != null && _dndDragBoundaryService.IsModified(nav.DndDragBoundary))
-            {
-                _context.Entry(nav.DndDragBoundary).State = EntityState.Modified;
-            }*/
-
-            if (nav.CardFace != null /*&& _cardFaceService.IsModified(nav.CardFace)*/)
-            {
-                _context.Entry(nav.CardFace).State = EntityState.Modified;
-            }
-
-            _context.Entry(nav).State = EntityState.Modified;
-
             try
             {
-                return await _context.SaveChangesAsync() > 0;
+                bool updated = false;
+
+                if (nav.CardFaceElement != null /*&& _cardFaceElementService.IsModified(nav.CardFaceElement)*/)
+                {
+                    updated = await _cardFaceElementService.UpdateNavAsync(nav.CardFaceElement);
+                }
+
+                if (nav.DndItem != null /*&& _dndItemService.IsModified(nav.DndItem)*/)
+                {
+                    updated = await _dndItemService.UpdateAsync(nav.DndItemId, nav.DndItem);
+                }
+
+                /*
+                    Detail: Key (DndPositionId)=(0) is not present in table "DndPositions".
+                    SchemaName: public
+                    TableName: CardFaceElementPerCardFace
+                    ConstraintName: FK_CardFaceElementPerCardFace_DndPositions_DndPositionId
+                    File: ri_triggers.c
+                    Line: 2599
+                    Routine: ri_ReportViolation
+                */
+                if (nav.DndPosition != null /*&& _dndPositionService.IsModified(nav.DndPosition)*/)
+                {
+                   updated = await _dndPositionService.UpdateAsync(nav.DndPositionId, nav.DndPosition);
+                }
+
+                /*if (nav.DndDragBoundary != null && _dndDragBoundaryService.IsModified(nav.DndDragBoundary))
+                {
+                    _context.Entry(nav.DndDragBoundary).State = EntityState.Modified;
+                }*/
+
+                if (nav.CardFace != null /*&& _cardFaceService.IsModified(nav.CardFace)*/)
+                {
+                   updated = await _cardFaceService.UpdateNavAsync(nav.CardFace);
+                }
+
+                //  _context.Entry(nav).State = EntityState.Modified;
+
+                return updated;
             }
             catch (DbUpdateConcurrencyException)
             {
