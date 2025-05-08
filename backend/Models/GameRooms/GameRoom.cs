@@ -8,6 +8,6 @@ namespace Models.GameRooms
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int GameRoomId { get; set; }
+        public long GameRoomId { get; set; }
     }
 }

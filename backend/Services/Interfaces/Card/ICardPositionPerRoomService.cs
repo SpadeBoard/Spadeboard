@@ -7,9 +7,9 @@ namespace Services
     {
         // TODO: Grab every single item that is associated with that game room ID
         // ASSUMPTION: Loads when there's someone in the game room
-        public Task<IEnumerable<CardPositionPerRoom>> GetAllNavByRoomIdAsync(int gameRoomId);
+        public Task<IEnumerable<CardPositionPerRoom>> GetAllNavByRoomIdAsync(long gameRoomId);
 
-        public Task<CardPositionPerRoom?> GetNavByCardAndRoomIdAsync(int cardId, int gameRoomId);
+        public Task<CardPositionPerRoom?> GetNavByCardAndRoomIdAsync(long cardId, long gameRoomId);
 
         public Task<bool> UpdateAllNavAsync(CardPositionPerRoom[] cprs);
 

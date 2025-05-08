@@ -67,18 +67,18 @@ namespace Services
             await _cardFaceElementPerCardFaceService.CreateAllNavByCardFaceIdAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
         }
 
-        public async Task<IEnumerable<CardEditorCardFaceDto>> GetAllDtoByCardFaceIdAsync(int cardFaceId)
+        public async Task<IEnumerable<CardEditorCardFaceDto>> GetAllDtoByCardFaceIdAsync(long cardFaceId)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<CardEditorCardFaceDto?> GetDtoAsync(int id)
+        public async Task<CardEditorCardFaceDto?> GetDtoAsync(long id)
         {
             return await GetDtoAsyncByCardFaceIdAsync(id);
         }
 
         // TODO: GetAllDtoByCardId
-        public async Task<IEnumerable<CardEditorCardFaceDto>> GetAllDtoByCardId(int cardId)
+        public async Task<IEnumerable<CardEditorCardFaceDto>> GetAllDtoByCardId(long cardId)
         {
             var cfpc  = await _cardFacePerCardService.GetAllByCardId(cardId);
             // TODO: Use the bridge table to all the IDs
@@ -95,7 +95,7 @@ namespace Services
             return list;
         }
 
-        public async Task<CardEditorCardFaceDto?> GetDtoAsyncByCardFaceIdAsync(int id)
+        public async Task<CardEditorCardFaceDto?> GetDtoAsyncByCardFaceIdAsync(long id)
         {
             var cardFace = await _cardFaceService.GetNavAsync(id);
             var elements = (await _cardFaceElementPerCardFaceService.GetAllNavByCardFaceIdAsync(id)).ToArray();

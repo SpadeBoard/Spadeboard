@@ -12,7 +12,7 @@ namespace Models.Cards
 
         public DndItemDto DndItemDto {get; set;}
     
-        public int? StyleId {get; set;}
+        public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style {get; set;}
     }
@@ -22,13 +22,13 @@ namespace Models.Cards
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int CardFaceElementTemplateId { get; set; }
+        public long CardFaceElementTemplateId { get; set; }
 
-        public int? CardFaceElementId {get; set;}
+        public long? CardFaceElementId {get; set;}
         [ForeignKey("CardFaceElementId")]
         public CardFaceElement? CardFaceElement {get; set;}
 
-        public int? StyleId {get; set;}
+        public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style {get; set;}
     }*/
@@ -38,9 +38,9 @@ namespace Models.Cards
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int CardFaceElementId { get; set; }
+        public long CardFaceElementId { get; set; }
 
-        public int? CardFaceId {get; set;}
+        public long? CardFaceId {get; set;}
         [ForeignKey("CardFaceId")]
         public virtual CardFace? CardFace { get; set; }
 
@@ -48,7 +48,7 @@ namespace Models.Cards
 
         public string? CardFaceElementType {get; set;}
 
-        public int? StyleId {get; set;}
+        public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style {get; set;}
     }

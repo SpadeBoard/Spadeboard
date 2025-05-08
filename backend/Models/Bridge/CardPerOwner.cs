@@ -10,7 +10,7 @@ namespace Models.Bridge
     [PrimaryKey(nameof(CardId), nameof(OwnerId))]
     public class CardPerOwner
     {
-        public int CardId { get; set; }
+        public long CardId { get; set; }
         [ForeignKey("CardId")]
         public Card? Card { get; set; }
 

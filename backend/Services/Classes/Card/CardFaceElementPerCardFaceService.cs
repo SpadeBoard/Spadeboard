@@ -75,7 +75,7 @@ namespace Services
             nav.CardFaceElementPerCardFaceId = 0;
             
             await _context.CardFaceElementPerCardFace.AddAsync(nav);
-            int changes = await _context.SaveChangesAsync();
+            long changes = await _context.SaveChangesAsync();
 
             if (changes <= 0)
                 throw new Exception("No changes were made");
@@ -95,7 +95,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(long id)
         {
             var cardFaceElementPerCardFace= await GetAsync(id);
             if (cardFaceElementPerCardFace== null)
@@ -109,7 +109,7 @@ namespace Services
             return changes > 0;
         }
 
-        public async Task<bool> DeleteNavAsync(int id)
+        public async Task<bool> DeleteNavAsync(long id)
         {
             CardFaceElementPerCardFace? cardFaceElementPerCardFaceToDelete = await GetAsync(id);
 
@@ -142,7 +142,7 @@ namespace Services
             // NOTE: Don't delete the card face because all card face element per card face might share teh same card face
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return _context.CardFaceElementPerCardFace.Any(e => e.CardFaceElementPerCardFaceId == id);
         }
@@ -165,12 +165,12 @@ namespace Services
             return cfepcfs;
         }
 
-        public async Task<CardFaceElementPerCardFace?> GetAsync(int id)
+        public async Task<CardFaceElementPerCardFace?> GetAsync(long id)
         {
             return await _context.CardFaceElementPerCardFace.FindAsync(id);
         }
 
-        public async Task<IEnumerable<CardFaceElementPerCardFace>> GetAllNavByCardFaceIdAsync(int cardFaceId)
+        public async Task<IEnumerable<CardFaceElementPerCardFace>> GetAllNavByCardFaceIdAsync(long cardFaceId)
         {
             var cfepcfs = await _context.CardFaceElementPerCardFace
                 .Where(attribute => attribute.CardFaceId == cardFaceId)
@@ -185,7 +185,7 @@ namespace Services
             return cfepcfs;
         }
 
-        public async Task<IEnumerable<CardFaceElementPerCardFace>> GetAllNavByCardFaceElementIdAndCardFaceIdAsync(int cardFaceElementId, int cardFaceId)
+        public async Task<IEnumerable<CardFaceElementPerCardFace>> GetAllNavByCardFaceElementIdAndCardFaceIdAsync(long cardFaceElementId, long cardFaceId)
         {
             var cfepcfs = await _context.CardFaceElementPerCardFace
                 .Where(attribute => attribute.CardFaceElementId == cardFaceElementId && attribute.CardFaceId == cardFaceId)
@@ -199,7 +199,7 @@ namespace Services
             return cfepcfs;
         }
 
-        public async Task<CardFaceElementPerCardFace?> GetNavAsync(int id)
+        public async Task<CardFaceElementPerCardFace?> GetNavAsync(long id)
         {
             CardFaceElementPerCardFace? cfepcf = await _context.CardFaceElementPerCardFace
                 .Include(a => a.CardFaceElement)
@@ -217,7 +217,7 @@ namespace Services
             return _context.Entry(item).Properties.Any(p => p.IsModified);
         }
 
-        public async Task<bool> UpdateAsync(int id, CardFaceElementPerCardFace item)
+        public async Task<bool> UpdateAsync(long id, CardFaceElementPerCardFace item)
         {
             throw new NotImplementedException();
         }

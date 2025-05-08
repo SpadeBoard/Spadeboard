@@ -25,7 +25,7 @@ namespace backend.Controllers
 
         // GET: api/Styles/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Style>> GetStyle(int id)
+        public async Task<ActionResult<Style>> GetStyle(long id)
         {
             var style = await _context.Style.FindAsync(id);
 
@@ -40,7 +40,7 @@ namespace backend.Controllers
         // PUT: api/Styles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStyle(int id, Style style)
+        public async Task<IActionResult> PutStyle(long id, Style style)
         {
             if (id != style.StyleId)
             {
@@ -81,7 +81,7 @@ namespace backend.Controllers
 
         // DELETE: api/Styles/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteStyle(int id)
+        public async Task<IActionResult> DeleteStyle(long id)
         {
             var style = await _context.Style.FindAsync(id);
             if (style == null)
@@ -95,7 +95,7 @@ namespace backend.Controllers
             return NoContent();
         }
 
-        private bool StyleExists(int id)
+        private bool StyleExists(long id)
         {
             return _context.Style.Any(e => e.StyleId == id);
         }

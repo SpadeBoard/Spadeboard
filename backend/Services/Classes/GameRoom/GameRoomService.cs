@@ -13,12 +13,12 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public Task<bool> DeleteAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return _context.GameRoom.Any(gr => gr.GameRoomId == id);
         }
@@ -33,12 +33,12 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<GameRoom?> GetAsync(int id)
+        public Task<GameRoom?> GetAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<bool> UpdateAsync(int id, GameRoom item)
+        public async Task<bool> UpdateAsync(long id, GameRoom item)
         {
             if (id != item.GameRoomId)
                 return false;

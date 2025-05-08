@@ -19,7 +19,7 @@ namespace Services
         private readonly IStyleService _styleService = styleService;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
 
-        public async Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(int cardFaceId)
+        public async Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(long cardFaceId)
         {
             return await _context.CardFaceElement
                 .Where(element => element.CardFaceId == cardFaceId)
@@ -83,7 +83,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteNavAsync(int id) 
+        public async Task<bool> DeleteNavAsync(long id) 
         {
             var cardFaceElement= await GetNavAsync(id);
             
@@ -114,7 +114,7 @@ namespace Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> UpdateAsync(int id, CardFaceElement item)
+        public async Task<bool> UpdateAsync(long id, CardFaceElement item)
         {
             if (id != item.CardFaceElementId)
                 return false;
@@ -139,7 +139,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(long id)
         {
             var cardFaceElement = await GetAsync(id);
             if (cardFaceElement == null)
@@ -153,7 +153,7 @@ namespace Services
             return changes > 0;
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return _context.CardFaceElement.Any(e => e.CardFaceElementId == id);
         }
@@ -173,7 +173,7 @@ namespace Services
             return cardFaceElements;
         }
 
-        public async Task<IEnumerable<CardFaceElement>> GetAllNavByCardFaceId(int cardFaceId)
+        public async Task<IEnumerable<CardFaceElement>> GetAllNavByCardFaceId(long cardFaceId)
         {
             var cardFaceElements = await _context.CardFaceElement
                 .Where(element => element.CardFaceId == cardFaceId)
@@ -184,7 +184,7 @@ namespace Services
             return cardFaceElements;
         }
 
-        public async Task<CardFaceElement?> GetAsync(int id)
+        public async Task<CardFaceElement?> GetAsync(long id)
         {
             return await _context.CardFaceElement.FindAsync(id);
         }
@@ -195,7 +195,7 @@ namespace Services
         }
 
         // FIXME: So this works with the other CardFaceElementDto function
-        public async Task<CardFaceElement?> GetNavAsync(int id)
+        public async Task<CardFaceElement?> GetNavAsync(long id)
         {
             var cardFaceElement = await _context.CardFaceElement
                 .Include(cardFaceElement => cardFaceElement.Style)
@@ -232,7 +232,7 @@ namespace Services
             nav.CardFaceElementId = 0;
             
             await _context.CardFaceElement.AddAsync(nav);
-            int changes = await _context.SaveChangesAsync();
+            long changes = await _context.SaveChangesAsync();
 
             if (changes <= 0)
                 throw new Exception("No changes were made");

@@ -19,7 +19,7 @@ namespace Services
         private readonly IStyleService _styleService = styleService;
 
 
-        public async Task<bool> DeleteNavAsync(int id)
+        public async Task<bool> DeleteNavAsync(long id)
         {
             var nav = await GetNavAsync(id);
 
@@ -35,7 +35,7 @@ namespace Services
                 _context.Style.Remove(nav.Style);
             }
 
-            int changes = await _context.SaveChangesAsync();
+            long changes = await _context.SaveChangesAsync();
             return changes > 0;
         }
 
@@ -66,13 +66,13 @@ namespace Services
         }
 
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return _context.CardFace.Any(e => e.CardFaceId == id);
         }
 
         // FIXME: Card face doesn't have a Card ID
-        public async Task<CardFace?> GetNavAsync(int cardFaceId)
+        public async Task<CardFace?> GetNavAsync(long cardFaceId)
         {
             var cardFace = await _context.CardFace
                 .Include(cardFace => cardFace.Style)
@@ -91,7 +91,7 @@ namespace Services
             return await _context.CardFace.ToListAsync();
         }
 
-        public async Task<CardFace?> GetAsync(int id)
+        public async Task<CardFace?> GetAsync(long id)
         {
             return await _context.CardFace.FindAsync(id);
         }
@@ -102,7 +102,7 @@ namespace Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> UpdateAsync(int id, CardFace item)
+        public async Task<bool> UpdateAsync(long id, CardFace item)
         {
             if (id != item.CardFaceId)
                 return false;
@@ -127,7 +127,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(long id)
         {
             var cardFace= await GetAsync(id);
             if (cardFace== null)
@@ -178,7 +178,7 @@ namespace Services
 
             nav.CardFaceId = 0;
             await _context.CardFace.AddAsync(nav);
-            int changes = await _context.SaveChangesAsync();
+            long changes = await _context.SaveChangesAsync();
 
             if (changes <= 0)
                 throw new Exception("No changes were made");

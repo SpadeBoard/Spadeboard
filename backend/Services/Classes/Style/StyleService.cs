@@ -20,12 +20,12 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public Task<bool> DeleteAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return _context.Style.Any(s => s.StyleId == id);
         }
@@ -35,7 +35,7 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<Style?> GetAsync(int id)
+        public Task<Style?> GetAsync(long id)
         {
             throw new NotImplementedException();
         }
@@ -45,7 +45,7 @@ namespace Services
             return _context.Entry(item).Properties.Any(p => p.IsModified);
         }
 
-        public Task<bool> UpdateAsync(int id, Style item)
+        public Task<bool> UpdateAsync(long id, Style item)
         {
             throw new NotImplementedException();
         }

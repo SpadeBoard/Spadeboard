@@ -4,15 +4,15 @@ namespace Services
 {
     public interface ICardFaceElementService : ICrud<CardFaceElement>, ICrudNav<CardFaceElement>
     {
-        public Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(int cardFaceId);
+        public Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(long cardFaceId);
 
 
 
         public Task<IEnumerable<CardFaceElement>> GetAllNavAsync();
 
-        public Task<CardFaceElement?> GetNavAsync(int id);
+        public Task<CardFaceElement?> GetNavAsync(long id);
 
-        public Task<IEnumerable<CardFaceElement>> GetAllNavByCardFaceId(int cardFaceId);
+        public Task<IEnumerable<CardFaceElement>> GetAllNavByCardFaceId(long cardFaceId);
 
         public Task CreateAllNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace);
     

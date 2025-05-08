@@ -20,26 +20,26 @@ namespace Models.Bridge
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int CardFaceElementPerCardFaceId {get; set;}
+        public long CardFaceElementPerCardFaceId {get; set;}
 
         [ForeignKey("CardFaceElementId")]
-        public int CardFaceElementId { get; set; }
+        public long CardFaceElementId { get; set; }
         public CardFaceElement? CardFaceElement { get; set; }
         
         [ForeignKey("DndItemId")]
-        public int DndItemId { get; set; }  
+        public long DndItemId { get; set; }  
         public DndItem? DndItem { get; set; }
 
         [ForeignKey("DndPositionId")]
-        public int DndPositionId { get; set; }  
+        public long DndPositionId { get; set; }  
         public DndPosition? DndPosition { get; set; }
 
         [ForeignKey("DndDragBoundaryId")]
-        public int? DndDragBoundaryId {get; set;}
+        public long? DndDragBoundaryId {get; set;}
         public DndDragBoundary? DndDragBoundary { get; set; }
 
         [ForeignKey("CardFaceId")]
-        public int CardFaceId { get; set; }  
+        public long CardFaceId { get; set; }  
         public CardFace? CardFace { get; set; }
     }
 }

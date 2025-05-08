@@ -27,7 +27,7 @@ namespace Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(long id)
         {
             var card= await GetAsync(id);
             if (card== null)
@@ -41,7 +41,7 @@ namespace Services
             return changes > 0;
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return _context.Card.Any(e => e.CardId == id);
         }
@@ -56,14 +56,14 @@ namespace Services
             return await _context.Card.ToListAsync();
         }
 
-        public async Task<Card?> GetAsync(int id)
+        public async Task<Card?> GetAsync(long id)
         {
             var card = await _context.Card.FindAsync(id);
 
             return card;
         }
 
-        public async Task<bool> UpdateAsync(int id, Card item)
+        public async Task<bool> UpdateAsync(long id, Card item)
         {
             if (id != item.CardId)
             {

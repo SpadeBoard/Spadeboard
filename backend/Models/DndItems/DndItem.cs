@@ -20,7 +20,7 @@ namespace Models.DndItems
         // TODO: If position already exists, then use it, don't need for an ID? Unless we want to keep history
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int DndPositionId { get; set; }
+        public long DndPositionId { get; set; }
 
         public float? X { get; set; }
         public float? Y { get; set; }
@@ -34,7 +34,7 @@ namespace Models.DndItems
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int DndDragBoundaryId { get; set; }
+        public long DndDragBoundaryId { get; set; }
 
         public string? Width { get; set; }
         public string? Height { get; set; }
@@ -55,18 +55,18 @@ namespace Models.DndItems
 
         /*[Required, AllowNull]
         // Foreign key for DndPosition
-        public int DndPositionId { get; set; }
+        public long DndPositionId { get; set; }
         [ForeignKey("DndPositionId")]
         public DndPosition? DndPosition { get; set; }
 
         // Foreign key for DndDragBoundary
         [Required, AllowNull]
-        public int DndDragBoundaryId { get; set; }
+        public long DndDragBoundaryId { get; set; }
         [ForeignKey("DndDragBoundaryId")]
         public DndDragBoundary? DndDragBoundary { get; set; }*/
     
         [Required, AllowNull]
-        public int? StyleId {get; set;}
+        public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public Style? Style {get; set;}
     }
@@ -76,7 +76,7 @@ namespace Models.DndItems
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int DndItemId { get; set; }
+        public long DndItemId { get; set; }
 
         [Required]
         public bool IsDraggable { get; set; }
@@ -87,18 +87,18 @@ namespace Models.DndItems
         // TODO: Create a bridge table for this
         /*[Required, AllowNull]
         // Foreign key for DndPosition
-        public int DndPositionId { get; set; }
+        public long DndPositionId { get; set; }
         [ForeignKey("DndPositionId")]
         public DndPosition? DndPosition { get; set; }
 
         // Foreign key for DndDragBoundary
         [Required, AllowNull]
-        public int DndDragBoundaryId { get; set; }
+        public long DndDragBoundaryId { get; set; }
         [ForeignKey("DndDragBoundaryId")]
         public DndDragBoundary? DndDragBoundary { get; set; }*/
     
         /*[Required, AllowNull]
-        public int? StyleId {get; set;}
+        public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public Style? Style {get; set;}*/
     }

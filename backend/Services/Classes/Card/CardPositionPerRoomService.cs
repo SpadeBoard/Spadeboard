@@ -18,12 +18,12 @@ namespace Services
 
         private readonly IGameRoomService _gameRoomService = gameRoomService;
 
-        public async Task<CardPositionPerRoom?> GetAsync(int id)
+        public async Task<CardPositionPerRoom?> GetAsync(long id)
         {
             return await _context.CardPositionPerRoom.FirstOrDefaultAsync(cpr => cpr.CardPositionPerRoomId == id);
         }
 
-        public async Task<IEnumerable<CardPositionPerRoom>> GetAllNavByRoomIdAsync(int gameRoomId)
+        public async Task<IEnumerable<CardPositionPerRoom>> GetAllNavByRoomIdAsync(long gameRoomId)
         {
             var cprs = await _context.CardPositionPerRoom
                 .Include(cpr => cpr.Card)
@@ -36,7 +36,7 @@ namespace Services
             return cprs;
         }
 
-        public async Task<CardPositionPerRoom?> GetNavAsync(int id)  
+        public async Task<CardPositionPerRoom?> GetNavAsync(long id)  
         {
             var cpr = await _context.CardPositionPerRoom
             .Include(cpr => cpr.Card)
@@ -48,7 +48,7 @@ namespace Services
             return cpr;
         }
 
-        public async Task<CardPositionPerRoom?> GetNavByCardAndRoomIdAsync(int cardId, int gameRoomId)
+        public async Task<CardPositionPerRoom?> GetNavByCardAndRoomIdAsync(long cardId, long gameRoomId)
         {
             var cpr = await _context.CardPositionPerRoom
                 .Include(cpr => cpr.Card)
@@ -68,7 +68,7 @@ namespace Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> UpdateAsync(int id, CardPositionPerRoom item)
+        public async Task<bool> UpdateAsync(long id, CardPositionPerRoom item)
         {
             if (id != item.CardPositionPerRoomId)
             {
@@ -95,7 +95,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(long id)
         {
             var cpr = await GetAsync(id);
             if (cpr == null)
@@ -109,7 +109,7 @@ namespace Services
             return changes > 0;
         }
 
-        public bool Exists(int id)
+        public bool Exists(long id)
         {
             return  _context.CardPositionPerRoom.Any(e => e.CardPositionPerRoomId == id);
         }
@@ -178,7 +178,7 @@ namespace Services
             // Do we need to set all the Ids as 0?
 
             await _context.CardPositionPerRoom.AddAsync(nav);
-            int changes = await _context.SaveChangesAsync();
+            long changes = await _context.SaveChangesAsync();
 
             if (changes <= 0)
                 throw new Exception("No changes were made");
@@ -250,7 +250,7 @@ namespace Services
             }
         }
 
-        public Task<bool> DeleteNavAsync(int id)
+        public Task<bool> DeleteNavAsync(long id)
         {
             throw new NotImplementedException();
         }
