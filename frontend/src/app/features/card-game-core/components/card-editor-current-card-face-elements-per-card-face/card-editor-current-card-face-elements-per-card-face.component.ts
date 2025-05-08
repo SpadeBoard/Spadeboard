@@ -17,6 +17,7 @@ import { CardEditorControlsDesignElementAttributesService } from '../../services
 import { distinctUntilChanged } from 'rxjs';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
+import { filterAgainstNull } from '../../../style/utils/get-style';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -494,7 +495,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.cardEditorControlsDesignImageService.setOnEnableImageEditor();
   }
 
-  getCardFaceImageDimensions(id: number): {width: number, height: number} {
+  getCardFaceImageElementDimensions(id: number): {width: number, height: number} {
     let cardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(id);
 
     if (cardFaceElementPerCardFace) {
@@ -536,6 +537,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
       cardFaceElementPerCardFace.cardFaceElement.style.width = `${dimensions.width}`;
       cardFaceElementPerCardFace.cardFaceElement.style.height = `${dimensions.height}`;
+    
+      console.log(`On Dimensions change - Current edited card face element ID: ${this.currentEditedCardFaceElementId}, Card face element style: ${JSON.stringify(filterAgainstNull(cardFaceElementPerCardFace.cardFaceElement.style))}`);
     }
 
     // NOTE: Setting the label

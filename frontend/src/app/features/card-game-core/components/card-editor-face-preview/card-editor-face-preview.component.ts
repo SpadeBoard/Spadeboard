@@ -9,6 +9,7 @@ import { from, map, Observable } from 'rxjs';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
 import { CommonModule } from '@angular/common';
+import { filterAgainstNull } from '../../../style/utils/get-style';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -39,12 +40,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     let { styleId, ...rest } = this.cardEditorPreviewService.getCurrentCardFace().style;
 
     // TODO: Make a get card face style in the service, and filter out only certain values you want
-    let filtered = Object.entries(rest)
-      .filter(([key, value]) => value !== null && value !== undefined && value !== '')
-      .reduce((acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-      }, {} as { [key: string]: string });
+    let filtered = filterAgainstNull(rest);
 
     return filtered;
   }

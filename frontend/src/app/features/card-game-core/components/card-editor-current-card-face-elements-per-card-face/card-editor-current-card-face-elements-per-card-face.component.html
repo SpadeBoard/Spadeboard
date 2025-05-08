@@ -34,8 +34,8 @@
                 <app-card-face-image 
                     (mouseenter)="onFocusImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                     [cardFaceImageSrc]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent"
-                    [cardFaceImageWidth]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
-                    [cardFaceImageHeight]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
+                    [cardFaceImageWidth]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
+                    [cardFaceImageHeight]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
                     <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
                     <div class="example-handle" cdkDragHandle>
                         <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
@@ -50,7 +50,7 @@
                     [cardFaceElementId]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
                 />
                 <app-resizable-wrapper 
-                    [dimensions]="getCardFaceImageDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    [dimensions]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                     (resizableChange)="onResizableChange($event)"
                 />
             }
