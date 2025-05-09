@@ -3,8 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Models.Styles
 {
-    public class StyleCreateDto 
+    public class StyleDto 
     {
+        public string StyleId { get; set; }
         public string? AccentColor { get; set; }
         public string? AlignContent { get; set; }
         public string? AlignItems { get; set; }

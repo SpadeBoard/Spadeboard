@@ -8,9 +8,12 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
-        public Task CreateAsync(GameRoom item)
+        public async Task<GameRoom> CreateAsync(GameRoom item)
         {
-            throw new NotImplementedException();
+            item.GameRoomId = 0;
+            await _context.GameRoom.AddAsync(item);
+            await _context.SaveChangesAsync();
+            return item;
         }
 
         public Task<bool> DeleteAsync(long id)

@@ -15,9 +15,12 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
-        public Task CreateAsync(Style item)
+        public async Task<Style> CreateAsync(Style item)
         {
-            throw new NotImplementedException();
+            item.StyleId = 0;
+            await _context.Style.AddAsync(item);
+            await _context.SaveChangesAsync();
+            return item;
         }
 
         public Task<bool> DeleteAsync(long id)

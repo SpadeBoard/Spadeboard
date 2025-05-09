@@ -14,17 +14,17 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardPositionPerRoomsController(ApplicationDbContext context, ICardPositionPerRoomService cardPositionPerRoomService) : ControllerBase
+    public class CardPositionPerRoomsController(ApplicationDbContext context, ICardPositionPerRoomDtoService cardPositionPerRoomDtoService) : ControllerBase
     {
         private readonly ApplicationDbContext _context = context;
 
-        private readonly ICardPositionPerRoomService _cardPositionPerRoomService = cardPositionPerRoomService;
+        private readonly ICardPositionPerRoomDtoService _cardPositionPerRoomDtoService = cardPositionPerRoomDtoService;
 
         // GET: api/CardPositionPerRooms
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CardPositionPerRoom>>> GetCardPositionPerRoom()
+        public async Task<ActionResult<IEnumerable<CardPositionPerRoomDto>>> GetCardPositionPerRoom()
         {
-            var cprs = await _cardPositionPerRoomService.GetAllAsync();
+            var cprs = await _cardPositionPerRoomDtoService.GetAllDtoAsync();
 
             if (cprs == null)
             {
@@ -36,9 +36,9 @@ namespace backend.Controllers
 
         // GET: api/CardPositionPerRooms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<CardPositionPerRoom>> GetCardPositionPerRoom(long id)
+        public async Task<ActionResult<CardPositionPerRoomDto>> GetCardPositionPerRoom(string id)
         {
-            var cardPositionPerRoom = await _cardPositionPerRoomService.GetAsync(id);
+            var cardPositionPerRoom = await _cardPositionPerRoomDtoService.GetDtoAsync(id);
 
             if (cardPositionPerRoom == null)
             {
@@ -49,9 +49,9 @@ namespace backend.Controllers
         }
 
         [HttpGet("nav/{id}")]
-        public async Task<ActionResult<CardPositionPerRoom>> GetCardPositionPerRoomNav(long id)
+        public async Task<ActionResult<CardPositionPerRoomDto>> GetCardPositionPerRoomNav(string id)
         {
-            var cardPositionPerRoom = await _cardPositionPerRoomService.GetNavAsync(id);
+            var cardPositionPerRoom = await _cardPositionPerRoomDtoService.GetDtoNavAsync(id);
 
             if (cardPositionPerRoom == null)
             {
@@ -62,9 +62,9 @@ namespace backend.Controllers
         }
 
         [HttpGet("nav/room/{gameRoomId}")]
-        public async Task<ActionResult<IEnumerable<CardPositionPerRoom>>> GetCardsPositionPerRoomNavByRoomId(long gameRoomId)
+        public async Task<ActionResult<IEnumerable<CardPositionPerRoomDto>>> GetCardsPositionPerRoomNavByRoomId(string gameRoomId)
         {
-            var cprs = await _cardPositionPerRoomService.GetAllNavByRoomIdAsync(gameRoomId);
+            var cprs = await _cardPositionPerRoomDtoService.GetAllDtoNavByRoomIdAsync(gameRoomId);
 
             return Ok(cprs);
         }
@@ -72,9 +72,9 @@ namespace backend.Controllers
         // PUT: api/CardPositionPerRooms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCardPositionPerRoom(long id, CardPositionPerRoom cardPositionPerRoom)
+        public async Task<IActionResult> PutCardPositionPerRoom(string id, CardPositionPerRoomDto cardPositionPerRoom)
         {
-            var result = await _cardPositionPerRoomService.UpdateAsync(id, cardPositionPerRoom);
+            var result = await _cardPositionPerRoomDtoService.UpdateDtoAsync(id, cardPositionPerRoom);
 
             if (result == true)
                 return NoContent();
@@ -87,7 +87,7 @@ namespace backend.Controllers
         }
 
         [HttpPut("nav")]
-        public async Task<IActionResult> PutCardPositionPerRoomAllNav(CardPositionPerRoom[] cprs)
+        public async Task<IActionResult> PutCardPositionPerRoomAllNav(CardPositionPerRoomDto[] cprs)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -99,7 +99,7 @@ namespace backend.Controllers
 
                 Console.WriteLine("Put CPR all nav: CPRS length is higher than 0");
 
-                bool updated = await _cardPositionPerRoomService.UpdateAllNavAsync(cprs);
+                bool updated = await _cardPositionPerRoomDtoService.UpdateAllDtoNavAsync(cprs);
                 
                 Console.WriteLine("Has updated: {0}", updated);
 
@@ -128,19 +128,19 @@ namespace backend.Controllers
         
         // FIXME: Why is this undefined
         [HttpPost]
-        public async Task<ActionResult<CardPositionPerRoom>> PostCardPositionPerRoom(CardPositionPerRoom cardPositionPerRoom)
+        public async Task<ActionResult<CardPositionPerRoomDto>> PostCardPositionPerRoom(CardPositionPerRoomDto cardPositionPerRoom)
         {
-            await _cardPositionPerRoomService.CreateAsync(cardPositionPerRoom);
+            cardPositionPerRoom = await _cardPositionPerRoomDtoService.CreateDtoAsync(cardPositionPerRoom);
             return CreatedAtAction("GetCardPositionPerRoom", new { id = cardPositionPerRoom.CardPositionPerRoomId }, cardPositionPerRoom);
         }
 
         [HttpPost("nav")]
-        public async Task<ActionResult<CardPositionPerRoom>> PostCardPositionPerRoomNav(CardPositionPerRoom cardPositionPerRoom)
+        public async Task<ActionResult<CardPositionPerRoomDto>> PostCardPositionPerRoomNav(CardPositionPerRoomDto cardPositionPerRoom)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                await _cardPositionPerRoomService.CreateNavAsync(cardPositionPerRoom);
+                await _cardPositionPerRoomDtoService.CreateDtoNavAsync(cardPositionPerRoom);
 
                 string navJson = JsonSerializer.Serialize(cardPositionPerRoom);
                 Console.WriteLine(navJson);
@@ -157,9 +157,9 @@ namespace backend.Controllers
 
         // DELETE: api/CardPositionPerRooms/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCardPositionPerRoom(long id)
+        public async Task<IActionResult> DeleteCardPositionPerRoom(string id)
         {
-            var deleted = await _cardPositionPerRoomService.DeleteAsync(id);
+            var deleted = await _cardPositionPerRoomDtoService.DeleteDtoAsync(id);
             if (deleted == false)
             {
                 return NotFound();

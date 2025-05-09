@@ -17,15 +17,6 @@ export class CardFaceElementApiService {
   
   constructor() { }
 
-  getCardFaceElements$(cardFaceId?: number): Observable<CardFaceElement[] | CardFaceElementDto[] | undefined> {
-    if (cardFaceId !== undefined) {
-      return this.http.get<CardFaceElementDto[]>(`${this.apiUrl}/CardFace/dto/${cardFaceId}`);
-      // return this.http.get<CardFaceElement[]>(`${this.apiUrl}/dto/${cardFaceId}`);
-    }
-    
-    return this.http.get<CardFaceElement[]>(`${this.apiUrl}`);
-  }
-
   getCardFaceElement$(cardFaceElementId: number): Observable<CardFaceElement | undefined> {
     return this.http.get<CardFaceElement>(`${this.apiUrl}/nav/${cardFaceElementId}`);
   }

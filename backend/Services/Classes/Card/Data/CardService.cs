@@ -21,10 +21,12 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
-        public async Task CreateAsync(Card item)
+        public async Task<Card> CreateAsync(Card item)
         {
+            item.CardId = 0;
             await _context.Card.AddAsync(item);
             await _context.SaveChangesAsync();
+            return item;
         }
 
         public async Task<bool> DeleteAsync(long id)

@@ -34,12 +34,32 @@ namespace Models.Bridge
         public long DndPositionId { get; set; }  
         public DndPosition? DndPosition { get; set; }
 
-        [ForeignKey("DndDragBoundaryId")]
+        /*[ForeignKey("DndDragBoundaryId")]
         public long? DndDragBoundaryId {get; set;}
-        public DndDragBoundary? DndDragBoundary { get; set; }
+        public DndDragBoundary? DndDragBoundary { get; set; }*/
 
         [ForeignKey("CardFaceId")]
         public long CardFaceId { get; set; }  
         public CardFace? CardFace { get; set; }
+    }
+
+    public class CardFaceElementPerCardFaceDto
+    {
+        public string CardFaceElementPerCardFaceId { get; set; }
+
+        public string CardFaceElementId { get; set; }
+        public CardFaceElementDto? CardFaceElement { get; set; }
+
+        public string DndItemId { get; set; }
+        public DndItemDto? DndItem { get; set; }
+
+        public string DndPositionId { get; set; }
+        public DndPositionDto? DndPosition { get; set; }
+
+        /*public string? DndDragBoundaryId { get; set; }
+        public DndDragBoundaryDto? DndDragBoundary { get; set; }*/
+
+        public string CardFaceId { get; set; }
+        public CardFaceDto? CardFace { get; set; }
     }
 }

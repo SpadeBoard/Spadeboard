@@ -14,19 +14,17 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardFaceElementsController(ICardFaceElementService cardFaceElementService, ICardFaceElementDtoService cardFaceElementDtoService, ICardFaceElementPerCardFaceService cardFaceElementPerCardFaceService) : ControllerBase
+    public class CardFaceElementsController(ICardFaceElementDtoService cardFaceElementDtoService, ICardFaceElementPerCardFaceDtoService cardFaceElementPerCardFaceDtoService) : ControllerBase
     {
-        private readonly ICardFaceElementService _cardFaceElementService = cardFaceElementService;
-
         private readonly ICardFaceElementDtoService _cardFaceElementDtoService = cardFaceElementDtoService;
 
-        private readonly ICardFaceElementPerCardFaceService _cardFaceElementPerCardFaceService = cardFaceElementPerCardFaceService;
+        private readonly ICardFaceElementPerCardFaceDtoService _cardFaceElementPerCardFaceDtoService = cardFaceElementPerCardFaceDtoService;
 
         // GET: api/CardFaceElements
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CardFaceElement>>> GetCardFaceElement()
+        public async Task<ActionResult<IEnumerable<CardFaceElementDto>>> GetCardFaceElement()
         {
-            var cardFaceElements = await _cardFaceElementService.GetAllAsync();
+            var cardFaceElements = await _cardFaceElementDtoService.GetAllDtoAsync();
 
             if (cardFaceElements == null)
             {
@@ -34,52 +32,13 @@ namespace backend.Controllers
             }
 
             return Ok(cardFaceElements);
-        }
-
-        [HttpGet("CardFace/{id}")]
-        public async Task<ActionResult<IEnumerable<CardFaceElement>>> GetAllByCardFaceIdAsync(long id)
-        {
-            var cardFaceElements = await _cardFaceElementService.GetAllByCardFaceIdAsync(id);
-
-            if (cardFaceElements == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(cardFaceElements);
-        }
-
-        [HttpGet("CardFace/nav/{id}")]
-        public async Task<ActionResult<IEnumerable<CardFaceElement>>> GetAllNavByCardFaceId(long id)
-        {
-            var cardFaceElements = await _cardFaceElementService.GetAllNavByCardFaceId(id);
-
-            if (cardFaceElements == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(cardFaceElements);
-        }
-
-        [HttpGet("CardFace/dto/{id}")]
-        public async Task<ActionResult<IEnumerable<CardFaceElementDto>>> GetCardFaceElementsDtoByCardFaceId(long id)
-        {
-            var cardFaceElementsDto = await _cardFaceElementDtoService.GetAllDtoByCardFaceIdAsync(id);
-
-            if (cardFaceElementsDto == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(cardFaceElementsDto);
         }
 
         // GET: api/CardFaceElements/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<CardFaceElement>> GetCardFaceElement(long id)
+        public async Task<ActionResult<CardFaceElementDto>> GetCardFaceElement(string id)
         {
-            var cardFaceElement = await _cardFaceElementService.GetAsync(id);
+            var cardFaceElement = await _cardFaceElementDtoService.GetDtoAsync(id);
 
             if (cardFaceElement == null)
             {
@@ -90,9 +49,9 @@ namespace backend.Controllers
         }
 
         [HttpGet("nav/{id}")]
-        public async Task<ActionResult<CardFaceElement>> GetCardFaceElementNav(long id)
+        public async Task<ActionResult<CardFaceElementDto>> GetCardFaceElementNav(string id)
         {
-            var cardFaceElement = await _cardFaceElementService.GetNavAsync(id);
+            var cardFaceElement = await _cardFaceElementDtoService.GetDtoNavAsync(id);
 
             if (cardFaceElement == null)
             {
@@ -105,9 +64,9 @@ namespace backend.Controllers
         // PUT: api/CardFaceElements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCardFaceElement(long id, CardFaceElement cardFaceElement)
+        public async Task<IActionResult> PutCardFaceElement(string id, CardFaceElementDto cardFaceElement)
         {
-            var result = await _cardFaceElementService.UpdateAsync(id, cardFaceElement);
+            var result = await _cardFaceElementDtoService.UpdateDtoAsync(id, cardFaceElement);
 
             if (result == true)
                 return NoContent();
@@ -122,18 +81,17 @@ namespace backend.Controllers
         // POST: api/CardFaceElements
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<CardFaceElement>> PostCardFaceElement(CardFaceElement cardFaceElement)
+        public async Task<ActionResult<CardFaceElementDto>> PostCardFaceElement(CardFaceElementDto cardFaceElement)
         {
-            await _cardFaceElementService.CreateAsync(cardFaceElement);
-
+            cardFaceElement = await _cardFaceElementDtoService.CreateDtoAsync(cardFaceElement);
             return CreatedAtAction("GetCardFaceElement", new { id = cardFaceElement.CardFaceElementId }, cardFaceElement);
         }
 
         // DELETE: api/CardFaceElements/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCardFaceElement(long id)
+        public async Task<IActionResult> DeleteCardFaceElement(string id)
         {
-            var deleted = await _cardFaceElementService.DeleteAsync(id);
+            var deleted = await _cardFaceElementDtoService.DeleteDtoAsync(id);
             if (deleted == false)
             {
                 return NotFound();
@@ -143,9 +101,9 @@ namespace backend.Controllers
         }
 
         [HttpDelete("nav/{id}")]
-        public async Task<IActionResult> DeleteCardFaceElementNav(long id)
+        public async Task<IActionResult> DeleteCardFaceElementNav(string id)
         {
-            var deleted = await _cardFaceElementService.DeleteNavAsync(id);
+            var deleted = await _cardFaceElementDtoService.DeleteDtoNavAsync(id);
             if (deleted == false)
             {
                 return NotFound();
@@ -155,9 +113,9 @@ namespace backend.Controllers
         }
 
         [HttpDelete("nav/card-face-element-per-card-face/{id}")]
-        public async Task<IActionResult> DeleteCardFaceElementPerCardFaceNav(long id)
+        public async Task<IActionResult> DeleteCardFaceElementPerCardFaceNav(string id)
         {
-            var deleted = await _cardFaceElementPerCardFaceService.DeleteNavAsync(id);
+            var deleted = await _cardFaceElementPerCardFaceDtoService.DeleteDtoNavAsync(id);
             if (deleted == false)
             {
                 return NotFound();

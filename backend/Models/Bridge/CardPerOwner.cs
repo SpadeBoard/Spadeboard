@@ -7,9 +7,12 @@ using Models.Cards;
 namespace Models.Bridge
 {
     [Table("CardPerOwner")]
-    [PrimaryKey(nameof(CardId), nameof(OwnerId))]
     public class CardPerOwner
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long CardPerOwnerId {get; set;}
+
         public long CardId { get; set; }
         [ForeignKey("CardId")]
         public Card? Card { get; set; }
@@ -17,5 +20,13 @@ namespace Models.Bridge
         public string OwnerId {get; set;}
         [ForeignKey("OwnerId")]
         public virtual IdentityUser? Owner {get; set;}
+    }
+
+    public class CardPerOwnerDto
+    {
+        public string CardPerOwnerId {get; set;}
+        public string CardId { get; set; }
+
+        public string OwnerId {get; set;}
     }
 }

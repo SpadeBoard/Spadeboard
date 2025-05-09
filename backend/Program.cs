@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Data;
 using Services;
+using AutoMapper;
+using Mapper;
 
 
 string DevelopmentOrigins = "_devOrigins";
@@ -42,21 +44,41 @@ builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IGameRoomService, GameRoomService>();
 
 builder.Services.AddScoped<ICardService, CardService>();
-builder.Services.AddScoped<ICardEditorCardDtoService, CardEditorCardDtoService>();
 builder.Services.AddScoped<ICardPerOwnerService, CardPerOwnerService>();
 builder.Services.AddScoped<ICardPositionPerRoomService, CardPositionPerRoomService>();
 builder.Services.AddScoped<ICardFaceService, CardFaceService>();
 builder.Services.AddScoped<ICardFacePerCardService, CardFacePerCardService>();
-builder.Services.AddScoped<ICardEditorCardFaceDtoService, CardEditorCardFaceDtoService>();
 builder.Services.AddScoped<ICardFaceElementService, CardFaceElementService>();
-builder.Services.AddScoped<ICardFaceElementDtoService, CardFaceElementDtoService>();
 builder.Services.AddScoped<ICardFaceElementPerCardFaceService, CardFaceElementPerCardFaceService>();
+builder.Services.AddScoped<ICardFacePerCardDtoService, CardFacePerCardDtoService>();
+builder.Services.AddScoped<ICardFaceElementPerCardFaceDtoService, CardFaceElementPerCardFaceDtoService>();
+builder.Services.AddScoped<ICardPerOwnerDtoService, CardPerOwnerDtoService>();
 
-builder.Services.AddScoped<IDndItemDtoService, DndItemDtoService>();
 builder.Services.AddScoped<IDndItemService, DndItemService>();
 builder.Services.AddScoped<IDndPositionService, DndPositionService>();
 
 builder.Services.AddScoped<IStyleService, StyleService>();
+
+builder.Services.AddScoped<ICardDtoService, CardDtoService>();
+builder.Services.AddScoped<ICardEditorCardFaceDtoService, CardEditorCardFaceDtoService>();
+builder.Services.AddScoped<ICardFaceDtoService, CardFaceDtoService>();
+builder.Services.AddScoped<ICardFaceElementDtoService, CardFaceElementDtoService>();
+builder.Services.AddScoped<ICardEditorCardDtoService, CardEditorCardDtoService>();
+
+builder.Services.AddScoped<IDndItemDtoService, DndItemDtoService>();
+builder.Services.AddScoped<IStyleDtoService, StyleDtoService>();
+builder.Services.AddScoped<IGameRoomDtoService, GameRoomDtoService>();
+
+// Auto Mapper Configurations
+var mapperConfig = new MapperConfiguration(mc =>
+{
+    mc.AddProfile(new CardGameCoreMappingProfile());
+});
+
+mapperConfig.AssertConfigurationIsValid();
+
+IMapper mapper = mapperConfig.CreateMapper();
+builder.Services.AddSingleton(mapper);
 
 WebApplication app = builder.Build();
 

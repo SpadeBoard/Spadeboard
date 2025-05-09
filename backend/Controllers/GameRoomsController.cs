@@ -7,14 +7,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.GameRooms;
+using Services;
 
 namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GameRoomsController(ApplicationDbContext context) : ControllerBase
+    public class GameRoomsController(ApplicationDbContext context, IGameRoomDtoService gameRoomDtoService) : ControllerBase
     {
         private readonly ApplicationDbContext _context = context;
+        private readonly IGameRoomDtoService _gameRoomDtoService = gameRoomDtoService;
 
         // GET: api/GameRooms
         [HttpGet]
@@ -73,7 +75,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<GameRoom>> PostGameRoom(GameRoom gameRoom)
         {
-            _context.GameRoom.Add(gameRoom);
+            await _context.GameRoom.AddAsync(gameRoom);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetGameRoom", new { id = gameRoom.GameRoomId }, gameRoom);
@@ -81,18 +83,10 @@ namespace backend.Controllers
 
         // DELETE: api/GameRooms/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGameRoom(long id)
+        public async Task<IActionResult> DeleteGameRoom(string id)
         {
-            var gameRoom = await _context.GameRoom.FindAsync(id);
-            if (gameRoom == null)
-            {
-                return NotFound();
-            }
-
-            _context.GameRoom.Remove(gameRoom);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            var deleted = await _gameRoomDtoService.DeleteDtoAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
 
         private bool GameRoomExists(long id)

@@ -29,4 +29,15 @@ namespace Models.Bridge
         [ForeignKey("CardFaceId")]
         public virtual CardFace? CardFace {get; set;}
     }
+
+    public class CardFacePerCardDto
+    {
+        public string CardFacePerCardId { get; set; }
+
+        public string CardId { get; set; }
+        public virtual Card? Card { get; set; }
+
+        public string CardFaceId {get; set;}
+        public virtual CardFace? CardFace {get; set;}
+    }
 }

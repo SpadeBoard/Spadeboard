@@ -16,11 +16,12 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
-        public async Task CreateAsync(DndPosition item)
+        public async Task<DndPosition> CreateAsync(DndPosition item)
         {
             item.DndPositionId = 0;
             await _context.DndPosition.AddAsync(item);
             await _context.SaveChangesAsync();
+            return item;
         }
 
         public async Task<bool> DeleteAsync(long id)

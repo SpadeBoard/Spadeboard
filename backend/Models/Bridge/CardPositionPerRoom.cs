@@ -40,4 +40,21 @@ namespace Models.Bridge
         [ForeignKey("GameRoomId")]
         public virtual GameRoom? GameRoom {get; set;}
     }
+
+    public class CardPositionPerRoomDto
+    {
+        public string CardPositionPerRoomId { get; set; }
+
+        public string CardId { get; set; }
+        public virtual CardDto? Card { get; set; }
+
+        public string DndItemId { get; set; }
+        public virtual DndItemDto? DndItem { get; set; }
+
+        public string DndPositionId {get; set;}
+        public virtual DndPositionDto? DndPosition {get; set;}
+
+        public string GameRoomId {get; set;}
+        public virtual GameRoomDto? GameRoom {get; set;}
+    }
 }

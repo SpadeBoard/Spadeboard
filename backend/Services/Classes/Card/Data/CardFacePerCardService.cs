@@ -13,21 +13,19 @@ using Models.Bridge;
 
 namespace Services
 {
-    public class CardFacePerCardService(ApplicationDbContext context, ICardService cardService, ICardFaceService cardFaceService) : ICardFacePerCardService
+    public class CardFacePerCardService(ApplicationDbContext context) : ICardFacePerCardService
     {
         private readonly ApplicationDbContext _context = context;
 
-        private readonly ICardService _cardService = cardService;
-
-        private readonly ICardFaceService _cardFaceService = cardFaceService;
-
-        public async Task CreateAsync(CardFacePerCard item)
+        public async Task<CardFacePerCard> CreateAsync(CardFacePerCard item)
         {
-            _context.CardFacePerCard.Add(item);
+            item.CardFacePerCardId = 0;
+            await _context.CardFacePerCard.AddAsync(item);
             await _context.SaveChangesAsync();
+            return item;
         }
 
-        public Task CreateNavAsync(CardFacePerCard nav)
+        public Task<CardFacePerCard> CreateNavAsync(CardFacePerCard nav)
         {
             throw new NotImplementedException();
         }
@@ -44,7 +42,7 @@ namespace Services
 
         public bool Exists(long id)
         {
-            throw new NotImplementedException();
+            return _context.CardFacePerCard.Any(c => c.CardFacePerCardId == id);
         }
 
         public Task<IEnumerable<CardFacePerCard>> GetAllAsync()
@@ -57,12 +55,14 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<CardFacePerCard>> GetAllNavByCardId(long cardId)
+        public async Task<IEnumerable<CardFace>> GetAllFacesByCardId(long cardId)
         {
             return await _context.CardFacePerCard
                 .Where(c => c.CardId == cardId)
-                .Include(c => c.Card)
                 .Include(c => c.CardFace)
+                .Select(c => c.CardFace)
+                .Where(face => face != null)
+                .Select(face => face!)
                 .ToListAsync();
         }
 
@@ -96,28 +96,6 @@ namespace Services
         public Task<bool> UpdateNavAsync(CardFacePerCard nav)
         {
             throw new NotImplementedException();
-        }
-
-        // TODO: Create card faces per card from CardEditorCardFaceDto and cardId
-        public async Task CreateAsyncFromCardEditorCardDto(CardEditorCardDto cardEditorCardDto)
-        {
-            long cardId = cardEditorCardDto.Card.CardId;
-
-            // FIXME: How is this null
-            if (cardEditorCardDto.CardEditorCardFacesDto == null)
-            {
-                throw new NotImplementedException();
-            }
-
-            foreach (var cardFaceDto in cardEditorCardDto.CardEditorCardFacesDto)
-            {
-                CardFacePerCard cfc = new(){
-                    CardId = cardId,
-                    CardFaceId = cardFaceDto.CardFace.CardFaceId
-                };
-
-                await CreateAsync(cfc);
-            }
         }
     }
 }

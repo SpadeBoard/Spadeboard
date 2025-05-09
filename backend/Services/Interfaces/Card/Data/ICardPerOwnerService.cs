@@ -12,6 +12,6 @@ namespace Services
 
         public Task<CardPerOwner?> GetByCardIdAsync(long cardId);
 
-        public Task<IEnumerable<Card>> GetCardsNavByOwnerIdAsync(string ownerId);
+        public Task<IEnumerable<Card>> GetCardsByOwnerIdAsync(string ownerId);
     }
 }

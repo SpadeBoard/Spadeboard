@@ -22,14 +22,16 @@ namespace Services
         private readonly IDndPositionService _dndPositionService = dndPositionService;
         private readonly ICardFaceElementService _cardFaceElementService = cardFaceElementService;
 
-        public async Task CreateAsync(CardFaceElementPerCardFace item)
+        public async Task<CardFaceElementPerCardFace> CreateAsync(CardFaceElementPerCardFace item)
         {
-            _context.CardFaceElementPerCardFace.Add(item);
+            item.CardFaceElementPerCardFaceId = 0;
+            await  _context.CardFaceElementPerCardFace.AddAsync(item);
             await _context.SaveChangesAsync();
+            return item;
         }
 
         // TODO: Have CardEditorCardFaceDto call CreateAllNavAsync
-        public async Task CreateNavAsync(CardFaceElementPerCardFace nav)
+        public async Task<CardFaceElementPerCardFace> CreateNavAsync(CardFaceElementPerCardFace nav)
         {
             if (nav.CardFaceElement != null && _cardFaceElementService.Exists(nav.CardFaceElement.CardFaceElementId))
             {
@@ -75,26 +77,22 @@ namespace Services
 
             // nav.CardFaceElementPerCardFaceId = Snowflake.NewId();
             nav.CardFaceElementPerCardFaceId = 0;
-            
+
             await _context.CardFaceElementPerCardFace.AddAsync(nav);
-            long changes = await _context.SaveChangesAsync();
+            int changes = await _context.SaveChangesAsync();
 
             if (changes <= 0)
                 throw new Exception("No changes were made");
 
-            var e = await _context.CardFaceElementPerCardFace
-                .Include(e=> e.CardFaceElement)
-                .Include(e => e.CardFace)
-                .Include(e => e.DndItem)
-                .Include(e => e.DndPosition)
-                // .Include(e=> e.DndDragBoundary)
-                .FirstOrDefaultAsync(e=> e.CardFaceElementPerCardFaceId == nav.CardFaceElementPerCardFaceId);
+            // At this point, nav.CardFaceElementPerCardFaceId has the new ID
+            // Reload navigation properties if needed
+            await _context.Entry(nav).Reference(e => e.CardFaceElement).LoadAsync();
+            await _context.Entry(nav).Reference(e => e.CardFace).LoadAsync();
+            await _context.Entry(nav).Reference(e => e.DndItem).LoadAsync();
+            await _context.Entry(nav).Reference(e => e.DndPosition).LoadAsync();
+            // await _context.Entry(nav).Reference(e => e.DndDragBoundary).LoadAsync(); // if needed
 
-            if (e != null)
-            {
-                nav = e;
-                Console.WriteLine("\nCard Face Element Per Card Face Service - Create Nav Async: {0}\n",  JsonConvert.SerializeObject(nav));
-            }
+            return nav;
         }
 
         public async Task<bool> DeleteAsync(long id)
@@ -161,7 +159,7 @@ namespace Services
                 .Include(a => a.CardFace)
                 .Include(a => a.DndItem)
                 .Include(a => a.DndPosition)
-                .Include(a => a.DndDragBoundary)
+                // .Include(a => a.DndDragBoundary)
                 .ToListAsync();
 
             return cfepcfs;
@@ -177,11 +175,11 @@ namespace Services
             var cfepcfs = await _context.CardFaceElementPerCardFace
                 .Where(attribute => attribute.CardFaceId == cardFaceId)
                 .Include(a => a.CardFaceElement)
-                .Include(a => a.CardFaceElement.Style)
+                // .Include(a => a.CardFaceElement.Style)
                 .Include(a => a.CardFace)
                 .Include(a => a.DndItem)
                 .Include(a => a.DndPosition)
-                .Include(a => a.DndDragBoundary)
+                // .Include(a => a.DndDragBoundary)
                 .ToListAsync();
 
             return cfepcfs;
@@ -195,7 +193,7 @@ namespace Services
                 .Include(a => a.CardFace)
                 .Include(a => a.DndItem)
                 .Include(a => a.DndPosition)
-                .Include(a => a.DndDragBoundary)
+                // .Include(a => a.DndDragBoundary)
                 .ToListAsync();
 
             return cfepcfs;
@@ -208,7 +206,7 @@ namespace Services
                 .Include(a => a.CardFace)
                 .Include(a => a.DndItem)
                 .Include(a => a.DndPosition)
-                .Include(a => a.DndDragBoundary)
+                // .Include(a => a.DndDragBoundary)
                 .FirstOrDefaultAsync(cardFaceElementPerCardFace => cardFaceElementPerCardFace.CardFaceElementPerCardFaceId == id);
 
             return cfepcf;
@@ -288,7 +286,7 @@ namespace Services
                 cardFaceElementPerCardFace.CardFace = cardFace;
 
                 if (cardFaceElementPerCardFace.CardFaceElement != null) {
-                    await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
+                    cardFaceElementPerCardFace.CardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
                 }
 
                 await CreateNavAsync(cardFaceElementPerCardFace);
@@ -305,13 +303,14 @@ namespace Services
                 
                 if (cardFaceElementPerCardFace.CardFaceElement != null) {
                     cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId = 0;
+                    
                     cardFaceElementPerCardFace.CardFaceElement.StyleId = 0;
 
                     if (cardFaceElementPerCardFace.CardFaceElement.Style != null) {
                         cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
                     }
 
-                    await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
+                    cardFaceElementPerCardFace.CardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
                 }
 
                 cardFaceElementPerCardFace.DndItemId = 0;
@@ -328,12 +327,13 @@ namespace Services
 
                 // cardFaceElementPerCardFace.DndDragBoundaryId = 0;
                 // cardFaceElementPerCardFace.DndDragBoundary.DndDragBoundaryId =0;
+                
                 await CreateNavAsync(cardFaceElementPerCardFace);
             }
         }
 
 
-        public async Task<bool> UpdateAllNavByCardFaceIdAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
+        public async Task<bool> UpdateAllNavByCardFaceAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
         {
             var updated = await _cardFaceService.UpdateNavAsync(cardFace);
 

@@ -60,12 +60,13 @@ namespace Services
             return cpr;
         }
 
-        public async Task CreateAsync(CardPositionPerRoom item)
+        public async Task<CardPositionPerRoom> CreateAsync(CardPositionPerRoom item)
         {
             // TODO: Navigation property wise, if the IDs return null objects, then create them too
             item.CardPositionPerRoomId = 0;
             await _context.CardPositionPerRoom.AddAsync(item);
             await _context.SaveChangesAsync();
+            return item;
         }
 
         public async Task<bool> UpdateAsync(long id, CardPositionPerRoom item)
@@ -134,7 +135,7 @@ namespace Services
         }
 
         // ASSUMPTION: Navigation properties of the properties aren't being passed in
-        public async Task CreateNavAsync(CardPositionPerRoom nav)
+        public async Task<CardPositionPerRoom> CreateNavAsync(CardPositionPerRoom nav)
         {
             if (nav.Card != null && _cardService.Exists(nav.Card.CardId))
             {
@@ -176,23 +177,19 @@ namespace Services
             }
 
             // Do we need to set all the Ids as 0?
-
             await _context.CardPositionPerRoom.AddAsync(nav);
-            long changes = await _context.SaveChangesAsync();
+            int changes = await _context.SaveChangesAsync();
 
             if (changes <= 0)
                 throw new Exception("No changes were made");
-            
-            var cpr = await _context.CardPositionPerRoom
-                .Include(cpr => cpr.Card)
-                .Include(cpr => cpr.DndItem)
-                .Include(cpr => cpr.GameRoom)
-                .Include(cpr => cpr.DndPosition)
-                .FirstOrDefaultAsync(cpr => cpr.CardPositionPerRoomId == nav.CardPositionPerRoomId);
-            
-            if (cpr != null) {
-                nav = cpr;
-            }
+
+            // Load navigation properties on the tracked entity (nav)
+            await _context.Entry(nav).Reference(e => e.Card).LoadAsync();
+            await _context.Entry(nav).Reference(e => e.DndItem).LoadAsync();
+            await _context.Entry(nav).Reference(e => e.GameRoom).LoadAsync();
+            await _context.Entry(nav).Reference(e => e.DndPosition).LoadAsync();
+
+            return nav;
         }
 
         // TODO: Figure out whether UpdateNavAsync would return a boolean

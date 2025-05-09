@@ -9,6 +9,7 @@ using Data;
 using Models.Cards;
 using Models.Bridge;
 using Newtonsoft.Json;
+using System.Linq;
 
 // https://stackoverflow.com/questions/59753218/how-to-use-dbcontext-in-separate-class-library-net-core
 // https://www.postgresql.org/docs/current/ddl-schemas.html#:~:text=Unlike%20databases%2C%20schemas%20are%20not,without%20interfering%20with%20each%20other.
@@ -18,35 +19,36 @@ using Newtonsoft.Json;
 
 namespace Services
 {
-    public class CardEditorCardDtoService(ApplicationDbContext context, ICardFacePerCardService cardFacePerCardService, ICardService cardService, ICardFaceService cardFaceService, ICardEditorCardFaceDtoService cardEditorCardFaceDtoService, ICardPerOwnerService cardPerOwnerService, ICardFaceElementService cardFaceElementService, ICardFaceElementDtoService cardFaceElementDtoService) : ICardEditorCardDtoService
+    public class CardEditorCardDtoService(ApplicationDbContext context, ICardFacePerCardDtoService cardFacePerCardDtoService, ICardDtoService cardDtoService, ICardEditorCardFaceDtoService cardEditorCardFaceDtoService, ICardPerOwnerDtoService cardPerOwnerDtoService) : ICardEditorCardDtoService
     {
-        private readonly ICardService _cardService = cardService;
-        private readonly ICardFacePerCardService _cardFacePerCardService = cardFacePerCardService;
-        private readonly ICardPerOwnerService _cardPerOwnerService = cardPerOwnerService;
+        private readonly ICardDtoService _cardDtoService = cardDtoService;
+        private readonly ICardFacePerCardDtoService _cardFacePerCardDtoService = cardFacePerCardDtoService;
+        private readonly ICardPerOwnerDtoService _cardPerOwnerDtoService = cardPerOwnerDtoService;
         private readonly ICardEditorCardFaceDtoService _cardEditorCardFaceDtoService = cardEditorCardFaceDtoService;
 
         private readonly ApplicationDbContext _context = context;
 
-        public async Task CreateDtoAsync(CardEditorCardDto dto)
+        public async Task<CardEditorCardDto> CreateDtoAsync(CardEditorCardDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 if (dto.CardEditorCardFacesDto != null) {
-                    await _cardEditorCardFaceDtoService.CreateAllDtoAsync(dto.CardEditorCardFacesDto);
+                    dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.CreateAllDtoAsync(dto.CardEditorCardFacesDto)).ToArray();
                 }
 
-                await  _cardService.CreateAsync(dto.Card);
+                dto.Card = await  _cardDtoService.CreateDtoAsync(dto.Card);
 
-                CardPerOwner cpo = new(){
-                    Card = dto.Card,
+                CardPerOwnerDto cpo = new(){
+                    CardId = dto.Card.CardId,
                     OwnerId = dto.OwnerId
                 };
 
-                await _cardPerOwnerService.CreateAsync(cpo);
-                await _cardFacePerCardService.CreateAsyncFromCardEditorCardDto(dto);
+                await _cardPerOwnerDtoService.CreateDtoAsync(cpo);
 
+                await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
                 await transaction.CommitAsync();
+                return dto;
             }
             catch (Exception)
             {
@@ -55,6 +57,7 @@ namespace Services
             }
         }
 
+         // NOTE: We don't want to save cpo because cards in rooms shouldn't have owners
          public async Task CreateDtoForGameRoomFromExistingDtoAsync(CardEditorCardDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -64,18 +67,10 @@ namespace Services
                     await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto);
                 }
 
-                dto.Card.CardId = 0;
-                await  _cardService.CreateAsync(dto.Card);
+                dto.Card.CardId = "0";
+                dto.Card = await  _cardDtoService.CreateDtoAsync(dto.Card);
 
-                // NOTE: We don't want this to occur because cards in rooms shouldn't have owners
-                /*CardPerOwner cpo = new(){
-                    Card = dto.Card,
-                    OwnerId = dto.OwnerId
-                };
-
-                await _cardPerOwnerService.CreateAsync(cpo);*/
-
-                await _cardFacePerCardService.CreateAsyncFromCardEditorCardDto(dto);
+                await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
 
                 await transaction.CommitAsync();
             }
@@ -95,17 +90,17 @@ namespace Services
                     await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto);
                 }
 
-                dto.Card.CardId = 0;
-                await  _cardService.CreateAsync(dto.Card);
+                dto.Card.CardId = "0";
+                dto.Card = await  _cardDtoService.CreateDtoAsync(dto.Card);
 
-                CardPerOwner cpo = new(){
-                    Card = dto.Card,
+                CardPerOwnerDto cpo = new(){
+                    CardId = dto.Card.CardId,
                     OwnerId = dto.OwnerId
                 };
 
-                await _cardPerOwnerService.CreateAsync(cpo);
+                await _cardPerOwnerDtoService.CreateDtoAsync(cpo);
 
-                await _cardFacePerCardService.CreateAsyncFromCardEditorCardDto(dto);
+                await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
 
                 await transaction.CommitAsync();
             }
@@ -116,7 +111,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteDtoAsync(long id)
+        public async Task<bool> DeleteDtoAsync(string id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -128,22 +123,10 @@ namespace Services
                     return false;
                 }
 
-                await _cardService.DeleteAsync(dto.Card.CardId);
-
-                /*if (dto.FrontCardFace != null)
-                {
-                    Console.WriteLine("Delete front dto face");
-                    await _cardFaceService.DeleteNavAsync(dto.FrontCardFace);
-                }
-
-                if (dto.BackCardFace != null)
-                {
-                    Console.WriteLine("Delete back dto face");
-                    await _cardFaceService.DeleteNavAsync(dto.BackCardFace);
-                }*/
-
+                bool deleted = await _cardDtoService.DeleteDtoAsync(dto.Card.CardId);
+                
                 await transaction.CommitAsync();
-                return true;
+                return deleted;
             }
             catch (Exception)
             {
@@ -152,9 +135,9 @@ namespace Services
             }
         }
 
-        public async Task<CardEditorCardDto?> GetDtoAsync(long id)
+        public async Task<CardEditorCardDto?> GetDtoAsync(string id)
         {
-            Card? card = await _cardService.GetAsync(id);
+            CardDto? card = await _cardDtoService.GetDtoAsync(id);
             
             if (card == null)
                 return null;
@@ -167,16 +150,16 @@ namespace Services
             // TODO: Get all card faces by Card ID -> bridge table inside of CardEditorCardFAceDtoService to then grab the CardEditorCardFaceDto too
             dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.GetAllDtoByCardId(dto.Card.CardId)).ToArray();
 
-            CardPerOwner? cpo = await _cardPerOwnerService.GetByCardIdAsync(dto.Card.CardId);
+            CardPerOwnerDto? cpo = await _cardPerOwnerDtoService.GetDtoByCardIdAsync(dto.Card.CardId);
 
             if (cpo != null) 
                 dto.OwnerId = cpo.OwnerId;
 
-              // FIXME: Grab the styling for the card face elements as well as card faces
+            // FIXME: Grab the styling for the card face elements as well as card faces
             return dto;
         }
 
-        public async Task<bool> UpdateDtoAsync(long id, CardEditorCardDto dto)
+        public async Task<bool> UpdateDtoAsync(string id, CardEditorCardDto dto)
         {
             if (id != dto.Card.CardId)
             {
@@ -186,27 +169,19 @@ namespace Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // TODO
-                // 1. Grab the card
-                // 2. Grab the foreign keys of the card
-                // 3. Get those card faces and card face elements based on the card Dto
-                var updated = false;
+                bool updated = false;
 
-                // 4. Then update and return it
                 if (dto.CardEditorCardFacesDto != null) {
                    updated =  await  _cardEditorCardFaceDtoService.UpdateAllDtoAsync(dto.CardEditorCardFacesDto);
                 }
 
-                updated = await _cardService.UpdateAsync(dto.Card.CardId, dto.Card);
+                updated = await _cardDtoService.UpdateDtoAsync(dto.Card.CardId, dto.Card);
 
                 if (updated == false)
                     return updated;
 
-
                 if (updated == false)
                     return updated;
-
-                // await _cardFaceService
 
                 await transaction.CommitAsync();
                 return updated;
@@ -215,7 +190,7 @@ namespace Services
             {
                 await transaction.RollbackAsync();
 
-                if (!_cardService.Exists(dto.Card.CardId))
+                if (!_cardDtoService.Exists(dto.Card.CardId))
                 {
                     return false;
                 }
@@ -226,10 +201,39 @@ namespace Services
             }
             catch (Exception) 
             {
-                await transaction.RollbackAsync();
-                
+                await transaction.RollbackAsync();            
                 throw;
             }
+        }
+
+        public bool Exists(string id) 
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<CardEditorCardDto>> GetAllDtoAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<CardEditorCardDto> CreateDtoNavAsync(CardEditorCardDto cardEditorCardDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<CardEditorCardDto> GetDtoNavAsync(string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> UpdateDtoNavAsync(string id, CardEditorCardDto cardEditorCardDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> DeleteDtoNavAsync(string id)
+        {
+            throw new NotImplementedException();
         }
     }
 }
