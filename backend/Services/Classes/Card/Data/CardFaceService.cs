@@ -9,6 +9,7 @@ using Data;
 using Models.Cards;
 using System.Net.Sockets;
 using Newtonsoft.Json;
+using Algorithms;
 
 namespace Services
 {
@@ -159,26 +160,18 @@ namespace Services
 
         public async Task<CardFace> CreateNavAsync(CardFace nav)
         {
-            Console.WriteLine("nav.CardFaceId before query: " + nav.CardFaceId);
-
-            if (nav.Style != null && _styleService.Exists(nav.Style.StyleId))
+             if (nav.Style == null)
             {
-                nav.StyleId = nav.Style.StyleId;
-                nav.Style = null;
-            }
-            else if (nav.Style != null)
-            {
-                nav.Style.StyleId = 0;
+                throw new ArgumentException("Item: Card Face\nFunction: Create Nav Async\nThe Style property of CardFace cannot be null.", nameof(nav));
             }
 
-            Console.WriteLine(
-                "nav.CardFaceId after style: {0}, nav.StyleId: {1}, nav.Style.StyleId: {2}",
-                nav.CardFaceId,
-                nav.StyleId,
-                nav.Style != null ? nav.Style.StyleId.ToString() : "null"
-            );
+            if (_styleService.Exists(nav.Style.StyleId))
+            {
+                throw new ArgumentException("Item: Card Face\nFunction: Create Nav Async\nThe Style property of CardFacehas already been made.", nameof(nav));
+            }
 
-            nav.CardFaceId = 0;
+            nav.Style.StyleId = Snowflake.NewId();
+            nav.CardFaceId = Snowflake.NewId();
             
             await _context.CardFace.AddAsync(nav);
 
