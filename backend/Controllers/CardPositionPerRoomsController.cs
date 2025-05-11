@@ -131,7 +131,7 @@ namespace backend.Controllers
         public async Task<ActionResult<CardPositionPerRoomDto>> PostCardPositionPerRoom(CardPositionPerRoomDto cardPositionPerRoom)
         {
             cardPositionPerRoom = await _cardPositionPerRoomDtoService.CreateDtoAsync(cardPositionPerRoom);
-            return CreatedAtAction("GetCardPositionPerRoom", new { id = cardPositionPerRoom.CardPositionPerRoomId }, cardPositionPerRoom);
+            return CreatedAtAction("GetCardPositionPerRoom", new { id = cardPositionPerRoom.CardPositionPerRoomId }, await _cardPositionPerRoomDtoService.GetDtoNavAsync(cardPositionPerRoom.CardPositionPerRoomId));
         }
 
         [HttpPost("nav")]

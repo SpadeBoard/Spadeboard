@@ -294,6 +294,14 @@ export class CardEditorPreviewService {
 
       let replaceCardFaceImages$ = cardFaceImages.map((formData: FormData, idx: number) => {
         let cardFaceThumbnailFilePath = this.cardEditorCardDto.cardEditorCardFacesDto[idx].cardFace.cardFaceThumbnailFilePath;
+
+        if (cardFaceThumbnailFilePath == "")
+        {
+          // NOTE: If you create a card without flipping, then suddenly flip it after and add elements to the card face
+          // It's because there's no thumbnail image file path for that face because it never was created
+          return this.fileUploadApiService.uploadFile(formData, 'card-face');
+        }
+
         return this.fileUploadApiService.replaceFile(formData, cardFaceThumbnailFilePath as string, 'card-face');
       });
   

@@ -19,7 +19,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   cards: Card[] = [
     {
       cardId: "0",
-      cardName: 'Blank',
+      cardName: 'New',
       isTemplate: true,
       currentCardFaceIndex: 0
     }
@@ -39,7 +39,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
         this.cards = [
           {
             cardId: "0",
-            cardName: 'Blank',
+            cardName: 'New',
             isTemplate: true,
             currentCardFaceIndex: 0
           },
