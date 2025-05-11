@@ -263,7 +263,7 @@ export class CardEditorPreviewService {
       }
       
       let uploadCardFaceImages$ = cardFaceImages.map((formData: FormData) =>
-        this.fileUploadApiService.uploadFile(formData, 'card-face')
+        this.fileUploadApiService.uploadFile$(formData, 'card-face')
       );
   
       // TODO: Replace the fork join with cardFacesFormData
@@ -299,7 +299,7 @@ export class CardEditorPreviewService {
         {
           // NOTE: If you create a card without flipping, then suddenly flip it after and add elements to the card face
           // It's because there's no thumbnail image file path for that face because it never was created
-          return this.fileUploadApiService.uploadFile(formData, 'card-face');
+          return this.fileUploadApiService.uploadFile$(formData, 'card-face');
         }
 
         return this.fileUploadApiService.replaceFile(formData, cardFaceThumbnailFilePath as string, 'card-face');
@@ -429,6 +429,14 @@ export class CardEditorPreviewService {
     // CHECKME: Is this correct?
     let content: string = cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent;
 
+    let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
+
+    // NOTE: This means that the element's image was already created
+    // The bug occurs when you create from an already created image, but do not change the image element
+    if (content.match(guidPattern)) {
+      return this.fileUploadApiService.replaceFilePath$(content, 'card-face-element-image');
+    }
+    
     // let dataUrl: string = cardFaceElementPerCardFace.cardFaceElement?.cardFaceElementContent.replace(/^data:image\/\w+;base64,/, '');
 
     // https://stackoverflow.com/questions/11876175/how-to-get-a-file-or-blob-from-an-object-url
@@ -441,7 +449,7 @@ export class CardEditorPreviewService {
         if (!formData) {
           return of({ id: undefined });
         }
-        return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
+        return this.fileUploadApiService.uploadFile$(formData, 'card-face-element-image');
       })
     );
   }
@@ -553,10 +561,11 @@ export class CardEditorPreviewService {
                 return of({ id: undefined });
               }
   
+              // CHECKME: Do we put || parseFloat(this.cardEditorCardDto.card.cardId) > 0
               if (!result) {
                 // NOTE: For adding on image elements after updating: upload as new file
                 console.log(`Replace Card Face Element Image: No existing image element`);
-                return this.fileUploadApiService.uploadFile(formData, 'card-face-element-image');
+                return this.fileUploadApiService.uploadFile$(formData, 'card-face-element-image');
               } 
               else {
                 console.log(`Replace Card Face Element Image: Existing image element`);

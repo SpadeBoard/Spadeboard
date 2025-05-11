@@ -39,7 +39,7 @@ export class FileUploadComponent {
   // TODO: When we submit the file, we call the API and get the file again
   onSubmit(event: Event) {
     if (this.file) {
-      /*let filePath: ResourceRef<string | undefined> = this.fileUploadApiService.uploadFile(this.file);
+      /*let filePath: ResourceRef<string | undefined> = this.fileUploadApiService.uploadFile$(this.file);
       
       if (filePath !== undefined) 
       {
