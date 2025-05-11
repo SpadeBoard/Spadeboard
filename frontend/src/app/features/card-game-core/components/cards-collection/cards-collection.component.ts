@@ -133,17 +133,17 @@ export class CardsCollectionComponent {
           } = mouseAUCoordinates;
 
           let cpr: CardPositionPerRoom = {
-            cardPositionPerRoomId: 0,
+            cardPositionPerRoomId: "0",
             card: result.card as Card,
             dndItem: {
-              dndItemId: 0,
+              dndItemId: "0",
               isDraggable: false,
               isDroppable: false
             },
             dndPosition: {
-              dndPositionId: 0, x: dndPosition.gridX, y: dndPosition.gridY} as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
+              dndPositionId: "0", x: dndPosition.gridX, y: dndPosition.gridY} as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
             gameRoom: {
-              gameRoomId: 1
+              gameRoomId: "1"
             }
           };
     

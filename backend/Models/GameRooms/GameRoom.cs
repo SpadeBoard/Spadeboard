@@ -10,4 +10,9 @@ namespace Models.GameRooms
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long GameRoomId { get; set; }
     }
+
+    public class GameRoomDto
+    {
+        public string GameRoomId { get; set; } = "0";
+    }
 }

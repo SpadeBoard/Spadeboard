@@ -73,7 +73,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<DndItem>> PostDndItem(DndItem dndItem)
         {
-            _context.DndItem.Add(dndItem);
+            await _context.DndItem.AddAsync(dndItem);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetDndItem", new { id = dndItem.DndItemId }, dndItem);

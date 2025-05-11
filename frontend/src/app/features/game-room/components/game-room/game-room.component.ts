@@ -44,7 +44,7 @@ export class GameRoomComponent implements AfterViewChecked{
   private ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a";
 
   constructor() {
-    this.gameRoomService.setCurrentGameRoomId(1);
+    this.gameRoomService.setCurrentGameRoomId("1");
     this.gameRoomService.onAutosaveTimeout();
     
     this.cardGameCoreService.setUserId(this.ownerId);

@@ -10,27 +10,15 @@ namespace Services
         private readonly ApplicationDbContext _context = context;
 
         // TODO: Modify the cards controller to use this
-        public async Task<IEnumerable<Card>> GetCardsNavByOwnerIdAsync(string ownerId)
+        public async Task<IEnumerable<Card>> GetCardsByOwnerIdAsync(string ownerId)
         {
-            var cardsPerOwner = await _context.CardPerOwner
+            return await _context.CardPerOwner
                 .Where(cpo => cpo.OwnerId == ownerId)
                 .Include(cpo => cpo.Card)
+                .Select(cpo => cpo.Card)
+                .Where(card => card != null)
+                .Select(card => card!)
                 .ToListAsync();
-
-            List<Card> cards = [];
-
-            if (cardsPerOwner != null)
-            {
-                foreach (CardPerOwner cpo in cardsPerOwner)
-                {
-                    if (cpo.Card!= null) 
-                    {
-                        cards.Add(cpo.Card);
-                    }
-                }
-            }
-
-            return cards;
         }
 
         // TODO: Probably fix this considering you can have multiple cards with multiple owners, might actually need a surrogate key instead of composite
@@ -55,10 +43,12 @@ namespace Services
                 .FirstOrDefaultAsync(cpo => cpo.CardId == cardId && cpo.OwnerId == ownerId);
         }
 
-        public async Task CreateAsync(CardPerOwner cpo)
+        public async Task<CardPerOwner> CreateAsync(CardPerOwner cpo)
         {
+            cpo.CardPerOwnerId = 0;
             await _context.CardPerOwner.AddAsync(cpo);
             await _context.SaveChangesAsync();
+            return cpo;
         }
 
         public async Task<IEnumerable<CardPerOwner>> GetAllAsync()

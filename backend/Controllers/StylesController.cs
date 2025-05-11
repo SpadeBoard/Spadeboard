@@ -73,7 +73,7 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Style>> PostStyle(Style style)
         {
-            _context.Style.Add(style);
+            await _context.Style.AddAsync(style);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetStyle", new { id = style.StyleId }, style);

@@ -51,9 +51,9 @@ export class StyleApiService {
   });
 
   // Update
-  /*updateStyle: ResourceRef<Style | undefined>  = rxResource<Style, {styleId: number, style: Partial<Style>}>({
+  /*updateStyle: ResourceRef<Style | undefined>  = rxResource<Style, {styleId: string, style: Partial<Style>}>({
     request: () => ({styleId, style}),
-    loader: (params: ResourceLoaderParams<{styleId: number, style: Partial<Style>}>) => this.http.put<Style>(`${this.apiUrl}/${styleId}`, style)
+    loader: (params: ResourceLoaderParams<{styleId: string, style: Partial<Style>}>) => this.http.put<Style>(`${this.apiUrl}/${styleId}`, style)
   });*/
 
   // Delete

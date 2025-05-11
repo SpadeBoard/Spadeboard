@@ -7,11 +7,17 @@ namespace Models.DndItems
 {
     public class DndItemDto
     {
-        public DndItem DndItem {get; set;}
+        public string DndItemId { get; set; } = "0";
+        public bool IsDraggable { get; set; }
+        public bool IsDroppable { get; set; }
+    }
 
-        public DndPosition DndPosition {get; set;}
+    public class DndPositionDto
+    {
+        public string DndPositionId { get; set; } = "0";
 
-        public DndDragBoundary? DndDragBoundary {get;set;}
+        public float? X { get; set; }
+        public float? Y { get; set; }
     }
 
     [Table("DndPositions")]
@@ -40,35 +46,16 @@ namespace Models.DndItems
         public string? Height { get; set; }
         public string? MaxWidth { get; set; }
         public string? Border { get; set; }
-
-        // Navigation property
-        // public DndItem? DndItem { get; set; }
     }
 
-    public class DndItemCreateDto 
+    public class DndDragBoundaryDto 
     {
-        [Required]
-        public bool IsDraggable { get; set; }
+        public string DndDragBoundaryId { get; set; } = "0";
 
-        [Required]
-        public bool IsDroppable { get; set; }
-
-        /*[Required, AllowNull]
-        // Foreign key for DndPosition
-        public long DndPositionId { get; set; }
-        [ForeignKey("DndPositionId")]
-        public DndPosition? DndPosition { get; set; }
-
-        // Foreign key for DndDragBoundary
-        [Required, AllowNull]
-        public long DndDragBoundaryId { get; set; }
-        [ForeignKey("DndDragBoundaryId")]
-        public DndDragBoundary? DndDragBoundary { get; set; }*/
-    
-        [Required, AllowNull]
-        public long? StyleId {get; set;}
-        [ForeignKey("StyleId")]
-        public Style? Style {get; set;}
+        public string? Width { get; set; }
+        public string? Height { get; set; }
+        public string? MaxWidth { get; set; }
+        public string? Border { get; set; }
     }
 
     [Table("DndItems")]
@@ -83,23 +70,5 @@ namespace Models.DndItems
 
         [Required]
         public bool IsDroppable { get; set; }
-
-        // TODO: Create a bridge table for this
-        /*[Required, AllowNull]
-        // Foreign key for DndPosition
-        public long DndPositionId { get; set; }
-        [ForeignKey("DndPositionId")]
-        public DndPosition? DndPosition { get; set; }
-
-        // Foreign key for DndDragBoundary
-        [Required, AllowNull]
-        public long DndDragBoundaryId { get; set; }
-        [ForeignKey("DndDragBoundaryId")]
-        public DndDragBoundary? DndDragBoundary { get; set; }*/
-    
-        /*[Required, AllowNull]
-        public long? StyleId {get; set;}
-        [ForeignKey("StyleId")]
-        public Style? Style {get; set;}*/
     }
 }

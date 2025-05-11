@@ -25,7 +25,7 @@ export class CardEditorControlsDesignElementAttributesService {
 
   // currentCardFaceElementId: WritableSignal<number> = signal<number>(-1);
   // https://stackoverflow.com/questions/42504918/difference-between-ngmodel-and-ngmodel-for-binding-state-to-property
-  private currentCardFaceElementId: number = -1;
+  private currentCardFaceElementId: string = "";
   
   private _height: number = 0;
   private _width: number = 0;
@@ -67,11 +67,11 @@ export class CardEditorControlsDesignElementAttributesService {
     this._x =  x;
   }
 
-  setCurrentCardFaceElementId(currentCardFaceElementId: number): void {
+  setCurrentCardFaceElementId(currentCardFaceElementId: string): void {
     this.currentCardFaceElementId = currentCardFaceElementId;
   }
 
-  getCurrentCardFaceElementId(): number {
+  getCurrentCardFaceElementId(): string {
     return this.currentCardFaceElementId;
   }
 

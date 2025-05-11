@@ -2,7 +2,7 @@ import { Style } from "../../style/models/style";
 import { DndDragBoundary, DndPosition } from "./dnd-types";
 
 export interface DndItem {
-    dndItemId: number;
+    dndItemId: string;
     isDraggable: boolean;
     isDroppable: boolean;
     /*dndPosition: DndPosition;

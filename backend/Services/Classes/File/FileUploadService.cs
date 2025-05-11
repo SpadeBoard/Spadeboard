@@ -134,7 +134,7 @@ namespace Services
 
         public async Task<bool> ReplaceCardFaceFileAsync(IFormFile formFile, string fileName)
         {
-            return await ReplaceFileAsync(formFile, cardFaceFilePath, fileName, maxFileSizeCardFaceElementImage);
+            return await ReplaceFileAsync(formFile, cardFaceFilePath, fileName, maxFileSizeCardFace);
         }
 
         public async Task<bool> ReplaceCardFaceElementImageFileAsync(IFormFile formFile, string fileName)
@@ -206,5 +206,7 @@ namespace Services
         }*/
 
         // TODO: Delete files at a certain point if there's no user reference to it
+
+        // TODO: Replace file path, use it with creating a new CardEditorCardDto from an existing one, replace the file path
     }
 }

@@ -96,10 +96,12 @@ namespace Services
             return await _context.CardFace.FindAsync(id);
         }
 
-        public async Task CreateAsync(CardFace item)
+        public async Task<CardFace> CreateAsync(CardFace item)
         {
-            _context.CardFace.Add(item);
+            item.CardFaceId = 0;
+            await _context.CardFace.AddAsync(item);
             await _context.SaveChangesAsync();
+            return item;
         }
 
         public async Task<bool> UpdateAsync(long id, CardFace item)
@@ -155,7 +157,7 @@ namespace Services
             return _context.Entry(item).Properties.Any(p => p.IsModified);
         }
 
-        public async Task CreateNavAsync(CardFace nav)
+        public async Task<CardFace> CreateNavAsync(CardFace nav)
         {
             Console.WriteLine("nav.CardFaceId before query: " + nav.CardFaceId);
 
@@ -177,21 +179,16 @@ namespace Services
             );
 
             nav.CardFaceId = 0;
+            
             await _context.CardFace.AddAsync(nav);
-            long changes = await _context.SaveChangesAsync();
+
+            int changes = await _context.SaveChangesAsync();
 
             if (changes <= 0)
                 throw new Exception("No changes were made");
 
-            var cf = await _context.CardFace
-                .Include(cpr => cpr.Style)
-                .FirstOrDefaultAsync(cf => cf.CardFaceId == nav.CardFaceId);
-
-            if (cf != null)
-            {
-                nav = cf;
-                Console.WriteLine("Card face nav: {0}", JsonConvert.SerializeObject(nav));
-            }
+            await _context.Entry(nav).Reference(n => n.Style).LoadAsync();
+            return nav; 
         }
     }
 }

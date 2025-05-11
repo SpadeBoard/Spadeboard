@@ -9,9 +9,9 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
   styleUrl: './card-editor-element-delete-button.component.css'
 })
 export class CardEditorElementDeleteButtonComponent {
-  cardFaceElementPerCardFaceId: InputSignal<number> = input<number>(-1);
+  cardFaceElementPerCardFaceId: InputSignal<string> = input<string>("-1");
 
-  private cardFaceElementPerCardFaceIdComputed: Signal<number> = computed(() => this.cardFaceElementPerCardFaceId());
+  private cardFaceElementPerCardFaceIdComputed: Signal<string> = computed(() => this.cardFaceElementPerCardFaceId());
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
   onClick(event: Event) {

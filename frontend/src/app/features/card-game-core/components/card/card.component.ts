@@ -34,7 +34,7 @@ export class CardComponent {
   // Might need computed signals then
 
   card: InputSignal<Card> = input<Card >({
-    cardId: 0,
+    cardId: "0",
     currentCardFaceIndex: 0,
     cardName: '',
     isTemplate: false
@@ -45,9 +45,9 @@ export class CardComponent {
   ];
 
   currentCardFace: CardFace = {
-    cardFaceId: 0,
+    cardFaceId: "0",
     style: {
-      styleId: 0
+      styleId: "0"
     }
   }
 

@@ -2,7 +2,7 @@ import { Style } from "../../style/models/style";
 import { CardFaceElementPerCardFace } from "./card-face-element";
 
 export interface CardFace {
-    cardFaceId: number;
+    cardFaceId: string;
     style: Style;
     cardFaceThumbnailFilePath?: string/* | Blob*/;
 }

@@ -42,7 +42,7 @@ export class CardPositionPerRoomComponent {
    // this.updateGridSize();
 
     effect(() => {
-      if (this.gameRoomService.currentGameRoomId() > 0) {
+      if (parseFloat(this.gameRoomService.currentGameRoomId()) > 0) {
         this.getCardsPositionPerRoomByRoomId(this.gameRoomService.currentGameRoomId());
       }
     });
@@ -120,7 +120,7 @@ export class CardPositionPerRoomComponent {
   }
   
   // Reference: https://www.angularspace.com/creating-custom-rxresource-api-with-observables/
-  private getCardsPositionPerRoomByRoomId(gameRoomId: number): void {
+  private getCardsPositionPerRoomByRoomId(gameRoomId: string): void {
     this.cardPositionPerRoomApiService.getCardsPositionPerRoomByRoomId(
       gameRoomId).subscribe((result: CardPositionPerRoom[] | undefined) => {
         if (result !== undefined) {
@@ -130,7 +130,7 @@ export class CardPositionPerRoomComponent {
     });
   }
 
-  private findCardPositionPerRoom(cardId: number): CardPositionPerRoom | undefined{
+  private findCardPositionPerRoom(cardId: string): CardPositionPerRoom | undefined{
     return this.cprs.find((cpr) => cpr.card.cardId == cardId);
   }
 
@@ -188,7 +188,7 @@ export class CardPositionPerRoomComponent {
     });
   }
 
-  private deleteCardPositionPerRoom(id: number) {
+  private deleteCardPositionPerRoom(id: string) {
     // TODO: Delete from the bridge table
     this.cprs = this.cprs.filter(cpr => cpr.cardPositionPerRoomId !== id);
 

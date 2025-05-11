@@ -20,10 +20,21 @@ namespace Models.Cards
         public string? CardFaceThumbnailFilePath {get; set;}
     }
 
+    public class CardFaceDto
+    {
+        public string CardFaceId { get; set; } = "0";
+
+        public string? StyleId {get; set;} = "0";
+        public virtual StyleDto? Style { get; set; }
+
+        // 'card-thumbnail-images/[card-id]_[card-face-id]_image.jpg'
+        public string? CardFaceThumbnailFilePath {get; set;}
+    }
+
     public class CardEditorCardFaceDto 
     {
-        public CardFace CardFace {get; set;}
+        public CardFaceDto CardFace {get; set;}
 
-        public CardFaceElementPerCardFace[] CardFaceElementsPerCardFace {get; set;}
+        public CardFaceElementPerCardFaceDto[] CardFaceElementsPerCardFace {get; set;}
     }
 }

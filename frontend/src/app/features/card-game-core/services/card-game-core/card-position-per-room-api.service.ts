@@ -14,7 +14,7 @@ export class CardPositionPerRoomApiService {
   
   constructor() { }
 
-  getCardsPositionPerRoomByRoomId(gameRoomId: number): Observable<CardPositionPerRoom[] | undefined> {
+  getCardsPositionPerRoomByRoomId(gameRoomId: string): Observable<CardPositionPerRoom[] | undefined> {
     return this.http.get<CardPositionPerRoom[]>(`${this.apiUrl}/nav/room/${gameRoomId}`);
   }
 
@@ -29,7 +29,7 @@ export class CardPositionPerRoomApiService {
   }
 
   // TODO: Two options, delete nav vs delete just the reference?
-  deleteCardPositionPerRoom(id: number) {
+  deleteCardPositionPerRoom(id: string) {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

@@ -330,12 +330,12 @@ export function bbCodeParser(html: string): bbCode {
     // tag: '',
     attrs: {
       style: {
-        styleId: 0
+        styleId: "0"
       },
       dndPosition: {
         x: 0,
         y: 0,
-        dndPositionId: 0
+        dndPositionId: "0"
       }
     },
     content: []

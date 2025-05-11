@@ -4,8 +4,7 @@ using Models.DndItems;
 
 namespace Services
 {
-    public interface IDndItemDtoService: ICrud<DndItemDto>, ICrudNav<DndItemDto>
+    public interface IDndItemDtoService: ICrudDto<DndItemDto>
     {
-        public Task<DndItemDto?> GetByDndItemIdAndDndPositionIdAsync(long dndItemId, long dndPositionId);
     }
 }

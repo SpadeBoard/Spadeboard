@@ -5,7 +5,7 @@ import { DndDragBoundary, DndPosition } from "../../drag-and-drop/models/dnd-typ
 
 // TODO: Make a CardFaceElementDto and use that instead for frontend
 export interface CardFaceElement {
-    cardFaceElementId: number;
+    cardFaceElementId: string;
     cardFaceElementContent: string;
     cardFaceElementType?: string;
     style?: Style;
@@ -19,7 +19,7 @@ export interface CardFaceElementDto {
 }
 
 export interface CardFaceElementPerCardFace {
-    cardFaceElementPerCardFaceId: number;
+    cardFaceElementPerCardFaceId: string;
     cardFaceElement: CardFaceElement;
     dndItem: DndItem;
     dndPosition: DndPosition;

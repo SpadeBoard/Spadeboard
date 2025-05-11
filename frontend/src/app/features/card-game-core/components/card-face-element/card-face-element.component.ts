@@ -20,20 +20,20 @@ import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 export class CardFaceElementComponent {
   cardFaceElementDtoInput = input<CardFaceElementDto>({
     cardFaceElement: {
-      cardFaceElementId: 0,
+      cardFaceElementId: "0",
       cardFaceElementContent: '',
       cardFaceElementType: '',
     },
     dndItemDto: {
       dndItem: {
-        dndItemId: 0,
+        dndItemId: "0",
         isDraggable: false,
         isDroppable: false
       },
       dndPosition: {
         x: 0,
         y: 0,
-        dndPositionId: 0
+        dndPositionId: "0"
       }
     }
   });
@@ -42,13 +42,13 @@ export class CardFaceElementComponent {
     // TODO: Pass in the potential card face elements as well as front card face and back card face
     cardFaceElementDtoInput: {
       cardFaceElement: {
-        cardFaceElementId: 0,
+        cardFaceElementId: "0",
         cardFaceElementContent: '',
         cardFaceElementType: '',
       },
       dndItemDto: {
         dndItem: {
-          dndItemId: 0,
+          dndItemId: "0",
           isDraggable: false,
           isDroppable: false
         },
@@ -87,7 +87,7 @@ export class CardFaceElementComponent {
     effect(() => {
       let cardFaceElementDto = this.cardFaceElementDtoInput();
 
-      if (cardFaceElementDto.cardFaceElement.cardFaceElementId > 0) {
+      if (parseFloat(cardFaceElementDto.cardFaceElement.cardFaceElementId) > 0) {
         this.cardFaceSubelementInputs.cardFaceElementDtoInput = cardFaceElementDto;
       }
     });

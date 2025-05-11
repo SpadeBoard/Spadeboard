@@ -29,7 +29,7 @@ export class CardEditorCardOperationsButtonComponent {
   }
 
   private setHasCreated() {
-    this.hasCreated = (this.cardEditorPreviewService.cardEditorCardDto.card.cardId > 0) ? true : false;
+    this.hasCreated = (parseFloat(this.cardEditorPreviewService.cardEditorCardDto.card.cardId) > 0) ? true : false;
   }
 
   onCardCreate(event: Event): void {

@@ -20,22 +20,6 @@ namespace Services
         private readonly IStyleService _styleService = styleService;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
 
-        public async Task<IEnumerable<CardFaceElement>> GetAllByCardFaceIdAsync(long cardFaceId)
-        {
-            return await _context.CardFaceElement
-                .Where(element => element.CardFaceId == cardFaceId)
-                .ToListAsync();
-        }
-
-        public async Task CreateAllNavCardFaceAsync(CardFaceElement[] cardFaceElements, CardFace cardFace)
-        {
-            foreach (CardFaceElement e in cardFaceElements)
-            {
-                e.CardFace = cardFace;
-
-                await CreateNavAsync(e);
-            }
-        }
         public async Task<bool> UpdateAllNavAsync(CardFaceElement[] cardFaceElements)
         {
             foreach (CardFaceElement cardFaceElement in cardFaceElements)
@@ -93,7 +77,7 @@ namespace Services
                 return false;
             }
 
-            if (cardFaceElement.CardFaceElementType == "image") {
+            if (cardFaceElement.CardFaceElementType == "image" && cardFaceElement.CardFaceElementContent != null) {
                 await _fileUploadService.DeleteCardFaceFileAsync(cardFaceElement.CardFaceElementContent);
             }
 
@@ -109,12 +93,13 @@ namespace Services
             return changes > 0;
         }
 
-        public async Task CreateAsync(CardFaceElement item)
+        public async Task<CardFaceElement> CreateAsync(CardFaceElement item)
         {
-            // item.CardFaceElementId = Snowflake.NewId();
-            item.CardFaceElementId = 0;
-            _context.CardFaceElement.Add(item);
+            item.CardFaceElementId = Snowflake.NewId();
+            // item.CardFaceElementId = 0;
+            await _context.CardFaceElement.AddAsync(item);
             await _context.SaveChangesAsync();
+            return item;
         }
 
         public async Task<bool> UpdateAsync(long id, CardFaceElement item)
@@ -169,18 +154,6 @@ namespace Services
         public async Task<IEnumerable<CardFaceElement>> GetAllNavAsync()
         {
             var cardFaceElements = await _context.CardFaceElement
-                .Include(element => element.CardFace)
-                .Include(element => element.Style)
-                .ToListAsync();
-
-            return cardFaceElements;
-        }
-
-        public async Task<IEnumerable<CardFaceElement>> GetAllNavByCardFaceId(long cardFaceId)
-        {
-            var cardFaceElements = await _context.CardFaceElement
-                .Where(element => element.CardFaceId == cardFaceId)
-                .Include(element => element.CardFace)
                 .Include(element => element.Style)
                 .ToListAsync();
 
@@ -202,14 +175,28 @@ namespace Services
         {
             var cardFaceElement = await _context.CardFaceElement
                 .Include(cardFaceElement => cardFaceElement.Style)
-                .Include(cardFaceElement => cardFaceElement.CardFace)
                 .FirstOrDefaultAsync(cardFaceElement => cardFaceElement.CardFaceElementId == id);
             
             return cardFaceElement;
         }
 
-        public async Task CreateNavAsync(CardFaceElement nav)
+        public async Task<CardFaceElement> CreateNavAsync(CardFaceElement nav)
         {
+            if (nav.Style == null)
+            {
+                throw new ArgumentException("CreateNavAsync - The Style property of CardFaceElement cannot be null.", nameof(nav));
+            }
+
+            // TODO: Refactor so this works, currently adding a card to the game room triggers this
+            /*if (_styleService.Exists(nav.Style.StyleId))
+            {
+                throw new ArgumentException("CreateNavAsync - The Style property of CardFaceElement has already been made.", nameof(nav));
+            }*/
+
+            /* TODO: Replace the below with this
+            nav.Style.StyleId = Snowflake.NewId();
+            */
+
             // TODO: Make a style service, and use Exists as a check
             if (nav.Style != null && _styleService.Exists(nav.Style.StyleId))
             {
@@ -221,35 +208,18 @@ namespace Services
                 nav.Style.StyleId = 0;
             }
 
-            // TODO: Refactor the thing so that 1 card face element can be on multiple faces
-            /*if (nav.CardFace != null && _cardFaceService.Exists(nav.CardFace.CardFaceId))
-            {
-                nav.CardFace.CardFaceId = nav.CardFace.CardFaceId;
-                nav.CardFace = null;
-            }
-            else if (nav.CardFace != null)
-            {
-                nav.CardFace.CardFaceId = 0;
-            }*/
-
-            // nav.CardFaceElementId = Snowflake.NewId();
-            nav.CardFaceElementId = 0;
+            nav.CardFaceElementId = Snowflake.NewId();
+            // nav.CardFaceElementId = 0;
             
             await _context.CardFaceElement.AddAsync(nav);
-            long changes = await _context.SaveChangesAsync();
+            int changes = await _context.SaveChangesAsync();
 
             if (changes <= 0)
                 throw new Exception("No changes were made");
 
-            var e = await _context.CardFaceElement
-                .Include(e=> e.Style)
-                .Include(e => e.CardFace)
-                .FirstOrDefaultAsync(e=> e.CardFaceElementId == nav.CardFaceElementId);
+            await _context.Entry(nav).Reference(e => e.Style).LoadAsync();
 
-            if (e != null)
-            {
-                nav = e;
-            }
+            return nav;
         }
     }
 }

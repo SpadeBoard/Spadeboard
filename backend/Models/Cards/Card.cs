@@ -16,10 +16,9 @@ https://www.learnentityframeworkcore.com/configuration/fluent-api/valuegenerated
 */
 namespace Models.Cards
 {
-    // TODO: Rename this to CardEditorCardDto
     public class CardEditorCardDto
     {
-        public Card Card { get; set; }
+        public CardDto Card { get; set; }
 
         public CardEditorCardFaceDto[] CardEditorCardFacesDto {get; set;}
 
@@ -37,11 +36,17 @@ namespace Models.Cards
 
         public bool? IsTemplate {get; set;} = false;
 
-        // FIXED
-        // Getting the navigation properties being required
-        // So make them nullable
+        public int? CurrentCardFaceIndex { get; set;} = 0;
+    }
 
-        // TODO: Make this required, remove IsFlipped
-        public long? CurrentCardFaceIndex { get; set;} = 0;
+    public class CardDto
+    {
+        public string CardId { get; set; } = "0";
+
+        public string? CardName {get;set;} = "";
+
+        public bool? IsTemplate {get; set;} = false;
+
+        public int? CurrentCardFaceIndex { get; set;} = 0;
     }
 }
