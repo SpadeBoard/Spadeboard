@@ -134,7 +134,7 @@ namespace Services
 
         public async Task<bool> ReplaceCardFaceFileAsync(IFormFile formFile, string fileName)
         {
-            return await ReplaceFileAsync(formFile, cardFaceFilePath, fileName, maxFileSizeCardFaceElementImage);
+            return await ReplaceFileAsync(formFile, cardFaceFilePath, fileName, maxFileSizeCardFace);
         }
 
         public async Task<bool> ReplaceCardFaceElementImageFileAsync(IFormFile formFile, string fileName)

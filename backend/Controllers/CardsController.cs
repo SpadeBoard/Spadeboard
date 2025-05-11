@@ -117,7 +117,7 @@ namespace backend.Controllers
             try
             {
                 var updated = await _cardEditorCardDtoService.UpdateDtoAsync(id, cardEditorCardDto);         
-                return updated ? Ok(cardEditorCardDto) : BadRequest();
+                return updated ? Ok(await _cardEditorCardDtoService.GetDtoAsync(id)) : BadRequest();
             }
             catch (DbUpdateConcurrencyException ex)
             {

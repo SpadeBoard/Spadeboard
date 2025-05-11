@@ -75,8 +75,8 @@ namespace Services
                 nav.DndPosition.DndPositionId = 0;
             }
 
-            // nav.CardFaceElementPerCardFaceId = Snowflake.NewId();
-            nav.CardFaceElementPerCardFaceId = 0;
+            nav.CardFaceElementPerCardFaceId = Snowflake.NewId();
+            // nav.CardFaceElementPerCardFaceId = 0;
 
             await _context.CardFaceElementPerCardFace.AddAsync(nav);
             int changes = await _context.SaveChangesAsync();
@@ -298,19 +298,14 @@ namespace Services
         public async Task CreateAllNavByCardFaceIdFromExistingAllNavAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
         {
             foreach (CardFaceElementPerCardFace cardFaceElementPerCardFace in cardFaceElementsPerCardFace) {
-                // TODO: Put this in a separate utility function somewhere
+                // TODO: Ok, this needs to be fixed somehow
                 cardFaceElementPerCardFace.CardFace = cardFace;
-                
-                cardFaceElementPerCardFace.CardFaceElementId = 0;
-                
-                if (cardFaceElementPerCardFace.CardFaceElement != null) {
-                    cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId = 0;
-                    
-                    cardFaceElementPerCardFace.CardFaceElement.StyleId = 0;
 
-                    if (cardFaceElementPerCardFace.CardFaceElement.Style != null) {
+                if (cardFaceElementPerCardFace.CardFaceElement != null) {
+                    /*if (cardFaceElementPerCardFace.CardFaceElement.Style != null)
+                    {
                         cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
-                    }
+                    }*/
 
                     cardFaceElementPerCardFace.CardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
                 }

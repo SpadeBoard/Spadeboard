@@ -95,8 +95,8 @@ namespace Services
 
         public async Task<CardFaceElement> CreateAsync(CardFaceElement item)
         {
-            // item.CardFaceElementId = Snowflake.NewId();
-            item.CardFaceElementId = 0;
+            item.CardFaceElementId = Snowflake.NewId();
+            // item.CardFaceElementId = 0;
             await _context.CardFaceElement.AddAsync(item);
             await _context.SaveChangesAsync();
             return item;
@@ -182,6 +182,21 @@ namespace Services
 
         public async Task<CardFaceElement> CreateNavAsync(CardFaceElement nav)
         {
+            if (nav.Style == null)
+            {
+                throw new ArgumentException("CreateNavAsync - The Style property of CardFaceElement cannot be null.", nameof(nav));
+            }
+
+            // TODO: Refactor so this works, currently adding a card to the game room triggers this
+            /*if (_styleService.Exists(nav.Style.StyleId))
+            {
+                throw new ArgumentException("CreateNavAsync - The Style property of CardFaceElement has already been made.", nameof(nav));
+            }*/
+
+            /* TODO: Replace the below with this
+            nav.Style.StyleId = Snowflake.NewId();
+            */
+
             // TODO: Make a style service, and use Exists as a check
             if (nav.Style != null && _styleService.Exists(nav.Style.StyleId))
             {
@@ -193,8 +208,8 @@ namespace Services
                 nav.Style.StyleId = 0;
             }
 
-            // nav.CardFaceElementId = Snowflake.NewId();
-            nav.CardFaceElementId = 0;
+            nav.CardFaceElementId = Snowflake.NewId();
+            // nav.CardFaceElementId = 0;
             
             await _context.CardFaceElement.AddAsync(nav);
             int changes = await _context.SaveChangesAsync();

@@ -31,7 +31,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("card-face")]
-        public async Task<ActionResult<string>> UploadCardFaceFileAsync(IFormFile formFile)
+        public async Task<ActionResult<string>> UploadCardFaceFileAsync([FromForm] IFormFile formFile)
         {
             var fileName = await _fileUploadService.UploadCardFaceFileAsync(formFile);
 
@@ -63,7 +63,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("card-face-element-image")]
-        public async Task<ActionResult<string>> UploadCardFaceElementImageFileAsync(IFormFile formFile)
+        public async Task<ActionResult<string>> UploadCardFaceElementImageFileAsync([FromForm] IFormFile formFile)
         {
             var fileName = await _fileUploadService.UploadCardFaceElementImageFileAsync(formFile);
 
@@ -76,14 +76,14 @@ namespace backend.Controllers
         }
 
         [HttpPut("card-face/{fileName}")]
-        public async Task<ActionResult<string>> ReplaceCardFaceFileAsync(string fileName, IFormFile formFile)
+        public async Task<ActionResult<string>> ReplaceCardFaceFileAsync(string fileName, [FromForm] IFormFile formFile)
         {
             var replaced = await _fileUploadService.ReplaceCardFaceFileAsync(formFile, fileName);
             return replaced ? Ok(new { id = fileName }) : BadRequest();
         }
 
         [HttpPut("card-face-element-image/{fileName}")]
-        public async Task<ActionResult<string>> ReplaceCardFaceElementImageFileAsync(string fileName, IFormFile formFile)
+        public async Task<ActionResult<string>> ReplaceCardFaceElementImageFileAsync(string fileName, [FromForm] IFormFile formFile)
         {
             var replaced = await _fileUploadService.ReplaceCardFaceElementImageFileAsync(formFile, fileName);
             return replaced ? Ok(new { id = fileName }) : BadRequest();
