@@ -302,10 +302,10 @@ namespace Services
                 cardFaceElementPerCardFace.CardFace = cardFace;
 
                 if (cardFaceElementPerCardFace.CardFaceElement != null) {
-                    /*if (cardFaceElementPerCardFace.CardFaceElement.Style != null)
+                    if (cardFaceElementPerCardFace.CardFaceElement.Style != null)
                     {
                         cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
-                    }*/
+                    }
 
                     cardFaceElementPerCardFace.CardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
                 }
@@ -343,7 +343,12 @@ namespace Services
 
                 // PURPOSE: It's because some elements might be newly added and have an ID of 0
                 if (cardFaceElementPerCardFace.CardFaceElement != null && !_cardFaceElementService.Exists(cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId)) {
-                    await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
+                    if (cardFaceElementPerCardFace.CardFaceElement.Style != null)
+                    {
+                        cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
+                    }
+                    
+                    cardFaceElementPerCardFace.CardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
                     await CreateNavAsync(cardFaceElementPerCardFace);
                     
                     Console.WriteLine("Create nav async for element in update all nav by card face ID");
