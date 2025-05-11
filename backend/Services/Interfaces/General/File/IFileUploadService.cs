@@ -27,5 +27,9 @@ namespace Services
         public Task DeleteCardFaceElementImageFileAsync(string fileName);
         
         /*public void ConvertBlobToFile(byte[] blob, string filePath);*/
+
+        public Task<string> ReplaceFilePathAsync(string volumePath, string sourceFileName);
+    
+        public Task<string> ReplaceCardFaceElementImageFilePathAsync(string srcFileName);
     }
 }

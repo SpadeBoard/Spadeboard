@@ -187,6 +187,33 @@ namespace Services
             await DeleteFileAsync(cardFaceElementImageFilePath, fileName);
         }
 
+        public async Task<string> ReplaceFilePathAsync(string volumePath, string sourceFileName)
+    {
+        string sourceFilePath = Path.Combine(volumePath, sourceFileName);
+
+        if (string.IsNullOrWhiteSpace(sourceFileName))
+            throw new ArgumentException("Source file name cannot be null or empty.", nameof(sourceFileName));
+        if (!File.Exists(sourceFilePath))
+            throw new FileNotFoundException("Source file does not exist.", sourceFileName);
+
+        string destinationFileName = Guid.NewGuid().ToString();
+         string destinationFilePath = Path.Combine(volumePath, destinationFileName);
+
+        // Asynchronously copy the file
+        using (FileStream sourceStream = File.Open(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+        using (FileStream destinationStream = File.Create(destinationFilePath))
+        {
+            await sourceStream.CopyToAsync(destinationStream);
+        }
+
+        return destinationFilePath;
+    }
+
+        public async Task<string> ReplaceCardFaceElementImageFilePathAsync(string srcFileName)
+        {
+            return await ReplaceFilePathAsync(cardFaceElementImageFilePath, srcFileName);
+        }
+
         // TODO: figure out how to fix this
         /*public void ConvertBlobToFile(byte[] blob, string filePath) {
             try 

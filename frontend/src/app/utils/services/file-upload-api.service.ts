@@ -26,9 +26,18 @@ export class FileUploadApiService {
     }
   }
 
+  replaceFilePath$(fileName: string, type?: string): Observable<{ id: string | undefined; }> {
+    switch (type) {
+      case "card-face-element-image":
+        return this.http.put<{id: string}>(`${this.apiUrl}/card-face-element-image-path/${fileName}`, fileName);
+      default:
+         return this.http.put<{id: string}>(`${this.apiUrl}/card-face-element-image-path/${fileName}`, fileName);
+    }
+  }
+
   // TODO: Do switch statement here
   
-  uploadFile(formData: FormData, type?: string): Observable<{ id: string }> {
+  uploadFile$(formData: FormData, type?: string): Observable<{ id: string }> {
     let headers = new HttpHeaders().set('Content-Type', 'multipart/form-data');
     
     switch (type)

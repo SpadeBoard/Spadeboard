@@ -88,5 +88,11 @@ namespace backend.Controllers
             var replaced = await _fileUploadService.ReplaceCardFaceElementImageFileAsync(formFile, fileName);
             return replaced ? Ok(new { id = fileName }) : BadRequest();
         }
+
+        [HttpPut("card-face-element-image-path/{srcFileName}")]
+        public async Task<ActionResult<string>> ReplaceCardFaceElementImageFilePathAsync(string srcFileName)
+        {
+            return  await _fileUploadService.ReplaceCardFaceElementImageFilePathAsync(srcFileName);
+        }
     }
 }
