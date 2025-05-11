@@ -30,53 +30,65 @@ namespace Services
             return item;
         }
 
-        // TODO: Have CardEditorCardFaceDto call CreateAllNavAsync
+        // NOTE: For bridge tables, create nav async should create the navigation properties serpately, then make them null afterwards, then just make the bridge table's new records
         public async Task<CardFaceElementPerCardFace> CreateNavAsync(CardFaceElementPerCardFace nav)
         {
-            if (nav.CardFaceElement != null && _cardFaceElementService.Exists(nav.CardFaceElement.CardFaceElementId))
+            if (nav.CardFaceElement == null)
             {
-                // FIXME: Add this first separately
-                // TODO: Really these checks should be in a utility function
-                nav.CardFaceElementId = nav.CardFaceElement.CardFaceElementId;
-                nav.CardFaceElement = null;
-            }
-            else if (nav.CardFaceElement != null)
-            {
-                nav.CardFaceElement.CardFaceElementId = 0;
+                throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe CardFaceElement property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
             }
 
-            if (nav.CardFace != null && _cardFaceService.Exists(nav.CardFace.CardFaceId))
+            if (_cardFaceElementService.Exists(nav.CardFaceElement.CardFaceElementId))
             {
-                nav.CardFaceId = nav.CardFace.CardFaceId;
-                nav.CardFace = null;
-            }
-            else if (nav.CardFace != null)
-            {
-                nav.CardFace.CardFaceId = 0;
+                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe CardFaceElement property of CardFaceElementPerCardFace has already been made.", nameof(nav));
             }
 
-            if (nav.DndItem != null && _dndItemService.Exists(nav.DndItem.DndItemId))
+            nav.CardFaceElement = await _cardFaceElementService.CreateNavAsync(nav.CardFaceElement);
+            nav.CardFaceElementId = nav.CardFaceElement.CardFaceElementId;
+            nav.CardFaceElement = null;
+
+            if (nav.CardFace == null )
             {
-                nav.DndItemId = nav.DndItem.DndItemId;
-                nav.DndItem = null;
-            }
-            else if (nav.DndItem != null)
-            {
-                nav.DndItem.DndItemId = 0;
+                throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe CardFace property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
             }
 
-            if (nav.DndPosition != null && _dndPositionService.Exists(nav.DndPosition.DndPositionId))
+            if (!_cardFaceService.Exists(nav.CardFace.CardFaceId))
             {
-                nav.DndPositionId = nav.DndPosition.DndPositionId;
-                nav.DndPosition = null;
+                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe CardFaceElement property of CardFaceElementPerCardFace should already be made since we're updating multiple card face elements per one card face.", nameof(nav));
             }
-            else if (nav.DndPosition != null)
+
+            nav.CardFaceId = nav.CardFace.CardFaceId;
+            nav.CardFace = null;
+
+            if (nav.DndItem == null )
             {
-                nav.DndPosition.DndPositionId = 0;
+                throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe DndItem property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
             }
+
+            if (_dndItemService.Exists(nav.DndItem.DndItemId))
+            {
+                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe DndItem property of CardFaceElementPerCardFace should not exist.", nameof(nav));
+            }
+
+            nav.DndItem = await _dndItemService.CreateAsync(nav.DndItem);
+            nav.DndItemId = nav.DndItem.DndItemId;
+            nav.DndItem = null;
+
+            if (nav.DndPosition == null )
+            {
+                throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe DndPosition property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
+            }
+
+            if (_dndPositionService.Exists(nav.DndPosition.DndPositionId))
+            {
+                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe DndPosition property of CardFaceElementPerCardFace should not exist.", nameof(nav));
+            }
+
+            nav.DndPosition = await _dndPositionService.CreateAsync(nav.DndPosition);
+            nav.DndPositionId = nav.DndPosition.DndPositionId;
+            nav.DndPosition = null;
 
             nav.CardFaceElementPerCardFaceId = Snowflake.NewId();
-            // nav.CardFaceElementPerCardFaceId = 0;
 
             await _context.CardFaceElementPerCardFace.AddAsync(nav);
             int changes = await _context.SaveChangesAsync();
@@ -87,6 +99,8 @@ namespace Services
             // At this point, nav.CardFaceElementPerCardFaceId has the new ID
             // Reload navigation properties if needed
             await _context.Entry(nav).Reference(e => e.CardFaceElement).LoadAsync();
+            // CHECKME: Would we need to load the style?
+            // await _context.Entry(nav).Reference(e => e.CardFaceElement!.Style).LoadAsync();
             await _context.Entry(nav).Reference(e => e.CardFace).LoadAsync();
             await _context.Entry(nav).Reference(e => e.DndItem).LoadAsync();
             await _context.Entry(nav).Reference(e => e.DndPosition).LoadAsync();
@@ -286,47 +300,43 @@ namespace Services
         {
             foreach (CardFaceElementPerCardFace cardFaceElementPerCardFace in cardFaceElementsPerCardFace) {
                 cardFaceElementPerCardFace.CardFace = cardFace;
-
-                if (cardFaceElementPerCardFace.CardFaceElement != null) {
-                    cardFaceElementPerCardFace.CardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
-                }
-
                 await CreateNavAsync(cardFaceElementPerCardFace);
             }
         }
 
         public async Task CreateAllNavByCardFaceIdFromExistingAllNavAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
         {
+            if (cardFace == null)
+            {
+                throw new ArgumentNullException(nameof(cardFace), "cardFace should not be null");
+            }
+            
             foreach (CardFaceElementPerCardFace cardFaceElementPerCardFace in cardFaceElementsPerCardFace) {
-                // TODO: Ok, this needs to be fixed somehow
-                cardFaceElementPerCardFace.CardFace = cardFace;
+                await CreateNavByExistingCardFaceIdFromExistingNavAsync(cardFaceElementPerCardFace, cardFace);
+            }
+        }
 
-                if (cardFaceElementPerCardFace.CardFaceElement != null) {
-                    if (cardFaceElementPerCardFace.CardFaceElement.Style != null)
+        public async Task<CardFaceElementPerCardFace> CreateNavByExistingCardFaceIdFromExistingNavAsync(CardFaceElementPerCardFace cardFaceElementPerCardFace, CardFace cardFace)
+        {
+            if (cardFaceElementPerCardFace.CardFace == null 
+                    || cardFaceElementPerCardFace.CardFaceElement == null 
+                    || cardFaceElementPerCardFace.CardFaceElement.Style == null
+                    || cardFaceElementPerCardFace.DndItem == null
+                    || cardFaceElementPerCardFace.DndPosition == null)
                     {
-                        cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
+                        throw new ArgumentNullException(nameof(cardFaceElementPerCardFace), "At least one navigational property of CardFaceElementPerCardFace is null");
                     }
-
-                    cardFaceElementPerCardFace.CardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
-                }
-
-                cardFaceElementPerCardFace.DndItemId = 0;
-
-                if (cardFaceElementPerCardFace.DndItem != null) {
-                     cardFaceElementPerCardFace.DndItem.DndItemId =0;
-                }
-
-                cardFaceElementPerCardFace.DndPositionId = 0;
-
-                if (cardFaceElementPerCardFace.DndPosition != null) {
-                    cardFaceElementPerCardFace.DndPosition.DndPositionId = 0;
-                }
+                
+                cardFaceElementPerCardFace.CardFace = cardFace;
+                cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId = 0;
+                cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
+                cardFaceElementPerCardFace.DndItem.DndItemId =0;
+                 cardFaceElementPerCardFace.DndPosition.DndPositionId = 0;
 
                 // cardFaceElementPerCardFace.DndDragBoundaryId = 0;
                 // cardFaceElementPerCardFace.DndDragBoundary.DndDragBoundaryId =0;
                 
-                await CreateNavAsync(cardFaceElementPerCardFace);
-            }
+                return await CreateNavAsync(cardFaceElementPerCardFace);
         }
 
 
@@ -343,14 +353,7 @@ namespace Services
 
                 // PURPOSE: It's because some elements might be newly added and have an ID of 0
                 if (cardFaceElementPerCardFace.CardFaceElement != null && !_cardFaceElementService.Exists(cardFaceElementPerCardFace.CardFaceElement.CardFaceElementId)) {
-                    if (cardFaceElementPerCardFace.CardFaceElement.Style != null)
-                    {
-                        cardFaceElementPerCardFace.CardFaceElement.Style.StyleId = 0;
-                    }
-                    
-                    cardFaceElementPerCardFace.CardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElementPerCardFace.CardFaceElement);
-                    await CreateNavAsync(cardFaceElementPerCardFace);
-                    
+                    await CreateNavAsync(cardFaceElementPerCardFace);         
                     Console.WriteLine("Create nav async for element in update all nav by card face ID");
 
                     continue;

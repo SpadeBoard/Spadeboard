@@ -59,7 +59,7 @@ namespace Services
         public async Task<CardFaceElementPerCardFaceDto> CreateDtoNavAsync(CardFaceElementPerCardFaceDto cardFaceElementPerCardFaceDto)
         {
             CardFaceElementPerCardFace cardFaceElementPerCardFace = _mapper.Map<CardFaceElementPerCardFace>(cardFaceElementPerCardFaceDto);
-            await  _cardFaceElementPerCardFaceService.CreateNavAsync(cardFaceElementPerCardFace);
+            cardFaceElementPerCardFace = await  _cardFaceElementPerCardFaceService.CreateNavAsync(cardFaceElementPerCardFace);
             return  _mapper.Map<CardFaceElementPerCardFaceDto>(cardFaceElementPerCardFace);
         }
         
