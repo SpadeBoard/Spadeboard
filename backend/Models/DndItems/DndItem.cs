@@ -7,14 +7,14 @@ namespace Models.DndItems
 {
     public class DndItemDto
     {
-        public string DndItemId { get; set; }
+        public string DndItemId { get; set; } = "0";
         public bool IsDraggable { get; set; }
         public bool IsDroppable { get; set; }
     }
 
     public class DndPositionDto
     {
-        public string DndPositionId { get; set; }
+        public string DndPositionId { get; set; } = "0";
 
         public float? X { get; set; }
         public float? Y { get; set; }
@@ -50,7 +50,7 @@ namespace Models.DndItems
 
     public class DndDragBoundaryDto 
     {
-        public string DndDragBoundaryId { get; set; }
+        public string DndDragBoundaryId { get; set; } = "0";
 
         public string? Width { get; set; }
         public string? Height { get; set; }

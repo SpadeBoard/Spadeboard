@@ -58,13 +58,13 @@ namespace Services
         }
 
          // NOTE: We don't want to save cpo because cards in rooms shouldn't have owners
-         public async Task CreateDtoForGameRoomFromExistingDtoAsync(CardEditorCardDto dto)
+         public async Task<CardEditorCardDto> CreateDtoForGameRoomFromExistingDtoAsync(CardEditorCardDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 if (dto.CardEditorCardFacesDto != null) {
-                    await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto);
+                    dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto)).ToArray();
                 }
 
                 dto.Card.CardId = "0";
@@ -73,6 +73,7 @@ namespace Services
                 await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
 
                 await transaction.CommitAsync();
+                return dto;
             }
             catch (Exception)
             {
@@ -81,13 +82,13 @@ namespace Services
             }
         }
 
-         public async Task CreateDtoFromExistingDtoAsync(CardEditorCardDto dto)
+         public async Task<CardEditorCardDto> CreateDtoFromExistingDtoAsync(CardEditorCardDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 if (dto.CardEditorCardFacesDto != null) {
-                    await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto);
+                    dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto)).ToArray();
                 }
 
                 dto.Card.CardId = "0";
@@ -103,6 +104,7 @@ namespace Services
                 await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
 
                 await transaction.CommitAsync();
+                return dto;
             }
             catch (Exception)
             {

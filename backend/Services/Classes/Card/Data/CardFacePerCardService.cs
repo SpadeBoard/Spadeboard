@@ -60,6 +60,7 @@ namespace Services
             return await _context.CardFacePerCard
                 .Where(c => c.CardId == cardId)
                 .Include(c => c.CardFace)
+                .Include(c => c.CardFace.Style)
                 .Select(c => c.CardFace)
                 .Where(face => face != null)
                 .Select(face => face!)

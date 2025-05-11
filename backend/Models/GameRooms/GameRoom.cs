@@ -13,6 +13,6 @@ namespace Models.GameRooms
 
     public class GameRoomDto
     {
-        public string GameRoomId { get; set; }
+        public string GameRoomId { get; set; } = "0";
     }
 }

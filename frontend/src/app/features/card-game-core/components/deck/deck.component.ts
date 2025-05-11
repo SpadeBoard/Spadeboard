@@ -31,11 +31,11 @@ export class DeckComponent {
     isDroppable: false,
     dndPosition: {
       x: 0, y: 0,
-      dndPositionId: 0
+      dndPositionId: "0"
     },
 
     style: {
-      styleId: 0,
+      styleId: "0",
       height: '',
       width: '',
       margin: '50'

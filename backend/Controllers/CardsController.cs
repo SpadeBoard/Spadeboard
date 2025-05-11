@@ -65,7 +65,7 @@ namespace backend.Controllers
                 return NotFound();
             }
 
-            return cardEditorCardDto;
+            return Ok(cardEditorCardDto);
         }
 
         [HttpGet("owner/{ownerId}")]
@@ -168,8 +168,7 @@ namespace backend.Controllers
             // TODO:  When adding elements, there will be a style, so that should be handled
             try
             {
-                // TODO: Don't return the card, return the DTO
-                await _cardEditorCardDtoService.CreateDtoFromExistingDtoAsync(cardEditorCardDto);
+                cardEditorCardDto = await _cardEditorCardDtoService.CreateDtoFromExistingDtoAsync(cardEditorCardDto);
                 return CreatedAtAction("GetCardEditorCardDto", new { id = cardEditorCardDto.Card.CardId }, cardEditorCardDto);
             }
             catch (Exception ex)

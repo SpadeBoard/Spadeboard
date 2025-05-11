@@ -26,9 +26,9 @@ export class CardFaceComponent {
 
   // TODO: Have the calculation to convert the card face elements here
   cardFaceInput: InputSignal<CardFace | undefined>=  input<CardFace | undefined>({
-    cardFaceId: 0,
+    cardFaceId: "0",
     style: {
-      styleId: 0,
+      styleId: "0",
       width: '0px',
       height: '0px'
     },
@@ -100,7 +100,7 @@ export class CardFaceComponent {
     effect(() => {
       let cardFace = this.cardFaceInput();
       
-      if (cardFace !== undefined && cardFace.cardFaceId !== 0) {
+      if (cardFace !== undefined && parseFloat(cardFace.cardFaceId) !== 0) {
 
         this.getCardFaceImageSrc(cardFace).then((image: HTMLImageElement | undefined) => {
           if (image === undefined)

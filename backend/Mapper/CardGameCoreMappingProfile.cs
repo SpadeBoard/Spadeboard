@@ -60,6 +60,20 @@ namespace Mapper
             CreateMap<CardFaceElementPerCardFace, CardFaceElementPerCardFaceDto>();
 
             // String -> Long
+            /*
+                "CardEditorCardFacesDto[0].CardFaceElementsPerCardFace[0].DndItemId": [
+                "The DndItemId field is required."
+            ],
+            "CardEditorCardFacesDto[0].CardFaceElementsPerCardFace[0].CardFaceId": [
+                "The CardFaceId field is required."
+            ],
+            "CardEditorCardFacesDto[0].CardFaceElementsPerCardFace[0].DndPositionId": [
+                "The DndPositionId field is required."
+            ],
+            "CardEditorCardFacesDto[0].CardFaceElementsPerCardFace[0].CardFaceElementId": [
+                "The CardFaceElementId field is required."
+            ]
+            */
             CreateMap<CardFaceElementPerCardFaceDto, CardFaceElementPerCardFace>()
                 .ForMember(dest => dest.CardFaceElementPerCardFaceId,
                         opt => opt.MapFrom(src => long.Parse(src.CardFaceElementPerCardFaceId)))

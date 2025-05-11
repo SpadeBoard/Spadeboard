@@ -28,14 +28,24 @@ namespace Services
 
         public async Task<IEnumerable<CardEditorCardFaceDto>> CreateAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto)
         {
-            var tasks = cardEditorCardFacesDto.Select(cardEditorCardFaceDto => CreateDtoAsync(cardEditorCardFaceDto));
-            return await Task.WhenAll(tasks);
+            var results = new List<CardEditorCardFaceDto>();
+            foreach (var cardEditorCardFaceDto in cardEditorCardFacesDto)
+            {
+                var result = await CreateDtoAsync(cardEditorCardFaceDto);
+                results.Add(result);
+            }
+            return results;
         }
 
         public async Task<IEnumerable<CardEditorCardFaceDto>> CreateAllDtoFromExistingAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto)
         {
-            var tasks = cardEditorCardFacesDto.Select(cardEditorCardFaceDto => CreateDtoFromExistingDtoAsync(cardEditorCardFaceDto));
-            return await Task.WhenAll(tasks);
+            var results = new List<CardEditorCardFaceDto>();
+            foreach (var cardEditorCardFaceDto in cardEditorCardFacesDto)
+            {
+                var result = await CreateDtoFromExistingDtoAsync(cardEditorCardFaceDto);
+                results.Add(result);
+            }
+            return results;
         }
 
         public async Task<CardEditorCardFaceDto> CreateDtoFromExistingDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
@@ -123,9 +133,19 @@ namespace Services
         {
             // NOTE: Returns the navigational properties
             IEnumerable<CardFaceDto>? cfpc = await _cardFacePerCardDtoService.GetAllFacesDtoByCardId(cardId);
-            IEnumerable<Task<CardEditorCardFaceDto?>> tasks = cfpc.Select(GetDtoAsyncByCardFace);
-            CardEditorCardFaceDto?[] results = await Task.WhenAll(tasks);
-            return results.Where(dto => dto != null)!;
+
+            var results = new List<CardEditorCardFaceDto>();
+
+            foreach (var cardFace in cfpc)
+            {
+                var dto = await GetDtoAsyncByCardFace(cardFace);
+                if (dto != null)
+                {
+                    results.Add(dto);
+                }
+            }
+
+            return results;
         }
 
 

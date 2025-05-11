@@ -48,7 +48,7 @@ export class DndBoardComponent implements AfterViewInit {
   // TODO: Populate this
   private dndBoardService: DndBoardService= inject(DndBoardService);
 
-  gameRoomId: number = 1;
+  gameRoomId: string = "1";
   ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a"; // TODO: Should be admin of room
 
   mouseMoveLog: string = '';

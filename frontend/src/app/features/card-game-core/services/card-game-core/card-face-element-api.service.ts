@@ -17,11 +17,11 @@ export class CardFaceElementApiService {
   
   constructor() { }
 
-  getCardFaceElement$(cardFaceElementId: number): Observable<CardFaceElement | undefined> {
+  getCardFaceElement$(cardFaceElementId: string): Observable<CardFaceElement | undefined> {
     return this.http.get<CardFaceElement>(`${this.apiUrl}/nav/${cardFaceElementId}`);
   }
 
-  deleteCardFaceElementPerCardFace$(cardFaceElementPerCardFaceId: number): Observable<void> {
+  deleteCardFaceElementPerCardFace$(cardFaceElementPerCardFaceId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/nav/card-face-element-per-card-face/${cardFaceElementPerCardFaceId}`).pipe(
       catchError((error) => {
         if (error.status === 404) {

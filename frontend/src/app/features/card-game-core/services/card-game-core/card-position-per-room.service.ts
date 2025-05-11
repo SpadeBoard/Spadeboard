@@ -15,7 +15,7 @@ export class CardPositionPerRoomService {
   constructor() { }
 
   // Reference: https://www.angularspace.com/creating-custom-rxresource-api-with-observables/
-  getCardsPositionPerRoomByRoomId(gameRoomId: number): void {
+  getCardsPositionPerRoomByRoomId(gameRoomId: string): void {
     // TODO
     this.cardPositionPerRoomApiService.getCardsPositionPerRoomByRoomId(
       gameRoomId).subscribe((result: CardPositionPerRoom[] | undefined) => {
@@ -24,7 +24,7 @@ export class CardPositionPerRoomService {
     });
   }
 
-  findCardPositionPerRoom(cardId: number): CardPositionPerRoom | undefined{
+  findCardPositionPerRoom(cardId: string): CardPositionPerRoom | undefined{
     return this.cprs.find((cpr) => cpr.card.cardId == cardId);
   }
 
@@ -40,7 +40,7 @@ export class CardPositionPerRoomService {
 
   }
 
-  deleteCardPositionPerRoom(id: number) {
+  deleteCardPositionPerRoom(id: string) {
     
   }
 }

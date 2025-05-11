@@ -11,7 +11,7 @@ export class GameRoomService {
   private cardPositionPerRoomApiService = inject(CardPositionPerRoomApiService);
   private dndBoardService = inject(DndBoardService);
 
-  currentGameRoomId: WritableSignal<number> = signal<number>(0);
+  currentGameRoomId: WritableSignal<string> = signal<string>("0");
   autosaveInterval: WritableSignal<number> = signal<number>(300000);
 
   
@@ -22,22 +22,22 @@ export class GameRoomService {
 
   constructor() { }
 
-  setCurrentGameRoomId(newCurrentGameRoomId: number) {
+  setCurrentGameRoomId(newCurrentGameRoomId: string) {
     this.currentGameRoomId.set(newCurrentGameRoomId);
   }
 
-  setIsSavingGameRoom(newIsSavingGameRoom: boolean, newCurrentGameRoomId?: number) {
+  setIsSavingGameRoom(newIsSavingGameRoom: boolean, newCurrentGameRoomId?: string) {
     if (this.currentGameRoomId() !== newCurrentGameRoomId)
       return;
 
     this.isSavingGameRoom = newIsSavingGameRoom;
   }
 
-  setCurrentGameRoom(newCurrentGameRoomId: number) {
+  setCurrentGameRoom(newCurrentGameRoomId: string) {
     this.currentGameRoomId.set(newCurrentGameRoomId);
   }
 
-  getCurrentGameRoom(): number {
+  getCurrentGameRoom(): string {
     return this.currentGameRoomId();
   }
 

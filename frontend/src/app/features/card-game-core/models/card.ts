@@ -7,7 +7,7 @@ import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace } from 
 
 // TODO: Instead of having DndItem itself, have the card extends the item
 export interface Card {
-    cardId: number;
+    cardId: string;
     cardName: string;
     isTemplate: boolean;
     currentCardFaceIndex: number;
@@ -24,7 +24,7 @@ export interface CardEditorCardDto {
 
 // TODO: Replace with the objects themselves?
 export interface CardPositionPerRoom {
-    cardPositionPerRoomId: number;
+    cardPositionPerRoomId: string;
     card: Card;
     dndItem: DndItem;
     dndPosition: DndPosition;

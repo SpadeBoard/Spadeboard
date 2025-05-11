@@ -24,9 +24,9 @@ namespace Models.Bridge
 
     public class CardPerOwnerDto
     {
-        public string CardPerOwnerId {get; set;}
-        public string CardId { get; set; }
+        public string CardPerOwnerId {get; set;} = "0";
+        public string CardId { get; set; } = "0";
 
-        public string OwnerId {get; set;}
+        public string OwnerId {get; set;} = "0";
     }
 }

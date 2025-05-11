@@ -27,7 +27,7 @@ export class CardGameCoreService {
 
   cardEditorCardDto: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
     card: {
-      cardId: 0,
+      cardId: "0",
       currentCardFaceIndex: 0,
       cardName: '',
       isTemplate: false
@@ -39,7 +39,7 @@ export class CardGameCoreService {
   // NOTE: Use this with the card collection to load latest
   createdCardEditorCardDtoForCardCollection: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
     card: {
-      cardId: 0,
+      cardId: "0",
       currentCardFaceIndex: 0,
       cardName: '',
       isTemplate: false

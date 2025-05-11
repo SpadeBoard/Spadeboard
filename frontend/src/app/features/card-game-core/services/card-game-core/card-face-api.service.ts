@@ -23,12 +23,12 @@ export class CardFaceApiService {
     return this.http.get<CardFace[]>(this.apiUrl);
   }
 
-  getCardFace$(cardFaceId: number): Observable<CardFace | undefined> {
+  getCardFace$(cardFaceId: string): Observable<CardFace | undefined> {
     return this.http.get<CardFace>(`${this.apiUrl}/dto/${cardFaceId}`);
     // return this.http.get<CardFace>(`${this.apiUrl}/${cardFaceId}`);
   }
 
-  getCardFacesPerCard$(cardId: number): Observable<CardFace[] | undefined> {
+  getCardFacesPerCard$(cardId: string): Observable<CardFace[] | undefined> {
     return this.http.get<CardFace[]>(`${this.apiUrl}/card-face-per-card/${cardId}`);
   }
 }

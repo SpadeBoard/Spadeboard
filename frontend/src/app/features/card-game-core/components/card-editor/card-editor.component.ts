@@ -56,11 +56,11 @@ export class CardEditorComponent implements AfterViewInit {
 
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
 
-  private currentCardFaceElementId: number = -1;
+  private currentCardFaceElementId: string = "-1";
 
   constructor() {
     effect(() => {
-      if (this.cardGameCoreService.cardEditorCardDto().card.cardId !== undefined && this.cardGameCoreService.cardEditorCardDto().card.cardId as number > 0) {
+      if (parseFloat(this.cardGameCoreService.cardEditorCardDto().card.cardId) !== undefined && parseFloat(this.cardGameCoreService.cardEditorCardDto().card.cardId) as number > 0) {
         this.setCardEditorCardDto(this.cardGameCoreService.cardEditorCardDto());
       }
     });
@@ -77,7 +77,7 @@ export class CardEditorComponent implements AfterViewInit {
   }
 
   setCardEditorCardDto(newCardEditorCardDto: CardEditorCardDto) {
-    if (!newCardEditorCardDto || newCardEditorCardDto.card.cardId === undefined || newCardEditorCardDto.card.cardId < 0) return;
+    if (!newCardEditorCardDto || parseFloat(newCardEditorCardDto.card.cardId) === undefined || parseFloat(newCardEditorCardDto.card.cardId) < 0) return;
       this.cardEditorCardDto = newCardEditorCardDto;
   }
 
@@ -92,7 +92,7 @@ export class CardEditorComponent implements AfterViewInit {
         alt: ''
       },
       cardFaceImageStyle: {
-        styleId: 0,
+        styleId: "0",
         width: '100',
         height: '150',
       }
@@ -133,9 +133,9 @@ export class CardEditorComponent implements AfterViewInit {
   // Card face probably has an associated dimension with it
   currentCardEditorCardFaceDto: CardEditorCardFaceDto= {
     cardFace: {
-      cardFaceId: 0,
+      cardFaceId: "0",
       style: {
-        styleId: 0
+        styleId: "0"
       }
     },
     cardFaceElementsPerCardFace: []
@@ -143,7 +143,7 @@ export class CardEditorComponent implements AfterViewInit {
 
   cardEditorCardDto: CardEditorCardDto = {
     card: {
-      cardId: 0,
+      cardId: "0",
       currentCardFaceIndex: 0,
       cardName: '',
       isTemplate: false
@@ -152,9 +152,9 @@ export class CardEditorComponent implements AfterViewInit {
     cardEditorCardFacesDto: [
       {
         cardFace: {
-          cardFaceId: 0,
+          cardFaceId: "0",
           style: {
-            styleId: 0,
+            styleId: "0",
             width: '100', // Modify
             height: '100', //Modify
             zIndex: 'inherit',
@@ -167,9 +167,9 @@ export class CardEditorComponent implements AfterViewInit {
       },
       {
         cardFace: {
-          cardFaceId: -1,
+          cardFaceId: "-1",
           style: {
-            styleId: 0,
+            styleId: "0",
             width: '100', // Modify
             height: '100', //Modify
             zIndex: 'inherit',
@@ -196,7 +196,7 @@ export class CardEditorComponent implements AfterViewInit {
 
   position: DndPosition = {
     x: 0, y: 0,
-    dndPositionId: 0
+    dndPositionId: "0"
   };
 
   // TODO: Use ngx-color-picker for picking colors on the card face
@@ -204,26 +204,26 @@ export class CardEditorComponent implements AfterViewInit {
   private currentPopupMenu: number | null = 0;
 
 
-  getCardFaceElementPerCardFace(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementId: number): CardFaceElementPerCardFace | null {
+  getCardFaceElementPerCardFace(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementId: string): CardFaceElementPerCardFace | null {
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
       cardFaceElement: {
-        cardFaceElementId: 0,
+        cardFaceElementId: "0",
         cardFaceElementContent: '',
         style: {
-          styleId: 0
+          styleId: "0"
         }
       },
       dndItem: {
-        dndItemId: 0,
+        dndItemId: "0",
         isDraggable: false,
         isDroppable: false
       },
       dndPosition: {
         x: 0,
         y: 0,
-        dndPositionId: 0
+        dndPositionId: "0"
       },
-      cardFaceElementPerCardFaceId: 0
+      cardFaceElementPerCardFaceId: "0"
     };
 
     let value = cardFaceElementsPerCardFace.find(

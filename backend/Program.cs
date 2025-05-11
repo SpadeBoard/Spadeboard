@@ -69,6 +69,8 @@ builder.Services.AddScoped<IDndItemDtoService, DndItemDtoService>();
 builder.Services.AddScoped<IStyleDtoService, StyleDtoService>();
 builder.Services.AddScoped<IGameRoomDtoService, GameRoomDtoService>();
 
+builder.Services.AddScoped<ICardPositionPerRoomDtoService, CardPositionPerRoomDtoService>();
+
 // Auto Mapper Configurations
 var mapperConfig = new MapperConfiguration(mc =>
 {

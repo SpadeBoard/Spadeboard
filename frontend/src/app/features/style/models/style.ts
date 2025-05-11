@@ -1,7 +1,7 @@
 // ASSUMPTIONS:
 // Lots of extending interfaces
 export interface Style {
-    styleId: number;
+    styleId: string;
     accentColor?: string;
     alignContent?: string;
     alignItems?: string;

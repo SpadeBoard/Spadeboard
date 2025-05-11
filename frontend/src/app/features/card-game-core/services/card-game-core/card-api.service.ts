@@ -84,7 +84,7 @@ export class CardApiService {
     return this.http.get<Card[]>(this.apiUrl);
   }
 
-  getCard$(cardId: number, ownerId?: string): Observable<Card | undefined> {
+  getCard$(cardId: string, ownerId?: string): Observable<Card | undefined> {
     if (ownerId !== undefined) {
       return this.http.get<Card>(`${this.apiUrl}/owner/${ownerId}/${cardId}`);
     }
@@ -92,7 +92,7 @@ export class CardApiService {
     return this.http.get<Card>(this.apiUrl);
   }
 
-  getCardEditorCardDto$(cardId: number): Observable<CardEditorCardDto | undefined> {
+  getCardEditorCardDto$(cardId: string): Observable<CardEditorCardDto | undefined> {
     if (cardId === undefined) {
       return of(undefined);
     } 
@@ -155,7 +155,7 @@ export class CardApiService {
     return this.http.put<CardEditorCardDto>(`${this.apiUrl}/dto/${cardEditorCardDto.card.cardId}`, cardEditorCardDto);
   }
 
-  deleteCard$(cardId: number, deleteAllAttributesAssociatedWithCard: boolean): Observable<void | undefined> {
+  deleteCard$(cardId: string, deleteAllAttributesAssociatedWithCard: boolean): Observable<void | undefined> {
     if (deleteAllAttributesAssociatedWithCard) {
       return this.http.delete<void>(`${this.apiUrl}/dto/${cardId}`);
     }

@@ -8,13 +8,13 @@ namespace Models.Cards
     // TODO: Use the DTO instead of CardFaceElement for the CardEditorCardDto as well as the services
     public class CardFaceElementDto
     {
-       public string CardFaceElementId { get; set; }
+       public string CardFaceElementId { get; set; } = "0";
        
         public string? CardFaceElementContent {get; set;}
 
         public string? CardFaceElementType {get; set;}
 
-        public string? StyleId {get; set;}
+        public string? StyleId {get; set;} = "0";
         public virtual StyleDto? Style {get; set;}
     }
 

@@ -28,7 +28,7 @@ export class ResizableWrapperComponent {
   // Relative: Imagine you have a sticky note on a wall. You can slide the sticky note up, down, left, or right, but the wall still remembers where it originally was.
   getStyle(): Omit<Style, 'styleId'> {
     return {
-      // styleId: 0,
+      // styleId: "0",
       position: 'absolute', // KEEP THE ARROWS ABSOLUTE SO THEY CAN ALWAYS BE AT CORNER
       width: `${this.parentWidth}px`,
       height: `${this.parentHeight}px`

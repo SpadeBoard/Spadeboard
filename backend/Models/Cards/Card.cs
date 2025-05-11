@@ -41,7 +41,7 @@ namespace Models.Cards
 
     public class CardDto
     {
-        public string CardId { get; set; }
+        public string CardId { get; set; } = "0";
 
         public string? CardName {get;set;} = "";
 

@@ -21,7 +21,7 @@ export class CardEditorPreviewService {
   private readonly cardFaceElementApiService: CardFaceElementApiService = inject(CardFaceElementApiService);
   
   defaultCardEditorFaceStyle: Style = {
-    styleId: 0,
+    styleId: "0",
     backgroundColor: '#fefffe',
     aspectRatio: '63/88',
     height: '483px',
@@ -37,7 +37,7 @@ export class CardEditorPreviewService {
   // FIXME: Reset this everytime you open the card editor via the button on the side
   cardEditorCardDto: CardEditorCardDto = {
     card: {
-      cardId: 0,
+      cardId: "0",
       currentCardFaceIndex: 0,
       cardName: '',
       isTemplate: false
@@ -46,7 +46,7 @@ export class CardEditorPreviewService {
     cardEditorCardFacesDto: [
       {
         cardFace: {
-          cardFaceId: 0,
+          cardFaceId: "0",
           style: this.defaultCardEditorFaceStyle,
           cardFaceThumbnailFilePath: ''
         },
@@ -55,7 +55,7 @@ export class CardEditorPreviewService {
       },
       {
         cardFace: {
-          cardFaceId: -1,
+          cardFaceId: "-1",
           style: this.defaultCardEditorFaceStyle,
           cardFaceThumbnailFilePath: ''
         },
@@ -66,9 +66,9 @@ export class CardEditorPreviewService {
 
   currentCardEditorCardFaceDto: CardEditorCardFaceDto = {
     cardFace: {
-      cardFaceId: 0,
+      cardFaceId: "0",
       style: {
-        styleId: 0
+        styleId: "0"
       }
     },
     cardFaceElementsPerCardFace: []
@@ -76,7 +76,7 @@ export class CardEditorPreviewService {
 
   cardFaceImages: FormData[] = [];
 
-  private cardFaceElementsPerCardFaceDelete: number[] = [
+  private cardFaceElementsPerCardFaceDelete: string[] = [
 
   ];
 
@@ -102,7 +102,7 @@ export class CardEditorPreviewService {
   setBlankCardTemplate() {
     this.cardEditorCardDto = {
       card: {
-        cardId: 0,
+        cardId: "0",
         currentCardFaceIndex: 0,
         cardName: '',
         isTemplate: false
@@ -111,7 +111,7 @@ export class CardEditorPreviewService {
       cardEditorCardFacesDto: [
         {
           cardFace: {
-            cardFaceId: 0,
+            cardFaceId: "0",
             style: this.defaultCardEditorFaceStyle,
             cardFaceThumbnailFilePath: ''
           },
@@ -120,7 +120,7 @@ export class CardEditorPreviewService {
         },
         {
           cardFace: {
-            cardFaceId: -1,
+            cardFaceId: "-1",
             style: this.defaultCardEditorFaceStyle,
             cardFaceThumbnailFilePath: ''
           },
@@ -130,8 +130,8 @@ export class CardEditorPreviewService {
     };
   }
 
-  setCardEditorCardDtoByCardTemplateId(cardId: number) {
-    if (cardId <= 0) {
+  setCardEditorCardDtoByCardTemplateId(cardId: string) {
+    if (parseFloat(cardId) <= 0) {
       this.setBlankCardTemplate() ;
       this.reloadCurrentCardEditorCardFaceDto();
       this.setOnSetCardEditorCardDtoByCardTemplateId();
@@ -168,7 +168,7 @@ export class CardEditorPreviewService {
     this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace = currentCardFaceElementsPerCardFace;
   }
 
-  deleteCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: number) {
+  deleteCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: string) {
     if (!this.isNewCardEditorCardDto() && this.doesCardFaceElementPerCardFaceToDeleteExistInDatabase(cardFaceElementPerCardFaceId)) {
       this.cardFaceElementsPerCardFaceDelete.push(cardFaceElementPerCardFaceId);
 
@@ -180,8 +180,8 @@ export class CardEditorPreviewService {
   }
 
   // TODO: Fix how this check actually works, just check whether it exists in the database because we gotta use the Snowflake Algorithm
-  doesCardFaceElementPerCardFaceToDeleteExistInDatabase(cardFaceElementPerCardFaceId: number): boolean {
-    return cardFaceElementPerCardFaceId <= this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.length;
+  doesCardFaceElementPerCardFaceToDeleteExistInDatabase(cardFaceElementPerCardFaceId: string): boolean {
+    return /^\d{17,20}$/.test(cardFaceElementPerCardFaceId);
   }
 
   // / TODO: Only delete the backend on update card or template, keep track of IDs to delete
@@ -193,7 +193,7 @@ export class CardEditorPreviewService {
     
     let deleteObservables: Observable<void>[] = [];
     while (this.cardFaceElementsPerCardFaceDelete.length > 0) {
-      let id: number | undefined = this.cardFaceElementsPerCardFaceDelete.pop();
+      let id: string | undefined = this.cardFaceElementsPerCardFaceDelete.pop();
       if (id !== undefined) {
         deleteObservables.push(this.cardFaceElementApiService.deleteCardFaceElementPerCardFace$(id));
       }
@@ -208,7 +208,7 @@ export class CardEditorPreviewService {
     this.setCurrentCardEditorCardFaceDto();
 
     effect(() => {
-      if (this.cardGameCoreService.cardEditorCardDto().card.cardId !== undefined && this.cardGameCoreService.cardEditorCardDto().card.cardId as number > 0) {
+      if (parseFloat(this.cardGameCoreService.cardEditorCardDto().card.cardId) !== undefined && parseFloat(this.cardGameCoreService.cardEditorCardDto().card.cardId) as number > 0) {
         this.setCardEditorCardDto(this.cardGameCoreService.cardEditorCardDto());      
         this.setCurrentCardEditorCardFaceDto();
       }
@@ -216,7 +216,7 @@ export class CardEditorPreviewService {
   }
 
   isNewCardEditorCardDto(): boolean {
-    return this.cardEditorCardDto.card.cardId <= 0;
+    return parseFloat(this.cardEditorCardDto.card.cardId) <= 0;
   }
 
   setOnCreateCardFaceElementPerCardFace(type: string, dndPosition: DndPosition){
@@ -232,7 +232,7 @@ export class CardEditorPreviewService {
   }
 
   setCardEditorCardDto(newCardEditorCardDto: CardEditorCardDto) {
-    if (!newCardEditorCardDto || newCardEditorCardDto.card.cardId === undefined || newCardEditorCardDto.card.cardId < 0) return;
+    if (!newCardEditorCardDto || parseFloat(newCardEditorCardDto.card.cardId) === undefined || parseFloat(newCardEditorCardDto.card.cardId) < 0) return;
     this.cardEditorCardDto = newCardEditorCardDto;
   }
 
@@ -341,8 +341,8 @@ export class CardEditorPreviewService {
   
       // Sort by ID while keeping original indexes
       imageElementsWithIndexes.sort((a, b) =>
-        a.element.cardFaceElement.cardFaceElementId -
-        b.element.cardFaceElement.cardFaceElementId
+        parseFloat(a.element.cardFaceElement.cardFaceElementId) -
+        parseFloat(b.element.cardFaceElement.cardFaceElementId)
       );
   
       // Extract sorted elements for upload
@@ -378,7 +378,7 @@ export class CardEditorPreviewService {
     }
     
     // FIXME: This isn't ever going to actually update the correct images because cardFaceElementsPerFace have more elements than what's being passed in.
-    updateCardFaceElementsImagesFilePath(cardFaceElementsPerFace: CardFaceElementPerCardFace[], originalCardFaceElementId: number, filePath: string) {
+    updateCardFaceElementsImagesFilePath(cardFaceElementsPerFace: CardFaceElementPerCardFace[], originalCardFaceElementId: string, filePath: string) {
       // console.log(`Update card face elements images file path: ${JSON.stringify(cardFaceElementsPerFace)}`);
       
       let targetElement = cardFaceElementsPerFace.find(element => 
@@ -459,8 +459,8 @@ export class CardEditorPreviewService {
 
     // Sort by ID while keeping original indexes
     imageElementsWithIndexes.sort((a, b) =>
-      a.element.cardFaceElement.cardFaceElementId -
-      b.element.cardFaceElement.cardFaceElementId
+      parseFloat(a.element.cardFaceElement.cardFaceElementId) -
+      parseFloat(b.element.cardFaceElement.cardFaceElementId)
     );
 
     // Extract sorted elements for upload
@@ -594,7 +594,7 @@ export class CardEditorPreviewService {
     return of(undefined);
   }
 
-  private getCardFaceElementImageFilePath(cardFaceElementId: number) {
+  private getCardFaceElementImageFilePath(cardFaceElementId: string) {
 
   }
 
@@ -629,7 +629,7 @@ export class CardEditorPreviewService {
         mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace)), 
         mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace)), 
         concatMap((cardEditorCardDto: CardEditorCardDto) => {
-          if (cardEditorCardDto.card.cardId <= 0) {
+          if (parseFloat(cardEditorCardDto.card.cardId) <= 0) {
             return this.cardApiService.createCardEditorCardDto$(cardEditorCardDto);
           } else {
             // NOTE: Clear the elements to delete because we're creating a new card from an existing DTO, so we're not actually modifying the original card

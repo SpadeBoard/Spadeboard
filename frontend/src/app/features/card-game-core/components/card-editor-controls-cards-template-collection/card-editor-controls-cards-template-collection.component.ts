@@ -18,7 +18,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
 
   cards: Card[] = [
     {
-      cardId: 0,
+      cardId: "0",
       cardName: 'Blank',
       isTemplate: true,
       currentCardFaceIndex: 0
@@ -38,7 +38,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
 
         this.cards = [
           {
-            cardId: 0,
+            cardId: "0",
             cardName: 'Blank',
             isTemplate: true,
             currentCardFaceIndex: 0
@@ -49,7 +49,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     })
   }
 
-  onClickCard(event: Event, cardId: number) {
+  onClickCard(event: Event, cardId: string) {
     this.cardEditorPreviewService.setCardEditorCardDtoByCardTemplateId(cardId);
   }
 

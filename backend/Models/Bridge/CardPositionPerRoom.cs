@@ -43,18 +43,18 @@ namespace Models.Bridge
 
     public class CardPositionPerRoomDto
     {
-        public string CardPositionPerRoomId { get; set; }
+        public string CardPositionPerRoomId { get; set; } = "0";
 
-        public string CardId { get; set; }
+        public string CardId { get; set; } = "0";
         public virtual CardDto? Card { get; set; }
 
-        public string DndItemId { get; set; }
+        public string DndItemId { get; set; } = "0";
         public virtual DndItemDto? DndItem { get; set; }
 
-        public string DndPositionId {get; set;}
+        public string DndPositionId {get; set;} = "0";
         public virtual DndPositionDto? DndPosition {get; set;}
 
-        public string GameRoomId {get; set;}
+        public string GameRoomId {get; set;} = "0";
         public virtual GameRoomDto? GameRoom {get; set;}
     }
 }

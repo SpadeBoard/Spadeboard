@@ -17,7 +17,7 @@ export class CardEditorControlsCardFaceElementsListComponent {
       let type: string = event.item.data;
       
       let dndPosition: DndPosition = {
-        dndPositionId: 0,
+        dndPositionId: "0",
         x: event.dropPoint.x,
         y: event.dropPoint.y
       }

@@ -140,7 +140,7 @@ namespace backend.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                await _cardPositionPerRoomDtoService.CreateDtoNavAsync(cardPositionPerRoom);
+               cardPositionPerRoom = await _cardPositionPerRoomDtoService.CreateDtoNavAsync(cardPositionPerRoom);
 
                 string navJson = JsonSerializer.Serialize(cardPositionPerRoom);
                 Console.WriteLine(navJson);

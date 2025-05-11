@@ -43,10 +43,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
   private mousePosition: {x: number, y: number} = {x:0, y: 0};
 
-  private currentEditedCardFaceElementId: number = -1;
+  private currentEditedCardFaceElementId: string = "-1";
 
   position: DndPosition = {
-    dndPositionId: 0,
+    dndPositionId: "0",
     x: 0,
     y: 0
   };
@@ -144,9 +144,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
       // FIXME: This isn't going to work because of multiusers, are we genuinely going to need another field for this like a UUID
       // Backend needs to convert from long to string then pass it back to frontend
-      let cardFaceElementPerCardFaceId = (this.cardEditorPreviewService.isNewCardEditorCardDto())
-        ? this.currentCardFaceElementsPerCardFace.length
-        : this.currentCardFaceElementsPerCardFace.length + 1;
+      let cardFaceElementPerCardFaceId: string = (this.cardEditorPreviewService.isNewCardEditorCardDto())
+        ? `${this.currentCardFaceElementsPerCardFace.length}`
+        : `${this.currentCardFaceElementsPerCardFace.length + 1}`;
 
       this.createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId, result.type, dndPosition);
 
@@ -154,26 +154,20 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
      // this.clampNewCardFaceElementPerCardFacePosition();
     });
   }
-
-  clampNewCardFaceElementPerCardFacePosition() {
-    let idx = this.currentCardFaceElementsPerCardFace.length - 1;
-    let latestDndPosition = this.currentCardFaceElementsPerCardFace[idx].dndPosition;
-    this.currentCardFaceElementsPerCardFace[idx].dndPosition = this.clampDndPosition(idx, latestDndPosition);
-  }
   
   // FXME: Card face element per card face and card face element should not share the same ID
-  createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: number, type: string, dndPosition: DndPosition) {
+  createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: string, type: string, dndPosition: DndPosition) {
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
       cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
       cardFaceElement: {
         cardFaceElementId: cardFaceElementPerCardFaceId,
         cardFaceElementContent: '',
         style: {
-          styleId: 0
+          styleId: "0"
         }
       },
       dndItem: {
-        dndItemId: 0,
+        dndItemId: "0",
         isDraggable: false,
         isDroppable: false,
       },
@@ -189,14 +183,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
             cardFaceElementContent: '',
             cardFaceElementType: 'rte',
             style: {
-              styleId: 0,
+              styleId: "0",
               width: '100', // TODO: Set this for Angular Editor
               height: '100', // TODO: Set this for Angular Editor
               zIndex: 'inherit'
             }
           },
           dndItem: {
-            dndItemId: 0,
+            dndItemId: "0",
             isDraggable: false,
             isDroppable: false,
           },
@@ -211,14 +205,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
             cardFaceElementContent: 'https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg',
             cardFaceElementType: 'image',
             style: {
-              styleId: 0,
+              styleId: "0",
               width: '100', // Modify
               height: '100', //Modify
               zIndex: 'inherit'
             }
           },
           dndItem: {
-            dndItemId: 0,
+            dndItemId: "0",
             isDraggable: false,
             isDroppable: false,
           },
@@ -255,24 +249,13 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     private getRelativeDropPosition(dropPoint: {x: number, y: number}): DndPosition {
       let containerRect = this.getCardFaceClientRect(); // Should return DOMRect
       return {
-        dndPositionId: 0,
+        dndPositionId: "0",
         x: dropPoint.x - containerRect.left,
         y: dropPoint.y - containerRect.top
       };
     }
 
-    private getCardFaceElementSize(index: number): { width: number, height: number } | null {
-      let elRef = this.cardFaceElements?.toArray()[index];
-
-      if (elRef) {
-        let rect = elRef.nativeElement.getBoundingClientRect();
-        console.log(`Get card face element size:${JSON.stringify(index)}, ${JSON.stringify(rect)}`);
-        return { width: rect.width, height: rect.height };
-      }
-      return null;
-    }
-
-    private clampDndPosition(cardFaceElementId: number, position: DndPosition): DndPosition {
+    private clampDndPosition(cardFaceElementId: string, position: DndPosition): DndPosition {
       let container = this.getCardFaceClientRect();
 
       let { x, y } = position;
@@ -283,18 +266,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
       let scale: DndPosition = {
         x: x - left, y: y - top,
-        dndPositionId: 0
+        dndPositionId: "0"
       };
   
       // console.log(`Pointer position: ${pointerPosition.x}, ${pointerPosition.y}\nContainer width and height: ${container.width}, ${container.height}, Scale: ${scale.x}, ${scale.y}`);
   
       // CHECKME: Not sure if this is even necessary
       // containerWidth - elementWidth, containerHeight - elementHeight
-      let elSize: {
-        width: number;
-        height: number;
-      } | null = this.getCardFaceElementSize(cardFaceElementId);
-      
+  
       /*if (elSize !== null) {
         scale.x = Math.max(0, Math.min(scale.x, width - elSize.width));
         scale.y = Math.max(0, Math.min(scale.y, height - elSize.height));
@@ -340,7 +319,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     this.position = this.getRelativeDropPosition({x: event.pointerPosition.x, y: event.pointerPosition.y});
 
-    // this.position = this.clampDndPosition(parseInt(cardFaceElementId), { dndPositionId: 0, x: event.pointerPosition.x, y: event.pointerPosition.y });
+    // this.position = this.clampDndPosition(parseInt(cardFaceElementId), { dndPositionId: "0", x: event.pointerPosition.x, y: event.pointerPosition.y });
     console.log(`On drag moved: ${JSON.stringify(this.position)}`);*/
 
     this.position = {
@@ -422,11 +401,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.cardEditorPreviewService.setCurrentCardFaceElementsPerCardFace(this.currentCardFaceElementsPerCardFace);
   }
 
-  getCurrentCardFaceElementPerCardFaceByElementId(cardFaceElementId: number): CardFaceElementPerCardFace | undefined {
+  getCurrentCardFaceElementPerCardFaceByElementId(cardFaceElementId: string): CardFaceElementPerCardFace | undefined {
     return this.currentCardFaceElementsPerCardFace.find(cfe => cfe.cardFaceElement.cardFaceElementId === cardFaceElementId);
   }
 
-  onEnableRte(event: Event, cardFaceElementId: number) {
+  onEnableRte(event: Event, cardFaceElementId: string) {
     this.setElementAttributes(cardFaceElementId);
 
     let currentCardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
@@ -455,7 +434,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   // TODO: Call the other two in there and replace individual instances with this
-  setElementAttributes(cardFaceElementId: number) {
+  setElementAttributes(cardFaceElementId: string) {
     this.setCurrentCardFaceElementId(cardFaceElementId);
 
     console.log(`Set element attributes - Card face element ID: ${cardFaceElementId}, Current edited card face element ID: ${this.currentEditedCardFaceElementId}`);
@@ -469,7 +448,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     }
   }
 
-  setCurrentCardFaceElementId(cardFaceElementId: number) {
+  setCurrentCardFaceElementId(cardFaceElementId: string) {
     this.currentEditedCardFaceElementId = cardFaceElementId;
     this.cardEditorControlsDesignElementAttributesService.setCurrentCardFaceElementId(this.currentEditedCardFaceElementId);
   }
@@ -489,18 +468,18 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.cardEditorControlsDesignElementAttributesService.height = dimensions.height;
   }
 
-  onFocusImage(cardFaceElementId: number) {
+  onFocusImage(cardFaceElementId: string) {
     this.setElementAttributes(cardFaceElementId);
     this.onDisableRte();
   }
 
-  onEnableImageEditor(cardFaceElementId: number) {
+  onEnableImageEditor(cardFaceElementId: string) {
     this.setElementAttributes(cardFaceElementId);
     this.onDisableRte();
     this.cardEditorControlsDesignImageService.setOnEnableImageEditor();
   }
 
-  getCardFaceImageElementDimensions(id: number): {width: number, height: number} {
+  getCardFaceImageElementDimensions(id: string): {width: number, height: number} {
     let cardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(id);
 
     if (cardFaceElementPerCardFace) {

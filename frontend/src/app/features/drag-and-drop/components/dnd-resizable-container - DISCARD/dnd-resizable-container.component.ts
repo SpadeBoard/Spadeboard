@@ -12,7 +12,7 @@ import { Style } from '../../../style/models/style';
 })
 export class DndResizableContainerComponent {
   style = input<Style>({
-    styleId: 0
+    styleId: "0"
   });
 
   isDraggable = input<boolean>(true);

@@ -5,7 +5,7 @@ namespace Models.Styles
 {
     public class StyleDto 
     {
-        public string StyleId { get; set; }
+        public string StyleId { get; set; } = "0";
         public string? AccentColor { get; set; }
         public string? AlignContent { get; set; }
         public string? AlignItems { get; set; }
