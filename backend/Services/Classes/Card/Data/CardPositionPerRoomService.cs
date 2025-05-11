@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Algorithms;
 using Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -134,49 +135,53 @@ namespace Services
             return cprs;
         }
 
+        // ASSUMPTION:
+        // For the nav async, assume that the card was already made
+        // Also assume that the room was already made
+
         // ASSUMPTION: Navigation properties of the properties aren't being passed in
         public async Task<CardPositionPerRoom> CreateNavAsync(CardPositionPerRoom nav)
         {
-            if (nav.Card != null && _cardService.Exists(nav.Card.CardId))
+            if (nav.Card == null || !_cardService.Exists(nav.Card.CardId))
             {
-                nav.CardId = nav.Card.CardId;
-                nav.Card = null;
-            }
-            else if (nav.Card != null)
-            {
-                nav.Card.CardId = 0;
+                throw new ArgumentException("Card Position Per Room\nCreate Nav Async: Card cannot be null and must already exist.", nameof(nav));
             }
 
-            if (nav.DndItem != null && _dndItemService.Exists(nav.DndItem.DndItemId)) 
+            nav.CardId = nav.Card.CardId;
+            nav.Card = null;
+
+            if (nav.GameRoom == null || !_gameRoomService.Exists(nav.GameRoom.GameRoomId))
             {
-                nav.DndItemId = nav.DndItem.DndItemId;
-                nav.DndItem = null;
-            }
-            else if (nav.DndItem != null)
-            {
-                nav.DndItem.DndItemId = 0;
+                throw new ArgumentException("Card Position Per Room\nCreate Nav Async: Game room cannot be null and must already exist.", nameof(nav));
             }
 
-            if (nav.DndPosition != null && _dndPositionService.Exists(nav.DndPosition.DndPositionId))
+            nav.GameRoomId = nav.GameRoom.GameRoomId;
+            nav.GameRoom = null;
+
+            if (nav.DndItem == null || _dndItemService.Exists(nav.DndItem.DndItemId))
             {
-                nav.DndPositionId = nav.DndPosition.DndPositionId;
-                nav.DndPosition = null;
+                throw new ArgumentException("Card Position Per Room\nCreate Nav Async: DndItem cannot be null and must not already exist.", nameof(nav));
             }
-            else if (nav.DndPosition != null)
+            
+          nav.DndItem = await _dndItemService.CreateAsync(nav.DndItem);
+            nav.DndItemId = nav.DndItem.DndItemId;
+            nav.DndItem = null;
+
+           if (nav.DndPosition == null )
             {
-                nav.DndPosition.DndPositionId = 0;
+                throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe DndPosition property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
             }
 
-            if (nav.GameRoom != null && _gameRoomService.Exists(nav.GameRoom.GameRoomId)) {
-                nav.GameRoomId = nav.GameRoom.GameRoomId;
-                nav.GameRoom = null;
-            }
-            else if (nav.GameRoom != null)
+            if (_dndPositionService.Exists(nav.DndPosition.DndPositionId))
             {
-                nav.GameRoom.GameRoomId = 0;
+                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe DndPosition property of CardFaceElementPerCardFace should not exist.", nameof(nav));
             }
 
-            // Do we need to set all the Ids as 0?
+            nav.DndPosition = await _dndPositionService.CreateAsync(nav.DndPosition);
+            nav.DndPositionId = nav.DndPosition.DndPositionId;
+            nav.DndPosition = null;
+
+            nav.CardPositionPerRoomId = Snowflake.NewId();
             await _context.CardPositionPerRoom.AddAsync(nav);
             int changes = await _context.SaveChangesAsync();
 
@@ -192,41 +197,33 @@ namespace Services
             return nav;
         }
 
-        // TODO: Figure out whether UpdateNavAsync would return a boolean
+        // ASSUMPTION: We're updating all at once for the same room
         public async Task<bool> UpdateNavAsync(CardPositionPerRoom nav)
         {
             try
             {
-                // FIXME: All IsModified is not going to work due to how it actually works
-                if (nav.Card != null /*&& _cardService.IsModified(nav.Card)*/)
+                if (nav.Card == null || nav.DndItem == null || nav.DndPosition == null)
                 {
-                    await _cardService.UpdateAsync(nav.CardId, nav.Card);
-                    Console.WriteLine("CPR Card modified");
+                    throw new ArgumentNullException(nameof(nav), "Card Position Per Room - Update nav async: At least one navigational property is null");
                 }
 
-                if (nav.DndItem != null /*&& !_dndItemService.IsModified(nav.DndItem)*/)
-                {
-                    await _dndItemService.UpdateAsync(nav.DndItemId, nav.DndItem);
-                    Console.WriteLine("CPR Dnd Item modified");
-                }
+                bool updated = true;
 
-                if (nav.DndPosition != null /*&& !_dndPositionService.IsModified(nav.DndPosition)*/)
+                updated = await _cardService.UpdateAsync(nav.CardId, nav.Card);
+                
+                /*if (!updated)
                 {
-                    await _dndPositionService.UpdateAsync(nav.DndPositionId, nav.DndPosition);
-                    Console.WriteLine("CPR Dnd Position modified");
-                }
-
-                // ASSUMPTION: We're updating all at once for the same room, 
-                /*
-                {
-                    "message": "An error occurred while processing the request",
-                    "error": "The instance of entity type 'GameRoom' cannot be tracked because another instance with the same key value for {'GameRoomId'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the conflicting key values."
-                }
-                */
-                /*if (nav.GameRoom != null  && !_gameRoomService.IsModified(nav.GameRoom))
-                {
-                    await _gameRoomService.UpdateAsync(nav.GameRoomId, nav.GameRoom);
+                    return updated;
                 }*/
+
+                updated =  await _dndItemService.UpdateAsync(nav.DndItemId, nav.DndItem);
+
+                /*if (!updated)
+                {
+                    return updated;
+                }*/
+
+                updated =  await _dndPositionService.UpdateAsync(nav.DndPositionId, nav.DndPosition);
 
                 return true;
             }
