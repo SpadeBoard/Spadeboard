@@ -43,7 +43,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
   private mousePosition: {x: number, y: number} = {x:0, y: 0};
 
-  private currentEditedCardFaceElementId: string = "-1";
+  currentEditedCardFaceElementId: string = "-1";
 
   position: DndPosition = {
     dndPositionId: "0",
