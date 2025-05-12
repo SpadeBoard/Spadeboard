@@ -28,6 +28,8 @@ export class FileUploadApiService {
 
   replaceFilePath$(fileName: string, type?: string): Observable<{ id: string | undefined; }> {
     switch (type) {
+      case "card-face":
+        return this.http.put<{id: string}>(`${this.apiUrl}/card-face-image-path/${fileName}`, fileName);
       case "card-face-element-image":
         return this.http.put<{id: string}>(`${this.apiUrl}/card-face-element-image-path/${fileName}`, fileName);
       default:

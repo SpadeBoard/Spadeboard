@@ -31,5 +31,7 @@ namespace Services
         public Task<string> ReplaceFilePathAsync(string volumePath, string sourceFileName);
     
         public Task<string> ReplaceCardFaceElementImageFilePathAsync(string srcFileName);
+    
+        public Task<string> ReplaceCardFaceThumbnailImageFilePathAsync(string srcFileName);
     }
 }
