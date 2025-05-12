@@ -206,12 +206,17 @@ namespace Services
             await sourceStream.CopyToAsync(destinationStream);
         }
 
-        return destinationFilePath;
+        return destinationFileName;
     }
 
         public async Task<string> ReplaceCardFaceElementImageFilePathAsync(string srcFileName)
         {
             return await ReplaceFilePathAsync(cardFaceElementImageFilePath, srcFileName);
+        }
+
+        public async Task<string> ReplaceCardFaceThumbnailImageFilePathAsync(string srcFileName)
+        {
+            return await ReplaceFilePathAsync(cardFaceFilePath, srcFileName);
         }
 
         // TODO: figure out how to fix this

@@ -89,10 +89,18 @@ namespace backend.Controllers
             return replaced ? Ok(new { id = fileName }) : BadRequest();
         }
 
+        [HttpPut("card-face-image-path/{srcFileName}")]
+        public async Task<ActionResult<string>> ReplaceCardFaceThumbnailImageFilePathAsync(string srcFileName)
+        {
+            string id = await _fileUploadService.ReplaceCardFaceThumbnailImageFilePathAsync(srcFileName);
+            return Ok(new {id});
+        }
+
         [HttpPut("card-face-element-image-path/{srcFileName}")]
         public async Task<ActionResult<string>> ReplaceCardFaceElementImageFilePathAsync(string srcFileName)
         {
-            return  await _fileUploadService.ReplaceCardFaceElementImageFilePathAsync(srcFileName);
+            string id = await _fileUploadService.ReplaceCardFaceElementImageFilePathAsync(srcFileName);
+            return Ok(new {id});
         }
     }
 }
