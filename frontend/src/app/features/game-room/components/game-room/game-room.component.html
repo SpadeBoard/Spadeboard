@@ -4,17 +4,12 @@
     </div>
     
     <div class ="game-room-player-layer">
-        <nav class="game-room-nav">
-            <button disabled><img src="/game-room-nav_game-settings-icon.svg"/>Settings</button>
-            <button (click)="onCardEditor($event)"><img src="/game-room-nav_card-editor-icon.svg"/>Card editor</button>
-            <button (click)="onCardsCollection($event)"><img src="/game-room-nav_card-collection-icon.svg"/>Cards collection</button>
-            <button (click)="onSaveGameRoom($event)"><img src="/save-game-room-icon.svg"/></button>
-        </nav>
+        <app-game-room-nav/>
 
         <app-cards-collection />
     </div>
 
-    @if (isCardEditorOpen) {
+    @if (cardGameCoreService.isCardEditorOpen()) {
         <div class = "game-room-editor">
             <app-card-editor/>
         </div>

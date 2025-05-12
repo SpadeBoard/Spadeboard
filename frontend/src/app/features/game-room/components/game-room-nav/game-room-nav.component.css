@@ -1,0 +1,10 @@
+
+.game-room-nav {
+    background-color: #E6EBEF;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 10vw;
+    filter: drop-shadow(grey 0.25rem 0.25rem 0.25rem);
+    /* Use vw if you want it relative to viewport, or use px/% as needed */
+}
