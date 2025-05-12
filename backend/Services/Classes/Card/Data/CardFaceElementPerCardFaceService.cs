@@ -123,37 +123,50 @@ namespace Services
             return changes > 0;
         }
 
+        // NOTE: Don't delete the card face because all card face element per card face might share the same card face
         public async Task<bool> DeleteNavAsync(long id)
         {
-            CardFaceElementPerCardFace? cardFaceElementPerCardFaceToDelete = await GetAsync(id);
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    CardFaceElementPerCardFace? cardFaceElementPerCardFaceToDelete = await GetAsync(id);
 
-            if (cardFaceElementPerCardFaceToDelete == null) {
-                return false;
+                    if (cardFaceElementPerCardFaceToDelete == null)
+                    {
+                        return false;
+                    }
+
+                    bool deleted = await DeleteAsync(id);
+
+                    if (!deleted)
+                        throw new Exception("Card face element per card face wasn't deleted");
+
+                    deleted = await _cardFaceElementService.DeleteNavAsync(cardFaceElementPerCardFaceToDelete.CardFaceElementId);
+                    
+                    if (!deleted)
+                        throw new Exception("Card face element wasn't deleted");
+
+                    deleted = await _dndItemService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndItemId);
+                    
+                    if (!deleted)
+                        throw new Exception("Dnd item wasn't deleted");
+
+                    deleted = await _dndPositionService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndPositionId);
+                    
+                    if (!deleted)
+                        throw new Exception("Dnd position wasn't deleted");
+
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine(ex.Message);
+                    throw;
+                }
             }
-
-            bool deleted = await DeleteAsync(id);
-
-            if (!deleted)
-                return deleted;
-
-            deleted = await _cardFaceElementService.DeleteNavAsync(cardFaceElementPerCardFaceToDelete.CardFaceElementId);
-
-            if (!deleted)
-                return deleted;
-
-            deleted = await _dndItemService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndItemId);
-            
-            if (!deleted)
-                return deleted;
-
-            deleted = await _dndPositionService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndPositionId);
-
-            if (!deleted)
-                return deleted;
-
-            return deleted;
-
-            // NOTE: Don't delete the card face because all card face element per card face might share teh same card face
         }
 
         public bool Exists(long id)

@@ -78,7 +78,7 @@ namespace Services
             }
 
             if (cardFaceElement.CardFaceElementType == "image" && cardFaceElement.CardFaceElementContent != null) {
-                await _fileUploadService.DeleteCardFaceFileAsync(cardFaceElement.CardFaceElementContent);
+                await _fileUploadService.DeleteCardFaceElementImageFileAsync(cardFaceElement.CardFaceElementContent);
             }
 
             _context.CardFaceElement.Remove(cardFaceElement);
