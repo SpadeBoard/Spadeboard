@@ -1,10 +1,10 @@
-<div class="menu-container">
+<div class="menu-container" [class.open]="isMenuOpen">
     <div class="opener">
         CARD TEMPLATES COLLECTION
-        <i class="arrow down"></i>
+        <i class="arrow down" (click)="onToggleMenu($event)"></i>
     </div>
     <div class="menu">
-      <app-card-editor-controls-cards-template-collection/>
+      <app-card-editor-controls-cards-template-collection></app-card-editor-controls-cards-template-collection>
     </div>
 </div>
   

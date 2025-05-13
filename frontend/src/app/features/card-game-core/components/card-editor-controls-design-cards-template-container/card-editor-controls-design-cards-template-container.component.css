@@ -26,7 +26,6 @@
     /* TODO: Add transition for animation. */
 }
 
-.menu-container:hover .menu,
-.menu-container:focus-within .menu {
+.menu-container.open .menu {
     display: block;
 }
