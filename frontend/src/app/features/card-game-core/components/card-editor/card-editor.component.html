@@ -1,19 +1,23 @@
 <!--<pre
     >{{ currentCardFaceElements | json }}
 </pre>-->
-<div class ="container">
-    @if (isCurrentPopupMenuOpen) {
+<div class="card-editor">
+    <div class="container">
+        @if (isCurrentPopupMenuOpen) {
         <div class="card-editor-popup-menu">
             <!--NOTE: https://vibhas1892.medium.com/difference-between-ng-template-ng-container-and-ng-content-a1d264619655-->
-            <ng-container *ngComponentOutlet="getCurrentPopupMenuComponent(); inputs: popupMenuInputs;"
-            />
+            <ng-container *ngComponentOutlet="getCurrentPopupMenuComponent(); inputs: popupMenuInputs;" />
         </div>
-    }
-    <div class="left-column">
-        <app-card-editor-preview/>
-    </div>
-    <!--TODO: Make the right column a drop list-->
-    <div class="right-column">
-        <app-card-editor-controls-design/>
+        }
+        <div class="bar">
+            <app-card-editor-close />
+        </div>
+        <div class="left-column">
+            <app-card-editor-preview />
+        </div>
+        <!--TODO: Make the right column a drop list-->
+        <div class="right-column">
+            <app-card-editor-controls-design />
+        </div>
     </div>
 </div>
