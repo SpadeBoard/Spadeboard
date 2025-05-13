@@ -1,0 +1,12 @@
+.action-context-menu {
+    display: flex;
+    flex-direction: column;
+    width: 100px;
+    height: 100px;
+    background-color: gray;
+    gap: 1rem;
+}
+
+.action-context-menu-item {
+    color: white;
+}

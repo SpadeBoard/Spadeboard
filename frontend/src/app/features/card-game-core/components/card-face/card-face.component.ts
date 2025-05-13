@@ -101,6 +101,10 @@ export class CardFaceComponent {
       let cardFace = this.cardFaceInput();
       
       if (cardFace !== undefined && parseFloat(cardFace.cardFaceId) !== 0) {
+        if (cardFace.cardFaceThumbnailFilePath === undefined || cardFace.cardFaceThumbnailFilePath === "") {
+          this.image.src = "/blank-card-canvas.svg";
+          return;
+        }
 
         this.getCardFaceImageSrc(cardFace).then((image: HTMLImageElement | undefined) => {
           if (image === undefined)

@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
+import { Component, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
 import { CardComponent } from '../card/card.component';
@@ -11,12 +11,16 @@ import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.servi
 import { CardEditorCardFaceDto } from '../../models/card-face';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { CardFaceElementPerCardFace } from '../../models/card-face-element';
+import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
+import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-cards-collection',
   imports: [ 
-    CardComponent,
-    CdkDrag, CdkDragHandle, DragDropModule
+    CardComponent, CommonModule,
+    CdkDrag, CdkDragHandle, DragDropModule, ActionContextMenuComponent
   ],
   templateUrl: './cards-collection.component.html',
   styleUrl: './cards-collection.component.css'
@@ -29,6 +33,7 @@ export class CardsCollectionComponent {
   cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
   private cardApiService: CardApiService = inject(CardApiService);
   private dndBoardService: DndBoardService = inject(DndBoardService);
+  private cardPreviewEditorService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
   private readonly fileUploadApiService = inject(FileUploadApiService);
 

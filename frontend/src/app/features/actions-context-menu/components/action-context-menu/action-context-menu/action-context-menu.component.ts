@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 import { ActionContextMenuItem } from '../../../models/action-context-menu-item';
 
 @Component({
@@ -9,7 +9,12 @@ import { ActionContextMenuItem } from '../../../models/action-context-menu-item'
 })
 export class ActionContextMenuComponent {
   // TODO: Loop through these items
-  readonly actionContextMenuItems = input<ActionContextMenuItem[]>();
-
+  actionContextMenuItems: InputSignal<ActionContextMenuItem[] | undefined> = input<ActionContextMenuItem[]>();
+  onActionContextMenuItemClick: OutputEmitterRef<ActionContextMenuItem> = output<ActionContextMenuItem>();
+  
   constructor(){}
+
+  onContextMenuItemClick(item: ActionContextMenuItem): void {
+    this.onActionContextMenuItemClick.emit(item);
+  }
 }
