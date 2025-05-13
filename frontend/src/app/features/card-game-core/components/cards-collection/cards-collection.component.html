@@ -16,8 +16,7 @@
         <!--TODO: Wrap the draggable out of there-->
         <div cdkDrag 
             (cdkDragMoved)="onDragMoved($event)"
-            (cdkDragDropped)="onDragDrop($event, card)"
-        >
+            (cdkDragDropped)="onDragDrop($event, card)">
             <app-card [card]="card"/>
         </div>
     }

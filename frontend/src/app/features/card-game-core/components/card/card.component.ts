@@ -1,4 +1,4 @@
-import { Component, Signal, viewChildren, output, input, inject, effect, computed, SimpleChanges, InputSignal, Input } from '@angular/core';
+import { Component, Signal, viewChildren, output, input, inject, effect, computed, SimpleChanges, InputSignal, Input, HostListener } from '@angular/core';
 
 import { Card } from '../../models/card';
 import { cardFlipAnimation } from './card.animations';
@@ -16,22 +16,29 @@ import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { convertToRelativeCoordinates, convertToRelativeDimensions } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
+import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
+import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 
 @Component({
   selector: 'app-card',
   imports: [
     DndContentDirective, CardFaceComponent,
-    CommonModule
+    CommonModule, ActionContextMenuComponent
   ],
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
   // animations: [cardFlipAnimation]
 })
 export class CardComponent {
-  private cardFaceApiService: CardFaceApiService = inject(CardFaceApiService);
-  
+  private readonly cardFaceApiService: CardFaceApiService = inject(CardFaceApiService);
+  private readonly cardPreviewEditorService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
   // https://medium.com/@chandrashekharsingh25/angular-signals-explained-with-practical-examples-e45de6d00925
   // Might need computed signals then
+
+  private rightClickMenuPositionX: number = 0;
+  private rightClickMenuPositionY: number = 0;
 
   card: InputSignal<Card> = input<Card >({
     cardId: "0",
@@ -53,30 +60,33 @@ export class CardComponent {
 
   cardChange = output<Card>();
 
+  isDisplayContextMenu: boolean = false;
+
   // TODO: Probably refactor this, how do we get this information up there?
   actionContextMenuItems: ActionContextMenuItem[] = [
     {
       id: 0,
-      name: "Flip",
-      action: this.flip
+      name: 'Flip',
+      action: (card?: Card) => {
+        if (card === undefined) return;
+        card.currentCardFaceIndex = (card.currentCardFaceIndex === 0) ? 1 : 0;
+        this.currentCardFace = this.cardFaces[card.currentCardFaceIndex];
+      }
+    },
+    {
+      id: 1,
+      name: 'Edit Card',
+      action: (card?: Card) => {
+        if (card === undefined) return;
+        this.cardPreviewEditorService.getCardEditorCardDtoByCardId(card.cardId);
+        this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
+      }
     }
   ];
 
+
+
   actionContextMenuItemsChange = output<ActionContextMenuItem[]>();
-
-  /********* TO BE REFACTORED ************ */
-  onRightClick(event: MouseEvent) {
-    event.preventDefault();
-    
-    // TODO: Potentially pass in the menu's location?
-    /*
-    event.clientX;
-    event.clientY;
-    */
-
-    this.actionContextMenuItemsChange.emit(this.actionContextMenuItems);
-  }
-  /*********************************/
 
   zoomLevel: InputSignal<number> =  input<number>(1);
   scaleLevel: number = 1;
@@ -112,9 +122,28 @@ export class CardComponent {
     });
   }
 
-  // TODO: Replace this
-  flip(): void {
-    this.card().currentCardFaceIndex = (this.card().currentCardFaceIndex == 0) ? 1 : 0;
-    this.cardChange.emit(this.card());
+  onCardRightClick(event: MouseEvent): void {
+      event.preventDefault();
+      this.rightClickMenuPositionX = event.clientX;
+      this.rightClickMenuPositionY = event.clientY;
+  
+      this.isDisplayContextMenu = true;
+    }
+  
+  @HostListener('document:click')
+  documentClick(): void {
+    this.isDisplayContextMenu = false;
+  }
+
+  getRightClickMenuStyle() {
+    return {
+      position: 'fixed',
+      left: `${this.rightClickMenuPositionX}px`,
+      top: `${this.rightClickMenuPositionY}px`
+    }
+  }
+
+  handleActionContextMenuItemClick(item: ActionContextMenuItem) {
+    item.action(this.card());
   }
 }

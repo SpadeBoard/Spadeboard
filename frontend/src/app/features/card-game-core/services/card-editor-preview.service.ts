@@ -138,11 +138,20 @@ export class CardEditorPreviewService {
       return;
     }
 
+    // TODO: Should be refactored
     this.cardApiService.getCardEditorCardDto$(cardId).subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
       if (cardEditorCardDto) {
         this.cardEditorCardDto = cardEditorCardDto;
         this.reloadCurrentCardEditorCardFaceDto();
         this.setOnSetCardEditorCardDtoByCardTemplateId();
+      }
+    })
+  }
+
+  getCardEditorCardDtoByCardId(cardId: string) {
+    this.cardApiService.getCardEditorCardDto$(cardId).subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
+      if (cardEditorCardDto) {
+        this.cardEditorCardDto = cardEditorCardDto;
       }
     })
   }
