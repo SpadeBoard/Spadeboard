@@ -14,6 +14,7 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { GameRoomService } from '../../services/game-room.service';
 import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
+import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
 
 @Component({
   selector: 'app-game-room',
@@ -22,7 +23,7 @@ import { CardGameCoreService } from '../../../card-game-core/services/card-game-
     CdkDrag, CdkDragHandle, DragDropModule,
     NgOptimizedImage,
     CardComponent, CardsCollectionComponent,
-    DndBoardComponent
+    DndBoardComponent, GameRoomNavComponent
   ],
   templateUrl: './game-room.component.html',
   styleUrl: './game-room.component.css'
@@ -32,12 +33,8 @@ export class GameRoomComponent implements AfterViewChecked{
   // https://stackoverflow.com/a/41095677
 
   @ViewChild('dndBoard') dndBoard!: ElementRef;
-
-  isCardEditorOpen: boolean = false;
-  isCardsCollectionMenuOpen: boolean = false;
-
   private gameRoomService: GameRoomService = inject(GameRoomService);
-  private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
+  cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
 
   cardsMenuDimensions: {width: number, height: number} | undefined = undefined;
 
@@ -62,19 +59,6 @@ export class GameRoomComponent implements AfterViewChecked{
   4. Use LRU to unload old cards
   5. Replace the blobs via checking timestamp of the cards and when they changed
   */
-
-  onCardEditor(event: Event): void {
-    this.isCardEditorOpen = !this.isCardEditorOpen;
-  }
-
-  onCardsCollection(event: Event): void {
-    this.isCardsCollectionMenuOpen = !this.isCardsCollectionMenuOpen;
-    this.cardGameCoreService.setIsCardsCollectionMenuOpen(this.isCardsCollectionMenuOpen);
-  }
-
-  onSaveGameRoom(event: Event): void {
-    this.gameRoomService.onSave();
-  }
 
   // https://fluin.io/blog/things-I-wish-I-knew-about-CDK-drag-drop
   // https://stackblitz.com/edit/drag-drop-dashboard?file=src%2Fapp%2Fapp.component.ts

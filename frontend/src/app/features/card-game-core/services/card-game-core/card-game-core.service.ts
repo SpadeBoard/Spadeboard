@@ -24,6 +24,7 @@ export class CardGameCoreService {
   userId: WritableSignal<string> = signal<string>('');
 
   isCardsCollectionMenuOpen: WritableSignal<boolean>=  signal<boolean>(false);
+  isCardEditorOpen: WritableSignal<boolean>=  signal<boolean>(false);
 
   cardEditorCardDto: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
     card: {
@@ -64,6 +65,10 @@ export class CardGameCoreService {
 
   setIsCardsCollectionMenuOpen(newIsCardsCollectionMenuOpen: boolean): void {
     this.isCardsCollectionMenuOpen.set(newIsCardsCollectionMenuOpen);
+  }
+
+   setIsCardEditorOpen(newIsCardEditOpen: boolean): void {
+    this.isCardEditorOpen.set(newIsCardEditOpen);
   }
 
   createCardPositionPerRoom(cpr: CardPositionPerRoom ): void {

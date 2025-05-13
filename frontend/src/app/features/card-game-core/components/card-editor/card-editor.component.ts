@@ -37,6 +37,7 @@ import { CardEditorPreviewComponent } from '../card-editor-preview/card-editor-p
 import { CardEditorControlsDesignComponent } from '../card-editor-controls-design/card-editor-controls-design.component';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
+import { CardEditorCloseComponent } from '../card-editor-close/card-editor-close.component';
 
 // TODO: Resizable card face, have arrows for dragging, make sure there's a max width/height for that card face
 @Component({
@@ -45,7 +46,9 @@ import { CardEditorControlsDesignElementAttributesService } from '../../services
     AngularEditorModule, FormsModule,
     CommonModule, NgComponentOutlet,
     CardFaceRteComponent, CardFaceImageComponent,
-    CardEditorPreviewComponent, CardEditorControlsDesignComponent,], // TODO: Remove CdkDrag
+    CardEditorPreviewComponent, CardEditorControlsDesignComponent,
+    CardEditorCloseComponent
+  ], // TODO: Remove CdkDrag
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.css'
 })
