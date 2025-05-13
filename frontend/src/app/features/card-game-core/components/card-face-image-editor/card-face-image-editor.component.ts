@@ -80,6 +80,8 @@ export class CardFaceImageEditorComponent {
     if (src) {
       this.src = src;
     }
+
+    this.cardEditorControlsDesignImageService.setOnDisableImageEditor(this.src);
   }
 
   // TODO: Inside of card-face-image, we'd want to load that image if it exists
