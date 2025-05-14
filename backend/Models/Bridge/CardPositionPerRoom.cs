@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Models.Cards;
 using Models.DndItems;
 using Models.GameRooms;
+using Services;
 
 /*
 There should be a bridge table comprising of Card ID, Dnd Position ID, Game Room ID. It's because the posiitioning of a card is going to be different per game room. 
@@ -15,11 +16,13 @@ namespace Models.Bridge
 {
     // TODO: Move this to its own namespace and file
     [Table("CardPositionPerRoom")]
-    public class CardPositionPerRoom
+    public class CardPositionPerRoom: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long CardPositionPerRoomId { get; set; }
+         [NotMapped]
+        public long Id { get => CardPositionPerRoomId; set => CardPositionPerRoomId = value; }
 
         [Required]
         public long CardId { get; set; }

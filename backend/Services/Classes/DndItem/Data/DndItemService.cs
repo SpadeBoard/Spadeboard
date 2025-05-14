@@ -14,74 +14,41 @@ namespace Services
 {
     public class DndItemService(ApplicationDbContext context) : IDndItemService
     {
-        private readonly ApplicationDbContext _context = context;
-
-        public bool Exists(long id)
-        {
-            return _context.DndItem.Any(d => d.DndItemId == id);
-        }
-
-        public async Task<IEnumerable<DndItem>> GetAllAsync()
-        {
-            return await _context.DndItem.ToListAsync(); 
-        }
-
-        public async Task<DndItem?> GetAsync(long id)
-        {
-            return await _context.DndItem.FirstOrDefaultAsync(dnd => dnd.DndItemId == id);
-        }
+        private readonly CrudService<DndItem> _crudService = new(context, dndItem => dndItem.DndItemId);
 
         public async Task<DndItem> CreateAsync(DndItem item)
         {
-            item.DndItemId = 0;
-            await _context.DndItem.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
-        }
-
-        public async Task<bool> UpdateAsync(long id, DndItem item)
-        {
-            if (id != item.DndItemId)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Entry(item).State = EntityState.Modified;
-
-                return await _context.SaveChangesAsync() > 0;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Exists(id))
-                {
-                    return false;
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return await _crudService.CreateAsync(item);
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var dndItem = await GetAsync(id);
-            if (dndItem == null)
-            {
-                return false;
-            }
+            return await _crudService.DeleteAsync(id);
+        }
 
-            _context.DndItem.Remove(dndItem);
-            int changes =  await _context.SaveChangesAsync();
-
-            return changes > 0;
+        public bool Exists(long id)
+        {
+            return _crudService.Exists(id);
         }
 
         public bool IsModified(DndItem item)
         {
-            return _context.Entry(item).Properties.Any(p => p.IsModified);
+            return _crudService.IsModified(item);
+        }
+
+        public async Task<IEnumerable<DndItem>> GetAllAsync()
+        {
+            return await _crudService.GetAllAsync();
+        }
+
+        public async Task<DndItem?> GetAsync(long id)
+        {
+            return await _crudService.GetAsync(id);
+        }
+
+        public async Task<bool> UpdateAsync(long id, DndItem item)
+        {
+            return await _crudService.UpdateAsync(id, item);
         }
     }
 }

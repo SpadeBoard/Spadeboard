@@ -7,59 +7,41 @@ using Utils;
 
 namespace Services
 {
-    public class CardDtoService(IMapper mapper, ICardService cardService) : ICardDtoService
+    public class CardDtoService : ICardDtoService
     {
-        private readonly ICardService _cardService = cardService;
-        private readonly IMapper _mapper = mapper;
+        private readonly ICardService _cardService;
+        private readonly IMapper _mapper;
+        private readonly DtoCrudService<Card, CardDto> _dtoCrudService;
+
+        public CardDtoService(IMapper mapper, ICardService cardService)
+        {
+            _mapper = mapper;
+            _cardService = cardService;
+            _dtoCrudService = new DtoCrudService<Card, CardDto>(_mapper, _cardService);
+        }
 
         public async Task<CardDto> CreateDtoAsync(CardDto cardDto)
         {
-            Card card = _mapper.Map<Card>(cardDto);
-            card = await _cardService.CreateAsync(card);
-            return  _mapper.Map<CardDto>(card);
+            return await _dtoCrudService.CreateDtoAsync(cardDto);
         }
 
         public async Task<IEnumerable<CardDto>> GetAllDtoAsync() {
-             return  _mapper.Map<IEnumerable<CardDto>>(await _cardService.GetAllAsync());
+             return  await _dtoCrudService.GetAllDtoAsync();
         }
         
         public async Task<CardDto?> GetDtoAsync(string id)
         {
-            if (!Exists(id)) {
-                return null;
-            }
-
-            Card? card = await _cardService.GetAsync(DtoIdConversion.DtoStringToLong(id));
-
-            if (card == null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<CardDto>(card);
+            return await _dtoCrudService.GetDtoAsync(id);
         }
 
         public async Task<bool> UpdateDtoAsync(string id, CardDto cardDto)
         {
-            if (!Exists(id)) {
-                return false;
-            }
-
-            Card card = _mapper.Map<Card>(cardDto);
-            bool updated = await _cardService.UpdateAsync(card.CardId, card);
-
-            return updated;
+            return await _dtoCrudService.UpdateDtoAsync(id, cardDto);
         }
 
         public async Task<bool> DeleteDtoAsync(string id)
         {
-            if (!Exists(id)) {
-                return false;
-            }
-
-            bool deleted = await _cardService.DeleteAsync( DtoIdConversion.DtoStringToLong(id));
-
-            return deleted;
+            return await _dtoCrudService.DeleteDtoAsync(id);
         }
 
         public async Task<CardDto> CreateDtoNavAsync(CardDto cardDto)
@@ -85,7 +67,7 @@ namespace Services
 
         public bool Exists(string id)
         {
-            return _cardService.Exists(DtoIdConversion.DtoStringToLong(id));
+            return _dtoCrudService.Exists(id);
         }
     }
 }

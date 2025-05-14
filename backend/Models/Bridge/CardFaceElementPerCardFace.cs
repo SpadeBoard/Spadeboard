@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Models.Cards;
 using Models.DndItems;
 using Models.Styles;
+using Services;
 
 /*
 There should be a bridge table comprising of Card ID, Dnd Position ID, Game Room ID. It's because the posiitioning of a card is going to be different per game room. 
@@ -16,11 +17,14 @@ Bridge tables documentation
 namespace Models.Bridge
 {
     [Table("CardFaceElementPerCardFace")]
-    public class CardFaceElementPerCardFace
+    public class CardFaceElementPerCardFace: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long CardFaceElementPerCardFaceId {get; set;}
+
+        [NotMapped]
+        public long Id { get => CardFaceElementPerCardFaceId; set => CardFaceElementPerCardFaceId = value; }
 
         [ForeignKey("CardFaceElementId")]
         public long CardFaceElementId { get; set; }

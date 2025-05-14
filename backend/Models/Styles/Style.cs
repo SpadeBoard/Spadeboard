@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Services;
 
 namespace Models.Styles
 {
@@ -354,12 +355,13 @@ namespace Models.Styles
     }
     
     [Table("Styles")] // Maps this entity to the "Cards" table
-    public class Style
+    public class Style: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long StyleId { get; set; }
-
+         [NotMapped]
+        public long Id { get => StyleId; set => StyleId = value; }
         public string? AccentColor { get; set; }
         public string? AlignContent { get; set; }
         public string? AlignItems { get; set; }

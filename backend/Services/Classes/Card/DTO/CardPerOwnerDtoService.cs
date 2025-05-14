@@ -8,28 +8,27 @@ using Utils;
 
 namespace Services
 {
-    public class CardPerOwnerDtoService(IMapper mapper, ICardPerOwnerService cardPerOwnerService) : ICardPerOwnerDtoService
+    public class CardPerOwnerDtoService: ICardPerOwnerDtoService
     {
-        private readonly ICardPerOwnerService _cardPerOwnerService = cardPerOwnerService;
-        private readonly IMapper _mapper = mapper;
+        private readonly ICardPerOwnerService _cardPerOwnerService;
+        private readonly IMapper _mapper;
+        private readonly DtoCrudService<CardPerOwner, CardPerOwnerDto> _dtoCrudService;
+
+        public CardPerOwnerDtoService(IMapper mapper, ICardPerOwnerService cardPerOwnerService) 
+        {
+            _cardPerOwnerService = cardPerOwnerService;
+            _mapper = mapper;
+             _dtoCrudService = new(_mapper, _cardPerOwnerService);
+        }
 
         public async Task<CardPerOwnerDto> CreateDtoAsync(CardPerOwnerDto cardPerOwnerDto)
         {
-            CardPerOwner cardPerOwner = _mapper.Map<CardPerOwner>(cardPerOwnerDto);
-            cardPerOwner = await  _cardPerOwnerService.CreateAsync(cardPerOwner);
-            return  _mapper.Map<CardPerOwnerDto>(cardPerOwner);
+           return await _dtoCrudService.CreateDtoAsync(cardPerOwnerDto);
         }
         
         public async Task<CardPerOwnerDto?> GetDtoAsync(string id)
         {
-            CardPerOwner? cardPerOwner = await  _cardPerOwnerService.GetAsync(DtoIdConversion.DtoStringToLong(id));
-
-            if (cardPerOwner == null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<CardPerOwnerDto>(cardPerOwner);
+            return  await _dtoCrudService.GetDtoAsync(id);
         }
 
         public async Task<CardPerOwnerDto?> GetDtoByCardIdAndOwnerIdAsync(string cardId, string ownerId)
@@ -44,18 +43,12 @@ namespace Services
 
         public async Task<bool> UpdateDtoAsync(string id, CardPerOwnerDto cardPerOwnerDto)
         {
-            throw new NotImplementedException();
+            return await _dtoCrudService.UpdateDtoAsync(id, cardPerOwnerDto);
         }
 
         public async Task<bool> DeleteDtoAsync(string id)
         {
-           if (! Exists(id)) {
-                return false;
-            }
-
-            bool deleted = await  _cardPerOwnerService.DeleteAsync(DtoIdConversion.DtoStringToLong(id));
-
-            return deleted;
+           return await _dtoCrudService.DeleteDtoAsync(id);
         }
 
         public async Task<CardPerOwnerDto> CreateDtoNavAsync(CardPerOwnerDto cardPerOwnerDto)
@@ -81,7 +74,7 @@ namespace Services
 
          public bool Exists(string id)
         {
-            return _cardPerOwnerService.Exists(DtoIdConversion.DtoStringToLong(id));
+            return _dtoCrudService.Exists(id);
         }
 
 
@@ -92,7 +85,7 @@ namespace Services
 
         public async Task<IEnumerable<CardPerOwnerDto>> GetAllDtoAsync()
         {
-            return _mapper.Map<IEnumerable<CardPerOwnerDto>>(await _cardPerOwnerService.GetAllAsync());
+           return  await _dtoCrudService.GetAllDtoAsync();
         }
     }
 }

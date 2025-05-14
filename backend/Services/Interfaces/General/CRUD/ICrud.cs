@@ -12,4 +12,9 @@ namespace Services
 
         public bool IsModified(T item);
     }
+
+    public interface ICrudId
+    {
+        long Id { get; set; }
+    }
 }

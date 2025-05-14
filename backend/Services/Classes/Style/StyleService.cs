@@ -13,44 +13,41 @@ namespace Services
 {
     public class StyleService(ApplicationDbContext context) : IStyleService
     {
-        private readonly ApplicationDbContext _context = context;
+        private readonly CrudService<Style> _crudService = new(context, style => style.StyleId);
 
         public async Task<Style> CreateAsync(Style item)
         {
-            item.StyleId = 0;
-            await _context.Style.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
+            return await _crudService.CreateAsync(item);
         }
 
-        public Task<bool> DeleteAsync(long id)
+        public async Task<bool> DeleteAsync(long id)
         {
-            throw new NotImplementedException();
+            return await _crudService.DeleteAsync(id);
         }
 
         public bool Exists(long id)
         {
-            return _context.Style.Any(s => s.StyleId == id);
-        }
-
-        public Task<IEnumerable<Style>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Style?> GetAsync(long id)
-        {
-            throw new NotImplementedException();
+            return _crudService.Exists(id);
         }
 
         public bool IsModified(Style item)
         {
-            return _context.Entry(item).Properties.Any(p => p.IsModified);
+            return _crudService.IsModified(item);
         }
 
-        public Task<bool> UpdateAsync(long id, Style item)
+        public async Task<IEnumerable<Style>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _crudService.GetAllAsync();
+        }
+
+        public async Task<Style?> GetAsync(long id)
+        {
+            return await _crudService.GetAsync(id);
+        }
+
+        public async Task<bool> UpdateAsync(long id, Style item)
+        {
+            return await _crudService.UpdateAsync(id, item);
         }
     }
 }

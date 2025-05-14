@@ -8,51 +8,38 @@ using Utils;
 
 namespace Services
 {
-    public class CardFaceElementDtoService(IMapper mapper, ICardFaceElementService cardFaceElementService) : ICardFaceElementDtoService
+    public class CardFaceElementDtoService : ICardFaceElementDtoService
     {
-        private readonly ICardFaceElementService _cardFaceElementService = cardFaceElementService;
-        private readonly IMapper _mapper = mapper;
+        private readonly ICardFaceElementService _cardFaceElementService;
+        private readonly IMapper _mapper;
+
+        private readonly DtoCrudService<CardFaceElement, CardFaceElementDto> _dtoCrudService;
+
+        public CardFaceElementDtoService(IMapper mapper, ICardFaceElementService cardFaceElementService)
+        {
+            _mapper = mapper;
+            _cardFaceElementService = cardFaceElementService;
+            _dtoCrudService = new DtoCrudService<CardFaceElement, CardFaceElementDto>(_mapper, _cardFaceElementService);
+        }
 
         public async Task<CardFaceElementDto> CreateDtoAsync(CardFaceElementDto cardFaceElementDto)
         {
-            CardFaceElement cardFaceElement = _mapper.Map<CardFaceElement>(cardFaceElementDto);
-            cardFaceElement = await _cardFaceElementService.CreateAsync(cardFaceElement);
-            return  _mapper.Map<CardFaceElementDto>(cardFaceElement);
+            return await _dtoCrudService.CreateDtoAsync(cardFaceElementDto);
         }
         
         public async Task<CardFaceElementDto?> GetDtoAsync(string id)
         {
-            CardFaceElement? cardFaceElement = await _cardFaceElementService.GetAsync(DtoIdConversion.DtoStringToLong(id));
-
-            if (cardFaceElement == null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<CardFaceElementDto>(cardFaceElement);
+             return  await _dtoCrudService.GetDtoAsync(id);
         }
 
         public async Task<bool> UpdateDtoAsync(string id, CardFaceElementDto cardFaceElementDto)
         {
-            if (!Exists(id)) {
-                return false;
-            }
-
-            CardFaceElement cardFaceElement = _mapper.Map<CardFaceElement>(cardFaceElementDto);
-            bool updated = await _cardFaceElementService.UpdateAsync(DtoIdConversion.DtoStringToLong(id), cardFaceElement);
-
-            return updated;
+           return await _dtoCrudService.UpdateDtoAsync(id, cardFaceElementDto);
         }
 
         public async Task<bool> DeleteDtoAsync(string id)
         {
-            if (!Exists(id)) {
-                return false;
-            }
-
-            bool deleted = await _cardFaceElementService.DeleteAsync(DtoIdConversion.DtoStringToLong(id));
-
-            return deleted;
+            return await _dtoCrudService.DeleteDtoAsync(id);
         }
 
         public async Task<CardFaceElementDto> CreateDtoNavAsync(CardFaceElementDto cardFaceElementDto)
@@ -97,12 +84,12 @@ namespace Services
 
         public bool Exists(string id)
         {
-            return _cardFaceElementService.Exists(DtoIdConversion.DtoStringToLong(id));
+            return _dtoCrudService.Exists(id);
         }
 
         public async Task<IEnumerable<CardFaceElementDto>> GetAllDtoAsync() 
         {
-            return _mapper.Map<IEnumerable<CardFaceElementDto>>(await _cardFaceElementService.GetAllAsync());
+            return  await _dtoCrudService.GetAllDtoAsync();
         }
     }
 }

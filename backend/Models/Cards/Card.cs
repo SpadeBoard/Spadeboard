@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Models.DndItems;
 using Models.Styles;
+using Services;
 
 /*
 Bugwise:
@@ -26,11 +27,14 @@ namespace Models.Cards
     }
 
     [Table("Cards")] // Maps this entity to the "Cards" table
-    public class Card
+    public class Card: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long CardId { get; set; }
+
+        [NotMapped]
+        public long Id { get => CardId; set => CardId = value; }
 
         public string? CardName {get;set;} = "";
 
