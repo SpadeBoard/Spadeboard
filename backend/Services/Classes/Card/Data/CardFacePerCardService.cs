@@ -17,40 +17,54 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
+        private readonly CrudService<CardFacePerCard> _crudService = new(context, fpc => fpc.CardFacePerCardId);
+
         public async Task<CardFacePerCard> CreateAsync(CardFacePerCard item)
         {
-            item.CardFacePerCardId = 0;
-            await _context.CardFacePerCard.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
+            return await _crudService.CreateAsync(item);
         }
 
-        public Task<CardFacePerCard> CreateNavAsync(CardFacePerCard nav)
+        public async Task<bool> DeleteAsync(long id)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> DeleteAsync(long id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> DeleteNavAsync(long nav)
-        {
-            throw new NotImplementedException();
+            return await _crudService.DeleteAsync(id);
         }
 
         public bool Exists(long id)
         {
-            return _context.CardFacePerCard.Any(c => c.CardFacePerCardId == id);
+            return _crudService.Exists(id);
         }
 
-        public Task<IEnumerable<CardFacePerCard>> GetAllAsync()
+        public bool IsModified(CardFacePerCard item)
+        {
+            return _crudService.IsModified(item);
+        }
+
+        public async Task<IEnumerable<CardFacePerCard>> GetAllAsync()
+        {
+            return await _crudService.GetAllAsync();
+        }
+
+        public async Task<CardFacePerCard?> GetAsync(long id)
+        {
+            return await _crudService.GetAsync(id);
+        }
+
+        public async Task<bool> UpdateAsync(long id, CardFacePerCard item)
+        {
+            return await _crudService.UpdateAsync(id, item);
+        }
+
+        public async Task<CardFacePerCard> CreateNavAsync(CardFacePerCard nav)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<CardFacePerCard>> GetAllNavAsync()
+        public async Task<bool> DeleteNavAsync(long nav)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<CardFacePerCard>> GetAllNavAsync()
         {
             throw new NotImplementedException();
         }
@@ -74,27 +88,12 @@ namespace Services
                 .ToListAsync();
         }
 
-        public Task<CardFacePerCard?> GetAsync(long id)
+        public async Task<CardFacePerCard?> GetNavAsync(long id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<CardFacePerCard?> GetNavAsync(long id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsModified(CardFacePerCard item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateAsync(long id, CardFacePerCard item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateNavAsync(CardFacePerCard nav)
+        public async Task<bool> UpdateNavAsync(CardFacePerCard nav)
         {
             throw new NotImplementedException();
         }

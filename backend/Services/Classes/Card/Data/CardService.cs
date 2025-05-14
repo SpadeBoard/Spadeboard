@@ -19,76 +19,41 @@ namespace Services
 {
     public class CardService(ApplicationDbContext context) : ICardService
     {
-        private readonly ApplicationDbContext _context = context;
+        private readonly CrudService<Card> _crudService = new(context, card => card.CardId);
 
         public async Task<Card> CreateAsync(Card item)
         {
-            item.CardId = 0;
-            await _context.Card.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
+            return await _crudService.CreateAsync(item);
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var card= await GetAsync(id);
-            if (card== null)
-            {
-                return false;
-            }
-
-            _context.Card.Remove(card);
-            int changes =  await _context.SaveChangesAsync();
-
-            return changes > 0;
+            return await _crudService.DeleteAsync(id);
         }
 
         public bool Exists(long id)
         {
-            return _context.Card.Any(e => e.CardId == id);
+            return _crudService.Exists(id);
         }
 
         public bool IsModified(Card item)
         {
-            return _context.Entry(item).Properties.Any(p => p.IsModified);
+            return _crudService.IsModified(item);
         }
 
         public async Task<IEnumerable<Card>> GetAllAsync()
         {
-            return await _context.Card.ToListAsync();
+            return await _crudService.GetAllAsync();
         }
 
         public async Task<Card?> GetAsync(long id)
         {
-            var card = await _context.Card.FindAsync(id);
-
-            return card;
+            return await _crudService.GetAsync(id);
         }
 
         public async Task<bool> UpdateAsync(long id, Card item)
         {
-            if (id != item.CardId)
-            {
-                return false;
-            }
-
-            try
-            {
-                _context.Entry(item).State = EntityState.Modified;
-
-                return await _context.SaveChangesAsync() > 0;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Exists(id))
-                {
-                    return false;
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return await _crudService.UpdateAsync(id, item);
         }
     }
 }

@@ -184,7 +184,7 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<CardEditorCardFaceDto?> GetDtoAsync(string id)
+        public async Task<CardEditorCardFaceDto?> GetDtoAsync(string id)
         {
             throw new NotImplementedException();
         }

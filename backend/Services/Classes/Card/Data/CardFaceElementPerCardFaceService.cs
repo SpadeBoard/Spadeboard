@@ -21,13 +21,11 @@ namespace Services
         private readonly IDndItemService _dndItemService = dndItemService;
         private readonly IDndPositionService _dndPositionService = dndPositionService;
         private readonly ICardFaceElementService _cardFaceElementService = cardFaceElementService;
+        private readonly CrudService<CardFaceElementPerCardFace> _crudService = new(context, c => c.CardFaceElementPerCardFaceId);
 
         public async Task<CardFaceElementPerCardFace> CreateAsync(CardFaceElementPerCardFace item)
         {
-            item.CardFaceElementPerCardFaceId = 0;
-            await  _context.CardFaceElementPerCardFace.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
+             return await _crudService.CreateAsync(item);
         }
 
         // NOTE: For bridge tables, create nav async should create the navigation properties serpately, then make them null afterwards, then just make the bridge table's new records
@@ -111,16 +109,7 @@ namespace Services
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var cardFaceElementPerCardFace= await GetAsync(id);
-            if (cardFaceElementPerCardFace== null)
-            {
-                return false;
-            }
-
-            _context.CardFaceElementPerCardFace.Remove(cardFaceElementPerCardFace);
-            int changes =  await _context.SaveChangesAsync();
-
-            return changes > 0;
+            return await _crudService.DeleteAsync(id);
         }
 
         // NOTE: Don't delete the card face because all card face element per card face might share the same card face
@@ -171,12 +160,12 @@ namespace Services
 
         public bool Exists(long id)
         {
-            return _context.CardFaceElementPerCardFace.Any(e => e.CardFaceElementPerCardFaceId == id);
+           return _crudService.Exists(id);
         }
 
         public async Task<IEnumerable<CardFaceElementPerCardFace>> GetAllAsync()
         {
-            return await _context.CardFaceElementPerCardFace.ToListAsync();
+            return await _crudService.GetAllAsync();
         }
 
         public async Task<IEnumerable<CardFaceElementPerCardFace>> GetAllNavAsync()
@@ -194,7 +183,7 @@ namespace Services
 
         public async Task<CardFaceElementPerCardFace?> GetAsync(long id)
         {
-            return await _context.CardFaceElementPerCardFace.FindAsync(id);
+            return await _crudService.GetAsync(id);
         }
 
         public async Task<IEnumerable<CardFaceElementPerCardFace>> GetAllNavByCardFaceIdAsync(long cardFaceId)
@@ -243,12 +232,12 @@ namespace Services
 
         public bool IsModified(CardFaceElementPerCardFace item)
         {
-            return _context.Entry(item).Properties.Any(p => p.IsModified);
+           return _crudService.IsModified(item);
         }
 
         public async Task<bool> UpdateAsync(long id, CardFaceElementPerCardFace item)
         {
-            throw new NotImplementedException();
+           return await _crudService.UpdateAsync(id, item);
         }
 
         // TODO: Write documentation on how updating bridge tables should work

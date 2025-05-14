@@ -3,15 +3,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models.Cards;
+using Services;
 
 namespace Models.Bridge
 {
     [Table("CardPerOwner")]
-    public class CardPerOwner
+    public class CardPerOwner: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long CardPerOwnerId {get; set;}
+
+        [NotMapped]
+        public long Id { get => CardPerOwnerId; set => CardPerOwnerId = value; }
 
         public long CardId { get; set; }
         [ForeignKey("CardId")]

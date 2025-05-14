@@ -13,47 +13,47 @@ namespace Services
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<GameRoomDto>> GetAllDtoAsync()
+        public async Task<IEnumerable<GameRoomDto>> GetAllDtoAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task<GameRoomDto?> GetDtoAsync(string id)
+        public async Task<GameRoomDto?> GetDtoAsync(string id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<GameRoomDto> CreateDtoAsync(GameRoomDto dto)
+        public async Task<GameRoomDto> CreateDtoAsync(GameRoomDto dto)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateDtoAsync(string id, GameRoomDto dto)
+        public async Task<bool> UpdateDtoAsync(string id, GameRoomDto dto)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateDtoNavAsync(string id, GameRoomDto dto)
+        public async Task<bool> UpdateDtoNavAsync(string id, GameRoomDto dto)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteDtoAsync(string id)
+        public async Task<bool> DeleteDtoAsync(string id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<GameRoomDto?> GetDtoNavAsync(string id)
+        public async Task<GameRoomDto?> GetDtoNavAsync(string id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<GameRoomDto> CreateDtoNavAsync(GameRoomDto dto)
+        public async Task<GameRoomDto> CreateDtoNavAsync(GameRoomDto dto)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteDtoNavAsync(string id)
+        public async Task<bool> DeleteDtoNavAsync(string id)
         {
             throw new NotImplementedException();
         }

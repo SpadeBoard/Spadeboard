@@ -6,63 +6,41 @@ namespace Services
 {
     public class GameRoomService(ApplicationDbContext context) : IGameRoomService
     {
-        private readonly ApplicationDbContext _context = context;
+        private readonly CrudService<GameRoom> _crudService = new(context, gr => gr.GameRoomId);
 
         public async Task<GameRoom> CreateAsync(GameRoom item)
         {
-            item.GameRoomId = 0;
-            await _context.GameRoom.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
+            return await _crudService.CreateAsync(item);
         }
 
-        public Task<bool> DeleteAsync(long id)
+        public async Task<bool> DeleteAsync(long id)
         {
-            throw new NotImplementedException();
+            return await _crudService.DeleteAsync(id);
         }
 
         public bool Exists(long id)
         {
-            return _context.GameRoom.Any(gr => gr.GameRoomId == id);
+            return _crudService.Exists(id);
         }
 
         public bool IsModified(GameRoom item)
         {
-            return _context.Entry(item).Properties.Any(p => p.IsModified);
+            return _crudService.IsModified(item);
         }
 
-        public Task<IEnumerable<GameRoom>> GetAllAsync()
+        public async Task<IEnumerable<GameRoom>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _crudService.GetAllAsync();
         }
 
-        public Task<GameRoom?> GetAsync(long id)
+        public async Task<GameRoom?> GetAsync(long id)
         {
-            throw new NotImplementedException();
+            return await _crudService.GetAsync(id);
         }
 
         public async Task<bool> UpdateAsync(long id, GameRoom item)
         {
-            if (id != item.GameRoomId)
-                return false;
-
-            try
-            {
-                _context.Entry(item).State = EntityState.Modified;
-
-                return await _context.SaveChangesAsync() > 0;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Exists(id))
-                {
-                    return false;
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return await _crudService.UpdateAsync(id, item);
         }
     }
 }

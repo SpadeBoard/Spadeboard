@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Models.Styles;
+using Services;
 
 namespace Models.DndItems
 {
@@ -21,13 +22,14 @@ namespace Models.DndItems
     }
 
     [Table("DndPositions")]
-    public class DndPosition
+    public class DndPosition: ICrudId
     {
         // TODO: If position already exists, then use it, don't need for an ID? Unless we want to keep history
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long DndPositionId { get; set; }
-
+        [NotMapped]
+        public long Id { get => DndPositionId; set => DndPositionId = value; }
         public float? X { get; set; }
         public float? Y { get; set; }
 
@@ -59,11 +61,14 @@ namespace Models.DndItems
     }
 
     [Table("DndItems")]
-    public class DndItem
+    public class DndItem: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long DndItemId { get; set; }
+
+        [NotMapped]
+        public long Id { get => DndItemId; set => DndItemId = value; }
 
         [Required]
         public bool IsDraggable { get; set; }

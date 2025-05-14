@@ -20,11 +20,13 @@ namespace Mapper
             // String -> Long
             CreateMap<CardDto, Card>()
                 .ForMember(dest => dest.CardId, 
-                           opt => opt.MapFrom(src => long.Parse(src.CardId)));
+                           opt => opt.MapFrom(src => long.Parse(src.CardId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());;
             
             CreateMap<CardPositionPerRoomDto, CardPositionPerRoom>()
                 .ForMember(dest => dest.CardPositionPerRoomId, 
-                           opt => opt.MapFrom(src => long.Parse(src.CardPositionPerRoomId)));
+                           opt => opt.MapFrom(src => long.Parse(src.CardPositionPerRoomId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
         
             CreateMap<CardPositionPerRoom, CardPositionPerRoomDto>();
 
@@ -36,7 +38,8 @@ namespace Mapper
                 .ForMember(dest => dest.CardFaceId, 
                            opt => opt.MapFrom(src => long.Parse(src.CardFaceId)))
                .ForMember(dest => dest.StyleId, 
-                            opt => opt.MapFrom(src => string.IsNullOrEmpty(src.StyleId) ? (long?)null : long.Parse(src.StyleId)));
+                            opt => opt.MapFrom(src => string.IsNullOrEmpty(src.StyleId) ? (long?)null : long.Parse(src.StyleId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Long -> String
             CreateMap<CardFacePerCard, CardFacePerCardDto>();
@@ -44,7 +47,8 @@ namespace Mapper
             // String -> Long
             CreateMap<CardFacePerCardDto, CardFacePerCard>()
                 .ForMember(dest => dest.CardFacePerCardId,
-                           opt => opt.MapFrom(src => long.Parse(src.CardFacePerCardId)));
+                           opt => opt.MapFrom(src => long.Parse(src.CardFacePerCardId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Long -> String
             CreateMap<CardFaceElement, CardFaceElementDto>();
@@ -54,26 +58,12 @@ namespace Mapper
                 .ForMember(dest => dest.CardFaceElementId, 
                            opt => opt.MapFrom(src => long.Parse(src.CardFaceElementId)))
                 .ForMember(dest => dest.StyleId, 
-                    opt => opt.MapFrom(src => string.IsNullOrEmpty(src.StyleId) ? (long?)null : long.Parse(src.StyleId)));
+                    opt => opt.MapFrom(src => string.IsNullOrEmpty(src.StyleId) ? (long?)null : long.Parse(src.StyleId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Long -> String
             CreateMap<CardFaceElementPerCardFace, CardFaceElementPerCardFaceDto>();
 
-            // String -> Long
-            /*
-                "CardEditorCardFacesDto[0].CardFaceElementsPerCardFace[0].DndItemId": [
-                "The DndItemId field is required."
-            ],
-            "CardEditorCardFacesDto[0].CardFaceElementsPerCardFace[0].CardFaceId": [
-                "The CardFaceId field is required."
-            ],
-            "CardEditorCardFacesDto[0].CardFaceElementsPerCardFace[0].DndPositionId": [
-                "The DndPositionId field is required."
-            ],
-            "CardEditorCardFacesDto[0].CardFaceElementsPerCardFace[0].CardFaceElementId": [
-                "The CardFaceElementId field is required."
-            ]
-            */
             CreateMap<CardFaceElementPerCardFaceDto, CardFaceElementPerCardFace>()
                 .ForMember(dest => dest.CardFaceElementPerCardFaceId,
                         opt => opt.MapFrom(src => long.Parse(src.CardFaceElementPerCardFaceId)))
@@ -84,7 +74,8 @@ namespace Mapper
                 .ForMember(dest => dest.DndPositionId,
                         opt => opt.MapFrom(src => long.Parse(src.DndPositionId)))
                 .ForMember(dest => dest.CardFaceId,
-                        opt => opt.MapFrom(src => long.Parse(src.CardFaceId)));
+                        opt => opt.MapFrom(src => long.Parse(src.CardFaceId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Long -> String
             CreateMap<DndItem, DndItemDto>();
@@ -92,7 +83,8 @@ namespace Mapper
             // String -> Long
             CreateMap<DndItemDto, DndItem>()
                 .ForMember(dest => dest.DndItemId, 
-                           opt => opt.MapFrom(src => long.Parse(src.DndItemId)));
+                           opt => opt.MapFrom(src => long.Parse(src.DndItemId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());;
 
              // Long -> String
             CreateMap<DndPosition, DndPositionDto>();
@@ -100,7 +92,8 @@ namespace Mapper
             // String -> Long
             CreateMap<DndPositionDto, DndPosition>()
                 .ForMember(dest => dest.DndPositionId, 
-                           opt => opt.MapFrom(src => long.Parse(src.DndPositionId)));
+                           opt => opt.MapFrom(src => long.Parse(src.DndPositionId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());;
         
              CreateMap<DndDragBoundary, DndDragBoundaryDto>();
 
@@ -115,7 +108,8 @@ namespace Mapper
             // String -> Long
             CreateMap<StyleDto, Style>()
                 .ForMember(dest => dest.StyleId, 
-                           opt => opt.MapFrom(src => long.Parse(src.StyleId)));
+                           opt => opt.MapFrom(src => long.Parse(src.StyleId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
              // Long -> String
             CreateMap<CardPerOwner, CardPerOwnerDto>();
@@ -127,14 +121,16 @@ namespace Mapper
                 .ForMember(dest => dest.CardId, 
                            opt => opt.MapFrom(src => long.Parse(src.CardId)))
                 .ForMember(dest => dest.Card, opt => opt.Ignore())
-                .ForMember(dest => dest.Owner, opt => opt.Ignore());
+                .ForMember(dest => dest.Owner, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
         
             CreateMap<GameRoom, GameRoomDto>();
 
             // String -> Long
             CreateMap<GameRoomDto, GameRoom>()
                 .ForMember(dest => dest.GameRoomId, 
-                           opt => opt.MapFrom(src => long.Parse(src.GameRoomId)));
+                           opt => opt.MapFrom(src => long.Parse(src.GameRoomId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
 }

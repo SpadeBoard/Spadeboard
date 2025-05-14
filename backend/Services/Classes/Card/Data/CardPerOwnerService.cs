@@ -9,6 +9,8 @@ namespace Services
     {
         private readonly ApplicationDbContext _context = context;
 
+        private readonly CrudService<CardPerOwner> _crudService = new(context, cpo => cpo.CardPerOwnerId);
+        
         // TODO: Modify the cards controller to use this
         public async Task<IEnumerable<Card>> GetCardsByOwnerIdAsync(string ownerId)
         {
@@ -43,43 +45,39 @@ namespace Services
                 .FirstOrDefaultAsync(cpo => cpo.CardId == cardId && cpo.OwnerId == ownerId);
         }
 
-        public async Task<CardPerOwner> CreateAsync(CardPerOwner cpo)
+        public async Task<CardPerOwner> CreateAsync(CardPerOwner item)
         {
-            cpo.CardPerOwnerId = 0;
-            await _context.CardPerOwner.AddAsync(cpo);
-            await _context.SaveChangesAsync();
-            return cpo;
+            return await _crudService.CreateAsync(item);
         }
 
-        public async Task<IEnumerable<CardPerOwner>> GetAllAsync()
+        public async Task<bool> DeleteAsync(long id)
         {
-            return await _context.CardPerOwner.ToListAsync();
+            return await _crudService.DeleteAsync(id);
         }
 
-        public Task<CardPerOwner?> GetAsync(long id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateAsync(long id, CardPerOwner item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> DeleteAsync(long id)
-        {
-            throw new NotImplementedException();
-        }
-
-        // TODO: Fix this, add a primary key?
         public bool Exists(long id)
         {
-            return true;
+            return _crudService.Exists(id);
         }
 
         public bool IsModified(CardPerOwner item)
         {
-            return _context.Entry(item).Properties.Any(p => p.IsModified);
+            return _crudService.IsModified(item);
+        }
+
+        public async Task<IEnumerable<CardPerOwner>> GetAllAsync()
+        {
+            return await _crudService.GetAllAsync();
+        }
+
+        public async Task<CardPerOwner?> GetAsync(long id)
+        {
+            return await _crudService.GetAsync(id);
+        }
+
+        public async Task<bool> UpdateAsync(long id, CardPerOwner item)
+        {
+            return await _crudService.UpdateAsync(id, item);
         }
     }
 }

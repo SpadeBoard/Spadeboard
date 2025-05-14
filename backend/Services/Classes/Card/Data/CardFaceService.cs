@@ -19,6 +19,43 @@ namespace Services
 
         private readonly IStyleService _styleService = styleService;
 
+        private readonly CrudService<CardFace> _crudService = new(context, cardFace => cardFace.CardFaceId);
+
+        public bool Exists(long id)
+        {
+            return _crudService.Exists(id);
+        }
+
+        public bool IsModified(CardFace item)
+        {
+            return _crudService.IsModified(item);
+        }
+
+        public async Task<IEnumerable<CardFace>> GetAllAsync()
+        {
+            return await _crudService.GetAllAsync();
+        }
+
+        public async Task<CardFace?> GetAsync(long id)
+        {
+            return await _crudService.GetAsync(id);
+        }
+
+        public async Task<bool> UpdateAsync(long id, CardFace item)
+        {
+            return await _crudService.UpdateAsync(id, item);
+        }
+
+        public async Task<CardFace> CreateAsync(CardFace item)
+        {
+            return await _crudService.CreateAsync(item);
+        }
+
+        public async Task<bool> DeleteAsync(long id)
+        {
+            return await _crudService.DeleteAsync(id);
+        }
+
 
         public async Task<bool> DeleteNavAsync(long id)
         {
@@ -66,13 +103,7 @@ namespace Services
             }
         }
 
-
-        public bool Exists(long id)
-        {
-            return _context.CardFace.Any(e => e.CardFaceId == id);
-        }
-
-        // FIXME: Card face doesn't have a Card ID
+        // FIXME: CardFace face doesn't have a CardFace ID
         public async Task<CardFace?> GetNavAsync(long cardFaceId)
         {
             var cardFace = await _context.CardFace
@@ -87,63 +118,6 @@ namespace Services
             return cardFace;
         }
 
-        public async Task<IEnumerable<CardFace>> GetAllAsync()
-        {
-            return await _context.CardFace.ToListAsync();
-        }
-
-        public async Task<CardFace?> GetAsync(long id)
-        {
-            return await _context.CardFace.FindAsync(id);
-        }
-
-        public async Task<CardFace> CreateAsync(CardFace item)
-        {
-            item.CardFaceId = 0;
-            await _context.CardFace.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
-        }
-
-        public async Task<bool> UpdateAsync(long id, CardFace item)
-        {
-            if (id != item.CardFaceId)
-                return false;
-
-            _context.Entry(item).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Exists(id))
-                {
-                    return false;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        public async Task<bool> DeleteAsync(long id)
-        {
-            var cardFace= await GetAsync(id);
-            if (cardFace== null)
-            {
-                return false;
-            }
-
-            _context.CardFace.Remove(cardFace);
-            int changes =  await _context.SaveChangesAsync();
-
-            return changes > 0;
-        }
-
         public async Task<IEnumerable<CardFace>> GetAllNavAsync()
         {
             var cardFaces = await _context.CardFace
@@ -153,21 +127,16 @@ namespace Services
             return cardFaces;
         }
 
-        public bool IsModified(CardFace item)
-        {
-            return _context.Entry(item).Properties.Any(p => p.IsModified);
-        }
-
         public async Task<CardFace> CreateNavAsync(CardFace nav)
         {
              if (nav.Style == null)
             {
-                throw new ArgumentException("Item: Card Face\nFunction: Create Nav Async\nThe Style property of CardFace cannot be null.", nameof(nav));
+                throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe Style property of CardFace cannot be null.", nameof(nav));
             }
 
             if (_styleService.Exists(nav.Style.StyleId))
             {
-                throw new ArgumentException("Item: Card Face\nFunction: Create Nav Async\nThe Style property of CardFacehas already been made.", nameof(nav));
+                throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe Style property of CardFacehas already been made.", nameof(nav));
             }
 
             nav.Style.StyleId = Snowflake.NewId();

@@ -125,7 +125,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         // TODO: Make sure that when adding a blank card to the database, it just creates a relationship between user and card face
         // Blank front card face and back card face data
-        builder.Entity<CardFace>().HasData(
+        /*builder.Entity<CardFace>().HasData(
             new CardFace
             {
                 CardFaceId = -1,
@@ -144,7 +144,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             }
         );
 
-        /*builder.Entity<CardPerOwner>().HasData(
+        builder.Entity<CardPerOwner>().HasData(
             new CardPerOwner
             {
                 CardId = -1,

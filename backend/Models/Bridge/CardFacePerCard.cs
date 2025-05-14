@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Models.Cards;
+using Services;
 
 /*
 There should be a bridge table comprising of Card ID, Dnd Position ID, Game Room ID. It's because the posiitioning of a card is going to be different per game room. 
@@ -13,11 +14,14 @@ namespace Models.Bridge
 {
     // TODO: In the frontend, update the CardApiService to use this table to get back all of the card faces
     [Table("CardFacePerCard")]
-    public class CardFacePerCard
+    public class CardFacePerCard: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long CardFacePerCardId { get; set; }
+
+        [NotMapped]
+        public long Id { get => CardFacePerCardId; set => CardFacePerCardId = value; }
 
         [Required]
         public long CardId { get; set; }

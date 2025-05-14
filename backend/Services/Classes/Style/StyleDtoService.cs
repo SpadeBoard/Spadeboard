@@ -9,59 +9,42 @@ using Models.Styles;
 
 namespace Services
 {
-    public class StyleDtoService(IMapper mapper,IStyleService styleService) : IStyleDtoService
+    public class StyleDtoService: IStyleDtoService
     {
-        private readonly IStyleService _styleService = styleService;
-        private readonly IMapper _mapper = mapper;
+        private readonly IStyleService _styleService;
+        private readonly IMapper _mapper;
+
+        private readonly DtoCrudService<Style, StyleDto> _dtoCrudService;
+
+        public StyleDtoService(IMapper mapper,IStyleService styleService) 
+        {
+            _styleService = styleService;
+            _mapper = mapper;
+             _dtoCrudService = new(_mapper, _styleService);
+        }
 
         public async Task<StyleDto> CreateDtoAsync(StyleDto styleDto)
         {
-            Style style = _mapper.Map<Style>(styleDto);
-            await _styleService.CreateAsync(style);
-            return  _mapper.Map<StyleDto>(style);
+            return await _dtoCrudService.CreateDtoAsync(styleDto);
         }
 
         public async Task<IEnumerable<StyleDto>> GetAllDtoAsync() {
-             return  _mapper.Map<IEnumerable<StyleDto>>(await _styleService.GetAllAsync());
+            return  await _dtoCrudService.GetAllDtoAsync();
         }
         
         public async Task<StyleDto?> GetDtoAsync(string id)
         {
-            if (!Exists(id)) {
-                return null;
-            }
-
-            Style? style = await _styleService.GetAsync(DtoIdConversion.DtoStringToLong(id));
-
-            if (style == null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<StyleDto>(style);
+            return  await _dtoCrudService.GetDtoAsync(id);
         }
 
         public async Task<bool> UpdateDtoAsync(string id, StyleDto styleDto)
         {
-            if (!Exists(id)) {
-                return false;
-            }
-
-            Style style = _mapper.Map<Style>(styleDto);
-            bool updated = await _styleService.UpdateAsync(style.StyleId, style);
-
-            return updated;
+             return await _dtoCrudService.UpdateDtoAsync(id, styleDto);
         }
 
         public async Task<bool> DeleteDtoAsync(string id)
         {
-            if (!Exists(id)) {
-                return false;
-            }
-
-            bool deleted = await _styleService.DeleteAsync( DtoIdConversion.DtoStringToLong(id));
-
-            return deleted;
+            return await _dtoCrudService.DeleteDtoAsync(id);
         }
 
         public async Task<StyleDto> CreateDtoNavAsync(StyleDto styleDto)
@@ -87,7 +70,7 @@ namespace Services
 
         public bool Exists(string id)
         {
-            return _styleService.Exists(DtoIdConversion.DtoStringToLong(id));
+           return _dtoCrudService.Exists(id);
         }
     }
 }

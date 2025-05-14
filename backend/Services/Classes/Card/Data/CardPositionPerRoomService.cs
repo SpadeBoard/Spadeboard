@@ -19,9 +19,41 @@ namespace Services
 
         private readonly IGameRoomService _gameRoomService = gameRoomService;
 
+        private readonly CrudService<CardPositionPerRoom> _crudService = new(context, cpr => cpr.CardPositionPerRoomId);
+
+        public async Task<CardPositionPerRoom> CreateAsync(CardPositionPerRoom item)
+        {
+            return await _crudService.CreateAsync(item);
+        }
+
+        public async Task<bool> DeleteAsync(long id)
+        {
+            return await _crudService.DeleteAsync(id);
+        }
+
+        public bool Exists(long id)
+        {
+            return _crudService.Exists(id);
+        }
+
+        public bool IsModified(CardPositionPerRoom item)
+        {
+            return _crudService.IsModified(item);
+        }
+
+        public async Task<IEnumerable<CardPositionPerRoom>> GetAllAsync()
+        {
+            return await _crudService.GetAllAsync();
+        }
+
         public async Task<CardPositionPerRoom?> GetAsync(long id)
         {
-            return await _context.CardPositionPerRoom.FirstOrDefaultAsync(cpr => cpr.CardPositionPerRoomId == id);
+            return await _crudService.GetAsync(id);
+        }
+
+        public async Task<bool> UpdateAsync(long id, CardPositionPerRoom item)
+        {
+            return await _crudService.UpdateAsync(id, item);
         }
 
         public async Task<IEnumerable<CardPositionPerRoom>> GetAllNavByRoomIdAsync(long gameRoomId)
@@ -59,68 +91,6 @@ namespace Services
                 .FirstOrDefaultAsync(cpr => cpr.CardId == cardId && cpr.GameRoomId == gameRoomId);
 
             return cpr;
-        }
-
-        public async Task<CardPositionPerRoom> CreateAsync(CardPositionPerRoom item)
-        {
-            // TODO: Navigation property wise, if the IDs return null objects, then create them too
-            item.CardPositionPerRoomId = 0;
-            await _context.CardPositionPerRoom.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
-        }
-
-        public async Task<bool> UpdateAsync(long id, CardPositionPerRoom item)
-        {
-            if (id != item.CardPositionPerRoomId)
-            {
-                return false;
-            }
-
-            _context.Entry(item).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Exists(id))
-                {
-                    return false;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        public async Task<bool> DeleteAsync(long id)
-        {
-            var cpr = await GetAsync(id);
-            if (cpr == null)
-            {
-                return false;
-            }
-
-            _context.CardPositionPerRoom.Remove(cpr);
-            int changes =  await _context.SaveChangesAsync();
-
-            return changes > 0;
-        }
-
-        public bool Exists(long id)
-        {
-            return  _context.CardPositionPerRoom.Any(e => e.CardPositionPerRoomId == id);
-        }
-
-        public async Task<IEnumerable<CardPositionPerRoom>> GetAllAsync()
-        {
-            var cprs = await _context.CardPositionPerRoom.ToListAsync();
-
-            return cprs;
         }
 
         public async Task<IEnumerable<CardPositionPerRoom>> GetAllNavAsync()
@@ -244,7 +214,7 @@ namespace Services
             }
         }
 
-        public Task<bool> DeleteNavAsync(long id)
+        public async Task<bool> DeleteNavAsync(long id)
         {
             throw new NotImplementedException();
         }
@@ -268,11 +238,6 @@ namespace Services
             {
                 throw;
             }
-        }
-
-        public bool IsModified(CardPositionPerRoom item)
-        {
-            throw new NotImplementedException();
         }
     }
 }

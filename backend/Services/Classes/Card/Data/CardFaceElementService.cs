@@ -12,13 +12,48 @@ using Algorithms;
 
 namespace Services
 {
-    public class CardFaceElementService(ApplicationDbContext context,  ICardFaceService cardFaceService, IDndItemService dndItemService, IStyleService styleService, IFileUploadService fileUploadService) : ICardFaceElementService
+    public class CardFaceElementService(ApplicationDbContext context, IStyleService styleService, IFileUploadService fileUploadService) : ICardFaceElementService
     {
         private readonly ApplicationDbContext _context = context;
-        private readonly ICardFaceService _cardFaceService = cardFaceService;
-        private readonly IDndItemService _dndItemService = dndItemService;
         private readonly IStyleService _styleService = styleService;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
+
+        private readonly CrudService<CardFaceElement> _crudService = new(context, cardFaceElement => cardFaceElement.CardFaceElementId);
+
+        public async Task<CardFaceElement> CreateAsync(CardFaceElement item)
+        {
+            return await _crudService.CreateAsync(item);
+        }
+
+        public async Task<bool> DeleteAsync(long id)
+        {
+            return await _crudService.DeleteAsync(id);
+        }
+
+        public bool Exists(long id)
+        {
+            return _crudService.Exists(id);
+        }
+
+        public bool IsModified(CardFaceElement item)
+        {
+            return _crudService.IsModified(item);
+        }
+
+        public async Task<IEnumerable<CardFaceElement>> GetAllAsync()
+        {
+            return await _crudService.GetAllAsync();
+        }
+
+        public async Task<CardFaceElement?> GetAsync(long id)
+        {
+            return await _crudService.GetAsync(id);
+        }
+
+        public async Task<bool> UpdateAsync(long id, CardFaceElement item)
+        {
+            return await _crudService.UpdateAsync(id, item);
+        }
 
         public async Task<bool> UpdateAllNavAsync(CardFaceElement[] cardFaceElements)
         {
@@ -93,64 +128,6 @@ namespace Services
             return changes > 0;
         }
 
-        public async Task<CardFaceElement> CreateAsync(CardFaceElement item)
-        {
-            item.CardFaceElementId = Snowflake.NewId();
-            // item.CardFaceElementId = 0;
-            await _context.CardFaceElement.AddAsync(item);
-            await _context.SaveChangesAsync();
-            return item;
-        }
-
-        public async Task<bool> UpdateAsync(long id, CardFaceElement item)
-        {
-            if (id != item.CardFaceElementId)
-                return false;
-
-            _context.Entry(item).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Exists(id))
-                {
-                    return false;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        public async Task<bool> DeleteAsync(long id)
-        {
-            var cardFaceElement = await GetAsync(id);
-            if (cardFaceElement == null)
-            {
-                return false;
-            }
-
-            _context.CardFaceElement.Remove(cardFaceElement);
-            int changes =  await _context.SaveChangesAsync();
-
-            return changes > 0;
-        }
-
-        public bool Exists(long id)
-        {
-            return _context.CardFaceElement.Any(e => e.CardFaceElementId == id);
-        }
-
-        public bool IsModified(CardFaceElement item)
-        {
-            return _context.Entry(item).Properties.Any(p => p.IsModified);
-        }
-
         public async Task<IEnumerable<CardFaceElement>> GetAllNavAsync()
         {
             var cardFaceElements = await _context.CardFaceElement
@@ -158,16 +135,6 @@ namespace Services
                 .ToListAsync();
 
             return cardFaceElements;
-        }
-
-        public async Task<CardFaceElement?> GetAsync(long id)
-        {
-            return await _context.CardFaceElement.FindAsync(id);
-        }
-
-        public async Task<IEnumerable<CardFaceElement>> GetAllAsync()
-        {
-            return await _context.CardFaceElement.ToListAsync();
         }
 
         // FIXME: So this works with the other CardFaceElementDto function
@@ -184,12 +151,12 @@ namespace Services
         {
             if (nav.Style == null)
             {
-                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe Style property of CardFaceElement cannot be null.", nameof(nav));
+                throw new ArgumentException("Item: CardFaceElement Face Element\nFunction: Create Nav Async\nThe Style property of CardFaceElement cannot be null.", nameof(nav));
             }
 
             if (_styleService.Exists(nav.Style.StyleId))
             {
-                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe Style property of CardFaceElement has already been made.", nameof(nav));
+                throw new ArgumentException("Item: CardFaceElement Face Element\nFunction: Create Nav Async\nThe Style property of CardFaceElement has already been made.", nameof(nav));
             }
 
             nav.Style.StyleId = Snowflake.NewId();

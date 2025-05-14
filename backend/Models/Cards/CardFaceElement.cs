@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Models.DndItems;
 using Models.Styles;
+using Services;
 
 namespace Models.Cards
 {
@@ -19,11 +20,14 @@ namespace Models.Cards
     }
 
     [Table("CardFaceElements")] // Maps this entity to the "Cards" table
-    public class CardFaceElement
+    public class CardFaceElement: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long CardFaceElementId { get; set; }
+
+        [NotMapped]
+        public long Id { get => CardFaceElementId; set => CardFaceElementId = value; }
 
         public string? CardFaceElementContent {get; set;}
 
