@@ -19,7 +19,7 @@ export class CardEditorCardOperationsButtonComponent {
   constructor() {
     this.setHasCreated();
     this.onCreateCard();
-    this.onSetCardEditorCardDtoByCardTemplateId();
+    this.onSetCardEditorCardDtoByCardId();
   }
 
   private onCreateCard() {
@@ -47,8 +47,8 @@ export class CardEditorCardOperationsButtonComponent {
     this.handleCardCreate.emit();
   }
 
-  private onSetCardEditorCardDtoByCardTemplateId() {
-    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardTemplateId$.subscribe(() => {
+  private onSetCardEditorCardDtoByCardId() {
+    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$.subscribe(() => {
       this.setHasCreated();
     })
   }
