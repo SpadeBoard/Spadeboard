@@ -44,6 +44,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
   private mousePosition: {x: number, y: number} = {x:0, y: 0};
 
+  private MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
+
   currentEditedCardFaceElementId: string = "-1";
 
   position: DndPosition = {
@@ -161,7 +163,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         takeUntilDestroyed()
       )
       .subscribe((result: { type: string, dndPosition: DndPosition }) => {
-      console.log(`On create card face element per card face`);
+      if (this.currentCardFaceElementsPerCardFace.length > this.MAX_CURRENT_ELEMENTS_PER_CARD_FACE) {
+        console.error(`On create card face element per card face - Too many card face element per card face`);
+        return;
+      }
 
       let dndPosition = this.getRelativeDropPosition({ x: result.dndPosition.x, y: result.dndPosition.y });
 
