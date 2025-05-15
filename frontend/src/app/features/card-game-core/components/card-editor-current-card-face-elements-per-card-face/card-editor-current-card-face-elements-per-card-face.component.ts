@@ -18,6 +18,7 @@ import { distinctUntilChanged } from 'rxjs';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { filterAgainstNull } from '../../../style/utils/get-style';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -67,9 +68,13 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   onSetCardEditorCardDtoByCardId(): void {
-   this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$.subscribe(() => {
-    this.getCurrentCardFaceElementsPerCardFace();
-   })
+    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$
+      .pipe(
+        takeUntilDestroyed()
+      )
+        .subscribe(() => {
+        this.getCurrentCardFaceElementsPerCardFace();
+    })
   }
 
   getDragDroppedBounds(): {left: number, top: number, width: number, height: number} {
@@ -91,9 +96,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   constructor() {
-  }
-
-  ngOnInit() {
+    // CHECKME: Make sure this doesn't break anything, we put it here to have injection for takeUntilDestroyed
     this.getCurrentCardFaceElementsPerCardFace();
     this.onSetCardEditorCardDtoByCardId();
     
@@ -112,25 +115,40 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.onUpdateCard();
   }
 
+  ngOnInit() {
+  }
+
   ngAfterViewInit() {
   }
 
   private onCreateCard() {
-    this.cardEditorPreviewService.onCreateCard$.subscribe(() => {
-      this.getCurrentCardFaceElementsPerCardFace();
-    })
+    this.cardEditorPreviewService.onCreateCard$
+      .pipe(
+        takeUntilDestroyed()
+      )
+      .subscribe(() => {
+        this.getCurrentCardFaceElementsPerCardFace();
+      })
   }
 
   private onUpdateCard() {
-    this.cardEditorPreviewService.onUpdateCard$.subscribe(() => {
-      this.getCurrentCardFaceElementsPerCardFace();
-    })
+    this.cardEditorPreviewService.onUpdateCard$
+      .pipe(
+        takeUntilDestroyed()
+      )
+      .subscribe(() => {
+        this.getCurrentCardFaceElementsPerCardFace();
+      })
   }
 
   private onDeleteCardFaceElementPerCardFace() {
-    this.cardEditorPreviewService.onDeleteCardFaceElementPerCardFace$.subscribe(() => {
-      this.getCurrentCardFaceElementsPerCardFace();
-    })
+    this.cardEditorPreviewService.onDeleteCardFaceElementPerCardFace$
+      .pipe(
+        takeUntilDestroyed()
+      )
+      .subscribe(() => {
+        this.getCurrentCardFaceElementsPerCardFace();
+      })
   }
 
   getCurrentCardFaceElementsPerCardFace(): void {
@@ -138,7 +156,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   private onCreateCardFaceElementPerCardFace(): void {
-    this.cardEditorPreviewService.onCreateCardFaceElementPerCardFace$.subscribe((result: { type: string, dndPosition: DndPosition }) => {
+    this.cardEditorPreviewService.onCreateCardFaceElementPerCardFace$
+      .pipe(
+        takeUntilDestroyed()
+      )
+      .subscribe((result: { type: string, dndPosition: DndPosition }) => {
       console.log(`On create card face element per card face`);
 
       let dndPosition = this.getRelativeDropPosition({ x: result.dndPosition.x, y: result.dndPosition.y });
@@ -420,7 +442,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   onRteTextChange() {
     // TODO: Subscribe to the service's on RTE editor change, then take the element ID that was passed in, then update here by setting the content from the element ID
-    this.cardEditorControlsDesignRteService.onRteTextChange$.subscribe((text: string) => {
+    this.cardEditorControlsDesignRteService.onRteTextChange$
+      .pipe(
+        takeUntilDestroyed()
+      )
+      .subscribe((text: string) => {
       let currentCardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
     
       if (currentCardFaceElementPerCardFace?.cardFaceElement && currentCardFaceElementPerCardFace?.cardFaceElement.cardFaceElementType === "rte") {
@@ -499,7 +525,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   onDisableImageEditor() {
-    this.cardEditorControlsDesignImageService.onDisableImageEditor$.subscribe((src: string) => {
+    this.cardEditorControlsDesignImageService.onDisableImageEditor$
+      .pipe(
+        takeUntilDestroyed()
+      )
+      .subscribe((src: string) => {
       if (src === "")
         return;
 
@@ -533,7 +563,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   onSetWidth() {
     this.cardEditorControlsDesignElementAttributesService.onSetWidth$
-      .pipe(distinctUntilChanged())
+      .pipe(
+        distinctUntilChanged(),
+        takeUntilDestroyed()
+      )
       .subscribe((width: number) => {
       let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
       if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
@@ -546,7 +579,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   onSetHeight() {
     this.cardEditorControlsDesignElementAttributesService.onSetHeight$
-      .pipe(distinctUntilChanged())
+      .pipe(
+        distinctUntilChanged(),
+        takeUntilDestroyed()
+      )
       .subscribe((height: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
         if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
@@ -559,7 +595,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   onSetX() {
     this.cardEditorControlsDesignElementAttributesService.onSetX$
-      .pipe(distinctUntilChanged())
+      .pipe(
+        distinctUntilChanged(),
+        takeUntilDestroyed()
+      )
       .subscribe((x: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
         if (cardFaceElementPerCardFace) {
@@ -570,7 +609,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   onSetY() {
     this.cardEditorControlsDesignElementAttributesService.onSetY$
-      .pipe(distinctUntilChanged())
+      .pipe(
+        distinctUntilChanged(),
+        takeUntilDestroyed()
+      )
       .subscribe((y: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
         if (cardFaceElementPerCardFace) {

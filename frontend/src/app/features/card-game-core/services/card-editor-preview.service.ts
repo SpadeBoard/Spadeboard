@@ -10,6 +10,7 @@ import { isCardEditorCardDto } from '../utils/card-game-core.utils';
 import { Style } from '../../style/models/style';
 import { DndPosition } from '../../drag-and-drop/models/dnd-types';
 import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root'
@@ -661,7 +662,8 @@ export class CardEditorPreviewService {
             this.cardFaceElementsPerCardFaceDelete = [];
             return this.cardApiService.createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
           }
-        }) // NOTE: Need to return an actual value
+        }), // NOTE: Need to return an actual value
+        // takeUntilDestroyed()
       )
       .subscribe({
         next: (createResult: CardEditorCardDto | undefined) => {
@@ -706,7 +708,8 @@ export class CardEditorPreviewService {
       ),
       concatMap((cardEditorCardDto: CardEditorCardDto) =>
         this.cardApiService.updateCardEditorCardDto$(cardEditorCardDto)
-      )
+      ),
+      // takeUntilDestroyed()
     )
     .subscribe({
       next: (updateResult: CardEditorCardDto | undefined) => {
