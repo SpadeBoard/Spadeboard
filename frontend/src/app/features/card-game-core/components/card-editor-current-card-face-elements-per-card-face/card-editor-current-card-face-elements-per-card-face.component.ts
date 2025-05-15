@@ -91,6 +91,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   constructor() {
+  }
+
+  ngOnInit() {
     this.getCurrentCardFaceElementsPerCardFace();
     this.onSetCardEditorCardDtoByCardId();
     
@@ -102,9 +105,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     this.onSetX();
     this.onSetY();
-  }
 
-  ngOnInit() {
     this.onCreateCard();
     this.onCreateCardFaceElementPerCardFace();
     this.onDeleteCardFaceElementPerCardFace();
