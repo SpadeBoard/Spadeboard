@@ -1,4 +1,4 @@
-import { effect, inject, Injectable } from '@angular/core';
+import { DestroyRef, effect, inject, Injectable } from '@angular/core';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardEditorCardDto } from '../models/card';
 import { CardFaceElement, CardFaceElementPerCardFace } from '../models/card-face-element';
@@ -21,6 +21,8 @@ export class CardEditorPreviewService {
   private readonly fileUploadApiService = inject(FileUploadApiService);
   private readonly cardFaceElementApiService: CardFaceElementApiService = inject(CardFaceElementApiService);
   
+  private destroyRef: DestroyRef = inject(DestroyRef);
+
   defaultCardEditorFaceStyle: Style = {
     styleId: "0",
     backgroundColor: '#fefffe',
@@ -140,11 +142,17 @@ export class CardEditorPreviewService {
     }
 
     this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+    .pipe(
+      takeUntilDestroyed(this.destroyRef)
+    )
     .subscribe(cardEditorCardDto => this.handleCardEditorCardDto(cardEditorCardDto));
   }
 
   getCardEditorCardDtoByCardId(cardId: string) {
      this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+     .pipe(
+      takeUntilDestroyed(this.destroyRef)
+    )
     .subscribe(cardEditorCardDto => this.handleCardEditorCardDto(cardEditorCardDto));
   }
 
@@ -286,7 +294,8 @@ export class CardEditorPreviewService {
               result.id;
           });
         }),
-        map(() => this.cardEditorCardDto)
+        map(() => this.cardEditorCardDto),
+        takeUntilDestroyed(this.destroyRef)
       );
   
       // https://rxjs.dev/api/operators/tap
@@ -325,7 +334,8 @@ export class CardEditorPreviewService {
               result.id;
           });
         }),
-        map(() => this.cardEditorCardDto)
+        map(() => this.cardEditorCardDto),
+        takeUntilDestroyed(this.destroyRef)
       );
       // https://rxjs.dev/api/operators/tap
     }
@@ -386,7 +396,8 @@ export class CardEditorPreviewService {
           catchError((err) => {
             console.error('Error uploading card face element images:', err);
             return of(this.cardEditorCardDto);
-          })
+          }),
+          takeUntilDestroyed(this.destroyRef)
         );
       }
     
@@ -459,7 +470,8 @@ export class CardEditorPreviewService {
           return of({ id: undefined });
         }
         return this.fileUploadApiService.uploadFile$(formData, 'card-face-element-image');
-      })
+      }),
+      takeUntilDestroyed(this.destroyRef)
     );
   }
 
@@ -512,7 +524,8 @@ export class CardEditorPreviewService {
         catchError((err) => {
           console.error('Error uploading card face element images:', err);
           return of(this.cardEditorCardDto);
-        })
+        }),
+        takeUntilDestroyed(this.destroyRef)
       );
     }
   
@@ -583,7 +596,8 @@ export class CardEditorPreviewService {
               }
             })
           )
-        )
+        ),
+        takeUntilDestroyed(this.destroyRef)
       );
   }
 
@@ -595,7 +609,8 @@ export class CardEditorPreviewService {
           const formData = new FormData();
           formData.append('formFile', blob);
           return of(formData);
-        })
+        }),
+        takeUntilDestroyed(this.destroyRef)
       );
     }
 
@@ -630,9 +645,13 @@ export class CardEditorPreviewService {
     return forkJoin(
       cardEditorCardDto.cardEditorCardFacesDto.map(face =>
         this.uploadCardFaceElementsImagesAndUpdatePaths$(face.cardFaceElementsPerCardFace)
-          .pipe(tap(() => console.log('Done uploading face',)),map(() => cardEditorCardDto))
+          .pipe(
+            tap(() => console.log('Done uploading face',)),map(() => cardEditorCardDto)),
+            takeUntilDestroyed(this.destroyRef)
       )
-    ).pipe(tap(() => console.log('All faces processed')), map(() => cardEditorCardDto));
+    ).pipe(
+        tap(() => console.log('All faces processed')), map(() => cardEditorCardDto),
+        takeUntilDestroyed(this.destroyRef));
   }
 
   // TODO: Create a function to get all text content, convert them to BB Code then save them
@@ -663,7 +682,7 @@ export class CardEditorPreviewService {
             return this.cardApiService.createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
           }
         }), // NOTE: Need to return an actual value
-        // takeUntilDestroyed()
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (createResult: CardEditorCardDto | undefined) => {
@@ -709,7 +728,7 @@ export class CardEditorPreviewService {
       concatMap((cardEditorCardDto: CardEditorCardDto) =>
         this.cardApiService.updateCardEditorCardDto$(cardEditorCardDto)
       ),
-      // takeUntilDestroyed()
+      takeUntilDestroyed(this.destroyRef)
     )
     .subscribe({
       next: (updateResult: CardEditorCardDto | undefined) => {
