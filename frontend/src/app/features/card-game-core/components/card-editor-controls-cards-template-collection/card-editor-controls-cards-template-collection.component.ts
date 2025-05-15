@@ -50,7 +50,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   }
 
   onClickCard(event: Event, cardId: string) {
-    this.cardEditorPreviewService.setCardEditorCardDtoByCardTemplateId(cardId);
+    this.cardEditorPreviewService.setCardEditorCardDtoByCardId(cardId);
   }
 
   private onCreateCardEditorCardDto() {

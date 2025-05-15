@@ -66,8 +66,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     return this.cardEditorPreviewService.getCurrentCardFace().style;
   }
 
-  onSetCardEditorCardDtoByCardTemplateId(): void {
-   this.cardEditorPreviewService.onSetCardEditorCardDtoByCardTemplateId$.subscribe(() => {
+  onSetCardEditorCardDtoByCardId(): void {
+   this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$.subscribe(() => {
     this.getCurrentCardFaceElementsPerCardFace();
    })
   }
@@ -91,8 +91,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   constructor() {
+  }
+
+  ngOnInit() {
     this.getCurrentCardFaceElementsPerCardFace();
-    this.onSetCardEditorCardDtoByCardTemplateId();
+    this.onSetCardEditorCardDtoByCardId();
     
     this.onRteTextChange();
     this.onDisableImageEditor();
@@ -102,9 +105,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     this.onSetX();
     this.onSetY();
-  }
 
-  ngOnInit() {
     this.onCreateCard();
     this.onCreateCardFaceElementPerCardFace();
     this.onDeleteCardFaceElementPerCardFace();

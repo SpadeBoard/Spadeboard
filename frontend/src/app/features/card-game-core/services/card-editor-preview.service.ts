@@ -95,8 +95,8 @@ export class CardEditorPreviewService {
   private onCreateCardFaceElementPerCardFace$$: Subject<{type: string, dndPosition: DndPosition}> = new Subject<{type: string, dndPosition: DndPosition}>();
   onCreateCardFaceElementPerCardFace$: Observable<{type: string, dndPosition: DndPosition}> = this.onCreateCardFaceElementPerCardFace$$.asObservable();
 
-  private onSetCardEditorCardDtoByCardTemplateId$$: Subject<void> = new Subject<void>();
-  onSetCardEditorCardDtoByCardTemplateId$: Observable<void> = this.onSetCardEditorCardDtoByCardTemplateId$$.asObservable();
+  private onSetCardEditorCardDtoByCardId$$: Subject<void> = new Subject<void>();
+  onSetCardEditorCardDtoByCardId$: Observable<void> = this.onSetCardEditorCardDtoByCardId$$.asObservable();
 
   // NOTE: For when clicking on a blank card template
   setBlankCardTemplate() {
@@ -130,34 +130,33 @@ export class CardEditorPreviewService {
     };
   }
 
-  setCardEditorCardDtoByCardTemplateId(cardId: string) {
+  setCardEditorCardDtoByCardId(cardId: string) {
     if (parseFloat(cardId) <= 0) {
       this.setBlankCardTemplate() ;
       this.reloadCurrentCardEditorCardFaceDto();
-      this.setOnSetCardEditorCardDtoByCardTemplateId();
+      this.setOnSetCardEditorCardDtoByCardId();
       return;
     }
 
-    // TODO: Should be refactored
-    this.cardApiService.getCardEditorCardDto$(cardId).subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
-      if (cardEditorCardDto) {
-        this.cardEditorCardDto = cardEditorCardDto;
-        this.reloadCurrentCardEditorCardFaceDto();
-        this.setOnSetCardEditorCardDtoByCardTemplateId();
-      }
-    })
+    this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+    .subscribe(cardEditorCardDto => this.handleCardEditorCardDto(cardEditorCardDto));
   }
 
   getCardEditorCardDtoByCardId(cardId: string) {
-    this.cardApiService.getCardEditorCardDto$(cardId).subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
-      if (cardEditorCardDto) {
-        this.cardEditorCardDto = cardEditorCardDto;
-      }
-    })
+     this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+    .subscribe(cardEditorCardDto => this.handleCardEditorCardDto(cardEditorCardDto));
   }
 
-  setOnSetCardEditorCardDtoByCardTemplateId() {
-    this.onSetCardEditorCardDtoByCardTemplateId$$.next();
+  private handleCardEditorCardDto(cardEditorCardDto: CardEditorCardDto | undefined) {
+    if (cardEditorCardDto) {
+      this.cardEditorCardDto = cardEditorCardDto;
+      this.reloadCurrentCardEditorCardFaceDto();
+      this.setOnSetCardEditorCardDtoByCardId();
+    }
+  }
+
+  setOnSetCardEditorCardDtoByCardId() {
+    this.onSetCardEditorCardDtoByCardId$$.next();
   }
 
   setCardName(value: string) {

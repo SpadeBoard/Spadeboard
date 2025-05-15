@@ -166,7 +166,7 @@ export class CardsCollectionComponent {
 
   onDragDrop(event: CdkDragDrop<any[]>, item: any) {
     if (!event.isPointerOverContainer && isCard(item)) {
-      this.cardApiService.getCardEditorCardDto$(item.cardId).subscribe((result: CardEditorCardDto | undefined) => {
+      this.cardApiService.getCardEditorCardDtoByCardId$(item.cardId).subscribe((result: CardEditorCardDto | undefined) => {
         if (result === undefined)
           return;
 

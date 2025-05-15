@@ -92,7 +92,7 @@ export class CardApiService {
     return this.http.get<Card>(this.apiUrl);
   }
 
-  getCardEditorCardDto$(cardId: string): Observable<CardEditorCardDto | undefined> {
+  getCardEditorCardDtoByCardId$(cardId: string): Observable<CardEditorCardDto | undefined> {
     if (cardId === undefined) {
       return of(undefined);
     } 
