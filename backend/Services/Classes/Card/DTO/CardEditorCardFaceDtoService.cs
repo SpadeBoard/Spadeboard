@@ -19,9 +19,8 @@ using System.Linq.Expressions;
 
 namespace Services
 {
-    public class CardEditorCardFaceDtoService(ApplicationDbContext context, ICardFacePerCardDtoService cardFacePerCardDtoService, ICardFaceDtoService cardFaceDtoService, ICardFaceElementPerCardFaceDtoService cardFaceElementPerCardFaceDtoService, ICardFaceService cardFaceService, ICardFaceElementPerCardFaceService cardFaceElementPerCardFaceService) : ICardEditorCardFaceDtoService
+    public class CardEditorCardFaceDtoService(ICardFacePerCardDtoService cardFacePerCardDtoService, ICardFaceDtoService cardFaceDtoService, ICardFaceElementPerCardFaceDtoService cardFaceElementPerCardFaceDtoService, ICardFaceService cardFaceService, ICardFaceElementPerCardFaceService cardFaceElementPerCardFaceService) : ICardEditorCardFaceDtoService
     {
-        private readonly ICardFaceService _cardFaceService = cardFaceService;
         private readonly ICardFacePerCardDtoService _cardFacePerCardDtoService = cardFacePerCardDtoService;
         private readonly ICardFaceDtoService _cardFaceDtoService = cardFaceDtoService;
         private readonly ICardFaceElementPerCardFaceDtoService _cardFaceElementPerCardFaceDtoService = cardFaceElementPerCardFaceDtoService;
@@ -181,7 +180,14 @@ namespace Services
 
         public async Task<bool> DeleteDtoAsync(string id)
         {
+            // TODO: Grab the card face, grab the card face elements, then delete them
+            // TODO: Call _cardFaceElementPerCardFace.DeleteAllNavByCardFaceAsync
             throw new NotImplementedException();
+        }
+
+        public async Task<bool> DeleteDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
+        {
+           return await  _cardFaceElementPerCardFaceDtoService.DeleteAllDtoNavByCardFaceAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
         }
 
         public async Task<CardEditorCardFaceDto?> GetDtoAsync(string id)

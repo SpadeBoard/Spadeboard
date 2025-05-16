@@ -50,6 +50,18 @@ namespace Services
             return await _crudService.CreateAsync(item);
         }
 
+        public async Task<bool> DeleteByCardIdAndOwnerIdAsync(long cardId, string ownerId)
+        {
+            CardPerOwner? cpo = await GetByCardIdAndOwnerIdAsync(cardId, ownerId);
+        
+            if (cpo == null)
+            {
+                return false;
+            }
+
+            return await DeleteAsync(cpo.CardPerOwnerId);
+        }
+
         public async Task<bool> DeleteAsync(long id)
         {
             return await _crudService.DeleteAsync(id);

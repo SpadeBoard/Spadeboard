@@ -97,5 +97,19 @@ namespace Services
         {
             throw new NotImplementedException();
         }
+
+        public async Task<bool> DeleteByCardAndCardFaceAsync(long cardId, long cardFaceId)
+        {
+            var cardFacesPerCard= await _context.CardFacePerCard
+            .Where(c => c.CardId == cardId && c.CardFaceId == cardFaceId).ToListAsync();
+
+            if (cardFacesPerCard.Count > 0)
+            {
+                _context.CardFacePerCard.RemoveRange(cardFacesPerCard);
+                return await _context.SaveChangesAsync() > 0;
+            }
+
+            return false;
+        }
     }
 }

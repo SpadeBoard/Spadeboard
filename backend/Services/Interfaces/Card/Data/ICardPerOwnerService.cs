@@ -13,5 +13,7 @@ namespace Services
         public Task<CardPerOwner?> GetByCardIdAsync(long cardId);
 
         public Task<IEnumerable<Card>> GetCardsByOwnerIdAsync(string ownerId);
+
+        public Task<bool> DeleteByCardIdAndOwnerIdAsync(long cardId, string ownerId);
     }
 }

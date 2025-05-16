@@ -697,7 +697,7 @@ export class CardEditorPreviewService {
 
             // NOTE: For updating the card collection immediately
             // ASSUMPTION: You can only create a card as a user,, or save a new card from a card in the room for that user
-            this.cardGameCoreService.onCreateCardEditorCardDto(this.cardEditorCardDto);
+            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
           }
         },
         error: (err) => {
@@ -737,12 +737,23 @@ export class CardEditorPreviewService {
           this.cardEditorCardDto = updateResult;
           this.reloadCurrentCardEditorCardFaceDto();
           this.setOnUpdateCard();
-          this.cardGameCoreService.onUpdateCardEditorCardDto(this.cardEditorCardDto);
+          this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);
         }
       },
       error: (err) => {
         console.error('Something went wrong:', err);
       }
+    });
+  }
+
+  deleteCard(cardId: string)
+  {
+    if (this.cardEditorCardDto.card.cardId === cardId) {
+      throw new Error("Can't delete card as it's being edited");
+    }
+
+    this.cardApiService.deleteCardEditorCardDto$(cardId).subscribe((result: void | undefined) => {
+        this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);
     });
   }
 

@@ -14,5 +14,9 @@ namespace Services
         public Task<IEnumerable<CardFaceElementPerCardFace>> GetAllNavByCardFaceIdAsync(long cardFaceId);
         
         public Task<bool> UpdateAllNavByCardFaceAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace);
+
+        public Task <bool> DeleteAllNavAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace);
+
+        public Task <bool> DeleteAllNavByCardFaceAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace);
     }
 }

@@ -1,5 +1,7 @@
 <div class="cec-cards-template-collection">
+    <app-card [card]="new" [title] ="new.cardName" [zoomLevel]="0.75" (click)="onClickCard($event, new.cardId)"/>
     @for (card of cards; track card) {
         <app-card [card]="card" [title]="card.cardName" [zoomLevel]="0.75" (click)="onClickCard($event, card.cardId)"/>
+        <app-card-delete-button [cardId]="card.cardId"/>
     }
 </div>

@@ -1,6 +1,7 @@
 import { Component, inject, output } from '@angular/core';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCardDto } from '../../models/card';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-card-editor-card-operations-button',
@@ -23,7 +24,9 @@ export class CardEditorCardOperationsButtonComponent {
   }
 
   private onCreateCard() {
-    this.cardEditorPreviewService.onCreateCard$.subscribe(() => {
+    this.cardEditorPreviewService.onCreateCard$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
      this.setHasCreated();
     })
   }
@@ -48,7 +51,9 @@ export class CardEditorCardOperationsButtonComponent {
   }
 
   private onSetCardEditorCardDtoByCardId() {
-    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$.subscribe(() => {
+    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
       this.setHasCreated();
     })
   }

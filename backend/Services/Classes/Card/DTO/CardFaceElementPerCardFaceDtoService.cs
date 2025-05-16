@@ -88,6 +88,14 @@ namespace Services
             return deleted;
         }
 
+         public async Task <bool> DeleteAllDtoNavByCardFaceAsync(CardFaceElementPerCardFaceDto[] cardFaceElementsPerCardFaceDto, CardFaceDto cardFaceDto)
+         {
+            CardFaceElementPerCardFace[] cardFaceElemensPerCardFace = _mapper.Map<CardFaceElementPerCardFace[]>(cardFaceElementsPerCardFaceDto);
+            CardFace cardFace = _mapper.Map<CardFace>(cardFaceDto);
+            
+            return await _cardFaceElementPerCardFaceService.DeleteAllNavByCardFaceAsync(cardFaceElemensPerCardFace, cardFace);
+         }
+
         // TODO: Return cardFaceDto too
         public async Task<IEnumerable<CardFaceElementPerCardFaceDto>> CreateAllNavDtoByCardFaceDtoIdAsync(CardFaceElementPerCardFaceDto[] cardFaceElementsPerCardFaceDtos, CardFaceDto cardFaceDto)
         {

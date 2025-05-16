@@ -16,11 +16,12 @@ import { ActionContextMenuItem } from '../../../actions-context-menu/models/acti
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';
 
 @Component({
   selector: 'app-cards-collection',
   imports: [ 
-    CardComponent, CommonModule,
+    CardComponent, CardDeleteButtonComponent, CommonModule,
     CdkDrag, CdkDragHandle, DragDropModule, ActionContextMenuComponent
   ],
   templateUrl: './cards-collection.component.html',
@@ -58,6 +59,7 @@ export class CardsCollectionComponent {
   ngOnInit() {
     this.onCreateCardEditorCardDto();
     this.onUpdateCardEditorCardDto();
+    this.onDeleteCardEditorCardDto();
   }
   
   getCards(): void {
@@ -121,6 +123,14 @@ export class CardsCollectionComponent {
         }
       }
     });
+  }
+
+  private onDeleteCardEditorCardDto() {
+    this.cardGameCoreService.onDeleteCardEditorCardDto$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((cardId: string) => {
+        this.cards = this.cards.filter(c => c.cardId !== cardId);
+      });
   }
 
   onDragMoved(event: CdkDragMove) {

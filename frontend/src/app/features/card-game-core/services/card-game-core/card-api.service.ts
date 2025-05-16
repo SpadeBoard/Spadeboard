@@ -155,12 +155,12 @@ export class CardApiService {
     return this.http.put<CardEditorCardDto>(`${this.apiUrl}/dto/${cardEditorCardDto.card.cardId}`, cardEditorCardDto);
   }
 
-  deleteCard$(cardId: string, deleteAllAttributesAssociatedWithCard: boolean): Observable<void | undefined> {
-    if (deleteAllAttributesAssociatedWithCard) {
-      return this.http.delete<void>(`${this.apiUrl}/dto/${cardId}`);
-    }
-    
+  deleteCard$(cardId: string): Observable<void | undefined> {
     return this.http.delete<void>(`${this.apiUrl}/${cardId}`);
+  }
+
+  deleteCardEditorCardDto$(cardId: string): Observable<void | undefined> {
+    return this.http.delete<void>(`${this.apiUrl}/dto/${cardId}`);
   }
 
   //https://www.allthingstypescript.dev/p/how-to-overload-functions-in-typescript
