@@ -1,15 +1,16 @@
-import { AfterViewInit, Component, ElementRef, inject, input, InputSignal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, inject, input, InputSignal, ViewChild } from '@angular/core';
 import { Style } from '../../../style/models/style';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 import { isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { CardEditorCardFaceDto } from '../../models/card-face';
 import html2canvas from 'html2canvas';
-import { from, map, Observable } from 'rxjs';
+import { from, map, Observable, takeUntil } from 'rxjs';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
 import { CommonModule } from '@angular/common';
 import { filterAgainstNull } from '../../../style/utils/get-style';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -19,7 +20,8 @@ import { filterAgainstNull } from '../../../style/utils/get-style';
 })
 export class CardEditorFacePreviewComponent implements AfterViewInit {
   private cardEditorPreviewService: CardEditorPreviewService  = inject(CardEditorPreviewService);
-
+  private destroyRef: DestroyRef = inject(DestroyRef);
+  
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChild("cardFaceElementsPerCardFace") cardFaceElementsPerCardFace!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
 
@@ -39,7 +41,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   getCardEditorFaceStyle(): Omit<Style, 'styleId'> {
     let { styleId, ...rest } = this.cardEditorPreviewService.getCurrentCardFace().style;
 
-    // TODO: Make a get card face style in the service, and filter out only certain values you want
     let filtered = filterAgainstNull(rest);
 
     return filtered;
@@ -76,12 +77,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
             }
 
             let formData = new FormData();
-
-            // let compatibleCrypto = getCrypto();
-
-            // TODO: Replace the card face ID in the backend, replace via matching Regex of anything less than 1
-            // let cardFaceFileName: string = `${cardFace.cardFaceId}-${compatibleCrypto.randomUUID()}.jpg`;
-
+            
             formData.append('formFile', blob);
             // console.log(cardFaceFileName);
             // console.log(`Form data: ${JSON.stringify(formData.values)}`);
@@ -96,7 +92,9 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   updateCardEditorCardFaceDto() {
-    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex()).subscribe((images: FormData[]) => {
+    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((images: FormData[]) => {
       if (images.length <= 0)
         return;
 
@@ -106,17 +104,20 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private onFlip() {
-    this.cardEditorPreviewService.onFlip$.subscribe(() => {
-      this.updateCardEditorCardFaceDto();
-  
-      this.cardEditorPreviewService.onFlipCurrentCardFace();
+    this.cardEditorPreviewService.onFlip$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updateCardEditorCardFaceDto();
 
-      this.cardFaceElementsPerCardFace.getCurrentCardFaceElementsPerCardFace();
-    });
+        this.cardEditorPreviewService.onFlipCurrentCardFace();
+
+        this.cardFaceElementsPerCardFace.getCurrentCardFaceElementsPerCardFace();
+      });
   }
 
   updateCardFaceImagesForCurrentCardFace() {
-    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex());
+    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+    .pipe(takeUntilDestroyed(this.destroyRef));
   }
 
   private updateCardFaceImages$(cardFaceIndexToTakeImageOf: number): Observable<FormData[]> {
@@ -124,29 +125,41 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       map((value: FormData) => {
         this.cardEditorPreviewService.cardFaceImages [cardFaceIndexToTakeImageOf] = value;
         return this.cardEditorPreviewService.cardFaceImages;
-      })
+      }),
+      takeUntilDestroyed(this.destroyRef)
     );
   }
 
   createCard() {
-    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex()).subscribe((images: FormData[]) => {
-      if (images.length <= 0)
+    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((images: FormData[]) => {
+     if (!this.handleUpdateCardFaceImages(images.length))
         return;
-      
-      this.cardFaceElementsPerCardFace.setCurrentCardFaceElementsPerCardFace(); 
-      this.cardEditorPreviewService.updateCardEditorCardFaceDto();
+
       this.cardEditorPreviewService.createCard();
     });
   }
 
   saveCard() {
-    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex()).subscribe((images: FormData[]) => {
-      if (images.length <= 0)
+    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((images: FormData[]) => {
+      if (!this.handleUpdateCardFaceImages(images.length))
         return;
-      
-      this.cardFaceElementsPerCardFace.setCurrentCardFaceElementsPerCardFace(); 
-      this.cardEditorPreviewService.updateCardEditorCardFaceDto();
+
       this.cardEditorPreviewService.updateCard();
     });
+  }
+
+  handleUpdateCardFaceImages(imagesLength: number): boolean
+  {
+    if (imagesLength <= 0) {
+      return false;
+    }
+
+    this.cardFaceElementsPerCardFace.setCurrentCardFaceElementsPerCardFace(); 
+    this.cardEditorPreviewService.updateCardEditorCardFaceDto();
+    return true;
   }
 }

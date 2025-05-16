@@ -1,4 +1,4 @@
-import { Component, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
+import { Component, DestroyRef, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
 import { CardComponent } from '../card/card.component';
@@ -15,6 +15,7 @@ import { ActionContextMenuComponent } from '../../../actions-context-menu/compon
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-cards-collection',
@@ -36,6 +37,8 @@ export class CardsCollectionComponent {
   private cardPreviewEditorService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
   private readonly fileUploadApiService = inject(FileUploadApiService);
+
+  private destroyRef: DestroyRef = inject(DestroyRef);
 
   cards: Card[] =[];
 
@@ -91,7 +94,9 @@ export class CardsCollectionComponent {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-    this.cardGameCoreService.onCreateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+    this.cardGameCoreService.onCreateCardEditorCardDto$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0 && !cardEditorCardDto.card.isTemplate) {
         this.cards.push(cardEditorCardDto.card);
         return;
@@ -105,7 +110,9 @@ export class CardsCollectionComponent {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-    this.cardGameCoreService.onUpdateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+    this.cardGameCoreService.onUpdateCardEditorCardDto$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0 && !cardEditorCardDto.card.isTemplate) {
         let index = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
 
@@ -180,7 +187,8 @@ export class CardsCollectionComponent {
           .pipe(
             switchMap(() =>
               this.cardApiService.createCardEditorCardDtoForGameRoomFromExistingDto$(cardEditorCardDto)
-            )
+            ),
+            takeUntilDestroyed(this.destroyRef)
           ).subscribe({
             next: (result: CardEditorCardDto | undefined) => {
               if (result === undefined)
