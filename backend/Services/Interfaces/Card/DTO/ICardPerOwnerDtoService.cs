@@ -10,5 +10,7 @@ namespace Services
         public Task<CardPerOwnerDto?> GetDtoByCardIdAndOwnerIdAsync(string cardId, string ownerId);
 
         public Task<IEnumerable<CardDto>> GetCardsDtoByOwnerIdAsync(string ownerId);
+
+        public Task<bool> DeleteDtoByCardIdAndOwnerIdAsync(string cardId, string ownerId);
     }
 }

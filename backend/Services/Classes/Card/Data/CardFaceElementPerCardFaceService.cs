@@ -112,49 +112,65 @@ namespace Services
             return await _crudService.DeleteAsync(id);
         }
 
+        public async Task <bool> DeleteAllNavByCardFaceAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace, CardFace cardFace)
+        {
+            bool deleted = await DeleteAllNavAsync(cardFaceElementsPerCardFace);   
+            deleted = await _cardFaceService.DeleteNavAsync(cardFace.CardFaceId);
+
+            return deleted;
+        }
+
+        public async Task <bool> DeleteAllNavAsync(CardFaceElementPerCardFace[] cardFaceElementsPerCardFace)
+        {
+            foreach (CardFaceElementPerCardFace cardFaceElementPerCardFace in cardFaceElementsPerCardFace)
+            {
+                if (!await DeleteNavAsync(cardFaceElementPerCardFace.CardFaceElementPerCardFaceId))
+                {
+                    throw new Exception("Could not delete card face element per card face nav");
+                }
+            }
+
+            return true;
+        }
+
         // NOTE: Don't delete the card face because all card face element per card face might share the same card face
         public async Task<bool> DeleteNavAsync(long id)
         {
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            try
             {
-                try
+                CardFaceElementPerCardFace? cardFaceElementPerCardFaceToDelete = await GetAsync(id);
+
+                if (cardFaceElementPerCardFaceToDelete == null)
                 {
-                    CardFaceElementPerCardFace? cardFaceElementPerCardFaceToDelete = await GetAsync(id);
-
-                    if (cardFaceElementPerCardFaceToDelete == null)
-                    {
-                        return false;
-                    }
-
-                    bool deleted = await DeleteAsync(id);
-
-                    if (!deleted)
-                        throw new Exception("Card face element per card face wasn't deleted");
-
-                    deleted = await _cardFaceElementService.DeleteNavAsync(cardFaceElementPerCardFaceToDelete.CardFaceElementId);
-                    
-                    if (!deleted)
-                        throw new Exception("Card face element wasn't deleted");
-
-                    deleted = await _dndItemService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndItemId);
-                    
-                    if (!deleted)
-                        throw new Exception("Dnd item wasn't deleted");
-
-                    deleted = await _dndPositionService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndPositionId);
-                    
-                    if (!deleted)
-                        throw new Exception("Dnd position wasn't deleted");
-
-                    await transaction.CommitAsync();
-                    return true;
+                    return false;
                 }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    Console.WriteLine(ex.Message);
-                    throw;
-                }
+
+                bool deleted = await DeleteAsync(id);
+
+                if (!deleted)
+                    throw new Exception("Card face element per card face wasn't deleted");
+
+                deleted = await _cardFaceElementService.DeleteNavAsync(cardFaceElementPerCardFaceToDelete.CardFaceElementId);
+
+                if (!deleted)
+                    throw new Exception("Card face element wasn't deleted");
+
+                deleted = await _dndItemService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndItemId);
+
+                if (!deleted)
+                    throw new Exception("Dnd item wasn't deleted");
+
+                deleted = await _dndPositionService.DeleteAsync(cardFaceElementPerCardFaceToDelete.DndPositionId);
+
+                if (!deleted)
+                    throw new Exception("Dnd position wasn't deleted");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
             }
         }
 
@@ -257,15 +273,6 @@ namespace Services
                     updated = await _dndItemService.UpdateAsync(nav.DndItemId, nav.DndItem);
                 }
 
-                /*
-                    Detail: Key (DndPositionId)=(0) is not present in table "DndPositions".
-                    SchemaName: public
-                    TableName: CardFaceElementPerCardFace
-                    ConstraintName: FK_CardFaceElementPerCardFace_DndPositions_DndPositionId
-                    File: ri_triggers.c
-                    Line: 2599
-                    Routine: ri_ReportViolation
-                */
                 if (nav.DndPosition != null /*&& _dndPositionService.IsModified(nav.DndPosition)*/)
                 {
                    updated = await _dndPositionService.UpdateAsync(nav.DndPositionId, nav.DndPosition);

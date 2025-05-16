@@ -63,6 +63,11 @@ namespace Services
             return deleted;
         }
 
+        public async Task<bool> DeleteDtoByCardAndCardFaceAsync(string cardId,string cardFaceId)
+        {
+            return await _cardFacePerCardService.DeleteByCardAndCardFaceAsync(DtoIdConversion.DtoStringToLong(cardId), DtoIdConversion.DtoStringToLong(cardFaceId));
+        }
+
         public bool Exists(string id) {
             return _cardFacePerCardService.Exists(DtoIdConversion.DtoStringToLong(id));
         }

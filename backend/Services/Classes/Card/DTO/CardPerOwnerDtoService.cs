@@ -87,5 +87,10 @@ namespace Services
         {
            return  await _dtoCrudService.GetAllDtoAsync();
         }
+
+        public async Task<bool> DeleteDtoByCardIdAndOwnerIdAsync(string cardId, string ownerId)
+        {
+            return await _cardPerOwnerService.DeleteByCardIdAndOwnerIdAsync(DtoIdConversion.DtoStringToLong(cardId), ownerId);
+        }
     }
 }

@@ -21,6 +21,9 @@ export class CardGameCoreService {
   private onUpdateCardEditorCardDto$$ = new Subject<CardEditorCardDto>();
   onUpdateCardEditorCardDto$: Observable<CardEditorCardDto> = this.onUpdateCardEditorCardDto$$.asObservable();
 
+  private onDeleteCardEditorCardDto$$: Subject<string> = new Subject<string>();
+  onDeleteCardEditorCardDto$: Observable<string> = this.onDeleteCardEditorCardDto$$.asObservable();
+  
   userId: WritableSignal<string> = signal<string>('');
 
   isCardsCollectionMenuOpen: WritableSignal<boolean>=  signal<boolean>(false);
@@ -75,11 +78,15 @@ export class CardGameCoreService {
     this.cardPositionPerRoom$$.next(cpr);
   }
 
-  onCreateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
+  setOnCreateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
     this.onCreateCardEditorCardDto$$.next(cardEditorCardDto);
   }
 
-  onUpdateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
+  setOnUpdateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
     this.onUpdateCardEditorCardDto$$.next(cardEditorCardDto);
+  }
+
+  setOnDeleteCardEditorCardDto(cardId: string) {
+    this.onDeleteCardEditorCardDto$$.next(cardId);
   }
 }

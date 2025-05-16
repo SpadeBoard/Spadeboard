@@ -28,6 +28,7 @@ namespace Services
 
         private readonly ApplicationDbContext _context = context;
 
+        // ASSUMPTION: You can create a card for yourself, can't create a card for a room
         public async Task<CardEditorCardDto> CreateDtoAsync(CardEditorCardDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -118,21 +119,62 @@ namespace Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // TODO: Delete from cardPerOwner table, and if there's no owner left associated with the card, delete the card too, probably make a universal interface to check whether there's an owner for the item
                 var dto = await GetDtoAsync(id);
                 if (dto == null)
                 {
                     return false;
                 }
 
-                bool deleted = await _cardDtoService.DeleteDtoAsync(dto.Card.CardId);
+                if (dto.CardEditorCardFacesDto == null)
+                {
+                    throw new Exception("Card Editor Card Faces are null");
+                }
+
+                bool deleted = false;
+
+                foreach (CardEditorCardFaceDto cardEditorCardFaceDto in dto.CardEditorCardFacesDto)
+                {
+                    deleted = await _cardFacePerCardDtoService.DeleteDtoByCardAndCardFaceAsync(dto.Card.CardId, cardEditorCardFaceDto.CardFace.CardFaceId);
                 
+                    if (!deleted) {
+                        throw new Exception("Didn't delete record in Card Face Per Card");
+                    }
+                }
+
+                // NOTE: Some cards are in rooms so those don't have owners
+                if (!String.IsNullOrEmpty(dto.OwnerId))
+                {
+                    deleted = await _cardPerOwnerDtoService.DeleteDtoByCardIdAndOwnerIdAsync(dto.Card.CardId, dto.OwnerId);
+                
+                    if (!deleted) {
+                        throw new Exception("Didn't delete record in Card Per Owner");
+                    }
+                } 
+
+                deleted = await _cardDtoService.DeleteDtoAsync(dto.Card.CardId);
+                
+                if (!deleted) {
+                    throw new Exception("Didn't delete record in Card");
+                }
+
+
+                foreach (CardEditorCardFaceDto cardEditorCardFaceDto in dto.CardEditorCardFacesDto)
+                {
+                    deleted = await _cardEditorCardFaceDtoService.DeleteDtoAsync(cardEditorCardFaceDto);        
+                
+                    if (!deleted)
+                    {
+                        throw new Exception("Card face and card face elements per card face weren't deleted");
+                    }
+                }
+
                 await transaction.CommitAsync();
                 return deleted;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
+                Console.WriteLine(ex.Message);
                 return false;
             }
         }
@@ -178,12 +220,6 @@ namespace Services
                 }
 
                 updated = await _cardDtoService.UpdateDtoAsync(dto.Card.CardId, dto.Card);
-
-                if (updated == false)
-                    return updated;
-
-                if (updated == false)
-                    return updated;
 
                 await transaction.CommitAsync();
                 return updated;

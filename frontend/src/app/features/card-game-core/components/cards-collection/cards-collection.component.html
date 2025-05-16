@@ -1,23 +1,21 @@
-<!--<div *ngIf="isCardsCollectionMenuOpen" class="cards-menu" [class.open]="isCardsCollectionMenuOpen" cdkDropList #cardsCollectionMenu>!-->
- <div 
-    [hidden]="!this.cardGameCoreService.isCardsCollectionMenuOpen()" 
-    class="cards-menu" 
-    [class.open]="this.cardGameCoreService.isCardsCollectionMenuOpen()" 
-    cdkDropList
->
-    <!--Cards menu should open and be wide, do a for loop of cards and set them in here-->
-    <!-- TODO: Do we want to pass in the card or the cardEditorCardDto-->
+    <div 
+        [hidden]="!this.cardGameCoreService.isCardsCollectionMenuOpen()" 
+        class="cards-menu" 
+        [class.open]="this.cardGameCoreService.isCardsCollectionMenuOpen()" 
+        cdkDropList
+    >
     <!-- The configured tracking expression (track by identity) caused re-creation of the entire collection of size 2. This is an expensive operation requiring destruction and subsequent creation of DOM nodes, directives, components etc. Please review the "track expression" and make sure that it uniquely identifies items in a collection. Find more at -->
     <!--https://angular.dev/guide/image-optimization-->
     <!--Use ngSrc with nonstatic images-->
-
-    <!--TODO: Implement caching for the images !-->
-    @for (card of cards; track card) {
+    @if (cards.length > 0)
+    {
+        <!--TODO: Implement caching for the images !-->
+        @for (card of cards; track card) {
         <!--TODO: Wrap the draggable out of there-->
-        <div cdkDrag 
-            (cdkDragMoved)="onDragMoved($event)"
-            (cdkDragDropped)="onDragDrop($event, card)">
-            <app-card [card]="card"/>
+        <div cdkDrag (cdkDragMoved)="onDragMoved($event)" (cdkDragDropped)="onDragDrop($event, card)">
+            <app-card [card]="card" />
+            <app-card-delete-button [cardId]="card.cardId" />
         </div>
+        }
     }
 </div>

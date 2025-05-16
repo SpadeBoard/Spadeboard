@@ -19,5 +19,7 @@ namespace Services
         public Task<IEnumerable<CardEditorCardFaceDto>> CreateAllDtoFromExistingAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto);
     
         public Task<CardEditorCardFaceDto> CreateDtoFromExistingDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto);
+
+        public Task<bool> DeleteDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto);
     }
 }
