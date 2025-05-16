@@ -4,6 +4,7 @@ import { Card, CardEditorCardDto } from '../../models/card';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
@@ -57,7 +58,9 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-    this.cardGameCoreService.onCreateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+    this.cardGameCoreService.onCreateCardEditorCardDto$
+      .pipe(takeUntilDestroyed())
+      .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0 && cardEditorCardDto.card.isTemplate) {
         this.cards.push(cardEditorCardDto.card);
       }
@@ -68,7 +71,9 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-    this.cardGameCoreService.onUpdateCardEditorCardDto$.subscribe((cardEditorCardDto: CardEditorCardDto) => {
+    this.cardGameCoreService.onUpdateCardEditorCardDto$
+      .pipe(takeUntilDestroyed())
+      .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0 && cardEditorCardDto.card.isTemplate) {
         let index = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
 
