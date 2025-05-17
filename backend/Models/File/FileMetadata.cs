@@ -22,4 +22,12 @@ namespace Models.Files
         public string FileName { get; set; }
         public DateTime? LastUsedAt { get; set; } // NULL means currently in use
     }
+
+    public class FileMetadataDto 
+    {
+        public string FileMetadataId { get; set; }
+        public string VolumePath { get; set; }
+        public string FileName { get; set; }
+        public DateTime? LastUsedAt { get; set; } // NULL means currently in use
+    }
 }

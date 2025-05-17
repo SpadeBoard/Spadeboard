@@ -72,6 +72,7 @@ builder.Services.AddScoped<IGameRoomDtoService, GameRoomDtoService>();
 builder.Services.AddScoped<ICardPositionPerRoomDtoService, CardPositionPerRoomDtoService>();
 
 builder.Services.AddScoped<IFileMetadataService, FileMetadataService>();
+builder.Services.AddScoped<IFileMetadataDtoService, FileMetadataDtoService>();
 builder.Services.AddHostedService<FileCleanupService>();
 
 // Auto Mapper Configurations

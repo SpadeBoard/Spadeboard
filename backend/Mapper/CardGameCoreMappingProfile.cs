@@ -4,6 +4,7 @@ using Models.DndItems;
 using Models.Styles;
 using Models.Bridge;
 using Models.GameRooms;
+using Models.Files;
 
 // https://stackoverflow.com/questions/40275195/how-to-set-up-automapper-in-asp-net-core
 // https://docs.automapper.org/en/stable/Configuration.html#naming-conventions
@@ -131,6 +132,14 @@ namespace Mapper
                 .ForMember(dest => dest.GameRoomId, 
                            opt => opt.MapFrom(src => long.Parse(src.GameRoomId)))
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<FileMetadata, FileMetadataDto>();
+
+            // String -> Long
+            CreateMap<FileMetadataDto, FileMetadata>()
+                .ForMember(dest => dest.FileMetadataId,
+                           opt => opt.MapFrom(src => long.Parse(src.FileMetadataId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore()); ;
         }
     }
 }
