@@ -40,12 +40,16 @@ namespace Services
 
                 dto.Card = await  _cardDtoService.CreateDtoAsync(dto.Card);
 
-                CardPerOwnerDto cpo = new(){
-                    CardId = dto.Card.CardId,
-                    OwnerId = dto.OwnerId
-                };
+                // TODO: Refactor this function and the other similar ones
+                if (!String.IsNullOrEmpty(dto.OwnerId))
+                {
+                    CardPerOwnerDto cpo = new(){
+                        CardId = dto.Card.CardId,
+                        OwnerId = dto.OwnerId
+                    };
 
-                await _cardPerOwnerDtoService.CreateDtoAsync(cpo);
+                    await _cardPerOwnerDtoService.CreateDtoAsync(cpo);
+                }
 
                 await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
                 await transaction.CommitAsync();

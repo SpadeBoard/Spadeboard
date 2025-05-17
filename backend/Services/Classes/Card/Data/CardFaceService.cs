@@ -141,6 +141,8 @@ namespace Services
 
             nav.Style.StyleId = Snowflake.NewId();
             nav.CardFaceId = Snowflake.NewId();
+
+            nav.StyleId = 0; // Makes sure to override this
             
             await _context.CardFace.AddAsync(nav);
 

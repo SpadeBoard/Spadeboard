@@ -7,6 +7,7 @@ using Models.GameRooms;
 using Models.DndItems;
 using System.Configuration;
 using Models.Bridge;
+using Models.Files;
 
 namespace Data;
 
@@ -205,4 +206,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<CardPerOwner> CardPerOwner{ get; set; } = default!;
 
     public DbSet<CardFacePerCard> CardFacePerCard { get; set; } = default!;
+
+    public DbSet<FileMetadata> FileMetadata {get; set;} = default!;
+
 }
