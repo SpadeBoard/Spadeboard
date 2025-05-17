@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, inject, input, InputSignal, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 import { CardFaceElementPerCardFace } from '../../models/card-face-element';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -14,7 +14,7 @@ import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 import { blobToDataURL } from '../../../../utils/utils';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
-import { distinctUntilChanged } from 'rxjs';
+import { distinctUntilChanged, EMPTY, from, switchMap } from 'rxjs';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { filterAgainstNull } from '../../../style/utils/get-style';
@@ -33,6 +33,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
   private readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);
   
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
+
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChildren('cardFaceElement') cardFaceElements!: QueryList<ElementRef>;
   
@@ -633,13 +635,34 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       if (!cardFaceElementPerCardFace)
         return;
   
-      blobToDataURL(croppedImage).then((base64Image) => {
-        cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent = base64Image;
-  
-        // console.log("croppedImage:", base64Image); // Check if it starts with "data:image/"
-  
-        // let updated = this.updateCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, cardFaceElementPerCardFace);
-        // console.log("After set card face image element source: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
+    from(blobToDataURL(croppedImage))
+      .pipe(
+        switchMap((base64Image) =>
+          this.cardEditorPreviewService.getImageFormData$(base64Image)
+        ),
+        switchMap((formData: FormData | undefined) => {
+          if (!formData)
+            throw new Error("No card face element image file to upload");
+
+          return this.cardEditorPreviewService.createCardFaceElementImage$(
+            cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId,
+            formData
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (cardFaceElementImageFilePath: string | undefined) => {
+          if (!cardFaceElementImageFilePath) {
+            throw new Error("Card face element image file path is empty");
+          }
+          cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent = cardFaceElementImageFilePath;
+          // Optionally, update state here if needed
+        },
+        error: (err) => {
+          // Handle errors here
+          console.error(err);
+        }
       });
     }
 }

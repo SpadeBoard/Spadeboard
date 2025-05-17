@@ -23,7 +23,7 @@ namespace Models.Cards
 
         public CardEditorCardFaceDto[] CardEditorCardFacesDto {get; set;}
 
-        public string OwnerId { get;set;}
+        public string? OwnerId { get;set;}
     }
 
     [Table("Cards")] // Maps this entity to the "Cards" table

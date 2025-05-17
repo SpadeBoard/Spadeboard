@@ -49,22 +49,6 @@ namespace Services
 
         public async Task<CardEditorCardFaceDto> CreateDtoFromExistingDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
         {
-            // TODO: This between section should be its own function here
-            // -----------------------------------------------------
-            cardEditorCardFaceDto.CardFace.CardFaceId = "0";
-            cardEditorCardFaceDto.CardFace.StyleId = "0";
-            
-            if (cardEditorCardFaceDto.CardFace.Style != null) {
-                cardEditorCardFaceDto.CardFace.Style.StyleId = "0";
-            }
-
-            Console.WriteLine(
-                "cardEditorCardFaceDto.CardFace.CardFaceId: {0}, cardEditorCardFaceDto.CardFace.StyleId: {1}, cardEditorCardFaceDto.CardFace.Style.StyleId: {2}",
-                cardEditorCardFaceDto.CardFace.CardFaceId,
-                cardEditorCardFaceDto.CardFace.StyleId,
-                cardEditorCardFaceDto.CardFace.Style != null ?  cardEditorCardFaceDto.CardFace.Style.StyleId.ToString() : "null"
-            );
-            // --------------------------------------------------------------------------
             var cardFace = await _cardFaceDtoService.CreateDtoNavAsync(cardEditorCardFaceDto.CardFace);
 
             return new CardEditorCardFaceDto

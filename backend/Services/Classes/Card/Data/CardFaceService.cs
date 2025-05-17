@@ -134,11 +134,6 @@ namespace Services
                 throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe Style property of CardFace cannot be null.", nameof(nav));
             }
 
-            if (_styleService.Exists(nav.Style.StyleId))
-            {
-                throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe Style property of CardFacehas already been made.", nameof(nav));
-            }
-
             nav.Style.StyleId = Snowflake.NewId();
             nav.CardFaceId = Snowflake.NewId();
 

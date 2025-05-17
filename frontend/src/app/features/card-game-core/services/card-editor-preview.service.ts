@@ -2,7 +2,7 @@ import { DestroyRef, effect, inject, Injectable } from '@angular/core';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardEditorCardDto } from '../models/card';
 import { CardFaceElement, CardFaceElementPerCardFace } from '../models/card-face-element';
-import { catchError, concatMap, EMPTY, forkJoin, from, map, mergeMap, Observable, of, Subject, switchMap, tap } from 'rxjs';
+import { catchError, concatMap, defer, EMPTY, forkJoin, from, iif, map, mergeMap, Observable, of, Subject, switchMap, tap } from 'rxjs';
 import { FileUploadApiService } from '../../../utils/services/file-upload-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
 import { CardApiService } from './card-game-core/card-api.service';
@@ -270,284 +270,102 @@ export class CardEditorPreviewService {
     this.setCurrentCardEditorCardFaceDto();
   }
 
-  private createCardFacesThumbnailImages$(cardFaceImages: FormData[]): Observable<CardEditorCardDto> {
-      // Wrap the promise in an observable if needed
-      // TODO: We eventually want to actually use this to have more than 2 faces
-      console.log(`Update card face thumbnail images - card face images: ${cardFaceImages}`);
-
-      if (cardFaceImages.length <= 0) {
-        return of(this.cardEditorCardDto);
-      }
-      
-      let uploadCardFaceImages$ = cardFaceImages.map((formData: FormData) =>
-        this.fileUploadApiService.uploadFile$(formData, 'card-face')
-      );
-  
-      // TODO: Replace the fork join with cardFacesFormData
-      return forkJoin(uploadCardFaceImages$).pipe(
-        tap((results: { id: string }[]) => {
-          // Map each result to the corresponding DTO
-          console.log(`Update card face images observable: ${JSON.stringify(results)}`);
-
-          results.forEach((result, index) => {
-            this.cardEditorCardDto.cardEditorCardFacesDto[index].cardFace.cardFaceThumbnailFilePath =
-              result.id;
-          });
-        }),
-        map(() => this.cardEditorCardDto),
-        takeUntilDestroyed(this.destroyRef)
-      );
-  
-      // https://rxjs.dev/api/operators/tap
+  // Again, this should be fine, we're not going to override anything, just upload the files and link to a new URL, because automatic file deletion's a thing we can do
+  createCardFaceThumbnailImage$(cardFaceIndex: number, cardFaceThumbnailImage: FormData): Observable<string | undefined> {
+    if (!cardFaceThumbnailImage) {
+      return of(undefined); // Return an observable that emits undefined
     }
 
-    private replaceCardFacesThumbnailImages$(cardFaceImages: FormData[]): Observable<CardEditorCardDto> {
-      // Wrap the promise in an observable if needed
-      // TODO: We eventually want to actually use this to have more than 2 faces
-      console.log(`Replace card face thumbnail images - card face images: ${cardFaceImages}`);
+    return this.fileUploadApiService.uploadFile$(cardFaceThumbnailImage, 'card-face').pipe(
+      map((result: { id: string | undefined }) => {
+        console.log('Upload card face thumbnail image result:', result);
+        if (!result.id) return undefined;
 
-      if (cardFaceImages.length <= 0) {
-        return of(this.cardEditorCardDto);
-      }
+        // Create the file metadata
 
-      let replaceCardFaceImages$ = cardFaceImages.map((formData: FormData, idx: number) => {
-        let cardFaceThumbnailFilePath = this.cardEditorCardDto.cardEditorCardFacesDto[idx].cardFace.cardFaceThumbnailFilePath;
+        this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFilePath = result.id;
+        let cardFaceThumbnailFilePath = this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFilePath;
 
-        if (cardFaceThumbnailFilePath == "")
-        {
-          // NOTE: If you create a card without flipping, then suddenly flip it after and add elements to the card face
-          // It's because there's no thumbnail image file path for that face because it never was created
-          return this.fileUploadApiService.uploadFile$(formData, 'card-face');
-        }
-
-        return this.fileUploadApiService.replaceFile(formData, cardFaceThumbnailFilePath as string, 'card-face');
-      });
-  
-      // TODO: Replace the fork join with cardFacesFormData
-      return forkJoin(replaceCardFaceImages$).pipe(
-        tap((results: { id: string }[]) => {
-          // Map each result to the corresponding DTO
-          console.log(`Update card face images observable: ${JSON.stringify(results)}`);
-
-          results.forEach((result, index) => {
-            this.cardEditorCardDto.cardEditorCardFacesDto[index].cardFace.cardFaceThumbnailFilePath =
-              result.id;
-          });
-        }),
-        map(() => this.cardEditorCardDto),
-        takeUntilDestroyed(this.destroyRef)
-      );
-      // https://rxjs.dev/api/operators/tap
-    }
-
-  // TODO: From card face elements per card face
-  updateCurrentCardFaceElementsPerCardFace(currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[]) {
-    // console.log(`Update card face elements per card face: ${JSON.stringify(this.currentCardFaceElementsPerCardFace)}`);
-    this.cardEditorCardDto.cardEditorCardFacesDto[this.getCurrentCardFaceIndex()].cardFaceElementsPerCardFace = currentCardFaceElementsPerCardFace;
+        return cardFaceThumbnailFilePath;
+      })
+    );
   }
 
+  // NOTE: This should be called whenever you upload an image
+  // Again, returning it here should be fine, we're assignng the card face element content based on the return value anyways
+  createCardFaceElementImage$(cardFaceElementImageId: string, cardFaceElementImage?: FormData
+  ): Observable<string | undefined> {
+    let cardFaceElementImageFilePath: string | undefined = this.getCurrentCardFaceElementsPerCardFace()
+      .find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementImageId)
+      ?.cardFaceElement.cardFaceElementContent;
 
-  uploadCardFaceElementsImagesAndUpdatePaths$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]): Observable<CardEditorCardDto> {
-      if (cardFaceElementsPerFace.length <=0) {
-        return of(this.cardEditorCardDto);
-      }
-  
-      // Question is is this mutable, or is there something going on with the asynchronous
-      // FIXME: Why is this out of order?
-      let imageElementIndexes: number[] = cardFaceElementsPerFace
-        .map((el: CardFaceElementPerCardFace, idx: number) =>
-          el.cardFaceElement.cardFaceElementType === 'image' ? idx : -1
-        )
-        .filter(idx => idx !== -1);
-  
-      // Create array preserving original indexes
-      let imageElementsWithIndexes = imageElementIndexes.map(idx => ({
-        element: cardFaceElementsPerFace[idx],
-       originalCardFaceElementId: cardFaceElementsPerFace[idx].cardFaceElement.cardFaceElementId
-      }));
-  
-      // Sort by ID while keeping original indexes
-      imageElementsWithIndexes.sort((a, b) =>
-        parseFloat(a.element.cardFaceElement.cardFaceElementId) -
-        parseFloat(b.element.cardFaceElement.cardFaceElementId)
+    if (cardFaceElementImage !== undefined) {
+      return this.fileUploadApiService.uploadFile$(cardFaceElementImage, 'card-face-element-image').pipe(
+        map((result: { id: string | undefined }) => {
+          console.log('Upload card face element image result:', result);
+          if (!result.id) return undefined;
+
+          cardFaceElementImageFilePath = result.id;
+          return cardFaceElementImageFilePath;
+        })
       );
-  
-      // Extract sorted elements for upload
-      let sortedImageElements = imageElementsWithIndexes.map(x => x.element);
-      let cardFaceElementsImages$ = this.uploadCardFaceElementsImages$(sortedImageElements);
-  
-      if (cardFaceElementsImages$) {
-        return forkJoin(cardFaceElementsImages$).pipe(
-          tap((cardFaceElementsImages: { id: string | undefined }[]) => {
-            cardFaceElementsImages.forEach((dto, uploadIdx) => {
-              if (dto.id) {
-                // Use the preserved original index from sorted array
-                let originalId= imageElementsWithIndexes[uploadIdx].originalCardFaceElementId;
-                
-                this.updateCardFaceElementsImagesFilePath(
-                  cardFaceElementsPerFace,
-                  originalId,
-                  dto.id
-                );
-              }
-            });
-          }),
-          map(() => this.cardEditorCardDto),
-          catchError((err) => {
-            console.error('Error uploading card face element images:', err);
-            return of(this.cardEditorCardDto);
-          }),
-          takeUntilDestroyed(this.destroyRef)
-        );
-      }
-    
-      console.warn('No cardFaceElementsImages to upload');
-      return of(this.cardEditorCardDto); // safer than null
     }
-    
-    // FIXME: This isn't ever going to actually update the correct images because cardFaceElementsPerFace have more elements than what's being passed in.
-    updateCardFaceElementsImagesFilePath(cardFaceElementsPerFace: CardFaceElementPerCardFace[], originalCardFaceElementId: string, filePath: string) {
-      // console.log(`Update card face elements images file path: ${JSON.stringify(cardFaceElementsPerFace)}`);
-      
-      let targetElement = cardFaceElementsPerFace.find(element => 
-        element.cardFaceElement.cardFaceElementId === originalCardFaceElementId
-      );
-    
-      // Update if found and is image type
-      if (targetElement && targetElement.cardFaceElement.cardFaceElementType === 'image') {
-        targetElement.cardFaceElement.cardFaceElementContent = filePath;
-      }
-    }
-    
-    uploadCardFaceElementsImages$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]): Observable<{
-      id: string | undefined;
-    }>[] | undefined {
-      let cardFaceElementsImages$: Observable<{
-        id: string | undefined;
-      }>[] = [];
-    
-      if (cardFaceElementsPerFace === undefined)
-        return [];
-      
-      cardFaceElementsPerFace.forEach((dto)=> {
-        cardFaceElementsImages$.push(this.uploadCardFaceElementImage$(dto as CardFaceElementPerCardFace));
-      });
-    
-      // console.log(`Added to cardFaceElementsImages$`);
-    
-      return cardFaceElementsImages$;
-    }
-  // TODO:
-  // https://stackoverflow.com/questions/35676451/observable-forkjoin-and-array-argument
-  // Upload the card face elements image files in parallel
-  uploadCardFaceElementImage$(cardFaceElementPerCardFace: CardFaceElementPerCardFace): Observable<{
-    id: string | undefined;
-  }> {
-    if (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType !== 'image')
-      return of({ id: undefined });
 
-    // CHECKME: Is this correct?
-    let content: string = cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent;
+    return of(cardFaceElementImageFilePath);
+  }
 
+  duplicateCardFaceElementImage$(cardFaceElementImageFilePath: string): Observable<string | undefined>
+  {
     let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
 
     // NOTE: This means that the element's image was already created
     // The bug occurs when you create from an already created image, but do not change the image element
-    if (content.match(guidPattern)) {
-      return this.fileUploadApiService.replaceFilePath$(content, 'card-face-element-image');
+    if (cardFaceElementImageFilePath !== undefined && cardFaceElementImageFilePath.match(guidPattern)) {
+      return this.fileUploadApiService.replaceFilePath$(cardFaceElementImageFilePath, 'card-face-element-image'
+      ).pipe(
+        map((result: { id: string | undefined }) => {
+          console.log('Replace card face element image result:', result);
+
+          if (result.id) {
+            cardFaceElementImageFilePath = result.id;
+          }
+          return cardFaceElementImageFilePath;
+        })
+      );
     }
-    
-    // let dataUrl: string = cardFaceElementPerCardFace.cardFaceElement?.cardFaceElementContent.replace(/^data:image\/\w+;base64,/, '');
 
-    // https://stackoverflow.com/questions/11876175/how-to-get-a-file-or-blob-from-an-object-url
-    // let blob = await fetch(url).then(r => r.blob());
-    // Handle blob: URL
+    return of(cardFaceElementImageFilePath);
+  }
 
-    // TODO: Have a message showing that the element image faces are too big and don't create if that's the case
-    return this.getImageFormData$(content).pipe(
-      switchMap(formData => {
-        if (!formData) {
-          return of({ id: undefined });
-        }
-        return this.fileUploadApiService.uploadFile$(formData, 'card-face-element-image');
+  duplicateCardFaceElementImages$(): Observable<void> {
+    let observables: Array<Observable<string | undefined>> = [];
+    let elements: CardFaceElementPerCardFace[] = [];
+
+    this.cardEditorCardDto.cardEditorCardFacesDto.forEach((cardEditorCardFaceDto: CardEditorCardFaceDto) => {
+      cardEditorCardFaceDto.cardFaceElementsPerCardFace
+        .filter(cardFaceElementPerCardFace =>
+          cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType === "image" && cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId.match(/^\d{17,19}$/)           // NOTE: This means that the card face image element hasn't actually been created yet and therefore doesn't have a Snowflake ID, there's no point of duplicating
+        )
+        .forEach(cardFaceElementPerCardFace => {
+          observables.push(
+            this.duplicateCardFaceElementImage$(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent)
+              .pipe(takeUntilDestroyed(this.destroyRef))
+          );
+          elements.push(cardFaceElementPerCardFace);
+        });
+    });
+
+    return forkJoin(observables).pipe(
+      map((results: Array<string | undefined>) => {
+        results.forEach((result, idx) => {
+          if (result) {
+            elements[idx].cardFaceElement.cardFaceElementContent = result;
+          }
+        });
+        return; // Emit void to signal completion
       }),
       takeUntilDestroyed(this.destroyRef)
     );
-  }
-
-  replaceCardFaceElementsImagesAndUpdatePaths$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]): Observable<CardEditorCardDto> {
-    if (cardFaceElementsPerFace.length <=0) {
-      return of(this.cardEditorCardDto);
-    }
-
-    // Question is is this mutable, or is there something going on with the asynchronous
-    // FIXME: Why is this out of order?
-    let imageElementIndexes: number[] = cardFaceElementsPerFace
-      .map((el: CardFaceElementPerCardFace, idx: number) =>
-        el.cardFaceElement.cardFaceElementType === 'image' ? idx : -1
-      )
-      .filter(idx => idx !== -1);
-
-    // Create array preserving original indexes
-    let imageElementsWithIndexes = imageElementIndexes.map(idx => ({
-      element: cardFaceElementsPerFace[idx],
-     originalCardFaceElementId: cardFaceElementsPerFace[idx].cardFaceElement.cardFaceElementId
-    }));
-
-    // Sort by ID while keeping original indexes
-    imageElementsWithIndexes.sort((a, b) =>
-      parseFloat(a.element.cardFaceElement.cardFaceElementId) -
-      parseFloat(b.element.cardFaceElement.cardFaceElementId)
-    );
-
-    // Extract sorted elements for upload
-    let sortedImageElements = imageElementsWithIndexes.map(x => x.element);
-    let cardFaceElementsImages$ = this.replaceCardFaceElementsImages$(sortedImageElements);
-
-    if (cardFaceElementsImages$) {
-      return forkJoin(cardFaceElementsImages$).pipe(
-        tap((cardFaceElementsImages: { id: string | undefined }[]) => {
-          cardFaceElementsImages.forEach((dto, uploadIdx) => {
-            if (dto.id) {
-              // Use the preserved original index from sorted array
-              let originalId= imageElementsWithIndexes[uploadIdx].originalCardFaceElementId;
-              
-              this.updateCardFaceElementsImagesFilePath(
-                cardFaceElementsPerFace,
-                originalId,
-                dto.id
-              );
-            }
-          });
-        }),
-        map(() => this.cardEditorCardDto),
-        catchError((err) => {
-          console.error('Error uploading card face element images:', err);
-          return of(this.cardEditorCardDto);
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      );
-    }
-  
-    console.warn('No cardFaceElementsImages to upload');
-    return of(this.cardEditorCardDto); // safer than null
-  }
-
-  replaceCardFaceElementsImages$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]) {
-    let cardFaceElementsImages$: Observable<{
-      id: string | undefined;
-    }>[] = [];
-
-    if (cardFaceElementsPerFace === undefined)
-      return [];
-
-    cardFaceElementsPerFace.forEach((dto) => {
-      cardFaceElementsImages$.push(this.replaceCardFaceElementImage$(dto as CardFaceElementPerCardFace));
-    });
-
-    // console.log(`Added to cardFaceElementsImages$`);
-
-    return cardFaceElementsImages$;
   }
 
   replaceCardFaceElementImage$(
@@ -635,115 +453,87 @@ export class CardEditorPreviewService {
     return of(undefined);
   }
 
-  private getCardFaceElementImageFilePath(cardFaceElementId: string) {
-
-  }
-
-
-
-  private processAllCardFaces$(cardEditorCardDto: CardEditorCardDto) {
-    return forkJoin(
-      cardEditorCardDto.cardEditorCardFacesDto.map(face =>
-        this.uploadCardFaceElementsImagesAndUpdatePaths$(face.cardFaceElementsPerCardFace)
-          .pipe(
-            tap(() => console.log('Done uploading face',)),map(() => cardEditorCardDto)),
-            takeUntilDestroyed(this.destroyRef)
-      )
-    ).pipe(
-        tap(() => console.log('All faces processed')), map(() => cardEditorCardDto),
-        takeUntilDestroyed(this.destroyRef));
-  }
-
   // TODO: Create a function to get all text content, convert them to BB Code then save them
 
   createCard(): void {
-    // ASSUMPTION: Always gotta have front face's image, and we might never flip
-    // FIXME: Problem is the below isn't going to run if there's no card face images
-    // this.updateCardFaceImages$(0);
+    // FIXME:
+    /* 
+    message": "An error occurred while processing the request",
+    "error": "Item: Card Face Element\nFunction: Create Nav Async\nThe CardFaceElement property of CardFaceElementPerCardFace has already been made. (Parameter 'nav')"
 
-    // TODO: Try to make the this.uploadCardFaceElementsImagesAndUpdatePaths$ functions run simultaneously
-    // Order of operations:
-    // 1. this.createCardFacesThumbnailImages$
-    // 2. this.uploadCardFaceElementsImagesAndUpdatePaths$
-    // 3. this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto) (waits for the other two to finish)
+    When running CreateCardEditorCardDto on already existing card, this should not be the case
+    */
 
-    // https://blog.angular-university.io/rxjs-higher-order-mapping/
-    this.createCardFacesThumbnailImages$(this.cardFaceImages)
-      .pipe(
-        // mergeMap((cardEditorCardDto: CardEditorCardDto) => this.processAllCardFaces$(cardEditorCardDto)), // TODO: Replace the below with this
-        mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace)), 
-        mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace)), 
-        concatMap((cardEditorCardDto: CardEditorCardDto) => {
-          if (parseFloat(cardEditorCardDto.card.cardId) <= 0) {
-            return this.cardApiService.createCardEditorCardDto$(cardEditorCardDto);
-          } else {
-            // NOTE: Clear the elements to delete because we're creating a new card from an existing DTO, so we're not actually modifying the original card
-            this.cardFaceElementsPerCardFaceDelete = [];
-            return this.cardApiService.createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
-          }
-        }), // NOTE: Need to return an actual value
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: (createResult: CardEditorCardDto | undefined) => {
-          // console.log('Card successfully created:', createResult);
+    // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
+    // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
 
-          if (isCardEditorCardDto(createResult)) {
-            this.cardEditorCardDto = createResult;
+    // Conditionally returns one observable or another, and you can then chain your API cal
+    let isDuplicate: boolean = parseFloat(this.cardEditorCardDto.card.cardId) > 0;
 
-            this.reloadCurrentCardEditorCardFaceDto();
-            this.setOnCreateCard();
-
-
-            // NOTE: For updating the card collection immediately
-            // ASSUMPTION: You can only create a card as a user,, or save a new card from a card in the room for that user
-            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
-          }
-        },
-        error: (err) => {
-          console.error('Something went wrong:', err);
-        }
-      }
-    );
-  }
-
-  updateCard(): void {
-    this.deleteSavedCardFaceElementsPerCardFace$()
+    iif(
+      () => isDuplicate,
+      this.duplicateCardFaceElementImages$(),
+      of(undefined)
+    )
     .pipe(
-      catchError(err => {
-        console.error('Delete error (ignored):', err);
-        return of([]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
-      }),
-      switchMap(() => this.replaceCardFacesThumbnailImages$(this.cardFaceImages)),
-      mergeMap((cardEditorCardDto: CardEditorCardDto) =>
-        this.replaceCardFaceElementsImagesAndUpdatePaths$(
-          cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace
-        )
-      ),
-      mergeMap((cardEditorCardDto: CardEditorCardDto) =>
-        this.replaceCardFaceElementsImagesAndUpdatePaths$(
-          cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace
-        )
-      ),
-      concatMap((cardEditorCardDto: CardEditorCardDto) =>
-        this.cardApiService.updateCardEditorCardDto$(cardEditorCardDto)
-      ),
+      switchMap(() =>this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
       takeUntilDestroyed(this.destroyRef)
     )
     .subscribe({
-      next: (updateResult: CardEditorCardDto | undefined) => {
-        if (isCardEditorCardDto(updateResult)) {
-          console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
-          this.cardEditorCardDto = updateResult;
+      next: (createResult: CardEditorCardDto | undefined) => {
+        if (isCardEditorCardDto(createResult)) {
+          this.cardEditorCardDto = createResult;
+
           this.reloadCurrentCardEditorCardFaceDto();
-          this.setOnUpdateCard();
-          this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);
+          this.setOnCreateCard();
+
+          this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
+
+          // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
+          if (isDuplicate) {
+            this.cardFaceElementsPerCardFaceDelete = [];
+          }
         }
       },
       error: (err) => {
         console.error('Something went wrong:', err);
       }
     });
+  }
+
+  updateCard(): void {
+    let shouldDelete: boolean = this.cardFaceElementsPerCardFaceDelete.length > 0;
+
+    iif(
+      () => shouldDelete,
+      this.deleteSavedCardFaceElementsPerCardFace$(),
+      of(undefined)
+    )
+      .pipe(
+        catchError(err => {
+          console.error('Delete error (ignored):', err);
+          return of([]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
+        }),
+        switchMap(() => this.cardApiService.updateCardEditorCardDto$(this.cardEditorCardDto)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (updateResult: CardEditorCardDto | undefined) => {
+          if (isCardEditorCardDto(updateResult)) {
+            console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
+
+            this.cardEditorCardDto = updateResult;
+
+            this.reloadCurrentCardEditorCardFaceDto();
+            this.setOnUpdateCard();
+
+            this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);
+          }
+        },
+        error: (err) => {
+          console.error('Something went wrong:', err);
+        }
+      });
   }
 
   deleteCard(cardId: string)

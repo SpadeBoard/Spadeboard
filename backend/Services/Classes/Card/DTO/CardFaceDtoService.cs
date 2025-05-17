@@ -49,7 +49,6 @@ namespace Services
                 throw new ArgumentException("Item: Card Face Dto: Style cannot be null", nameof(cardFaceDto));
             }
 
-            cardFace.Style.StyleId = 0;
             cardFace = await _cardFaceService.CreateNavAsync(cardFace);
             return  _mapper.Map<CardFaceDto>(cardFace);
         }

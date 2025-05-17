@@ -196,7 +196,7 @@ export class CardsCollectionComponent {
         this.replaceAllImageFilePaths(cardEditorCardDto)
           .pipe(
             switchMap(() =>
-              this.cardApiService.createCardEditorCardDtoForGameRoomFromExistingDto$(cardEditorCardDto)
+              this.cardApiService.createCardEditorCardDto$(cardEditorCardDto)
             ),
             takeUntilDestroyed(this.destroyRef)
           ).subscribe({
