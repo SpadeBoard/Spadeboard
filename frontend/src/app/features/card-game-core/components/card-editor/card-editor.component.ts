@@ -62,12 +62,6 @@ export class CardEditorComponent implements AfterViewInit {
   private currentCardFaceElementId: string = "-1";
 
   constructor() {
-    effect(() => {
-      if (parseFloat(this.cardGameCoreService.cardEditorCardDto().card.cardId) !== undefined && parseFloat(this.cardGameCoreService.cardEditorCardDto().card.cardId) as number > 0) {
-        this.setCardEditorCardDto(this.cardGameCoreService.cardEditorCardDto());
-      }
-    });
-
     this.setCurrentCardEditorCardFaceDto();
     this.setCurrentCardFaceElementsPerCardFace();
 
@@ -103,7 +97,7 @@ export class CardEditorComponent implements AfterViewInit {
       cardFaceImage: Image;
       cardFaceImageStyle: Style;
     },
-    htmlContentInput: ''
+    //htmlContentInput: ''
   };
 
   // REFERENCE for ngComponentOutlet 'outputs': https://stackoverflow.com/a/79401383
@@ -262,33 +256,6 @@ export class CardEditorComponent implements AfterViewInit {
     this.currentCardEditorCardFaceDto = this.cardEditorCardDto.cardEditorCardFacesDto[this.cardEditorCardDto.card.currentCardFaceIndex];
   
     // console.log(`Set current card editor card face DTO: ${JSON.stringify(this.currentCardEditorCardFaceDto)}`);
-  }
-
-
-  // Wait, why store the blob? Wouldn't it change everytime?
-  setCardFaceImageElementSrc(croppedImage: string): void {
-    alert(`${croppedImage}`);
-
-    // console.log(this.cardFaceElementRef.nativeElement.attributes);
-    // Need to keep track of what item's being modified
-
-    // FIXME: Why is this not being set
-    // console.log('Card face image element index: ', this.currentCardFaceElementId);
-
-    // https://stackoverflow.com/questions/51019467/convert-blob-to-image-url-and-use-in-image-src-to-display-image
-    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | null = this.getCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, this.currentCardFaceElementId);
-
-    if (!cardFaceElementPerCardFace)
-      return;
-
-    blobToDataURL(croppedImage).then((base64Image) => {
-      cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent = base64Image;
-
-      // console.log("croppedImage:", base64Image); // Check if it starts with "data:image/"
-
-      let updated = this.updateCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, cardFaceElementPerCardFace);
-      // console.log("After set card face image element source: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
-    });
   }
 
   // Open the popup menu

@@ -72,12 +72,12 @@ export class CardFaceImageComponent {
 
       if (this.cardFaceImageWidth() > 0) {
         this.imageHtmlContent.width = this.cardFaceImageWidth();
-        console.log(`Card face image width change: ${this.imageHtmlContent.width}`);
+        // console.log(`Card face image width change: ${this.imageHtmlContent.width}`);
       }
 
       if (this.cardFaceImageHeight() > 0) {
         this.imageHtmlContent.height = this.cardFaceImageHeight();
-        console.log(`Card face image height change: ${this.imageHtmlContent.height}`);
+        // console.log(`Card face image height change: ${this.imageHtmlContent.height}`);
       }
     });
   }
