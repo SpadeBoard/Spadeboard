@@ -11,6 +11,8 @@ import { Style } from '../../style/models/style';
 import { DndPosition } from '../../drag-and-drop/models/dnd-types';
 import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FileMetadata } from '../../../utils/models/file-metadata';
+import { FileMetadataApiService } from '../../../utils/services/file-metadata-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -100,6 +102,8 @@ export class CardEditorPreviewService {
 
   private onSetCardEditorCardDtoByCardId$$: Subject<void> = new Subject<void>();
   onSetCardEditorCardDtoByCardId$: Observable<void> = this.onSetCardEditorCardDtoByCardId$$.asObservable();
+  
+  private readonly fileMetadataApiService: FileMetadataApiService = inject(FileMetadataApiService);
 
   // NOTE: For when clicking on a blank card template
   setBlankCardTemplate() {
@@ -282,6 +286,12 @@ export class CardEditorPreviewService {
         if (!result.id) return undefined;
 
         // Create the file metadata
+         // TODO: Really do replace this, it shouldn't be here
+          let cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
+
+          // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
+          // When we get to that point, the backend will handle setting lastUsedAt to null
+          this.createFileMetaData(cardFaceFilePath, result.id);
 
         this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFilePath = result.id;
         let cardFaceThumbnailFilePath = this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFilePath;
@@ -289,6 +299,23 @@ export class CardEditorPreviewService {
         return cardFaceThumbnailFilePath;
       })
     );
+  }
+
+  createFileMetaData(volumePath: string, fileName: string)
+  {
+    let fileMetadata: FileMetadata = {
+      fileMetadataId: '0',
+      volumePath: volumePath,
+      fileName: fileName,
+      lastUsedAt: new Date()
+    }
+
+    this.fileMetadataApiService.createFileMetadata$(fileMetadata).subscribe((result: FileMetadata | undefined) => {
+      if (result === undefined)
+        throw new Error("File metadata wasn't able to be created");
+
+      console.log(`Created file metadata: ${JSON.stringify(result)}`);
+    });
   }
 
   // NOTE: This should be called whenever you upload an image
@@ -304,6 +331,13 @@ export class CardEditorPreviewService {
         map((result: { id: string | undefined }) => {
           console.log('Upload card face element image result:', result);
           if (!result.id) return undefined;
+
+          // TODO: Really do replace this, it shouldn't be here
+          let cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
+
+          // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
+          // When we get to that point, the backend will handle setting lastUsedAt to null
+          this.createFileMetaData(cardFaceElementImageFilePath, result.id);
 
           cardFaceElementImageFilePath = result.id;
           return cardFaceElementImageFilePath;
@@ -327,6 +361,13 @@ export class CardEditorPreviewService {
           console.log('Replace card face element image result:', result);
 
           if (result.id) {
+            // TODO: Really do replace this, it shouldn't be here
+            let cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
+
+            // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
+            // When we get to that point, the backend will handle setting lastUsedAt to null
+            this.createFileMetaData(cardFaceElementImageFilePath, result.id);
+
             cardFaceElementImageFilePath = result.id;
           }
           return cardFaceElementImageFilePath;
@@ -368,56 +409,7 @@ export class CardEditorPreviewService {
     );
   }
 
-  replaceCardFaceElementImage$(
-    cardFaceElementPerCardFace: CardFaceElementPerCardFace
-  ): Observable<{ id: string | undefined }> {
-    let element = cardFaceElementPerCardFace.cardFaceElement;
-    
-    if (element.cardFaceElementType !== 'image') {
-      return of({ id: undefined });
-    }
 
-    let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
-
-    // NOTE: Guard clausing against element type but also if it matches the pattern, that means that its content never changed
-    if (element.cardFaceElementContent.match(guidPattern)) {
-      return of({ id: element.cardFaceElementContent });
-    } // CHECKME: Should return the content, right?
-  
-    let newFile: string = element.cardFaceElementContent;
-  
-    return this.cardFaceElementApiService
-      .getCardFaceElement$(element.cardFaceElementId)
-      .pipe(
-        catchError(err => {
-          // NOTE: Treat this as undefined so that we can continue and upload the new file
-          return of(undefined);
-        }),
-        switchMap((result: CardFaceElement | undefined) =>
-          this.getImageFormData$(newFile).pipe(
-            switchMap(formData => {
-              if (!formData) {
-                console.log(`No form data.`);
-                return of({ id: undefined });
-              }
-  
-              // CHECKME: Do we put || parseFloat(this.cardEditorCardDto.card.cardId) > 0
-              if (!result) {
-                // NOTE: For adding on image elements after updating: upload as new file
-                console.log(`Replace Card Face Element Image: No existing image element`);
-                return this.fileUploadApiService.uploadFile$(formData, 'card-face-element-image');
-              } 
-              else {
-                console.log(`Replace Card Face Element Image: Existing image element`);
-                let fileName: string = result.cardFaceElementContent;
-                return this.fileUploadApiService.replaceFile(formData, fileName, 'card-face-element-image');
-              }
-            })
-          )
-        ),
-        takeUntilDestroyed(this.destroyRef)
-      );
-  }
 
   getImageFormData$(content: string): Observable<FormData | undefined> {
     // Handle blob: URL or .png URL

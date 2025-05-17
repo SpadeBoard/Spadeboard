@@ -22,6 +22,7 @@ namespace Services
 
         public async Task<CardFaceElement> CreateAsync(CardFaceElement item)
         {
+            // TODO: Set the last used date if the element's type if image to null
             return await _crudService.CreateAsync(item);
         }
 
@@ -52,6 +53,8 @@ namespace Services
 
         public async Task<bool> UpdateAsync(long id, CardFaceElement item)
         {
+            // TODO: Set the last used date if the element's type if image to null
+
             return await _crudService.UpdateAsync(id, item);
         }
 
@@ -74,6 +77,8 @@ namespace Services
             if (cardFaceElement.Style != null /*&& _styleService.IsModified(cardFaceElement.Style)*/)
                 _context.Entry(cardFaceElement.Style).State = EntityState.Modified;
             
+            // TODO: Set the last used date if the element's type if image to null
+
             _context.Entry(cardFaceElement).State = EntityState.Modified;
         
             try
@@ -113,6 +118,7 @@ namespace Services
             }
 
             if (cardFaceElement.CardFaceElementType == "image" && cardFaceElement.CardFaceElementContent != null) {
+                // TODO: Instead of deleting right here, we go to the file and set the last used date to now
                 await _fileUploadService.DeleteCardFaceElementImageFileAsync(cardFaceElement.CardFaceElementContent);
             }
 
@@ -158,6 +164,8 @@ namespace Services
             nav.CardFaceElementId = Snowflake.NewId();
 
             nav.StyleId = 0; // Makes sure to override this
+
+            // TODO: Set the last used date if the element's type if image to null
             
             await _context.CardFaceElement.AddAsync(nav);
             int changes = await _context.SaveChangesAsync();
