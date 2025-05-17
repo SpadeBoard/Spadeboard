@@ -1,8 +1,9 @@
-import { Component, computed, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef, Signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef, Signal } from '@angular/core';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { EMPTY, Observable, Subscriber, switchMap } from 'rxjs';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { clamp } from '../../../../utils/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-card-face-image',
@@ -31,6 +32,10 @@ export class CardFaceImageComponent {
     width: 0,
     height: 0
   };
+ 
+  private previousImageUrl: string = "";
+  
+  private destroyRef: DestroyRef = inject(DestroyRef);
 
   setInitialImage() {
     this.imageHtmlContent = {
@@ -42,20 +47,19 @@ export class CardFaceImageComponent {
   }
 
   setImageSrc(url: string) {
+    this.previousImageUrl = url; // For the comparison above, we don't want to reset the image constantly based on effect, make sure the new url's actually different
+    
+    // So there's two steps, here the source is already a blob, we revoke it then assign it to the new url
+    this.onRevokeSrc(this.imageHtmlContent.src);
     this.imageHtmlContent.src = url;
 
-    // TODO: Replace the front portion with the client URL
-    // http://localhost:4200/
-    let clientUrl: string = 'http:\/\/localhost:4200\/';
     let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
-    
-   //  let newRegex: RegExp = new RegExp(clientUrl + guidPattern);
-
-    // let newRegex: RegExp = /^http:\/\/localhost:4200\/(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
 
     if (this.imageHtmlContent.src.match(guidPattern))
     {
-      this.getImageFromStorage$(this.imageHtmlContent.src).subscribe((image: HTMLImageElement) =>{
+      this.getImageFromStorage$(this.imageHtmlContent.src)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((image: HTMLImageElement) =>{
         this.imageHtmlContent.src = image.src;
         this.imageHtmlContent.alt = image.alt;
       })
@@ -66,7 +70,7 @@ export class CardFaceImageComponent {
     this.setInitialImage();
 
     effect(() => {
-      if (this.cardFaceImageSrc() !== '' && this.cardFaceImageSrc() !== undefined) {
+      if (this.cardFaceImageSrc() !== '' && this.cardFaceImageSrc() !== undefined && this.cardFaceImageSrc() !== this.previousImageUrl) {
         this.setImageSrc(this.cardFaceImageSrc() as string);
       }
 
@@ -125,11 +129,15 @@ export class CardFaceImageComponent {
     this.showImageEditor.emit(); // no payload
   }
 
-  onImageLoad(url: string) {
+  onRevokeSrc(url: string) {
     if (!url.startsWith('blob:'))
       return;
 
     URL.revokeObjectURL(url);
     // console.log('Blob URL revoked after image loaded');
+  }
+
+  ngOnDestroy() {
+    this.onRevokeSrc(this.imageHtmlContent.src);
   }
 }
