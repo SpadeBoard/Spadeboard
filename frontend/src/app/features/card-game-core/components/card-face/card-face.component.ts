@@ -40,8 +40,7 @@ export class CardFaceComponent {
       fileName: '',
       fileMetadataStatus: FileMetadataStatus.Pending,
       creationDate: null
-    },
-    cardFaceThumbnailFilePath: '/blank-card-canvas.svg'
+    }
   });
 
   // TODO: Card face image here

@@ -53,7 +53,6 @@ export class CardEditorPreviewService {
         cardFace: {
           cardFaceId: "0",
           style: this.defaultCardEditorFaceStyle,
-          cardFaceThumbnailFilePath: ''
         },
         cardFaceElementsPerCardFace: [
         ]
@@ -62,7 +61,6 @@ export class CardEditorPreviewService {
         cardFace: {
           cardFaceId: "-1",
           style: this.defaultCardEditorFaceStyle,
-          cardFaceThumbnailFilePath: ''
         },
         cardFaceElementsPerCardFace: []
       }
@@ -123,7 +121,6 @@ export class CardEditorPreviewService {
           cardFace: {
             cardFaceId: "0",
             style: this.defaultCardEditorFaceStyle,
-            cardFaceThumbnailFilePath: ''
           },
           cardFaceElementsPerCardFace: [
           ]
@@ -132,7 +129,6 @@ export class CardEditorPreviewService {
           cardFace: {
             cardFaceId: "-1",
             style: this.defaultCardEditorFaceStyle,
-            cardFaceThumbnailFilePath: ''
           },
           cardFaceElementsPerCardFace: []
         }
@@ -141,12 +137,20 @@ export class CardEditorPreviewService {
   }
 
   setCardEditorCardDtoByCardId(cardId: string) {
+    // Prevents accidentally orphaning file metadata we stored for a previous card but never did anything with it
+    this.orphanedFileMetadata = [];
+
     if (parseFloat(cardId) <= 0) {
       this.setBlankCardTemplate() ;
       this.reloadCurrentCardEditorCardFaceDto();
       this.setOnSetCardEditorCardDtoByCardId();
       return;
     }
+
+    // To keep the information that we had, including the orphaned file metadata
+    // Actually this is probably unnecessary because the default state is pending, so either way, unless we're creating/saving, it will never be attached
+    /*if (this.cardEditorCardDto.card.cardId === cardId)
+      return;*/
 
     this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
     .pipe(
@@ -304,7 +308,6 @@ export class CardEditorPreviewService {
             if (fileMetadata === undefined)
               return result.id;
 
-            this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFilePath = fileMetadata.fileName;
             this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata = fileMetadata;
             
             return fileMetadata.fileName;
@@ -416,11 +419,11 @@ export class CardEditorPreviewService {
       }));
 
     let duplicationObservables = itemsToDuplicate.map(item =>
-      this.duplicateCardFaceThumbnail$(item.fileMetadata, item.cardFace).pipe(takeUntilDestroyed(this.destroyRef))
+      this.duplicateCardFaceThumbnail$(item.fileMetadata, item.cardFace)
     );
 
     // Run all in parallel and return the results as an array
-    return forkJoin(duplicationObservables);
+    return forkJoin(duplicationObservables).pipe(takeUntilDestroyed(this.destroyRef));
   }
 
   duplicateCardFaceThumbnail$(fileMetadata: FileMetadata, cardFace: CardFace): Observable<FileMetadata | undefined> {
@@ -453,11 +456,11 @@ export class CardEditorPreviewService {
 
           if (result.id) {
             // TODO: Really do replace this, it shouldn't be here
-            let cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
+            let volumePath = "/app/backend/card-face-elements-images";
 
             // We assume that the file's being saved immediately because we're duplicating the image elements and it's being called in CreateCard
             // Problem is it should only be attached after the card's been created
-            this.createFileMetaData$(cardFaceElementImageFilePath, result.id, FileMetadataStatus.Pending)
+            this.createFileMetaData$(volumePath, result.id, FileMetadataStatus.Pending)
               .pipe(takeUntilDestroyed(this.destroyRef));
 
             cardFaceElementImageFilePath = result.id;
@@ -470,11 +473,11 @@ export class CardEditorPreviewService {
     return of(cardFaceElementImageFilePath);
   }
 
-  duplicateCardFaceElementImages$(): Observable<void> {
+  duplicateCardFaceElementImages$(cardEditorCardDto: CardEditorCardDto): Observable<void> {
     let observables: Array<Observable<string | undefined>> = [];
     let elements: CardFaceElementPerCardFace[] = [];
 
-    this.cardEditorCardDto.cardEditorCardFacesDto.forEach((cardEditorCardFaceDto: CardEditorCardFaceDto) => {
+    cardEditorCardDto.cardEditorCardFacesDto.forEach((cardEditorCardFaceDto: CardEditorCardFaceDto) => {
       cardEditorCardFaceDto.cardFaceElementsPerCardFace
         .filter(cardFaceElementPerCardFace =>
           cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType === "image" && cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId.match(/^\d{17,19}$/)           // NOTE: This means that the card face image element hasn't actually been created yet and therefore doesn't have a Snowflake ID, there's no point of duplicating
@@ -561,7 +564,7 @@ export class CardEditorPreviewService {
     iif(
       () => isDuplicate,
       forkJoin([
-        this.duplicateCardFaceElementImages$(),
+        this.duplicateCardFaceElementImages$(this.cardEditorCardDto),
         this.duplicateCardFaceThumbnails$(this.cardEditorCardDto),
       ]),
       of(undefined)

@@ -5,7 +5,6 @@ import { CardFaceElementPerCardFace } from "./card-face-element";
 export interface CardFace {
     cardFaceId: string;
     style: Style;
-    cardFaceThumbnailFilePath?: string;
     cardFaceThumbnailFileMetadata?: FileMetadata;
 }
 

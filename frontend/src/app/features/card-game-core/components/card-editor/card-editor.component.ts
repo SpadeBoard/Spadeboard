@@ -62,7 +62,6 @@ export class CardEditorComponent implements AfterViewInit {
   private currentCardFaceElementId: string = "-1";
 
   constructor() {
-    this.setCurrentCardEditorCardFaceDto();
     this.setCurrentCardFaceElementsPerCardFace();
 
     this.onEnableImageEditor();
@@ -156,8 +155,7 @@ export class CardEditorComponent implements AfterViewInit {
             height: '100', //Modify
             zIndex: 'inherit',
             border: '2px dotted rgb(204, 204, 204)'
-          },
-          cardFaceThumbnailFilePath: ''
+          }
         },
         cardFaceElementsPerCardFace: [
         ]
@@ -172,7 +170,6 @@ export class CardEditorComponent implements AfterViewInit {
             zIndex: 'inherit',
             border: '2px dotted rgb(204, 204, 204)'
           },
-          cardFaceThumbnailFilePath: ''
         },
         cardFaceElementsPerCardFace: []
       }
@@ -249,13 +246,6 @@ export class CardEditorComponent implements AfterViewInit {
 
     // console.log(`Update card face element per card face - false: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
     return false;
-  }
-
-  // TODO: Modify this for if there's more than 2 card faces
-  setCurrentCardEditorCardFaceDto(): void {
-    this.currentCardEditorCardFaceDto = this.cardEditorCardDto.cardEditorCardFacesDto[this.cardEditorCardDto.card.currentCardFaceIndex];
-  
-    // console.log(`Set current card editor card face DTO: ${JSON.stringify(this.currentCardEditorCardFaceDto)}`);
   }
 
   // Open the popup menu
