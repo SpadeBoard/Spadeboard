@@ -103,7 +103,7 @@ export class CardFaceImageComponent {
     if (!guid)
       return EMPTY;
     
-    return this.fileUploadApiService.getFile(guid, 'card-face-element-image').pipe(
+    return this.fileUploadApiService.getFile$(guid, 'card-face-element-image').pipe(
         switchMap((blob: Blob | undefined) => {
           if (blob === undefined)
             return EMPTY;

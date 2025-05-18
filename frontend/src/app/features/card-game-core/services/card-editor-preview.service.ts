@@ -11,7 +11,7 @@ import { Style } from '../../style/models/style';
 import { DndPosition } from '../../drag-and-drop/models/dnd-types';
 import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FileMetadata } from '../../../utils/models/file-metadata';
+import { FileMetadata, FileMetadataStatus } from '../../../utils/models/file-metadata';
 import { FileMetadataApiService } from '../../../utils/services/file-metadata-api.service';
 
 @Injectable({
@@ -81,6 +81,9 @@ export class CardEditorPreviewService {
 
   cardFaceImages: FormData[] = [];
 
+  private orphanedFileMetadata: FileMetadata[] = [
+
+  ];
   private cardFaceElementsPerCardFaceDelete: string[] = [
 
   ];
@@ -277,45 +280,95 @@ export class CardEditorPreviewService {
   // Again, this should be fine, we're not going to override anything, just upload the files and link to a new URL, because automatic file deletion's a thing we can do
   createCardFaceThumbnailImage$(cardFaceIndex: number, cardFaceThumbnailImage: FormData): Observable<string | undefined> {
     if (!cardFaceThumbnailImage) {
-      return of(undefined); // Return an observable that emits undefined
+      return of(undefined);
     }
 
     return this.fileUploadApiService.uploadFile$(cardFaceThumbnailImage, 'card-face').pipe(
-      map((result: { id: string | undefined }) => {
+      switchMap((result: { id: string | undefined }) => {
         console.log('Upload card face thumbnail image result:', result);
-        if (!result.id) return undefined;
+        if (!result.id) return of(undefined);
 
-        // Create the file metadata
-         // TODO: Really do replace this, it shouldn't be here
-          let cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
+        // Because files are automatically created, we just want to delay and see whether we'd need to delete those files in the first place
+        // As this is before saving or creating
+        if (this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata !== undefined) {
+          this.orphanedFileMetadata.push(this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata);
+        }
 
-          // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
-          // When we get to that point, the backend will handle setting lastUsedAt to null
-          this.createFileMetaData(cardFaceFilePath, result.id);
+        // TODO: Really do replace this, it shouldn't be here
+        let cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
 
-        this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFilePath = result.id;
-        let cardFaceThumbnailFilePath = this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFilePath;
+        // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
+        // When we get to that point, the backend will handle setting creationDate to null
+        return this.createFileMetaData$(cardFaceFilePath, result.id, FileMetadataStatus.Pending).pipe(
+          map((fileMetadata: FileMetadata | undefined) => {
+            if (fileMetadata === undefined)
+              return result.id;
 
-        return cardFaceThumbnailFilePath;
+            this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFilePath = fileMetadata.fileName;
+            this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata = fileMetadata;
+            
+            return fileMetadata.fileName;
+          }),
+          takeUntilDestroyed(this.destroyRef)
+        );
       })
     );
   }
 
-  createFileMetaData(volumePath: string, fileName: string)
-  {
-    let fileMetadata: FileMetadata = {
+
+  createFileMetaData$(volumePath: string, fileName: string, fileMetadataStatus: FileMetadataStatus
+  ): Observable<FileMetadata | undefined> {
+    const fileMetadata: FileMetadata = {
       fileMetadataId: '0',
       volumePath: volumePath,
       fileName: fileName,
-      lastUsedAt: new Date()
-    }
+      creationDate: new Date(),
+      fileMetadataStatus: fileMetadataStatus
+    };
 
-    this.fileMetadataApiService.createFileMetadata$(fileMetadata).subscribe((result: FileMetadata | undefined) => {
-      if (result === undefined)
-        throw new Error("File metadata wasn't able to be created");
+    return this.fileMetadataApiService.createFileMetadata$(fileMetadata).pipe(
+      tap(result => {
+        if (result === undefined) {
+          throw new Error("File metadata wasn't able to be created");
+        }
+        console.log(`Created file metadata: ${JSON.stringify(result)}`);
+      })
+    );
+  }
 
-      console.log(`Created file metadata: ${JSON.stringify(result)}`);
-    });
+  markFileMetadataStatus(fileMetadata: FileMetadata, fileMetadataStatus: FileMetadataStatus) {
+   fileMetadata.fileMetadataStatus = fileMetadataStatus;
+
+    this.fileMetadataApiService.updateFileMetadata$(fileMetadata.fileMetadataId, fileMetadata).subscribe();
+  }
+
+  attachFileMetadata(fileMetadata: FileMetadata[]) {
+    fileMetadata.forEach((fm: FileMetadata) => {
+      this.markFileMetadataStatus(fm, FileMetadataStatus.Attached);
+    })
+  }
+
+  orphanFileMetadata(fileMetadata: FileMetadata[]) {
+    fileMetadata.forEach((fm: FileMetadata) => {
+      this.markFileMetadataStatus(fm, FileMetadataStatus.Orphaned);
+    })
+  }
+
+  attachAllCardFaceThumbnails(cardEditorCardDto: CardEditorCardDto) {
+    let fileMetadatas: FileMetadata[] = cardEditorCardDto.cardEditorCardFacesDto
+      .map((cardEditorCardFaceDto: CardEditorCardFaceDto) => cardEditorCardFaceDto.cardFace.cardFaceThumbnailFileMetadata)
+      .filter((fm): fm is FileMetadata => fm != null);
+
+    this.attachFileMetadata(fileMetadatas);
+  }
+
+  // This is for when you're deleting cards
+  orphanAllCardFaceThumbnails(cardEditorCardDto: CardEditorCardDto) {
+     let fileMetadatas: FileMetadata[] = cardEditorCardDto.cardEditorCardFacesDto
+      .map((cardEditorCardFaceDto: CardEditorCardFaceDto) => cardEditorCardFaceDto.cardFace.cardFaceThumbnailFileMetadata)
+      .filter((fm): fm is FileMetadata => fm != null);
+
+    this.orphanFileMetadata(fileMetadatas);
   }
 
   // NOTE: This should be called whenever you upload an image
@@ -325,6 +378,11 @@ export class CardEditorPreviewService {
     let cardFaceElementImageFilePath: string | undefined = this.getCurrentCardFaceElementsPerCardFace()
       .find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementImageId)
       ?.cardFaceElement.cardFaceElementContent;
+
+    // We all this here because this means that we're overriding an already saved file to mark it to delete
+    if (this.cardEditorCardDto.card.cardId != "0") {
+      // this.markFileMetadataStatus(fileMetadataId);
+    }
 
     if (cardFaceElementImage !== undefined) {
       return this.fileUploadApiService.uploadFile$(cardFaceElementImage, 'card-face-element-image').pipe(
@@ -336,8 +394,9 @@ export class CardEditorPreviewService {
           let cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
 
           // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
-          // When we get to that point, the backend will handle setting lastUsedAt to null
-          this.createFileMetaData(cardFaceElementImageFilePath, result.id);
+          // When we get to that point, the backend will handle settingcreationDate to null
+          this.createFileMetaData$(cardFaceElementImageFilePath, result.id, FileMetadataStatus.Pending)
+            .pipe(takeUntilDestroyed(this.destroyRef));
 
           cardFaceElementImageFilePath = result.id;
           return cardFaceElementImageFilePath;
@@ -346,6 +405,38 @@ export class CardEditorPreviewService {
     }
 
     return of(cardFaceElementImageFilePath);
+  }
+
+  duplicateCardFaceThumbnails$(cardEditorCardDto: CardEditorCardDto): Observable<(FileMetadata | undefined)[]> {
+    let itemsToDuplicate =cardEditorCardDto.cardEditorCardFacesDto
+      .filter(dto => dto.cardFace && dto.cardFace.cardFaceThumbnailFileMetadata)
+      .map(dto => ({
+        fileMetadata: dto.cardFace.cardFaceThumbnailFileMetadata!,
+        cardFace: dto.cardFace
+      }));
+
+    let duplicationObservables = itemsToDuplicate.map(item =>
+      this.duplicateCardFaceThumbnail$(item.fileMetadata, item.cardFace).pipe(takeUntilDestroyed(this.destroyRef))
+    );
+
+    // Run all in parallel and return the results as an array
+    return forkJoin(duplicationObservables);
+  }
+
+  duplicateCardFaceThumbnail$(fileMetadata: FileMetadata, cardFace: CardFace): Observable<FileMetadata | undefined> {
+    let cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
+
+    return this.fileUploadApiService.replaceFilePath$(fileMetadata.fileName, 'card-face').pipe(
+      switchMap((result: { id: string | undefined }) => {
+        if (!result.id) return of(undefined);
+        return this.createFileMetaData$(cardFaceFilePath, result.id, FileMetadataStatus.Pending);
+      }),
+      tap((newFileMetadata: FileMetadata | undefined) => {
+        if (newFileMetadata) {
+          cardFace.cardFaceThumbnailFileMetadata = newFileMetadata;
+        }
+      })
+    );
   }
 
   duplicateCardFaceElementImage$(cardFaceElementImageFilePath: string): Observable<string | undefined>
@@ -364,9 +455,10 @@ export class CardEditorPreviewService {
             // TODO: Really do replace this, it shouldn't be here
             let cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
 
-            // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
-            // When we get to that point, the backend will handle setting lastUsedAt to null
-            this.createFileMetaData(cardFaceElementImageFilePath, result.id);
+            // We assume that the file's being saved immediately because we're duplicating the image elements and it's being called in CreateCard
+            // Problem is it should only be attached after the card's been created
+            this.createFileMetaData$(cardFaceElementImageFilePath, result.id, FileMetadataStatus.Pending)
+              .pipe(takeUntilDestroyed(this.destroyRef));
 
             cardFaceElementImageFilePath = result.id;
           }
@@ -445,26 +537,33 @@ export class CardEditorPreviewService {
     return of(undefined);
   }
 
+  markOrphanedData() {
+    while (this.orphanedFileMetadata.length > 0) {
+      let orphaned: FileMetadata | undefined = this.orphanedFileMetadata.pop();
+      
+      if (orphaned === undefined)
+        continue;
+      
+      this.markFileMetadataStatus(orphaned, FileMetadataStatus.Orphaned);
+    }
+  }
+
   // TODO: Create a function to get all text content, convert them to BB Code then save them
 
   createCard(): void {
-    // FIXME:
-    /* 
-    message": "An error occurred while processing the request",
-    "error": "Item: Card Face Element\nFunction: Create Nav Async\nThe CardFaceElement property of CardFaceElementPerCardFace has already been made. (Parameter 'nav')"
-
-    When running CreateCardEditorCardDto on already existing card, this should not be the case
-    */
-
     // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
     // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
 
     // Conditionally returns one observable or another, and you can then chain your API cal
     let isDuplicate: boolean = parseFloat(this.cardEditorCardDto.card.cardId) > 0;
 
+    // TODO: Also duplicate the card face thumbnails and update those
     iif(
       () => isDuplicate,
-      this.duplicateCardFaceElementImages$(),
+      forkJoin([
+        this.duplicateCardFaceElementImages$(),
+        this.duplicateCardFaceThumbnails$(this.cardEditorCardDto),
+      ]),
       of(undefined)
     )
     .pipe(
@@ -479,7 +578,13 @@ export class CardEditorPreviewService {
           this.reloadCurrentCardEditorCardFaceDto();
           this.setOnCreateCard();
 
+          // TODO: Remember to use file metadata file path instead of thumbnail image file path
           this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
+
+          this.markOrphanedData();
+          
+          // We want to set the file metadata to attached when we create the card, because there's no point of updating it from pending unless it's actually already created
+          this.attachAllCardFaceThumbnails(this.cardEditorCardDto);
 
           // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
           if (isDuplicate) {
@@ -519,7 +624,13 @@ export class CardEditorPreviewService {
             this.reloadCurrentCardEditorCardFaceDto();
             this.setOnUpdateCard();
 
+            // TODO: Remember to use file metadata file path instead of thumbnail image file path
             this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);
+          
+            this.markOrphanedData();
+
+            // We want to set the file metadata to attached when we update  the card, because there's no point of updating it from pending unless it's actually already created
+            this.attachAllCardFaceThumbnails(this.cardEditorCardDto);
           }
         },
         error: (err) => {
@@ -534,9 +645,19 @@ export class CardEditorPreviewService {
       throw new Error("Can't delete card as it's being edited");
     }
 
-    this.cardApiService.deleteCardEditorCardDto$(cardId).subscribe((result: void | undefined) => {
-        this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);
-    });
+    // We're just marking the file metadata
+    // Furthermore, when we're deleting a card, we're not actually modifying the metadata in any way
+    this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+      .pipe(
+        tap((cardEditorCardDto: CardEditorCardDto | undefined) => {
+          if (cardEditorCardDto) {
+            this.orphanAllCardFaceThumbnails(cardEditorCardDto)
+          }
+        },
+        ),
+        switchMap(() => this.cardApiService.deleteCardEditorCardDto$(cardId)),
+      )
+      .subscribe(() => { this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);});
   }
 
   reloadCurrentCardEditorCardFaceDto() {

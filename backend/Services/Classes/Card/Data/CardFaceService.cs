@@ -13,11 +13,13 @@ using Algorithms;
 
 namespace Services
 {
-    public class CardFaceService(ApplicationDbContext context, IStyleService styleService) : ICardFaceService
+    public class CardFaceService(ApplicationDbContext context, IStyleService styleService, IFileMetadataService fileMetadataService) : ICardFaceService
     {
         private readonly ApplicationDbContext _context = context;
 
         private readonly IStyleService _styleService = styleService;
+
+        private readonly IFileMetadataService _fileMetadataService = fileMetadataService;
 
         private readonly CrudService<CardFace> _crudService = new(context, cardFace => cardFace.CardFaceId);
 
@@ -79,9 +81,15 @@ namespace Services
 
         public async Task<bool> UpdateNavAsync(CardFace nav)
         {
-            if (nav.Style != null && _styleService.IsModified(nav.Style))
+            if (nav.Style != null /*&& _styleService.IsModified(nav.Style)*/)
             {
                 _context.Entry(nav.Style).State = EntityState.Modified;
+            }
+
+            // This should be fine, we're not necessarily updating the card face thumbnail file metadata
+            if (nav.CardFaceThumbnailFileMetadata != null)
+            {
+                _context.Entry(nav.CardFaceThumbnailFileMetadata).State = EntityState.Modified;
             }
 
             _context.Entry(nav).State = EntityState.Modified;
@@ -129,10 +137,24 @@ namespace Services
 
         public async Task<CardFace> CreateNavAsync(CardFace nav)
         {
-             if (nav.Style == null)
-            {
+             if (nav.Style == null) {
                 throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe Style property of CardFace cannot be null.", nameof(nav));
             }
+
+            // It's theoretically possible for a card face to never have a thumbnail image taken of
+            if (nav.CardFaceThumbnailFileMetadata != null) {
+                if (!_fileMetadataService.Exists(nav.CardFaceThumbnailFileMetadata.FileMetadataId))
+                {
+                    throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadataproperty of CardFace must already exist", nameof(nav));
+                }
+
+                nav.CardFaceThumbnailFileMetadataId = nav.CardFaceThumbnailFileMetadata.FileMetadataId;
+                nav.CardFaceThumbnailFileMetadata = null;
+            }
+            // TODO: Use this when we set up the LODs
+            /*if (!_cardFaceThumbnailFileMetadataService.Exists(nav.CardFaceThumbnailFileMetadata.CardFaceThumbnailFileMetadataId) {
+                throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadataproperty of CardFace must already exist", nameof(nav));
+            }*/
 
             nav.Style.StyleId = Snowflake.NewId();
             nav.CardFaceId = Snowflake.NewId();
@@ -147,6 +169,7 @@ namespace Services
                 throw new Exception("No changes were made");
 
             await _context.Entry(nav).Reference(n => n.Style).LoadAsync();
+            await _context.Entry(nav).Reference(n => n.CardFaceThumbnailFileMetadata).LoadAsync();
             return nav; 
         }
     }

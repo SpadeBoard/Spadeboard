@@ -18,16 +18,23 @@ namespace Services
             {
                 try
                 {
-                    using (var scope = _serviceProvider.CreateScope())
+                    using var scope = _serviceProvider.CreateScope();
                     {
                         IFileMetadataService fileMetadataService = scope.ServiceProvider.GetRequiredService<IFileMetadataService>();
-                        DateTime thresholdDate = DateTime.UtcNow.AddDays(-7);
-                        bool deleted = await fileMetadataService.DeleteFilesByThresholdDataAsync(thresholdDate, stoppingToken);
 
+                        bool marked = await fileMetadataService.MarkPendingToOrphanedAsync();
+
+                        if (!marked)
+                        {
+                            Console.WriteLine("There were no pending files, presumably");
+                        }
+
+                        DateTime thresholdDate = DateTime.UtcNow.AddDays(-3);
+                        bool deleted = await fileMetadataService.DeleteFilesByThresholdDataAsync(thresholdDate, stoppingToken);
 
                         if (!deleted)
                         {
-                            throw new Exception("Files weren't deleted");
+                            Console.WriteLine("There were no orphaned files, presumably");
                         }
                     }
                 }

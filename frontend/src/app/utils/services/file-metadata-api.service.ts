@@ -15,10 +15,10 @@ export class FileMetadataApiService {
   constructor() { }
 
   createFileMetadata$(fileMetadata: FileMetadata): Observable<FileMetadata | undefined> {
-    if (fileMetadata === undefined) {
-      return of(undefined);
-    }
-
     return this.http.post<FileMetadata>(this.apiUrl, fileMetadata);
+  }
+
+   updateFileMetadata$(fileMetadataId: string, fileMetadata: Partial<FileMetadata>): Observable<FileMetadata | undefined> {
+     return this.http.put<FileMetadata>(`${this.apiUrl}/${fileMetadataId}`, fileMetadata);
   }
 }

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Models.Bridge;
+using Models.Files;
 using Models.Styles;
 using Services;
 
@@ -21,6 +22,10 @@ namespace Models.Cards
 
         // 'card-thumbnail-images/[card-id]_[card-face-id]_image.jpg'
         public string? CardFaceThumbnailFilePath {get; set;}
+
+        public long? CardFaceThumbnailFileMetadataId {get; set;}
+        [ForeignKey("CardFaceThumbnailFileMetadataId")]
+        public FileMetadata? CardFaceThumbnailFileMetadata {get;set;}
     }
 
     public class CardFaceDto
@@ -29,8 +34,10 @@ namespace Models.Cards
         public string? StyleId {get; set;} = "0";
         public virtual StyleDto? Style { get; set; }
 
-        // 'card-thumbnail-images/[card-id]_[card-face-id]_image.jpg'
         public string? CardFaceThumbnailFilePath {get; set;}
+
+        public string? CardFaceThumbnailFileMetadataId {get; set;}
+        public FileMetadataDto? CardFaceThumbnailFileMetadata {get;set;}
     }
 
     public class CardEditorCardFaceDto 

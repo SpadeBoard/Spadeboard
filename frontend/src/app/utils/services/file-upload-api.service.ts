@@ -14,7 +14,7 @@ export class FileUploadApiService {
 
   constructor() { }
 
-  getFile(fileName: string, type?: string): Observable<Blob | undefined> {
+  getFile$(fileName: string, type?: string): Observable<Blob | undefined> {
     switch (type)
     {
       case "card-face":

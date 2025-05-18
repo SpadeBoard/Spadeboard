@@ -193,54 +193,47 @@ export class CardsCollectionComponent {
         let cardEditorCardDto: CardEditorCardDto = result;
         cardEditorCardDto.ownerId = '';
 
-        this.replaceAllImageFilePaths(cardEditorCardDto)
-          .pipe(
-            switchMap(() =>
-              this.cardApiService.createCardEditorCardDto$(cardEditorCardDto)
-            ),
-            takeUntilDestroyed(this.destroyRef)
-          ).subscribe({
-            next: (result: CardEditorCardDto | undefined) => {
-              if (result === undefined)
-                return;
+        // TODO: Just remove the file paths and use the file metadata
+        // You'd want to duplicate card face thumbnails because it's potentially possible for a thumbnail for one card to be marked as orphan while it's still being used by something else
+        this.cardPreviewEditorService.duplicateCardFaceThumbnails$(cardEditorCardDto).pipe(
+          switchMap(() => this.replaceAllImageFilePaths(cardEditorCardDto)),
+          switchMap(() => this.cardApiService.createCardEditorCardDto$(cardEditorCardDto)),
+          takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+          next: (result: CardEditorCardDto | undefined) => {
+            if (result === undefined) return;
 
-              // TODO: Refactor later, this isn't optimal
-              let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+            let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+            let dndPosition = mouseAUCoordinates;
 
-              let dndPosition: {
-                gridX: number;
-                gridY: number;
-              } = mouseAUCoordinates;
+            let cpr: CardPositionPerRoom = {
+              cardPositionPerRoomId: "0",
+              card: result.card as Card,
+              dndItem: {
+                dndItemId: "0",
+                isDraggable: false,
+                isDroppable: false
+              },
+              dndPosition: {
+                dndPositionId: "0", x: dndPosition.gridX, y: dndPosition.gridY
+              } as DndPosition,
+              gameRoom: {
+                gameRoomId: "1"
+              }
+            };
 
-              let cpr: CardPositionPerRoom = {
-                cardPositionPerRoomId: "0",
-                card: result.card as Card,
-                dndItem: {
-                  dndItemId: "0",
-                  isDraggable: false,
-                  isDroppable: false
-                },
-                dndPosition: {
-                  dndPositionId: "0", x: dndPosition.gridX, y: dndPosition.gridY
-                } as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
-                gameRoom: {
-                  gameRoomId: "1"
-                }
-              };
+            this.createCardPositionPerRoom(cpr);
 
-              this.createCardPositionPerRoom(cpr);
-
-              console.log('All image file paths replaced!');
-            },
-            error: (err) => {
-              // Handle error
-              console.error('Error replacing image file paths:', err);
-            }
-          });
+            console.log('All image file paths replaced!');
+          },
+          error: (err) => {
+            console.error('Error replacing image file paths:', err);
+          }
+        });
       })
-    }
 
-    // console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);
+      // console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);
+    }
   }
 
   private createCardPositionPerRoom(cpr: CardPositionPerRoom) {

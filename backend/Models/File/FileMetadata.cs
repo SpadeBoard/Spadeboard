@@ -10,6 +10,13 @@ using Services;
 
 namespace Models.Files
 {
+    public enum FileMetadataStatus
+    {
+        Pending,
+        Attached,
+        Orphaned
+    }
+
     [Table("FileMetadata")]
     public class FileMetadata: ICrudId
     {
@@ -20,7 +27,9 @@ namespace Models.Files
         public long Id { get => FileMetadataId; set => FileMetadataId = value; }
         public string VolumePath { get; set; }
         public string FileName { get; set; }
-        public DateTime? LastUsedAt { get; set; } // NULL means currently in use
+
+        public FileMetadataStatus FileMetadataStatus {get; set;} = FileMetadataStatus.Pending;
+        public DateTime? CreationDate { get; set; }
     }
 
     public class FileMetadataDto 
@@ -28,6 +37,7 @@ namespace Models.Files
         public string FileMetadataId { get; set; }
         public string VolumePath { get; set; }
         public string FileName { get; set; }
-        public DateTime? LastUsedAt { get; set; } // NULL means currently in use
+        public FileMetadataStatus FileMetadataStatus {get; set;} = FileMetadataStatus.Pending;
+        public DateTime?CreationDate { get; set; }
     }
 }

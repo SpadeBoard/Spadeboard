@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, InputSignal, Signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, InputSignal, Signal } from '@angular/core';
 
 import { CardFace } from '../../models/card-face';
 
@@ -12,6 +12,8 @@ import { isCardFaceElementDto } from '../../utils/card-game-core.utils';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { FileMetadataApiService } from '../../../../utils/services/file-metadata-api.service';
+import { FileMetadataStatus } from '../../../../utils/models/file-metadata';
 
 // https://medium.com/@niteshdaga000/optimizing-performance-with-memory-caching-in-angular-applications-dad3efeb1f99
 // TODO: When loading in the cards menu, use a hybdrid approach of storing the indices, caching the images in memory, using LRU, and only replacing the images that have changed via checking timestamp
@@ -22,8 +24,8 @@ import { CommonModule } from '@angular/common';
   styleUrl: './card-face.component.css'
 })
 export class CardFaceComponent {
-  private readonly fileUploadApiService = inject(FileUploadApiService);
-
+  private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
+  
   // TODO: Have the calculation to convert the card face elements here
   cardFaceInput: InputSignal<CardFace | undefined>=  input<CardFace | undefined>({
     cardFaceId: "0",
@@ -32,12 +34,19 @@ export class CardFaceComponent {
       width: '0px',
       height: '0px'
     },
+    cardFaceThumbnailFileMetadata: {
+      fileMetadataId: '',
+      volumePath: '',
+      fileName: '',
+      fileMetadataStatus: FileMetadataStatus.Pending,
+      creationDate: null
+    },
     cardFaceThumbnailFilePath: '/blank-card-canvas.svg'
   });
 
   // TODO: Card face image here
   // https://stackoverflow.com/a/27197907
-  private destroy$ = new Subject<void>();
+  private destroyRef: DestroyRef = inject(DestroyRef);
 
   image= {
     src: '/blank-card-canvas.svg',
@@ -47,14 +56,14 @@ export class CardFaceComponent {
   };
 
   getCardFaceImageSrc(cardFace: CardFace): Promise<HTMLImageElement | undefined> {
-    if (!cardFace.cardFaceThumbnailFilePath) {
+    if (!cardFace.cardFaceThumbnailFileMetadata) {
       return Promise.resolve(undefined);
     }
 
     // https://www.learnrxjs.io/learn-rxjs/operators/filtering/takeuntil
     return new Promise((resolve) => {
-      this.fileUploadApiService.getFile(
-        cardFace.cardFaceThumbnailFilePath as string,
+      this.fileUploadApiService.getFile$(
+        cardFace.cardFaceThumbnailFileMetadata?.fileName as string,
         'card-face'
       ).pipe(
         // takeUntil(this.destroy$) // Call on ngDestroy, prevents memory leaks
@@ -101,7 +110,7 @@ export class CardFaceComponent {
       let cardFace = this.cardFaceInput();
       
       if (cardFace !== undefined && parseFloat(cardFace.cardFaceId) !== 0) {
-        if (cardFace.cardFaceThumbnailFilePath === undefined || cardFace.cardFaceThumbnailFilePath === "") {
+        if (cardFace.cardFaceThumbnailFileMetadata === undefined) {
           this.image.src = "/blank-card-canvas.svg";
           return;
         }

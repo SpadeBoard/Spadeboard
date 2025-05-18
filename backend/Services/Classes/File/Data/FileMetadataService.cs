@@ -50,7 +50,7 @@ namespace Services
             return await _crudService.UpdateAsync(id, item);
         }
 
-        public async Task<bool> UpdateLastUsedAtByVolumePathAndFileNameAsync(string volumePath, string fileName, DateTime? lastUsedAt)
+        public async Task<bool> UpdateStatusByVolumePathAndFileNameAsync(string volumePath, string fileName, FileMetadataStatus fileMetadataStatus)
         {
             FileMetadata? fileMetadata = await _context.FileMetadata.FirstOrDefaultAsync(f => f.VolumePath == volumePath && f.FileName == fileName);
         
@@ -58,15 +58,28 @@ namespace Services
                 return false;
             }
 
-            fileMetadata.LastUsedAt = lastUsedAt;
+            fileMetadata.FileMetadataStatus =fileMetadataStatus;
             int changes = await _context.SaveChangesAsync();
             return changes > 0;
+        }
+
+        public async Task<bool> MarkPendingToOrphanedAsync()
+        {
+           List<FileMetadata> pendingFiles = await _context.FileMetadata
+                .Where(f => f.FileMetadataStatus == FileMetadataStatus.Pending)
+                .ToListAsync();
+
+            foreach (var file in pendingFiles) {
+                file.FileMetadataStatus = FileMetadataStatus.Orphaned;
+            }
+
+            return await _context.SaveChangesAsync() > 0;
         }
 
          public async Task<bool> DeleteFilesByThresholdDataAsync( DateTime thresholdDate, CancellationToken cancellationToken)
          {
             List<FileMetadata> oldFilesMetadata = await _context.FileMetadata
-                        .Where(f => f.LastUsedAt != null && f.LastUsedAt < thresholdDate)
+                        .Where(f => f.CreationDate != null && f.CreationDate < thresholdDate && f.FileMetadataStatus == FileMetadataStatus.Orphaned)
                         .ToListAsync(cancellationToken);
 
             foreach (FileMetadata fileMetadata in oldFilesMetadata)

@@ -5,6 +5,7 @@ using Data;
 using Services;
 using AutoMapper;
 using Mapper;
+using System.Text.Json.Serialization;
 
 
 string DevelopmentOrigins = "_devOrigins";
@@ -74,6 +75,10 @@ builder.Services.AddScoped<ICardPositionPerRoomDtoService, CardPositionPerRoomDt
 builder.Services.AddScoped<IFileMetadataService, FileMetadataService>();
 builder.Services.AddScoped<IFileMetadataDtoService, FileMetadataDtoService>();
 builder.Services.AddHostedService<FileCleanupService>();
+
+builder.Services.AddControllers().AddJsonOptions(options =>{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 // Auto Mapper Configurations
 var mapperConfig = new MapperConfiguration(mc =>

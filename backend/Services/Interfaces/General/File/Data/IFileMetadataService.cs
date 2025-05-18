@@ -8,8 +8,8 @@ namespace Services
 {
     public interface IFileMetadataService: ICrud<FileMetadata>
     {
-        public Task<bool> UpdateLastUsedAtByVolumePathAndFileNameAsync(string volumePath, string fileName, DateTime? lastUsedAt);
-
+        public Task<bool> UpdateStatusByVolumePathAndFileNameAsync(string volumePath, string fileName, FileMetadataStatus fileMetadataStatus);
+        public Task<bool> MarkPendingToOrphanedAsync();
         public Task<bool> DeleteFilesByThresholdDataAsync( DateTime thresholdDate, CancellationToken cancellationToken);
     }
 }
