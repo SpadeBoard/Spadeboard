@@ -8,15 +8,17 @@ using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
 using Algorithms;
+using Models.Files;
 
 
 namespace Services
 {
-    public class CardFaceElementService(ApplicationDbContext context, IStyleService styleService, IFileUploadService fileUploadService) : ICardFaceElementService
+    public class CardFaceElementService(ApplicationDbContext context, IStyleService styleService, IFileUploadService fileUploadService, IFileMetadataService fileMetadataService) : ICardFaceElementService
     {
         private readonly ApplicationDbContext _context = context;
         private readonly IStyleService _styleService = styleService;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
+        private readonly IFileMetadataService _fileMetadataService = fileMetadataService;
 
         private readonly CrudService<CardFaceElement> _crudService = new(context, cardFaceElement => cardFaceElement.CardFaceElementId);
 
@@ -77,7 +79,12 @@ namespace Services
             if (cardFaceElement.Style != null /*&& _styleService.IsModified(cardFaceElement.Style)*/)
                 _context.Entry(cardFaceElement.Style).State = EntityState.Modified;
             
-            // TODO: Set the last used date if the element's type if image to null
+            // TODO: Refactor this, absolutely necessary
+           if (cardFaceElement is CardFaceElementImage imageElement)
+            {
+               if (imageElement.ImageFileMetadata != null)
+                 _context.Entry(imageElement.ImageFileMetadata).State = EntityState.Modified;
+            }
 
             _context.Entry(cardFaceElement).State = EntityState.Modified;
         
@@ -117,10 +124,16 @@ namespace Services
                 return false;
             }
 
-            /*if (cardFaceElement.CardFaceElementType == "Image" && cardFaceElement.CardFaceElementContent != null) {
-                // TODO: Instead of deleting right here, we go to the file and set the last used date to now
-                await _fileUploadService.DeleteCardFaceElementImageFileAsync(cardFaceElement.CardFaceElementContent);
-            }*/
+            // TODO: Refactor
+            if (cardFaceElement is CardFaceElementImage imageElement && imageElement.ImageFileMetadataId != null)
+            {
+               FileMetadata? fileMetadata =  await _fileMetadataService.GetAsync(imageElement.ImageFileMetadataId.Value);
+            
+                if (fileMetadata != null) {
+                    fileMetadata.FileMetadataStatus = FileMetadataStatus.Orphaned;
+                    await _fileMetadataService.UpdateAsync(fileMetadata.FileMetadataId, fileMetadata);
+                }
+            }
 
             _context.CardFaceElement.Remove(cardFaceElement);
 
@@ -148,6 +161,7 @@ namespace Services
         {
             var cardFaceElement = await _context.CardFaceElement
                 .Include(cardFaceElement => cardFaceElement.Style)
+                .Include(cardFaceElement => (cardFaceElement as CardFaceElementImage).ImageFileMetadata) // TODO: Please refactor this
                 .FirstOrDefaultAsync(cardFaceElement => cardFaceElement.CardFaceElementId == id);
             
             return cardFaceElement;
@@ -158,6 +172,23 @@ namespace Services
             if (nav.Style == null)
             {
                 throw new ArgumentException("Item: CardFaceElement Face Element\nFunction: Create Nav Async\nThe Style property of CardFaceElement cannot be null.", nameof(nav));
+            }
+
+            // It's theoretically possible for a card face to never have a thumbnail image taken of
+            // TODO: Please refactor this
+            if (nav is CardFaceElementImage imageElement)
+            {
+                // Now you can access imageElement.ImageFileMetadata
+                if (imageElement.ImageFileMetadata != null)
+                {
+                    if (!_fileMetadataService.Exists(imageElement.ImageFileMetadata.FileMetadataId))
+                    {
+                        throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadata property of CardFace must already exist", nameof(nav));
+                    }
+
+                    imageElement.ImageFileMetadataId = imageElement.ImageFileMetadata.FileMetadataId;
+                    imageElement.ImageFileMetadata = null;
+                }
             }
 
             nav.Style.StyleId = Snowflake.NewId();
@@ -174,6 +205,12 @@ namespace Services
                 throw new Exception("No changes were made");
 
             await _context.Entry(nav).Reference(e => e.Style).LoadAsync();
+
+            // TODO: Please refactor this
+            if (nav is CardFaceElementImage image)
+            {
+                await _context.Entry(image).Reference(e => e.ImageFileMetadata).LoadAsync();
+            }
 
             return nav;
         }

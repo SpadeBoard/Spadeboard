@@ -54,10 +54,28 @@ namespace Mapper
             // Long -> String
             CreateMap<CardFaceElement, CardFaceElementDto>()
                 .Include<CardFaceElementRt, CardFaceElementRtDto>()
-                .Include<CardFaceElementImage, CardFaceElementImageDto>();
+                .Include<CardFaceElementImage, CardFaceElementImageDto>()
+                .ReverseMap();
 
-            CreateMap<CardFaceElementRt, CardFaceElementRtDto>();
-            CreateMap<CardFaceElementImage, CardFaceElementImageDto>();
+            CreateMap<CardFaceElementRt, CardFaceElementRtDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<CardFaceElementImage, CardFaceElementImageDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.ImageFileMetadataId,
+                    opt => opt.MapFrom(src =>
+                        string.IsNullOrEmpty(src.ImageFileMetadataId) ? (long?)null : long.Parse(src.ImageFileMetadataId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<CardFaceElementImageDto, CardFaceElementImage>()
+              .ForMember(dest => dest.ImageFileMetadataId,
+                   opt => opt.MapFrom(src =>
+                       string.IsNullOrEmpty(src.ImageFileMetadataId) ? (long?)null : long.Parse(src.ImageFileMetadataId)))
+               .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+             CreateMap<CardFaceElementRtDto, CardFaceElementRt>()
+               .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // String -> Long
             CreateMap<CardFaceElementDto, CardFaceElement>()

@@ -30,8 +30,8 @@ export function isDeck(obj: any): obj is Deck {
 export function isCardFaceElement(obj: any): obj is CardFaceElement {
     return obj
         && typeof obj === 'object'
-        && 'cardFaceElementId' in obj
         && 'cardFaceElementType' in obj
+        && 'cardFaceElementId' in obj
 }
 
 export function isCardFaceElementDto(obj: any): obj is CardFaceElementDto {

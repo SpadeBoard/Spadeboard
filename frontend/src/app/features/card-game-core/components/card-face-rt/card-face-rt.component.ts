@@ -39,7 +39,7 @@ export class CardFaceRtComponent {
       spellcheck: false,
       height: 'fit-content',
       width: 'fit-content',
-      minHeight: '25px',
+      minHeight: '20px',
       minWidth: '50px',
       maxHeight: this.maxHeight(),
       enableToolbar: false,

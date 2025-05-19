@@ -192,7 +192,9 @@ namespace Services
             var cfepcfs = await _context.CardFaceElementPerCardFace
                 .Where(attribute => attribute.CardFaceId == cardFaceId)
                 .Include(a => a.CardFaceElement)
+                .Include(a => a.CardFaceElement)
                 .Include(a => a.CardFaceElement!.Style)
+                .Include(a => (a.CardFaceElement as CardFaceElementImage).ImageFileMetadata) // TODO: Refactor this?
                 .Include(a => a.CardFace)
                 .Include(a => a.DndItem)
                 .Include(a => a.DndPosition)

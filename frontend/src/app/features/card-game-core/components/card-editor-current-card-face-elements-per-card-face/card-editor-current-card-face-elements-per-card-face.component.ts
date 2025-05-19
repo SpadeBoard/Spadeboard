@@ -19,6 +19,7 @@ import { ResizableWrapperComponent } from '../../../resizable/components/resizab
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FileMetadata } from '../../../../utils/models/file-metadata';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -160,12 +161,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   getCardFaceElementRtContentByCardFaceElementId(cardFaceElementId: string): string {
     let cardFaceElement: CardFaceElement | undefined = this.currentCardFaceElementsPerCardFace.find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementId &&  c.cardFaceElement.cardFaceElementType === "Rte")?.cardFaceElement;
     
-    if (cardFaceElement === undefined)
+    if (!cardFaceElement)
       throw new Error("Card face element not found");
 
     let cardFaceElementRt: CardFaceElementRt | undefined = getCardFaceElementRt(cardFaceElement);
 
-    if (cardFaceElementRt === undefined)
+    if (!cardFaceElementRt)
       throw new Error("Card face element RT is undefined");
 
     // FIXME: Why is this undefined
@@ -178,15 +179,15 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   getCardFaceElementImageSrcByCardFaceElementId(cardFaceElementId: string): string | undefined {
      let cardFaceElement: CardFaceElement | undefined = this.currentCardFaceElementsPerCardFace.find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementId && c.cardFaceElement.cardFaceElementType === "Image")?.cardFaceElement;
     
-    if (cardFaceElement === undefined)
+    if (!cardFaceElement)
       return;
 
     let cardFaceElementImage: CardFaceElementImage | undefined = getCardFaceElementImage(cardFaceElement);
 
-    if (cardFaceElementImage === undefined || cardFaceElementImage.imageFileMetadata === undefined)
+    if (!cardFaceElementImage || !cardFaceElementImage.imageFileMetadata || !cardFaceElementImage.imageFileMetadata.fileName)
       return this.placeholderImageSrc;
 
-    return cardFaceElementImage.imageFileMetadata.fileName;
+    return cardFaceElementImage?.imageFileMetadata?.fileName ?? this.placeholderImageSrc;
   }
 
   getCurrentCardFaceElementsPerCardFace(): void {
@@ -222,11 +223,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
       cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
       cardFaceElement: {
+        cardFaceElementType: 'Rte',
         cardFaceElementId: cardFaceElementPerCardFaceId,
         style: {
           styleId: "0"
         },
-        cardFaceElementType: 'Rte'
       },
       dndItem: {
         dndItemId: "0",
@@ -241,8 +242,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         cardFaceElementPerCardFace = {
           cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
           cardFaceElement: {
-            cardFaceElementId:  cardFaceElementPerCardFaceId, 
             cardFaceElementType: 'Rte',
+            cardFaceElementId:  cardFaceElementPerCardFaceId,
             style: {
               styleId: "0",
               width: '100', // TODO: Set this for Angular Editor
@@ -262,8 +263,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         cardFaceElementPerCardFace = {
           cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
           cardFaceElement: {
-            cardFaceElementId:  cardFaceElementPerCardFaceId,
             cardFaceElementType: 'Image',
+            cardFaceElementId:  cardFaceElementPerCardFaceId,
             style: {
               styleId: "0",
               width: '100', // Modify
@@ -477,7 +478,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     let cardFaceElementRt: CardFaceElementRt | undefined =( getCardFaceElementRt(currentCardFaceElementPerCardFace.cardFaceElement));
     
-    if (cardFaceElementRt === undefined)
+    if (!cardFaceElementRt)
       throw new Error("On enable RTE: Card face element RT is undefined");
 
     this.cardEditorControlsDesignRteService.setOnEnableRte(cardFaceElementRt.cardFaceElementContent ?? "");
@@ -688,7 +689,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
           let cardFaceElementImage: CardFaceElementImage | undefined = getCardFaceElementImage(cardFaceElementPerCardFace.cardFaceElement);
 
-          if (cardFaceElementImage === undefined)
+          if (!cardFaceElementImage)
             throw new Error("Not a card face element image");
 
           return this.cardEditorPreviewService.createCardFaceElementImage$(
@@ -699,11 +700,17 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
-        next: (cardFaceElementImageFilePath: string | undefined) => {
-          if (!cardFaceElementImageFilePath) {
-            throw new Error("Card face element image file path is empty");
+        next: (cardFaceElementImageFileMetadata: FileMetadata | undefined) => {
+          if (!cardFaceElementImageFileMetadata) {
+            throw new Error("Set card face image element src: Card face element image file metadata is empty");
           }
-          (cardFaceElementPerCardFace.cardFaceElement as CardFaceElementImage).imageFileMetadata.fileName = cardFaceElementImageFilePath;
+
+          let cardFaceElementImage: CardFaceElementImage = (cardFaceElementPerCardFace.cardFaceElement as CardFaceElementImage);
+
+          if (cardFaceElementImage.imageFileMetadata === undefined)
+            throw new Error("Set card face image element src: Image file metadata is undefined");
+          
+          cardFaceElementImage.imageFileMetadata = cardFaceElementImageFileMetadata;
         },
         error: (err) => {
           console.error(err);

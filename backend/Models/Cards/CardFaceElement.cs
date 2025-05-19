@@ -8,13 +8,12 @@ using System.Text.Json.Serialization;
 
 namespace Models.Cards
 {
-    [JsonPolymorphic(TypeDiscriminatorPropertyName = "CardFaceElementType")]
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "cardFaceElementType")]
     [JsonDerivedType(typeof(CardFaceElementRtDto), "Rte")]
     [JsonDerivedType(typeof(CardFaceElementImageDto), "Image")]
     public class CardFaceElementDto
     {
        public string CardFaceElementId { get; set; } = "0";
-        public string CardFaceElementType {get; set;}
 
         public string? StyleId {get; set;} = "0";
         public virtual StyleDto? Style {get; set;}
@@ -27,11 +26,11 @@ namespace Models.Cards
 
     public class CardFaceElementImageDto : CardFaceElementDto
     {
-        public string ImageFileMetadataId { get; set; }
+        public string? ImageFileMetadataId { get; set; }
         public FileMetadataDto? ImageFileMetadata { get; set; }
     }
 
-    [JsonPolymorphic(TypeDiscriminatorPropertyName = "CardFaceElementType")]
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "cardFaceElementType")]
     [JsonDerivedType(typeof(CardFaceElementRt), "Rte")]
     [JsonDerivedType(typeof(CardFaceElementImage), "Image")]
     [Table("CardFaceElements")] 
@@ -43,9 +42,6 @@ namespace Models.Cards
 
         [NotMapped]
         public long Id { get => CardFaceElementId; set => CardFaceElementId = value; }
-
-        [NotMapped]
-         public string CardFaceElementType {get; set;}
 
         public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
@@ -61,7 +57,7 @@ namespace Models.Cards
      [Table("CardFaceElementImages")]
     public class CardFaceElementImage : CardFaceElement
     {
-        public long ImageFileMetadataId {get; set;}
+        public long? ImageFileMetadataId {get; set;}
         [ForeignKey("ImageFileMetadataId")]
         public FileMetadata? ImageFileMetadata {get; set;}
     }

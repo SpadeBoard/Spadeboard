@@ -11,9 +11,8 @@ using System.Configuration;
 using Microsoft.Build.Exceptions;
 using Services;
 using Models.Bridge;
-using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-
+using System.Text.Json;
 namespace backend.Controllers
 {
     [Route("api/[controller]")]
@@ -150,6 +149,8 @@ namespace backend.Controllers
         {
             try
             {
+                Console.WriteLine(JsonSerializer.Serialize(cardEditorCardDto, new JsonSerializerOptions { WriteIndented = true }));
+
                 CardEditorCardDto newCardEditorCardDto = await _cardEditorCardDtoService.CreateDtoAsync(cardEditorCardDto);           
                 return CreatedAtAction("GetCardEditorCardDto", new { id = newCardEditorCardDto.Card.CardId }, newCardEditorCardDto);
             }
