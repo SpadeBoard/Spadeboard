@@ -546,7 +546,7 @@ export class CardEditorPreviewService {
     }
   }
 
-  postOperation() {
+  postCardApiOperation() {
     this.markOrphanedData();
 
     // We want to set the file metadata to attached when we create the card, because there's no point of updating it from pending unless it's actually already created
@@ -555,50 +555,70 @@ export class CardEditorPreviewService {
   }
 
   // TODO: Create a function to get all text content, convert them to BB Code then save them
-  // TODO: Split this function in two
   createCard(): void {
     // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
     // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
 
+    if (!this.isNewCardEditorCardDto())
+      throw new Error("Creating from a previous card and therefore should be duplicated");
+
+    this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)
+      .subscribe({
+        next: (createResult: CardEditorCardDto | undefined) => {
+          if (isCardEditorCardDto(createResult)) {
+            this.cardEditorCardDto = createResult;
+
+            this.reloadCurrentCardEditorCardFaceDto();
+            this.setOnCreateCard();
+
+            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
+
+            this.postCardApiOperation();
+          }
+        },
+        error: (err) => {
+          console.error('Something went wrong:', err);
+        }
+      });
+  }
+
+  duplicateCard(): void {
+    // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
+    // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
+
     // Conditionally returns one observable or another, and you can then chain your API cal
-    let isDuplicate: boolean = parseFloat(this.cardEditorCardDto.card.cardId) > 0;
+    if (this.isNewCardEditorCardDto())
+      throw new Error("Card is new and therefore should not be duplicated");
 
-    // TODO: Also duplicate the card face thumbnails and update those
-    iif(
-      () => isDuplicate,
-      forkJoin([
-        this.duplicateCardFaceElementImages$(this.cardEditorCardDto),
-        this.duplicateCardFaceThumbnails$(this.cardEditorCardDto),
-      ]),
-      of(undefined)
-    )
-    .pipe(
-      switchMap(() =>this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
-      takeUntilDestroyed(this.destroyRef)
-    )
-    .subscribe({
-      next: (createResult: CardEditorCardDto | undefined) => {
-        if (isCardEditorCardDto(createResult)) {
-          this.cardEditorCardDto = createResult;
+    forkJoin([
+      this.duplicateCardFaceElementImages$(this.cardEditorCardDto),
+      this.duplicateCardFaceThumbnails$(this.cardEditorCardDto),
+    ])
+      .pipe(
+        switchMap(() => this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (createResult: CardEditorCardDto | undefined) => {
+          if (isCardEditorCardDto(createResult)) {
+            this.cardEditorCardDto = createResult;
 
-          this.reloadCurrentCardEditorCardFaceDto();
-          this.setOnCreateCard();
+            this.reloadCurrentCardEditorCardFaceDto();
+            this.setOnCreateCard();
 
-          // TODO: Remember to use file metadata file path instead of thumbnail image file path
-          this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
+            // TODO: Remember to use file metadata file path instead of thumbnail image file path
+            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
 
-          this.postOperation();
+            this.postCardApiOperation();
 
-          // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
-          if (isDuplicate) {
+            // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
             this.cardFaceElementsPerCardFaceDelete = [];
           }
+        },
+        error: (err) => {
+          console.error('Something went wrong:', err);
         }
-      },
-      error: (err) => {
-        console.error('Something went wrong:', err);
-      }
-    });
+      });
   }
 
   updateCard(): void {
@@ -630,7 +650,7 @@ export class CardEditorPreviewService {
             // TODO: Remember to use file metadata file path instead of thumbnail image file path
             this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);
           
-            this.postOperation();
+            this.postCardApiOperation();
           }
         },
         error: (err) => {

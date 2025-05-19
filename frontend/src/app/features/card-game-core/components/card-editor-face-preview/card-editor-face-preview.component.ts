@@ -165,17 +165,13 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
           throw new Error("Card face thumbnail file path was never updated");
         }
 
-        this.cardEditorPreviewService.createCard();
+        if (this.cardEditorPreviewService.isNewCardEditorCardDto()) {
+          this.cardEditorPreviewService.createCard();
+        }
+        else {
+          this.cardEditorPreviewService.duplicateCard();
+        }
       });
-
-    /*this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((images: FormData[]) => {
-     if (!this.handleUpdateCardFaceImages(images.length))
-        return;
-
-      this.cardEditorPreviewService.createCard();
-    });*/
   }
 
   saveCard() {
