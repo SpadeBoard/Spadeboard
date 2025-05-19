@@ -427,6 +427,10 @@ export class CardEditorPreviewService {
         cardFace: dto.cardFace
       }));
 
+    // Emit an empty array if there are no observables to join to continue onto switch map
+    if (itemsToDuplicate.length <= 0)
+      return of([]);
+
     let duplicationObservables = itemsToDuplicate.map(item => this.duplicateFile$(item.fileMetadata, 'card-face', '/app/backend/card-face-thumbnail-images').pipe(
         tap((newFileMetadata: FileMetadata | undefined) => {
           if (newFileMetadata) {
@@ -436,7 +440,11 @@ export class CardEditorPreviewService {
       )
     );
 
-    // Run all in parallel and return the results as an array
+    // Emit an empty array if there are no observables to join to continue onto switch map
+    if (duplicationObservables.length === 0) {
+      return of([]);
+    }
+
     return forkJoin(duplicationObservables).pipe(takeUntilDestroyed(this.destroyRef));
   }
 
@@ -482,6 +490,10 @@ export class CardEditorPreviewService {
           elements.push(cardFaceElementPerCardFace);
         });
     });
+
+    if (observables.length <= 0) {
+      return of(undefined); // Ensures emission if nothing to duplicate
+    }
 
     return forkJoin(observables).pipe(
       map(() => void 0),
@@ -537,8 +549,6 @@ export class CardEditorPreviewService {
   }
 
   postCardApiOperation() {
-    this.markOrphanedData();
-
     // We want to set the file metadata to attached when we create the card, because there's no point of updating it from pending unless it's actually already created
     this.attachAllCardFaceThumbnails(this.cardEditorCardDto);
     this.attachAllCardFaceElementImages(this.cardEditorCardDto);
@@ -559,10 +569,11 @@ export class CardEditorPreviewService {
             this.cardEditorCardDto = createResult;
 
             this.reloadCurrentCardEditorCardFaceDto();
+
             this.setOnCreateCard();
-
-            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
-
+            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);   
+            
+            this.markOrphanedData();
             this.postCardApiOperation();
           }
         },
@@ -594,14 +605,15 @@ export class CardEditorPreviewService {
             this.cardEditorCardDto = createResult;
 
             this.reloadCurrentCardEditorCardFaceDto();
+
             this.setOnCreateCard();
-
-            // TODO: Remember to use file metadata file path instead of thumbnail image file path
-            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
-
+            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);    // TODO: Remember to use file metadata file path instead of thumbnail image file path
+            
             this.postCardApiOperation();
 
             // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
+            // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
+            this.orphanedFileMetadata = [];
             this.cardFaceElementsPerCardFaceDelete = [];
           }
         },
@@ -635,11 +647,11 @@ export class CardEditorPreviewService {
             this.cardEditorCardDto = updateResult;
 
             this.reloadCurrentCardEditorCardFaceDto();
-            this.setOnUpdateCard();
 
-            // TODO: Remember to use file metadata file path instead of thumbnail image file path
-            this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);
+            this.setOnUpdateCard();
+            this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // TODO: Remember to use file metadata file path instead of thumbnail image file path
           
+            this.markOrphanedData();
             this.postCardApiOperation();
           }
         },
