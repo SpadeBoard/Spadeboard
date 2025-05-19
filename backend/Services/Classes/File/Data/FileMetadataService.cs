@@ -63,6 +63,18 @@ namespace Services
             return changes > 0;
         }
 
+        public async Task<bool> MarkAsOrphanedByIdAsync(long fileMetadataId)
+        {
+            FileMetadata? fileMetadata =  await GetAsync(fileMetadataId);
+
+            if (fileMetadata == null) {
+                return false;
+            }
+
+            fileMetadata.FileMetadataStatus = FileMetadataStatus.Orphaned;
+            return await UpdateAsync(fileMetadata.FileMetadataId, fileMetadata);
+        }
+
         public async Task<bool> MarkPendingToOrphanedAsync()
         {
            List<FileMetadata> pendingFiles = await _context.FileMetadata

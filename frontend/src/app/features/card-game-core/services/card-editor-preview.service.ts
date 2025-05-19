@@ -207,7 +207,6 @@ export class CardEditorPreviewService {
     this.onDeleteCardFaceElementPerCardFace$$.next();
   }
 
-  // TODO: Fix how this check actually works, just check whether it exists in the database because we gotta use the Snowflake Algorithm
   doesCardFaceElementPerCardFaceToDeleteExistInDatabase(cardFaceElementPerCardFaceId: string): boolean {
     return /^\d{17,20}$/.test(cardFaceElementPerCardFaceId);
   }
@@ -375,15 +374,6 @@ export class CardEditorPreviewService {
       );
 
     this.attachFileMetadata(fileMetadatas);
-  }
-
-  // This is for when you're deleting cards
-  orphanAllCardFaceThumbnails(cardEditorCardDto: CardEditorCardDto) {
-     let fileMetadatas: FileMetadata[] = cardEditorCardDto.cardEditorCardFacesDto
-      .map((cardEditorCardFaceDto: CardEditorCardFaceDto) => cardEditorCardFaceDto.cardFace.cardFaceThumbnailFileMetadata)
-      .filter((fm): fm is FileMetadata => fm != null);
-
-    this.orphanFileMetadata(fileMetadatas);
   }
 
   // NOTE: This should be called whenever you upload an image
@@ -665,19 +655,8 @@ export class CardEditorPreviewService {
       throw new Error("Can't delete card as it's being edited");
     }
 
-    // We're just marking the file metadata
-    // Furthermore, when we're deleting a card, we're not actually modifying the metadata in any way
-    this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
-      .pipe(
-        tap((cardEditorCardDto: CardEditorCardDto | undefined) => {
-          if (cardEditorCardDto) {
-            this.orphanAllCardFaceThumbnails(cardEditorCardDto)
-          }
-        },
-        ),
-        switchMap(() => this.cardApiService.deleteCardEditorCardDto$(cardId)),
-      )
-      .subscribe(() => { this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);});
+    this.cardApiService.deleteCardEditorCardDto$(cardId)
+    .subscribe(() => { this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);});
   }
 
   reloadCurrentCardEditorCardFaceDto() {

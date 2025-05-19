@@ -10,6 +10,7 @@ using Models.Cards;
 using System.Net.Sockets;
 using Newtonsoft.Json;
 using Algorithms;
+using Models.Files;
 
 namespace Services
 {
@@ -66,6 +67,14 @@ namespace Services
             if (nav == null)
             {
                 return false;
+            }
+
+            // We're just marking the file metadata
+            // Furthermore, when we're deleting a card, we're not actually modifying the metadata in any way
+            // For consistency, just do it in backend, don't do it in frontend
+            if (nav.CardFaceThumbnailFileMetadataId != null)
+            {
+               await _fileMetadataService.MarkAsOrphanedByIdAsync(nav.CardFaceThumbnailFileMetadataId.Value);
             }
             
             _context.CardFace.Remove(nav);

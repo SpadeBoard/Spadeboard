@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Models.Files;
 
 namespace Services
@@ -10,6 +11,7 @@ namespace Services
     {
         public Task<bool> UpdateStatusByVolumePathAndFileNameAsync(string volumePath, string fileName, FileMetadataStatus fileMetadataStatus);
         public Task<bool> MarkPendingToOrphanedAsync();
+        public Task<bool> MarkAsOrphanedByIdAsync(long fileMetadataId);
         public Task<bool> DeleteFilesByThresholdDataAsync( DateTime thresholdDate, CancellationToken cancellationToken);
     }
 }

@@ -127,12 +127,7 @@ namespace Services
             // TODO: Refactor
             if (cardFaceElement is CardFaceElementImage imageElement && imageElement.ImageFileMetadataId != null)
             {
-               FileMetadata? fileMetadata =  await _fileMetadataService.GetAsync(imageElement.ImageFileMetadataId.Value);
-            
-                if (fileMetadata != null) {
-                    fileMetadata.FileMetadataStatus = FileMetadataStatus.Orphaned;
-                    await _fileMetadataService.UpdateAsync(fileMetadata.FileMetadataId, fileMetadata);
-                }
+                await _fileMetadataService.MarkAsOrphanedByIdAsync(imageElement.ImageFileMetadataId.Value);
             }
 
             _context.CardFaceElement.Remove(cardFaceElement);
