@@ -39,8 +39,8 @@ export class CardFaceRtComponent {
       spellcheck: false,
       height: 'fit-content',
       width: 'fit-content',
-      minHeight: 'fit-content',
-      minWidth: 'fit-content',
+      minHeight: '25px',
+      minWidth: '50px',
       maxHeight: this.maxHeight(),
       enableToolbar: false,
       showToolbar: false,
@@ -55,13 +55,13 @@ export class CardFaceRtComponent {
     this.html = bbCodeToHtml(bbCode);
   }
 
-  setHtml(cardFaceElementDto: CardFaceElementDto): void {
+  /*setHtml(cardFaceElementDto: CardFaceElementDto): void {
     this.setHtmlContent(cardFaceElementDto.cardFaceElement.cardFaceElementContent);
 
     if (cardFaceElementDto.cardFaceElement.style === undefined)
       return;
 
-  }
+  }*/
 
   getInnerHtml(): string | null {
     return decodeHtml(this.html);

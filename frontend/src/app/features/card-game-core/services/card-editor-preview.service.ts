@@ -1,7 +1,7 @@
 import { DestroyRef, effect, inject, Injectable } from '@angular/core';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardEditorCardDto } from '../models/card';
-import { CardFaceElement, CardFaceElementPerCardFace } from '../models/card-face-element';
+import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace } from '../models/card-face-element';
 import { catchError, concatMap, defer, EMPTY, forkJoin, from, iif, map, mergeMap, Observable, of, Subject, switchMap, tap } from 'rxjs';
 import { FileUploadApiService } from '../../../utils/services/file-upload-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
@@ -378,36 +378,42 @@ export class CardEditorPreviewService {
   // Again, returning it here should be fine, we're assignng the card face element content based on the return value anyways
   createCardFaceElementImage$(cardFaceElementImageId: string, cardFaceElementImage?: FormData
   ): Observable<string | undefined> {
-    let cardFaceElementImageFilePath: string | undefined = this.getCurrentCardFaceElementsPerCardFace()
-      .find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementImageId)
-      ?.cardFaceElement.cardFaceElementContent;
+    let found:  CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementsPerCardFace()
+      .find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementImageId && c.cardFaceElement.cardFaceElementType === "Image");
 
-    // We all this here because this means that we're overriding an already saved file to mark it to delete
-    if (this.cardEditorCardDto.card.cardId != "0") {
-      // this.markFileMetadataStatus(fileMetadataId);
-    }
+    if (!found || found.cardFaceElement.cardFaceElementType !== "Image")
+      return EMPTY;
+
+    let imageFileMetadata: FileMetadata | undefined = (found.cardFaceElement as CardFaceElementImage).imageFileMetadata;
+
+    // Basically assumes that we have a previous file metadata and am overriding it
+    if (imageFileMetadata)
+      this.orphanedFileMetadata.push(imageFileMetadata);
 
     if (cardFaceElementImage !== undefined) {
       return this.fileUploadApiService.uploadFile$(cardFaceElementImage, 'card-face-element-image').pipe(
-        map((result: { id: string | undefined }) => {
+        switchMap((result: { id: string | undefined }) => {
           console.log('Upload card face element image result:', result);
-          if (!result.id) return undefined;
+          if (!result.id) return of(undefined);
 
-          // TODO: Really do replace this, it shouldn't be here
           let cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
-
-          // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
-          // When we get to that point, the backend will handle settingcreationDate to null
-          this.createFileMetaData$(cardFaceElementImageFilePath, result.id, FileMetadataStatus.Pending)
-            .pipe(takeUntilDestroyed(this.destroyRef));
-
-          cardFaceElementImageFilePath = result.id;
-          return cardFaceElementImageFilePath;
-        })
+        
+          return this.createFileMetaData$(cardFaceElementImageFilePath, result.id, FileMetadataStatus.Pending).pipe(
+            map((newFileMetadata: FileMetadata | undefined) => {
+              if (newFileMetadata) {
+                (found.cardFaceElement as CardFaceElementImage).imageFileMetadata = newFileMetadata;
+                return newFileMetadata.fileName;
+              }
+        
+              return result.id;
+            })
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
       );
     }
 
-    return of(cardFaceElementImageFilePath);
+    return of(imageFileMetadata.fileName);
   }
 
   duplicateCardFaceThumbnails$(cardEditorCardDto: CardEditorCardDto): Observable<(FileMetadata | undefined)[]> {
@@ -480,11 +486,13 @@ export class CardEditorPreviewService {
     cardEditorCardDto.cardEditorCardFacesDto.forEach((cardEditorCardFaceDto: CardEditorCardFaceDto) => {
       cardEditorCardFaceDto.cardFaceElementsPerCardFace
         .filter(cardFaceElementPerCardFace =>
-          cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType === "image" && cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId.match(/^\d{17,19}$/)           // NOTE: This means that the card face image element hasn't actually been created yet and therefore doesn't have a Snowflake ID, there's no point of duplicating
+          cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType === "Image" && cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId.match(/^\d{17,19}$/)           // NOTE: This means that the card face image element hasn't actually been created yet and therefore doesn't have a Snowflake ID, there's no point of duplicating
         )
-        .forEach(cardFaceElementPerCardFace => {
+        .forEach((cardFaceElementPerCardFace: CardFaceElementPerCardFace) => {
+          let cardFaceElementImage: CardFaceElementImage = cardFaceElementPerCardFace.cardFaceElement as CardFaceElementImage;
+          
           observables.push(
-            this.duplicateCardFaceElementImage$(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent)
+            this.duplicateCardFaceElementImage$(cardFaceElementImage.imageFileMetadata.fileName)
               .pipe(takeUntilDestroyed(this.destroyRef))
           );
           elements.push(cardFaceElementPerCardFace);
@@ -495,7 +503,7 @@ export class CardEditorPreviewService {
       map((results: Array<string | undefined>) => {
         results.forEach((result, idx) => {
           if (result) {
-            elements[idx].cardFaceElement.cardFaceElementContent = result;
+            (elements[idx].cardFaceElement as CardFaceElementImage).imageFileMetadata.fileName = result;
           }
         });
         return; // Emit void to signal completion

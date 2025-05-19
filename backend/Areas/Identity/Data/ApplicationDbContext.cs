@@ -19,6 +19,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         
         builder.HasPostgresEnum<FileMetadataStatus>();
 
+        // CHECKME: Do we want these as sets
+        builder.Entity<CardFaceElementImage>();
+        builder.Entity<CardFaceElementRt>();
+
+        builder.Entity<CardFaceElement>().UseTptMappingStrategy();
+
+
         // FIXME: TEMPORARY SEED DATA
         builder.Entity<GameRoom>()
             .HasData(new GameRoom

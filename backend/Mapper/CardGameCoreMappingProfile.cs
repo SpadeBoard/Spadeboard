@@ -52,7 +52,12 @@ namespace Mapper
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Long -> String
-            CreateMap<CardFaceElement, CardFaceElementDto>();
+            CreateMap<CardFaceElement, CardFaceElementDto>()
+                .Include<CardFaceElementRt, CardFaceElementRtDto>()
+                .Include<CardFaceElementImage, CardFaceElementImageDto>();
+
+            CreateMap<CardFaceElementRt, CardFaceElementRtDto>();
+            CreateMap<CardFaceElementImage, CardFaceElementImageDto>();
 
             // String -> Long
             CreateMap<CardFaceElementDto, CardFaceElement>()

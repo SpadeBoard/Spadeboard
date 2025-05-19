@@ -117,10 +117,10 @@ namespace Services
                 return false;
             }
 
-            if (cardFaceElement.CardFaceElementType == "image" && cardFaceElement.CardFaceElementContent != null) {
+            /*if (cardFaceElement.CardFaceElementType == "Image" && cardFaceElement.CardFaceElementContent != null) {
                 // TODO: Instead of deleting right here, we go to the file and set the last used date to now
                 await _fileUploadService.DeleteCardFaceElementImageFileAsync(cardFaceElement.CardFaceElementContent);
-            }
+            }*/
 
             _context.CardFaceElement.Remove(cardFaceElement);
 

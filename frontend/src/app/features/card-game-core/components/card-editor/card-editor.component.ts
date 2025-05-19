@@ -59,22 +59,13 @@ export class CardEditorComponent implements AfterViewInit {
 
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
 
-  private currentCardFaceElementId: string = "-1";
-
   constructor() {
-    this.setCurrentCardFaceElementsPerCardFace();
-
     this.onEnableImageEditor();
     this.onDisableImageEditor();
   }
 
   ngAfterViewInit(): void {
 
-  }
-
-  setCardEditorCardDto(newCardEditorCardDto: CardEditorCardDto) {
-    if (!newCardEditorCardDto || parseFloat(newCardEditorCardDto.card.cardId) === undefined || parseFloat(newCardEditorCardDto.card.cardId) < 0) return;
-      this.cardEditorCardDto = newCardEditorCardDto;
   }
 
   isCurrentPopupMenuOpen: boolean = false;
@@ -124,129 +115,11 @@ export class CardEditorComponent implements AfterViewInit {
     ]
   });*/
 
-  // ASSUMPTIONS
-  // Empty card faces have already been made and will be used to assign to currentCardEditorCardFaceDto
-  // Card face probably has an associated dimension with it
-  currentCardEditorCardFaceDto: CardEditorCardFaceDto= {
-    cardFace: {
-      cardFaceId: "0",
-      style: {
-        styleId: "0"
-      }
-    },
-    cardFaceElementsPerCardFace: []
-  };
-
-  cardEditorCardDto: CardEditorCardDto = {
-    card: {
-      cardId: "0",
-      currentCardFaceIndex: 0,
-      cardName: '',
-      isTemplate: false
-    },
-    ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
-    cardEditorCardFacesDto: [
-      {
-        cardFace: {
-          cardFaceId: "0",
-          style: {
-            styleId: "0",
-            width: '100', // Modify
-            height: '100', //Modify
-            zIndex: 'inherit',
-            border: '2px dotted rgb(204, 204, 204)'
-          }
-        },
-        cardFaceElementsPerCardFace: [
-        ]
-      },
-      {
-        cardFace: {
-          cardFaceId: "-1",
-          style: {
-            styleId: "0",
-            width: '100', // Modify
-            height: '100', //Modify
-            zIndex: 'inherit',
-            border: '2px dotted rgb(204, 204, 204)'
-          },
-        },
-        cardFaceElementsPerCardFace: []
-      }
-    ]
-  };
-
   // initialPosition: DndPosition = {x: 0, y: 0};
-
-  currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [
-
-  ];
-
-  setCurrentCardFaceElementsPerCardFace(): void {
-    this.currentCardFaceElementsPerCardFace = this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace;
-    
-    // console.log(`Set current card face elements per card face: ${JSON.stringify(this.currentCardFaceElementsPerCardFace)}`);
-  }
-
-  position: DndPosition = {
-    x: 0, y: 0,
-    dndPositionId: "0"
-  };
 
   // TODO: Use ngx-color-picker for picking colors on the card face
 
   private currentPopupMenu: number | null = 0;
-
-
-  getCardFaceElementPerCardFace(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementId: string): CardFaceElementPerCardFace | null {
-    let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
-      cardFaceElement: {
-        cardFaceElementId: "0",
-        cardFaceElementContent: '',
-        style: {
-          styleId: "0"
-        }
-      },
-      dndItem: {
-        dndItemId: "0",
-        isDraggable: false,
-        isDroppable: false
-      },
-      dndPosition: {
-        x: 0,
-        y: 0,
-        dndPositionId: "0"
-      },
-      cardFaceElementPerCardFaceId: "0"
-    };
-
-    let value = cardFaceElementsPerCardFace.find(
-      element => element.cardFaceElement.cardFaceElementId === cardFaceElementId
-    );
-
-    if (value !== undefined)
-      cardFaceElementPerCardFace = value;
-
-    // console.log(`Get card face element per card face: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
-
-    return cardFaceElementPerCardFace;
-  }
-
-  updateCardFaceElementPerCardFace(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementPerCardFace: CardFaceElementPerCardFace): boolean {
-    let index = cardFaceElementsPerCardFace.findIndex(
-      (element: CardFaceElementPerCardFace) => element.cardFaceElement.cardFaceElementId === cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId
-    );
-  
-    if (index > -1) {
-      cardFaceElementsPerCardFace[index] = { ...cardFaceElementPerCardFace };
-      
-      // console.log(`Update card face element per card face - true: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
-      return true;
-    }
-
-    // console.log(`Update card face element per card face - false: ${JSON.stringify(cardFaceElementsPerCardFace)}`);
-    return false;
-  }
 
   // Open the popup menu
   // TODO: Instead of using outlets and injectors, we should be using services
@@ -274,26 +147,11 @@ export class CardEditorComponent implements AfterViewInit {
     })
   }
 
-
-  // TODO: Actually determine whether you should be able to have more than two sides to a card, then use this to loop through and actually add them
-  // That means modifying it so that you don't forkJoin from the flattenCardFaceImage function but rather the uploading files function, map through those, create observables
-  // Take an image everytime you flip the card and assign it to this
-  // TODO: Make a function to loop through all the card faces, then add the card faces images to that
-
- // TODO: Use from to convert promise to observable, then chain it using pipe to use with uploading files
-  
-
-  // Upload the card face thumbnail images files in parallel
-  // Grab the results of those, update the various corresponding elements
-  // Create the card after update those
-
     // https://stackblitz.com/edit/angular-html2canvas-example-xfgxcv?file=src%2Fapp%2Fapp.component.ts
         // https://prasanthj.com/javascript/convet-div-to-image-in-angular/
         // https://stackblitz.com/edit/angular-html2canvas-example?file=src%2Fapp%2Fapp.component.ts
 
         // https://stackoverflow.com/questions/9664474/convert-blob-string-to-jpg-file/9664621
-        
-        // TODO: Upload the file in the backend, then replacing the cardFaceThumbnailFilePath to that file path
 
         // document.body.appendChild(canvas);
 

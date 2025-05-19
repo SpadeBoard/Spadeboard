@@ -13,10 +13,10 @@
             [attr.card-face-element-id]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
             #cardFaceElement>
             @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
-                @case ("rte") {
+                @case ("Rte") {
                     <app-card-face-rt 
                         (mousedown)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [content]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent">
+                        [content]="getCardFaceElementRtContentByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
                         @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
                             <div class="example-handle" cdkDragHandle>
                                 <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
@@ -33,10 +33,10 @@
                                 [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId" />
                         }
                     }
-                @case ("image") {
+                @case ("Image") {
                     <app-card-face-image 
                         (mousedown)="onFocusImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [cardFaceImageSrc]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent"
+                        [cardFaceImageSrc]="getCardFaceElementImageSrcByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) ?? placeholderImageSrc"
                         [cardFaceImageWidth]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
                         [cardFaceImageHeight]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
                         <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>

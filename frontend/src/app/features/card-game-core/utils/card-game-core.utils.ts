@@ -1,5 +1,5 @@
 import { Card, CardEditorCardDto, CardPositionPerRoom } from "../models/card";
-import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace } from "../models/card-face-element";
+import { CardFaceElement, CardFaceElementDto, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from "../models/card-face-element";
 import { Deck } from "../models/deck";
 import { CardPositionPerRoomService } from "../services/card-game-core/card-position-per-room.service";
 
@@ -31,8 +31,7 @@ export function isCardFaceElement(obj: any): obj is CardFaceElement {
     return obj
         && typeof obj === 'object'
         && 'cardFaceElementId' in obj
-        && 'cardFaceId' in obj
-        && 'cardFaceElementContent' in obj;
+        && 'cardFaceElementType' in obj
 }
 
 export function isCardFaceElementDto(obj: any): obj is CardFaceElementDto {
@@ -57,4 +56,19 @@ export function isCardPositionPerRoom(obj: any): obj is CardPositionPerRoom {
         && 'dndItem' in obj
         && 'dndPosition' in obj
         && 'gameRoom' in obj
+}
+
+export function getCardFaceElementRt(cardFaceElement: CardFaceElement): CardFaceElementRt | undefined {
+    if (cardFaceElement.cardFaceElementType !== "Rte")
+        return;
+
+    return (cardFaceElement as CardFaceElementRt);
+}
+
+export function getCardFaceElementImage(cardFaceElement: CardFaceElement): CardFaceElementImage | undefined
+{
+    if (cardFaceElement.cardFaceElementType !== "Image")
+        return;
+
+    return (cardFaceElement as CardFaceElementImage);
 }

@@ -5,7 +5,6 @@ import { CardFace } from '../../models/card-face';
 import { CardFaceElement, CardFaceElementDto } from '../../models/card-face-element';
 import { convertToRelativeCoordinates } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 import { CardFaceElementApiService } from '../../services/card-game-core/card-face-element-api.service';
-import { CardFaceElementComponent } from '../card-face-element/card-face-element.component';
 import { parseCssDimensionToNumber } from '../../../style/utils/parse-css-dimensions.utils';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { isCardFaceElementDto } from '../../utils/card-game-core.utils';
@@ -19,7 +18,7 @@ import { FileMetadataStatus } from '../../../../utils/models/file-metadata';
 // TODO: When loading in the cards menu, use a hybdrid approach of storing the indices, caching the images in memory, using LRU, and only replacing the images that have changed via checking timestamp
 @Component({
   selector: 'app-card-face',
-  imports: [CardFaceElementComponent, CommonModule],
+  imports: [CommonModule],
   templateUrl: './card-face.component.html',
   styleUrl: './card-face.component.css'
 })
