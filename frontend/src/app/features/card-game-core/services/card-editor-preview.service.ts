@@ -1,8 +1,8 @@
 import { DestroyRef, effect, inject, Injectable } from '@angular/core';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardEditorCardDto } from '../models/card';
-import { CardFaceElement, CardFaceElementPerCardFace } from '../models/card-face-element';
-import { catchError, concatMap, EMPTY, forkJoin, from, map, mergeMap, Observable, of, Subject, switchMap, tap } from 'rxjs';
+import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace } from '../models/card-face-element';
+import { catchError, concatMap, defer, EMPTY, forkJoin, from, iif, map, mergeMap, Observable, of, Subject, switchMap, tap } from 'rxjs';
 import { FileUploadApiService } from '../../../utils/services/file-upload-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
 import { CardApiService } from './card-game-core/card-api.service';
@@ -11,6 +11,8 @@ import { Style } from '../../style/models/style';
 import { DndPosition } from '../../drag-and-drop/models/dnd-types';
 import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FileMetadata, FileMetadataStatus } from '../../../utils/models/file-metadata';
+import { FileMetadataApiService } from '../../../utils/services/file-metadata-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -51,7 +53,6 @@ export class CardEditorPreviewService {
         cardFace: {
           cardFaceId: "0",
           style: this.defaultCardEditorFaceStyle,
-          cardFaceThumbnailFilePath: ''
         },
         cardFaceElementsPerCardFace: [
         ]
@@ -60,7 +61,6 @@ export class CardEditorPreviewService {
         cardFace: {
           cardFaceId: "-1",
           style: this.defaultCardEditorFaceStyle,
-          cardFaceThumbnailFilePath: ''
         },
         cardFaceElementsPerCardFace: []
       }
@@ -79,6 +79,9 @@ export class CardEditorPreviewService {
 
   cardFaceImages: FormData[] = [];
 
+  private orphanedFileMetadata: FileMetadata[] = [
+
+  ];
   private cardFaceElementsPerCardFaceDelete: string[] = [
 
   ];
@@ -100,6 +103,8 @@ export class CardEditorPreviewService {
 
   private onSetCardEditorCardDtoByCardId$$: Subject<void> = new Subject<void>();
   onSetCardEditorCardDtoByCardId$: Observable<void> = this.onSetCardEditorCardDtoByCardId$$.asObservable();
+  
+  private readonly fileMetadataApiService: FileMetadataApiService = inject(FileMetadataApiService);
 
   // NOTE: For when clicking on a blank card template
   setBlankCardTemplate() {
@@ -116,7 +121,6 @@ export class CardEditorPreviewService {
           cardFace: {
             cardFaceId: "0",
             style: this.defaultCardEditorFaceStyle,
-            cardFaceThumbnailFilePath: ''
           },
           cardFaceElementsPerCardFace: [
           ]
@@ -125,7 +129,6 @@ export class CardEditorPreviewService {
           cardFace: {
             cardFaceId: "-1",
             style: this.defaultCardEditorFaceStyle,
-            cardFaceThumbnailFilePath: ''
           },
           cardFaceElementsPerCardFace: []
         }
@@ -134,12 +137,20 @@ export class CardEditorPreviewService {
   }
 
   setCardEditorCardDtoByCardId(cardId: string) {
+    // Prevents accidentally orphaning file metadata we stored for a previous card but never did anything with it
+    this.orphanedFileMetadata = [];
+
     if (parseFloat(cardId) <= 0) {
       this.setBlankCardTemplate() ;
       this.reloadCurrentCardEditorCardFaceDto();
       this.setOnSetCardEditorCardDtoByCardId();
       return;
     }
+
+    // To keep the information that we had, including the orphaned file metadata
+    // Actually this is probably unnecessary because the default state is pending, so either way, unless we're creating/saving, it will never be attached
+    /*if (this.cardEditorCardDto.card.cardId === cardId)
+      return;*/
 
     this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
     .pipe(
@@ -196,7 +207,6 @@ export class CardEditorPreviewService {
     this.onDeleteCardFaceElementPerCardFace$$.next();
   }
 
-  // TODO: Fix how this check actually works, just check whether it exists in the database because we gotta use the Snowflake Algorithm
   doesCardFaceElementPerCardFaceToDeleteExistInDatabase(cardFaceElementPerCardFaceId: string): boolean {
     return /^\d{17,20}$/.test(cardFaceElementPerCardFaceId);
   }
@@ -270,336 +280,201 @@ export class CardEditorPreviewService {
     this.setCurrentCardEditorCardFaceDto();
   }
 
-  private createCardFacesThumbnailImages$(cardFaceImages: FormData[]): Observable<CardEditorCardDto> {
-      // Wrap the promise in an observable if needed
-      // TODO: We eventually want to actually use this to have more than 2 faces
-      console.log(`Update card face thumbnail images - card face images: ${cardFaceImages}`);
-
-      if (cardFaceImages.length <= 0) {
-        return of(this.cardEditorCardDto);
-      }
-      
-      let uploadCardFaceImages$ = cardFaceImages.map((formData: FormData) =>
-        this.fileUploadApiService.uploadFile$(formData, 'card-face')
-      );
-  
-      // TODO: Replace the fork join with cardFacesFormData
-      return forkJoin(uploadCardFaceImages$).pipe(
-        tap((results: { id: string }[]) => {
-          // Map each result to the corresponding DTO
-          console.log(`Update card face images observable: ${JSON.stringify(results)}`);
-
-          results.forEach((result, index) => {
-            this.cardEditorCardDto.cardEditorCardFacesDto[index].cardFace.cardFaceThumbnailFilePath =
-              result.id;
-          });
-        }),
-        map(() => this.cardEditorCardDto),
-        takeUntilDestroyed(this.destroyRef)
-      );
-  
-      // https://rxjs.dev/api/operators/tap
+  // Again, this should be fine, we're not going to override anything, just upload the files and link to a new URL, because automatic file deletion's a thing we can do
+  createCardFaceThumbnailImage$(cardFaceIndex: number, cardFaceThumbnailImage: FormData): Observable<string | undefined> {
+    if (!cardFaceThumbnailImage) {
+      return of(undefined);
     }
 
-    private replaceCardFacesThumbnailImages$(cardFaceImages: FormData[]): Observable<CardEditorCardDto> {
-      // Wrap the promise in an observable if needed
-      // TODO: We eventually want to actually use this to have more than 2 faces
-      console.log(`Replace card face thumbnail images - card face images: ${cardFaceImages}`);
+    return this.fileUploadApiService.uploadFile$(cardFaceThumbnailImage, 'card-face').pipe(
+      switchMap((result: { id: string | undefined }) => {
+        console.log('Upload card face thumbnail image result:', result);
+        if (!result.id) return of(undefined);
 
-      if (cardFaceImages.length <= 0) {
-        return of(this.cardEditorCardDto);
-      }
-
-      let replaceCardFaceImages$ = cardFaceImages.map((formData: FormData, idx: number) => {
-        let cardFaceThumbnailFilePath = this.cardEditorCardDto.cardEditorCardFacesDto[idx].cardFace.cardFaceThumbnailFilePath;
-
-        if (cardFaceThumbnailFilePath == "")
-        {
-          // NOTE: If you create a card without flipping, then suddenly flip it after and add elements to the card face
-          // It's because there's no thumbnail image file path for that face because it never was created
-          return this.fileUploadApiService.uploadFile$(formData, 'card-face');
+        // Because files are automatically created, we just want to delay and see whether we'd need to delete those files in the first place
+        // As this is before saving or creating
+        if (this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata !== undefined) {
+          this.orphanedFileMetadata.push(this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata);
         }
 
-        return this.fileUploadApiService.replaceFile(formData, cardFaceThumbnailFilePath as string, 'card-face');
-      });
-  
-      // TODO: Replace the fork join with cardFacesFormData
-      return forkJoin(replaceCardFaceImages$).pipe(
-        tap((results: { id: string }[]) => {
-          // Map each result to the corresponding DTO
-          console.log(`Update card face images observable: ${JSON.stringify(results)}`);
+        // TODO: Really do replace this, it shouldn't be here
+        let cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
 
-          results.forEach((result, index) => {
-            this.cardEditorCardDto.cardEditorCardFacesDto[index].cardFace.cardFaceThumbnailFilePath =
-              result.id;
-          });
-        }),
-        map(() => this.cardEditorCardDto),
-        takeUntilDestroyed(this.destroyRef)
-      );
-      // https://rxjs.dev/api/operators/tap
-    }
+        // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
+        // When we get to that point, the backend will handle setting creationDate to null
+        return this.createFileMetadata$(cardFaceFilePath, result.id, FileMetadataStatus.Pending).pipe(
+          map((fileMetadata: FileMetadata | undefined) => {
+            if (fileMetadata === undefined)
+              return result.id;
 
-  // TODO: From card face elements per card face
-  updateCurrentCardFaceElementsPerCardFace(currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[]) {
-    // console.log(`Update card face elements per card face: ${JSON.stringify(this.currentCardFaceElementsPerCardFace)}`);
-    this.cardEditorCardDto.cardEditorCardFacesDto[this.getCurrentCardFaceIndex()].cardFaceElementsPerCardFace = currentCardFaceElementsPerCardFace;
-  }
-
-
-  uploadCardFaceElementsImagesAndUpdatePaths$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]): Observable<CardEditorCardDto> {
-      if (cardFaceElementsPerFace.length <=0) {
-        return of(this.cardEditorCardDto);
-      }
-  
-      // Question is is this mutable, or is there something going on with the asynchronous
-      // FIXME: Why is this out of order?
-      let imageElementIndexes: number[] = cardFaceElementsPerFace
-        .map((el: CardFaceElementPerCardFace, idx: number) =>
-          el.cardFaceElement.cardFaceElementType === 'image' ? idx : -1
-        )
-        .filter(idx => idx !== -1);
-  
-      // Create array preserving original indexes
-      let imageElementsWithIndexes = imageElementIndexes.map(idx => ({
-        element: cardFaceElementsPerFace[idx],
-       originalCardFaceElementId: cardFaceElementsPerFace[idx].cardFaceElement.cardFaceElementId
-      }));
-  
-      // Sort by ID while keeping original indexes
-      imageElementsWithIndexes.sort((a, b) =>
-        parseFloat(a.element.cardFaceElement.cardFaceElementId) -
-        parseFloat(b.element.cardFaceElement.cardFaceElementId)
-      );
-  
-      // Extract sorted elements for upload
-      let sortedImageElements = imageElementsWithIndexes.map(x => x.element);
-      let cardFaceElementsImages$ = this.uploadCardFaceElementsImages$(sortedImageElements);
-  
-      if (cardFaceElementsImages$) {
-        return forkJoin(cardFaceElementsImages$).pipe(
-          tap((cardFaceElementsImages: { id: string | undefined }[]) => {
-            cardFaceElementsImages.forEach((dto, uploadIdx) => {
-              if (dto.id) {
-                // Use the preserved original index from sorted array
-                let originalId= imageElementsWithIndexes[uploadIdx].originalCardFaceElementId;
-                
-                this.updateCardFaceElementsImagesFilePath(
-                  cardFaceElementsPerFace,
-                  originalId,
-                  dto.id
-                );
-              }
-            });
-          }),
-          map(() => this.cardEditorCardDto),
-          catchError((err) => {
-            console.error('Error uploading card face element images:', err);
-            return of(this.cardEditorCardDto);
+            this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata = fileMetadata;
+            
+            return fileMetadata.fileName;
           }),
           takeUntilDestroyed(this.destroyRef)
         );
-      }
-    
-      console.warn('No cardFaceElementsImages to upload');
-      return of(this.cardEditorCardDto); // safer than null
-    }
-    
-    // FIXME: This isn't ever going to actually update the correct images because cardFaceElementsPerFace have more elements than what's being passed in.
-    updateCardFaceElementsImagesFilePath(cardFaceElementsPerFace: CardFaceElementPerCardFace[], originalCardFaceElementId: string, filePath: string) {
-      // console.log(`Update card face elements images file path: ${JSON.stringify(cardFaceElementsPerFace)}`);
-      
-      let targetElement = cardFaceElementsPerFace.find(element => 
-        element.cardFaceElement.cardFaceElementId === originalCardFaceElementId
-      );
-    
-      // Update if found and is image type
-      if (targetElement && targetElement.cardFaceElement.cardFaceElementType === 'image') {
-        targetElement.cardFaceElement.cardFaceElementContent = filePath;
-      }
-    }
-    
-    uploadCardFaceElementsImages$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]): Observable<{
-      id: string | undefined;
-    }>[] | undefined {
-      let cardFaceElementsImages$: Observable<{
-        id: string | undefined;
-      }>[] = [];
-    
-      if (cardFaceElementsPerFace === undefined)
-        return [];
-      
-      cardFaceElementsPerFace.forEach((dto)=> {
-        cardFaceElementsImages$.push(this.uploadCardFaceElementImage$(dto as CardFaceElementPerCardFace));
-      });
-    
-      // console.log(`Added to cardFaceElementsImages$`);
-    
-      return cardFaceElementsImages$;
-    }
-  // TODO:
-  // https://stackoverflow.com/questions/35676451/observable-forkjoin-and-array-argument
-  // Upload the card face elements image files in parallel
-  uploadCardFaceElementImage$(cardFaceElementPerCardFace: CardFaceElementPerCardFace): Observable<{
-    id: string | undefined;
-  }> {
-    if (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType !== 'image')
-      return of({ id: undefined });
+      })
+    );
+  }
 
-    // CHECKME: Is this correct?
-    let content: string = cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent;
 
-    let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
+  createFileMetadata$(volumePath: string, fileName: string, fileMetadataStatus: FileMetadataStatus
+  ): Observable<FileMetadata | undefined> {
+    const fileMetadata: FileMetadata = {
+      fileMetadataId: '0',
+      volumePath: volumePath,
+      fileName: fileName,
+      creationDate: new Date(),
+      fileMetadataStatus: fileMetadataStatus
+    };
 
-    // NOTE: This means that the element's image was already created
-    // The bug occurs when you create from an already created image, but do not change the image element
-    if (content.match(guidPattern)) {
-      return this.fileUploadApiService.replaceFilePath$(content, 'card-face-element-image');
-    }
-    
-    // let dataUrl: string = cardFaceElementPerCardFace.cardFaceElement?.cardFaceElementContent.replace(/^data:image\/\w+;base64,/, '');
-
-    // https://stackoverflow.com/questions/11876175/how-to-get-a-file-or-blob-from-an-object-url
-    // let blob = await fetch(url).then(r => r.blob());
-    // Handle blob: URL
-
-    // TODO: Have a message showing that the element image faces are too big and don't create if that's the case
-    return this.getImageFormData$(content).pipe(
-      switchMap(formData => {
-        if (!formData) {
-          return of({ id: undefined });
+    return this.fileMetadataApiService.createFileMetadata$(fileMetadata).pipe(
+      tap(result => {
+        if (result === undefined) {
+          throw new Error("File metadata wasn't able to be created");
         }
-        return this.fileUploadApiService.uploadFile$(formData, 'card-face-element-image');
-      }),
+        console.log(`Created file metadata: ${JSON.stringify(result)}`);
+      })
+    );
+  }
+
+  orphanFileMetadata(fileMetadata: FileMetadata[]) {
+    fileMetadata.forEach((fm: FileMetadata) => {
+      fm.fileMetadataStatus = FileMetadataStatus.Orphaned;
+    });
+
+    this.fileMetadataApiService.updateAllFileMetadata$(fileMetadata).subscribe({
+      next: () => fileMetadata = [],
+      error: err => console.error('Update all file metadata failed', err)
+    });
+  }
+
+  // NOTE: This should be called whenever you upload an image
+  // Again, returning it here should be fine, we're assignng the card face element content based on the return value anyways
+  createCardFaceElementImage$(cardFaceElementImageId: string, cardFaceElementImage: FormData
+  ): Observable<FileMetadata | undefined> {
+    let found:  CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementsPerCardFace()
+      .find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementImageId && c.cardFaceElement.cardFaceElementType === "Image");
+
+    if (!found || found.cardFaceElement.cardFaceElementType !== "Image")
+      return EMPTY;
+
+    let imageFileMetadata: FileMetadata | undefined = (found.cardFaceElement as CardFaceElementImage).imageFileMetadata;
+
+    if (cardFaceElementImage !== undefined) {
+      return this.fileUploadApiService.uploadFile$(cardFaceElementImage, 'card-face-element-image').pipe(
+        switchMap((result: { id: string | undefined }) => {
+          console.log('Upload card face element image result:', result);
+          if (!result.id) return of(undefined);
+
+          let cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
+        
+          return this.createFileMetadata$(cardFaceElementImageFilePath, result.id, FileMetadataStatus.Pending).pipe(
+            map((newFileMetadata: FileMetadata | undefined) => {
+              console.log(`On create file metadata${JSON.stringify(newFileMetadata)}`);
+              if (newFileMetadata) {
+                // Basically assumes that we have a previous file metadata and am overriding it
+                if (imageFileMetadata)
+                  this.orphanedFileMetadata.push(imageFileMetadata);
+
+                (found.cardFaceElement as CardFaceElementImage).imageFileMetadata = newFileMetadata;
+                return newFileMetadata;
+              }
+        
+               return undefined;
+            })
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      );
+    }
+
+    return of(undefined);
+  }
+
+  duplicateCardFaceThumbnails$(cardEditorCardDto: CardEditorCardDto): Observable<(FileMetadata | undefined)[]> {
+    let itemsToDuplicate =cardEditorCardDto.cardEditorCardFacesDto
+      .filter(dto => dto.cardFace && dto.cardFace.cardFaceThumbnailFileMetadata)
+      .map(dto => ({
+        fileMetadata: dto.cardFace.cardFaceThumbnailFileMetadata!,
+        cardFace: dto.cardFace
+      }));
+
+    // Emit an empty array if there are no observables to join to continue onto switch map
+    if (itemsToDuplicate.length <= 0)
+      return of([]);
+
+    let duplicationObservables = itemsToDuplicate.map(item => this.duplicateFile$(item.fileMetadata, 'card-face', '/app/backend/card-face-thumbnail-images').pipe(
+        tap((newFileMetadata: FileMetadata | undefined) => {
+          if (newFileMetadata) {
+            item.fileMetadata = newFileMetadata;
+          }
+        })
+      )
+    );
+
+    // Emit an empty array if there are no observables to join to continue onto switch map
+    if (duplicationObservables.length === 0) {
+      return of([]);
+    }
+
+    return forkJoin(duplicationObservables).pipe(takeUntilDestroyed(this.destroyRef));
+  }
+
+  duplicateFile$(fileMetadata: FileMetadata, fileType: string, filePath: string): Observable<FileMetadata | undefined> {
+    return this.fileUploadApiService.replaceFilePath$(fileMetadata.fileName, fileType).pipe(
+      switchMap((result: { id: string | undefined }) => {
+        if (!result.id) return of(undefined);
+        return this.createFileMetadata$(filePath, result.id, FileMetadataStatus.Pending);
+      })
+    );
+  }
+
+  duplicateCardFaceElementImages$(cardEditorCardDto: CardEditorCardDto): Observable<void> {
+    let observables: Array<Observable<FileMetadata | undefined>> = [];
+    let elements: CardFaceElementPerCardFace[] = [];
+
+    cardEditorCardDto.cardEditorCardFacesDto.forEach((cardEditorCardFaceDto: CardEditorCardFaceDto) => {
+      cardEditorCardFaceDto.cardFaceElementsPerCardFace
+        .filter(cardFaceElementPerCardFace =>
+          cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType === "Image" && cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId.match(/^\d{17,19}$/)           // NOTE: This means that the card face image element hasn't actually been created yet and therefore doesn't have a Snowflake ID, there's no point of duplicating
+        )
+        .forEach((cardFaceElementPerCardFace: CardFaceElementPerCardFace) => {
+          let cardFaceElementImage: CardFaceElementImage = cardFaceElementPerCardFace.cardFaceElement as CardFaceElementImage;
+          
+          if (cardFaceElementImage.imageFileMetadata === undefined)
+            return;
+
+          observables.push(
+            this.duplicateFile$(
+              cardFaceElementImage.imageFileMetadata,
+              'card-face-element',
+              '/app/backend/card-face-element-images'
+            ).pipe(
+              tap(newFileMetadata => {
+                if (newFileMetadata) {
+                  cardFaceElementImage.imageFileMetadata = newFileMetadata;
+                }
+              }),
+              takeUntilDestroyed(this.destroyRef)
+            )
+          );
+
+          elements.push(cardFaceElementPerCardFace);
+        });
+    });
+
+    if (observables.length <= 0) {
+      return of(undefined); // Ensures emission if nothing to duplicate
+    }
+
+    return forkJoin(observables).pipe(
+      map(() => void 0),
       takeUntilDestroyed(this.destroyRef)
     );
   }
 
-  replaceCardFaceElementsImagesAndUpdatePaths$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]): Observable<CardEditorCardDto> {
-    if (cardFaceElementsPerFace.length <=0) {
-      return of(this.cardEditorCardDto);
-    }
 
-    // Question is is this mutable, or is there something going on with the asynchronous
-    // FIXME: Why is this out of order?
-    let imageElementIndexes: number[] = cardFaceElementsPerFace
-      .map((el: CardFaceElementPerCardFace, idx: number) =>
-        el.cardFaceElement.cardFaceElementType === 'image' ? idx : -1
-      )
-      .filter(idx => idx !== -1);
-
-    // Create array preserving original indexes
-    let imageElementsWithIndexes = imageElementIndexes.map(idx => ({
-      element: cardFaceElementsPerFace[idx],
-     originalCardFaceElementId: cardFaceElementsPerFace[idx].cardFaceElement.cardFaceElementId
-    }));
-
-    // Sort by ID while keeping original indexes
-    imageElementsWithIndexes.sort((a, b) =>
-      parseFloat(a.element.cardFaceElement.cardFaceElementId) -
-      parseFloat(b.element.cardFaceElement.cardFaceElementId)
-    );
-
-    // Extract sorted elements for upload
-    let sortedImageElements = imageElementsWithIndexes.map(x => x.element);
-    let cardFaceElementsImages$ = this.replaceCardFaceElementsImages$(sortedImageElements);
-
-    if (cardFaceElementsImages$) {
-      return forkJoin(cardFaceElementsImages$).pipe(
-        tap((cardFaceElementsImages: { id: string | undefined }[]) => {
-          cardFaceElementsImages.forEach((dto, uploadIdx) => {
-            if (dto.id) {
-              // Use the preserved original index from sorted array
-              let originalId= imageElementsWithIndexes[uploadIdx].originalCardFaceElementId;
-              
-              this.updateCardFaceElementsImagesFilePath(
-                cardFaceElementsPerFace,
-                originalId,
-                dto.id
-              );
-            }
-          });
-        }),
-        map(() => this.cardEditorCardDto),
-        catchError((err) => {
-          console.error('Error uploading card face element images:', err);
-          return of(this.cardEditorCardDto);
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      );
-    }
-  
-    console.warn('No cardFaceElementsImages to upload');
-    return of(this.cardEditorCardDto); // safer than null
-  }
-
-  replaceCardFaceElementsImages$(cardFaceElementsPerFace: CardFaceElementPerCardFace[]) {
-    let cardFaceElementsImages$: Observable<{
-      id: string | undefined;
-    }>[] = [];
-
-    if (cardFaceElementsPerFace === undefined)
-      return [];
-
-    cardFaceElementsPerFace.forEach((dto) => {
-      cardFaceElementsImages$.push(this.replaceCardFaceElementImage$(dto as CardFaceElementPerCardFace));
-    });
-
-    // console.log(`Added to cardFaceElementsImages$`);
-
-    return cardFaceElementsImages$;
-  }
-
-  replaceCardFaceElementImage$(
-    cardFaceElementPerCardFace: CardFaceElementPerCardFace
-  ): Observable<{ id: string | undefined }> {
-    let element = cardFaceElementPerCardFace.cardFaceElement;
-    
-    if (element.cardFaceElementType !== 'image') {
-      return of({ id: undefined });
-    }
-
-    let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
-
-    // NOTE: Guard clausing against element type but also if it matches the pattern, that means that its content never changed
-    if (element.cardFaceElementContent.match(guidPattern)) {
-      return of({ id: element.cardFaceElementContent });
-    } // CHECKME: Should return the content, right?
-  
-    let newFile: string = element.cardFaceElementContent;
-  
-    return this.cardFaceElementApiService
-      .getCardFaceElement$(element.cardFaceElementId)
-      .pipe(
-        catchError(err => {
-          // NOTE: Treat this as undefined so that we can continue and upload the new file
-          return of(undefined);
-        }),
-        switchMap((result: CardFaceElement | undefined) =>
-          this.getImageFormData$(newFile).pipe(
-            switchMap(formData => {
-              if (!formData) {
-                console.log(`No form data.`);
-                return of({ id: undefined });
-              }
-  
-              // CHECKME: Do we put || parseFloat(this.cardEditorCardDto.card.cardId) > 0
-              if (!result) {
-                // NOTE: For adding on image elements after updating: upload as new file
-                console.log(`Replace Card Face Element Image: No existing image element`);
-                return this.fileUploadApiService.uploadFile$(formData, 'card-face-element-image');
-              } 
-              else {
-                console.log(`Replace Card Face Element Image: Existing image element`);
-                let fileName: string = result.cardFaceElementContent;
-                return this.fileUploadApiService.replaceFile(formData, fileName, 'card-face-element-image');
-              }
-            })
-          )
-        ),
-        takeUntilDestroyed(this.destroyRef)
-      );
-  }
 
   getImageFormData$(content: string): Observable<FormData | undefined> {
     // Handle blob: URL or .png URL
@@ -635,115 +510,114 @@ export class CardEditorPreviewService {
     return of(undefined);
   }
 
-  private getCardFaceElementImageFilePath(cardFaceElementId: string) {
+  markOrphanedData() {
+    if (this.orphanedFileMetadata.length <= 0)
+      throw new Error("No files to orphan");
 
-  }
-
-
-
-  private processAllCardFaces$(cardEditorCardDto: CardEditorCardDto) {
-    return forkJoin(
-      cardEditorCardDto.cardEditorCardFacesDto.map(face =>
-        this.uploadCardFaceElementsImagesAndUpdatePaths$(face.cardFaceElementsPerCardFace)
-          .pipe(
-            tap(() => console.log('Done uploading face',)),map(() => cardEditorCardDto)),
-            takeUntilDestroyed(this.destroyRef)
-      )
-    ).pipe(
-        tap(() => console.log('All faces processed')), map(() => cardEditorCardDto),
-        takeUntilDestroyed(this.destroyRef));
+    this.orphanFileMetadata(this.orphanedFileMetadata);
   }
 
   // TODO: Create a function to get all text content, convert them to BB Code then save them
-
   createCard(): void {
-    // ASSUMPTION: Always gotta have front face's image, and we might never flip
-    // FIXME: Problem is the below isn't going to run if there's no card face images
-    // this.updateCardFaceImages$(0);
+    // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
+    // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
 
-    // TODO: Try to make the this.uploadCardFaceElementsImagesAndUpdatePaths$ functions run simultaneously
-    // Order of operations:
-    // 1. this.createCardFacesThumbnailImages$
-    // 2. this.uploadCardFaceElementsImagesAndUpdatePaths$
-    // 3. this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto) (waits for the other two to finish)
+    if (!this.isNewCardEditorCardDto())
+      throw new Error("Creating from a previous card and therefore should be duplicated");
 
-    // https://blog.angular-university.io/rxjs-higher-order-mapping/
-    this.createCardFacesThumbnailImages$(this.cardFaceImages)
-      .pipe(
-        // mergeMap((cardEditorCardDto: CardEditorCardDto) => this.processAllCardFaces$(cardEditorCardDto)), // TODO: Replace the below with this
-        mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace)), 
-        mergeMap((cardEditorCardDto: CardEditorCardDto) => this.uploadCardFaceElementsImagesAndUpdatePaths$(cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace)), 
-        concatMap((cardEditorCardDto: CardEditorCardDto) => {
-          if (parseFloat(cardEditorCardDto.card.cardId) <= 0) {
-            return this.cardApiService.createCardEditorCardDto$(cardEditorCardDto);
-          } else {
-            // NOTE: Clear the elements to delete because we're creating a new card from an existing DTO, so we're not actually modifying the original card
-            this.cardFaceElementsPerCardFaceDelete = [];
-            return this.cardApiService.createCardEditorCardDtoFromExistingDto$(cardEditorCardDto);
-          }
-        }), // NOTE: Need to return an actual value
-        takeUntilDestroyed(this.destroyRef)
-      )
+    this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)
       .subscribe({
         next: (createResult: CardEditorCardDto | undefined) => {
-          // console.log('Card successfully created:', createResult);
-
           if (isCardEditorCardDto(createResult)) {
             this.cardEditorCardDto = createResult;
 
             this.reloadCurrentCardEditorCardFaceDto();
+
             this.setOnCreateCard();
-
-
-            // NOTE: For updating the card collection immediately
-            // ASSUMPTION: You can only create a card as a user,, or save a new card from a card in the room for that user
-            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);
+            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);   
+            
+            this.markOrphanedData();
           }
         },
         error: (err) => {
           console.error('Something went wrong:', err);
         }
-      }
-    );
+      });
+  }
+
+  duplicateCard(): void {
+    // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
+    // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
+
+    // Conditionally returns one observable or another, and you can then chain your API cal
+    if (this.isNewCardEditorCardDto())
+      throw new Error("Card is new and therefore should not be duplicated");
+
+    forkJoin([
+      this.duplicateCardFaceElementImages$(this.cardEditorCardDto),
+      this.duplicateCardFaceThumbnails$(this.cardEditorCardDto),
+    ])
+      .pipe(
+        switchMap(() => this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (createResult: CardEditorCardDto | undefined) => {
+          if (isCardEditorCardDto(createResult)) {
+            this.cardEditorCardDto = createResult;
+
+            this.reloadCurrentCardEditorCardFaceDto();
+
+            this.setOnCreateCard();
+            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);    // TODO: Remember to use file metadata file path instead of thumbnail image file path
+
+            // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
+            // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
+            this.orphanedFileMetadata = [];
+            this.cardFaceElementsPerCardFaceDelete = [];
+          }
+        },
+        error: (err) => {
+          console.error('Something went wrong:', err);
+        }
+      });
   }
 
   updateCard(): void {
-    this.deleteSavedCardFaceElementsPerCardFace$()
-    .pipe(
-      catchError(err => {
-        console.error('Delete error (ignored):', err);
-        return of([]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
-      }),
-      switchMap(() => this.replaceCardFacesThumbnailImages$(this.cardFaceImages)),
-      mergeMap((cardEditorCardDto: CardEditorCardDto) =>
-        this.replaceCardFaceElementsImagesAndUpdatePaths$(
-          cardEditorCardDto.cardEditorCardFacesDto[0].cardFaceElementsPerCardFace
-        )
-      ),
-      mergeMap((cardEditorCardDto: CardEditorCardDto) =>
-        this.replaceCardFaceElementsImagesAndUpdatePaths$(
-          cardEditorCardDto.cardEditorCardFacesDto[1].cardFaceElementsPerCardFace
-        )
-      ),
-      concatMap((cardEditorCardDto: CardEditorCardDto) =>
-        this.cardApiService.updateCardEditorCardDto$(cardEditorCardDto)
-      ),
-      takeUntilDestroyed(this.destroyRef)
+    let shouldDelete: boolean = this.cardFaceElementsPerCardFaceDelete.length > 0;
+
+    iif(
+      () => shouldDelete,
+      this.deleteSavedCardFaceElementsPerCardFace$(),
+      of(undefined)
     )
-    .subscribe({
-      next: (updateResult: CardEditorCardDto | undefined) => {
-        if (isCardEditorCardDto(updateResult)) {
-          console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
-          this.cardEditorCardDto = updateResult;
-          this.reloadCurrentCardEditorCardFaceDto();
-          this.setOnUpdateCard();
-          this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);
+      .pipe(
+        catchError(err => {
+          console.error('Delete error (ignored):', err);
+          return of([]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
+        }),
+        switchMap(() => this.cardApiService.updateCardEditorCardDto$(this.cardEditorCardDto)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (updateResult: CardEditorCardDto | undefined) => {
+          if (isCardEditorCardDto(updateResult)) {
+            console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
+
+            this.cardEditorCardDto = updateResult;
+
+            this.reloadCurrentCardEditorCardFaceDto();
+
+            this.setOnUpdateCard();
+            this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // TODO: Remember to use file metadata file path instead of thumbnail image file path
+          
+            this.markOrphanedData();
+          }
+        },
+        error: (err) => {
+          console.error('Something went wrong:', err);
         }
-      },
-      error: (err) => {
-        console.error('Something went wrong:', err);
-      }
-    });
+      });
   }
 
   deleteCard(cardId: string)
@@ -752,9 +626,8 @@ export class CardEditorPreviewService {
       throw new Error("Can't delete card as it's being edited");
     }
 
-    this.cardApiService.deleteCardEditorCardDto$(cardId).subscribe((result: void | undefined) => {
-        this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);
-    });
+    this.cardApiService.deleteCardEditorCardDto$(cardId)
+    .subscribe(() => { this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);});
   }
 
   reloadCurrentCardEditorCardFaceDto() {

@@ -5,7 +5,7 @@ import { isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { CardEditorCardFaceDto } from '../../models/card-face';
 import html2canvas from 'html2canvas';
-import { from, map, Observable, takeUntil } from 'rxjs';
+import { from, map, Observable, switchMap, takeUntil } from 'rxjs';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
 import { CommonModule } from '@angular/common';
@@ -92,15 +92,19 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   updateCardEditorCardFaceDto() {
-    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((images: FormData[]) => {
-      if (images.length <= 0)
-        return;
+    this.setCardFaceThumbnailImage$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((cardFaceThumbnailFilePath: string | undefined) => {
+        if (cardFaceThumbnailFilePath === "" || cardFaceThumbnailFilePath === undefined)
+        {
+          throw new Error("Card face thumbnail file path was never updated");
+        }
 
-      this.cardFaceElementsPerCardFace.setCurrentCardFaceElementsPerCardFace();
-      this.cardEditorPreviewService.updateCardEditorCardFaceDto();
-    })
+        this.cardFaceElementsPerCardFace.setCurrentCardFaceElementsPerCardFace();
+        this.cardEditorPreviewService.updateCardEditorCardFaceDto();
+      })
   }
 
   private onFlip() {
@@ -130,26 +134,57 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     );
   }
 
-  createCard() {
-    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((images: FormData[]) => {
-     if (!this.handleUpdateCardFaceImages(images.length))
-        return;
+  private setCardFaceThumbnailImage$(cardFaceIndex: number): Observable<string | undefined> {
+    return from(this.flattenCardFaceToImage(this.cardEditorFace)).pipe(
+      switchMap((cardFaceThumbnailImage: FormData) =>
+        this.cardEditorPreviewService
+          .createCardFaceThumbnailImage$(cardFaceIndex, cardFaceThumbnailImage)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+      ),
+      takeUntilDestroyed(this.destroyRef)
+    );
+  }
 
-      this.cardEditorPreviewService.createCard();
-    });
+  createCard() {
+    this.setCardFaceThumbnailImage$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((cardFaceThumbnailFilePath: string | undefined) => {
+        if (cardFaceThumbnailFilePath === "" || cardFaceThumbnailFilePath === undefined) {
+          throw new Error("Card face thumbnail file path was never updated");
+        }
+
+        if (this.cardEditorPreviewService.isNewCardEditorCardDto()) {
+          this.cardEditorPreviewService.createCard();
+        }
+        else {
+          this.cardEditorPreviewService.duplicateCard();
+        }
+      });
   }
 
   saveCard() {
-    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+    this.setCardFaceThumbnailImage$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((cardFaceThumbnailFilePath: string | undefined) => {
+        if (cardFaceThumbnailFilePath === "" || cardFaceThumbnailFilePath === undefined) {
+          throw new Error("Card face thumbnail file path was never updated");
+        }
+
+        this.cardEditorPreviewService.updateCard();
+      });
+
+    /*this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((images: FormData[]) => {
       if (!this.handleUpdateCardFaceImages(images.length))
         return;
 
       this.cardEditorPreviewService.updateCard();
-    });
+    });*/
   }
 
   handleUpdateCardFaceImages(imagesLength: number): boolean

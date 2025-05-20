@@ -5,6 +5,7 @@ using Data;
 using Services;
 using AutoMapper;
 using Mapper;
+using System.Text.Json.Serialization;
 
 
 string DevelopmentOrigins = "_devOrigins";
@@ -70,6 +71,16 @@ builder.Services.AddScoped<IStyleDtoService, StyleDtoService>();
 builder.Services.AddScoped<IGameRoomDtoService, GameRoomDtoService>();
 
 builder.Services.AddScoped<ICardPositionPerRoomDtoService, CardPositionPerRoomDtoService>();
+
+builder.Services.AddScoped<IFileMetadataService, FileMetadataService>();
+builder.Services.AddScoped<IFileMetadataDtoService, FileMetadataDtoService>();
+builder.Services.AddHostedService<FileCleanupService>();
+
+builder.Services.AddControllers().AddJsonOptions(options =>{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); 
+    // options.JsonSerializerOptions.AllowOutOfOrderMetadataProperties = true; // https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism By default, the $type discriminator must be placed at the start of the JSON object, grouped together with other metadata properties like $id and $ref. - TODO: only in .NET9, so let's upgrade
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;  // Problem is if we don't add this, the serialization type has to match exactly, CardFaceElementType in backend vs. cardFaceElementType in frontend // FIXME: Makes no sense why this isn't working
+});
 
 // Auto Mapper Configurations
 var mapperConfig = new MapperConfiguration(mc =>

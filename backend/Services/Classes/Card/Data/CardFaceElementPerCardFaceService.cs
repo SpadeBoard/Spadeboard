@@ -36,11 +36,6 @@ namespace Services
                 throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe CardFaceElement property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
             }
 
-            if (_cardFaceElementService.Exists(nav.CardFaceElement.CardFaceElementId))
-            {
-                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe CardFaceElement property of CardFaceElementPerCardFace has already been made.", nameof(nav));
-            }
-
             nav.CardFaceElement = await _cardFaceElementService.CreateNavAsync(nav.CardFaceElement);
             nav.CardFaceElementId = nav.CardFaceElement.CardFaceElementId;
             nav.CardFaceElement = null;
@@ -63,11 +58,6 @@ namespace Services
                 throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe DndItem property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
             }
 
-            if (_dndItemService.Exists(nav.DndItem.DndItemId))
-            {
-                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe DndItem property of CardFaceElementPerCardFace should not exist.", nameof(nav));
-            }
-
             nav.DndItem = await _dndItemService.CreateAsync(nav.DndItem);
             nav.DndItemId = nav.DndItem.DndItemId;
             nav.DndItem = null;
@@ -75,11 +65,6 @@ namespace Services
             if (nav.DndPosition == null )
             {
                 throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe DndPosition property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
-            }
-
-            if (_dndPositionService.Exists(nav.DndPosition.DndPositionId))
-            {
-                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe DndPosition property of CardFaceElementPerCardFace should not exist.", nameof(nav));
             }
 
             nav.DndPosition = await _dndPositionService.CreateAsync(nav.DndPosition);
@@ -207,7 +192,9 @@ namespace Services
             var cfepcfs = await _context.CardFaceElementPerCardFace
                 .Where(attribute => attribute.CardFaceId == cardFaceId)
                 .Include(a => a.CardFaceElement)
+                .Include(a => a.CardFaceElement)
                 .Include(a => a.CardFaceElement!.Style)
+                .Include(a => (a.CardFaceElement as CardFaceElementImage).ImageFileMetadata) // TODO: Refactor this?
                 .Include(a => a.CardFace)
                 .Include(a => a.DndItem)
                 .Include(a => a.DndPosition)

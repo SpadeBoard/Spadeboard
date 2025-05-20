@@ -137,48 +137,12 @@ export class CardsCollectionComponent {
     this.mousePosition = event.pointerPosition;
   }
 
-  replaceAllImageFilePaths(cardEditorCardDto: CardEditorCardDto): Observable<any> {
-    let allReplacements$: Observable<any>[] = [];
-     let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
-
-    cardEditorCardDto.cardEditorCardFacesDto.forEach((cardEditorCardFaceDto: CardEditorCardFaceDto) => {
-      let cardFaceImageFilePath: string = cardEditorCardFaceDto.cardFace.cardFaceThumbnailFilePath as string;
-
-      if (cardFaceImageFilePath.match(guidPattern)) {
-        let thumbnailReplacement$ = this.fileUploadApiService.replaceFilePath$(cardFaceImageFilePath, 'card-face')
-          .pipe(
-            tap((result: { id: string | undefined }) => {
-              if (result.id !== undefined) {
-                cardEditorCardFaceDto.cardFace.cardFaceThumbnailFilePath = result.id;
-              }
-            })
-          );
-
-        allReplacements$.push(thumbnailReplacement$);
-      }
-
-      // Replace each card face element image file path
-      cardEditorCardFaceDto.cardFaceElementsPerCardFace.forEach((cardFaceElementPerCardFace: CardFaceElementPerCardFace) => {
-        if (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType === "image") {
-          let filePath: string = cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent;
-
-          // NOTE: This is to make sure it doesn't attempt to copy the placeholder image if for some reason you added an image element but didn't upload an image
-          if (filePath.match(guidPattern)) {
-            let elementImageReplacement$ = this.fileUploadApiService.replaceFilePath$(filePath, 'card-face-element-image')
-              .pipe(
-                tap((result: { id: string | undefined }) => {
-                  if (result.id !== undefined) {
-                    cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent = result.id;
-                  }
-                })
-              );
-            allReplacements$.push(elementImageReplacement$);
-          }
-        }
-      });
-    });
-
-    return forkJoin(allReplacements$);
+  replaceAllImageFilePaths$(cardEditorCardDto: CardEditorCardDto): Observable<any> {
+    return forkJoin([
+      this.cardPreviewEditorService.duplicateCardFaceElementImages$(cardEditorCardDto),
+      this.cardPreviewEditorService.duplicateCardFaceThumbnails$(cardEditorCardDto)]).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      );
   }
 
   onDragDrop(event: CdkDragDrop<any[]>, item: any) {
@@ -193,54 +157,46 @@ export class CardsCollectionComponent {
         let cardEditorCardDto: CardEditorCardDto = result;
         cardEditorCardDto.ownerId = '';
 
-        this.replaceAllImageFilePaths(cardEditorCardDto)
-          .pipe(
-            switchMap(() =>
-              this.cardApiService.createCardEditorCardDtoForGameRoomFromExistingDto$(cardEditorCardDto)
-            ),
-            takeUntilDestroyed(this.destroyRef)
-          ).subscribe({
-            next: (result: CardEditorCardDto | undefined) => {
-              if (result === undefined)
-                return;
+        // TODO: Just remove the file paths and use the file metadata
+        // You'd want to duplicate card face thumbnails because it's potentially possible for a thumbnail for one card to be marked as orphan while it's still being used by something else
+        this.replaceAllImageFilePaths$(cardEditorCardDto).pipe(
+          switchMap((value: any | undefined) => this.cardApiService.createCardEditorCardDto$(cardEditorCardDto)),
+          takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+          next: (result: CardEditorCardDto | undefined) => {
+            if (result === undefined) return;
 
-              // TODO: Refactor later, this isn't optimal
-              let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+            let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+            let dndPosition = mouseAUCoordinates;
 
-              let dndPosition: {
-                gridX: number;
-                gridY: number;
-              } = mouseAUCoordinates;
+            let cpr: CardPositionPerRoom = {
+              cardPositionPerRoomId: "0",
+              card: result.card as Card,
+              dndItem: {
+                dndItemId: "0",
+                isDraggable: false,
+                isDroppable: false
+              },
+              dndPosition: {
+                dndPositionId: "0", x: dndPosition.gridX, y: dndPosition.gridY
+              } as DndPosition,
+              gameRoom: {
+                gameRoomId: "1"
+              }
+            };
 
-              let cpr: CardPositionPerRoom = {
-                cardPositionPerRoomId: "0",
-                card: result.card as Card,
-                dndItem: {
-                  dndItemId: "0",
-                  isDraggable: false,
-                  isDroppable: false
-                },
-                dndPosition: {
-                  dndPositionId: "0", x: dndPosition.gridX, y: dndPosition.gridY
-                } as DndPosition, // NOTE: Pass it as a gr id coordinate here, then convert it back into screen coordinates
-                gameRoom: {
-                  gameRoomId: "1"
-                }
-              };
+            this.createCardPositionPerRoom(cpr);
 
-              this.createCardPositionPerRoom(cpr);
-
-              console.log('All image file paths replaced!');
-            },
-            error: (err) => {
-              // Handle error
-              console.error('Error replacing image file paths:', err);
-            }
-          });
+            console.log('All image file paths replaced!');
+          },
+          error: (err) => {
+            console.error('Error replacing image file paths:', err);
+          }
+        });
       })
-    }
 
-    // console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);
+      // console.log(`Previous Container: ${event.previousContainer}, Container: ${event.container}, Is point over container: ${event.isPointerOverContainer}, Drop point: ${JSON.stringify(event.dropPoint)}, Mouse position: ${JSON.stringify(this.mousePosition)}`);
+    }
   }
 
   private createCardPositionPerRoom(cpr: CardPositionPerRoom) {

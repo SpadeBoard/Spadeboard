@@ -8,20 +8,23 @@ using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
 using Algorithms;
+using Models.Files;
 
 
 namespace Services
 {
-    public class CardFaceElementService(ApplicationDbContext context, IStyleService styleService, IFileUploadService fileUploadService) : ICardFaceElementService
+    public class CardFaceElementService(ApplicationDbContext context, IStyleService styleService, IFileUploadService fileUploadService, IFileMetadataService fileMetadataService) : ICardFaceElementService
     {
         private readonly ApplicationDbContext _context = context;
         private readonly IStyleService _styleService = styleService;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
+        private readonly IFileMetadataService _fileMetadataService = fileMetadataService;
 
         private readonly CrudService<CardFaceElement> _crudService = new(context, cardFaceElement => cardFaceElement.CardFaceElementId);
 
         public async Task<CardFaceElement> CreateAsync(CardFaceElement item)
         {
+            // TODO: Set the last used date if the element's type if image to null
             return await _crudService.CreateAsync(item);
         }
 
@@ -52,6 +55,8 @@ namespace Services
 
         public async Task<bool> UpdateAsync(long id, CardFaceElement item)
         {
+            // TODO: Set the last used date if the element's type if image to null
+
             return await _crudService.UpdateAsync(id, item);
         }
 
@@ -73,7 +78,29 @@ namespace Services
         {
             if (cardFaceElement.Style != null /*&& _styleService.IsModified(cardFaceElement.Style)*/)
                 _context.Entry(cardFaceElement.Style).State = EntityState.Modified;
-            
+
+            // TODO: Refactor this, absolutely necessary
+            if (cardFaceElement is CardFaceElementImage imageElement && imageElement.ImageFileMetadata != null)
+            {
+                // TODO: Split this into two
+                long id = imageElement.ImageFileMetadata.FileMetadataId;
+
+                // Speed
+                if (imageElement.ImageFileMetadata.FileMetadataStatus != FileMetadataStatus.Attached)
+                {
+                    await _fileMetadataService.MarkAsAttachedByIdAsync(id);
+                }
+                
+                // Ok, this has to be redundant and can be simplified somehow
+                // The problem is we're just marking the file metadata as attached, we need to reassign the imageElement.FileMetadata, and then modiify it
+                // Because we need to reassign the file metadata, else it's not going to override what we previously had
+                FileMetadata? updatedFileMetadata = await _fileMetadataService.GetAsync(id );
+                if (updatedFileMetadata != null) {
+                    imageElement.ImageFileMetadata = updatedFileMetadata;
+                    _context.Entry(imageElement.ImageFileMetadata).State = EntityState.Modified;
+                }
+            }
+
             _context.Entry(cardFaceElement).State = EntityState.Modified;
         
             try
@@ -112,8 +139,10 @@ namespace Services
                 return false;
             }
 
-            if (cardFaceElement.CardFaceElementType == "image" && cardFaceElement.CardFaceElementContent != null) {
-                await _fileUploadService.DeleteCardFaceElementImageFileAsync(cardFaceElement.CardFaceElementContent);
+            // TODO: Refactor
+            if (cardFaceElement is CardFaceElementImage imageElement && imageElement.ImageFileMetadataId != null && !await _fileMetadataService.MarkAsOrphanedByIdAsync(imageElement.ImageFileMetadataId.Value))
+            {
+               throw new Exception("Despite card face element having an image, it's not being marked as orphaned although being deleted");
             }
 
             _context.CardFaceElement.Remove(cardFaceElement);
@@ -142,6 +171,7 @@ namespace Services
         {
             var cardFaceElement = await _context.CardFaceElement
                 .Include(cardFaceElement => cardFaceElement.Style)
+                .Include(cardFaceElement => (cardFaceElement as CardFaceElementImage).ImageFileMetadata) // TODO: Please refactor this
                 .FirstOrDefaultAsync(cardFaceElement => cardFaceElement.CardFaceElementId == id);
             
             return cardFaceElement;
@@ -154,13 +184,34 @@ namespace Services
                 throw new ArgumentException("Item: CardFaceElement Face Element\nFunction: Create Nav Async\nThe Style property of CardFaceElement cannot be null.", nameof(nav));
             }
 
-            if (_styleService.Exists(nav.Style.StyleId))
+            // It's theoretically possible for a card face to never have a thumbnail image taken of
+            // TODO: Please refactor this
+            if (nav is CardFaceElementImage imageElement && imageElement.ImageFileMetadata != null)
             {
-                throw new ArgumentException("Item: CardFaceElement Face Element\nFunction: Create Nav Async\nThe Style property of CardFaceElement has already been made.", nameof(nav));
+                long fileMetadataId = imageElement.ImageFileMetadata.FileMetadataId;
+
+                if (!_fileMetadataService.Exists(fileMetadataId))
+                {
+                    throw new ArgumentException(
+                        "Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadata property of CardFace must already exist",
+                        nameof(nav));
+                }
+
+                if (!await _fileMetadataService.MarkAsAttachedByIdAsync(fileMetadataId))
+                {
+                    throw new Exception("Card face element image wasn't attached despite creating a card face element");
+                }
+
+                imageElement.ImageFileMetadataId = fileMetadataId;
+                imageElement.ImageFileMetadata = null;
             }
 
             nav.Style.StyleId = Snowflake.NewId();
             nav.CardFaceElementId = Snowflake.NewId();
+
+            nav.StyleId = 0; // Makes sure to override this
+
+            // TODO: Set the last used date if the element's type if image to null
             
             await _context.CardFaceElement.AddAsync(nav);
             int changes = await _context.SaveChangesAsync();
@@ -169,6 +220,12 @@ namespace Services
                 throw new Exception("No changes were made");
 
             await _context.Entry(nav).Reference(e => e.Style).LoadAsync();
+
+            // TODO: Please refactor this
+            if (nav is CardFaceElementImage image)
+            {
+                await _context.Entry(image).Reference(e => e.ImageFileMetadata).LoadAsync();
+            }
 
             return nav;
         }

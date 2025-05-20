@@ -109,7 +109,7 @@ export class CardApiService {
   */
 
   createCard$(card: Card): Observable<Card | undefined> {
-    if (card === undefined) {
+    if (!card) {
       return of(undefined);
     } 
     // TODO: Separate properties

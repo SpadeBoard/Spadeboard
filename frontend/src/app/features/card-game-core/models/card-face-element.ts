@@ -2,13 +2,22 @@ import { AngularEditorConfig } from "@kolkov/angular-editor";
 import { DndItem, DndItemDto } from "../../drag-and-drop/models/dnd-item";
 import { Style } from "../../style/models/style";
 import { DndDragBoundary, DndPosition } from "../../drag-and-drop/models/dnd-types";
+import { FileMetadata } from "../../../utils/models/file-metadata";
 
-// TODO: Make a CardFaceElementDto and use that instead for frontend
 export interface CardFaceElement {
-    cardFaceElementId: string;
-    cardFaceElementContent: string;
-    cardFaceElementType?: string;
-    style?: Style;
+  cardFaceElementType: 'Rte' | 'Image';
+  cardFaceElementId: string;
+  style?: Style;
+}
+
+export interface CardFaceElementRt extends CardFaceElement {
+  cardFaceElementType: 'Rte';
+  cardFaceElementContent: string;
+}
+
+export interface CardFaceElementImage extends CardFaceElement {
+  cardFaceElementType: 'Image';
+  imageFileMetadata?: FileMetadata;
 }
 
 // TODO: Fix DndItem to where it is either separated from DndPosition or has a DndItemDto

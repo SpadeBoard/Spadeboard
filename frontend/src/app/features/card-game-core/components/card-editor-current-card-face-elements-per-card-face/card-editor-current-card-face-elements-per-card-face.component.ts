@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, ElementRef, HostListener, inject, input, InputSignal, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
-import { CardFaceElementPerCardFace } from '../../models/card-face-element';
+import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from '../../models/card-face-element';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
+import { getCardFaceElementImage, getCardFaceElementRt, isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { Style } from '../../../style/models/style';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
@@ -14,11 +14,12 @@ import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 import { blobToDataURL } from '../../../../utils/utils';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
-import { distinctUntilChanged } from 'rxjs';
+import { distinctUntilChanged, EMPTY, from, switchMap } from 'rxjs';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FileMetadata } from '../../../../utils/models/file-metadata';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -33,6 +34,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
   private readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);
   
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
+
+  placeholderImageSrc: string = 'https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg';
+
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChildren('cardFaceElement') cardFaceElements!: QueryList<ElementRef>;
   
@@ -153,6 +158,38 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       })
   }
 
+  getCardFaceElementRtContentByCardFaceElementId(cardFaceElementId: string): string {
+    let cardFaceElement: CardFaceElement | undefined = this.currentCardFaceElementsPerCardFace.find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementId &&  c.cardFaceElement.cardFaceElementType === "Rte")?.cardFaceElement;
+    
+    if (!cardFaceElement)
+      throw new Error("Card face element not found");
+
+    let cardFaceElementRt: CardFaceElementRt | undefined = getCardFaceElementRt(cardFaceElement);
+
+    if (!cardFaceElementRt)
+      throw new Error("Card face element RT is undefined");
+
+    // FIXME: Why is this undefined
+    /*if (cardFaceElementRt.cardFaceElementContent === undefined)
+      throw new Error("Card face element content is undefined");*/
+
+    return cardFaceElementRt.cardFaceElementContent ?? '';
+  }
+
+  getCardFaceElementImageSrcByCardFaceElementId(cardFaceElementId: string): string | undefined {
+     let cardFaceElement: CardFaceElement | undefined = this.currentCardFaceElementsPerCardFace.find(c => c.cardFaceElement.cardFaceElementId === cardFaceElementId && c.cardFaceElement.cardFaceElementType === "Image")?.cardFaceElement;
+    
+    if (!cardFaceElement)
+      return;
+
+    let cardFaceElementImage: CardFaceElementImage | undefined = getCardFaceElementImage(cardFaceElement);
+
+    if (!cardFaceElementImage || !cardFaceElementImage.imageFileMetadata || !cardFaceElementImage.imageFileMetadata.fileName)
+      return this.placeholderImageSrc;
+
+    return cardFaceElementImage?.imageFileMetadata?.fileName ?? this.placeholderImageSrc;
+  }
+
   getCurrentCardFaceElementsPerCardFace(): void {
     this.currentCardFaceElementsPerCardFace = this.cardEditorPreviewService.getCurrentCardFaceElementsPerCardFace();
   }
@@ -170,8 +207,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
       let dndPosition = this.getRelativeDropPosition({ x: result.dndPosition.x, y: result.dndPosition.y });
 
-      // FIXME: This isn't going to work because of multiusers, are we genuinely going to need another field for this like a UUID
-      // Backend needs to convert from long to string then pass it back to frontend
       let cardFaceElementPerCardFaceId: string = (this.cardEditorPreviewService.isNewCardEditorCardDto())
         ? `${this.currentCardFaceElementsPerCardFace.length}`
         : `${this.currentCardFaceElementsPerCardFace.length + 1}`;
@@ -188,11 +223,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
       cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
       cardFaceElement: {
+        cardFaceElementType: 'Rte',
         cardFaceElementId: cardFaceElementPerCardFaceId,
-        cardFaceElementContent: '',
         style: {
           styleId: "0"
-        }
+        },
       },
       dndItem: {
         dndItemId: "0",
@@ -203,13 +238,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     }
 
     switch (type) {
-      case 'rte':
+      case 'Rte':
         cardFaceElementPerCardFace = {
           cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
           cardFaceElement: {
-            cardFaceElementId:  cardFaceElementPerCardFaceId, // TODO: Replace with this.currentCardEditorCardFaceDto.cardFaceElementPerCardFaces.length + 1
-            cardFaceElementContent: '',
-            cardFaceElementType: 'rte',
+            cardFaceElementType: 'Rte',
+            cardFaceElementId:  cardFaceElementPerCardFaceId,
             style: {
               styleId: "0",
               width: '100', // TODO: Set this for Angular Editor
@@ -225,13 +259,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
           dndPosition: dndPosition
         }
         break;
-      case 'image':
+      case 'Image':
         cardFaceElementPerCardFace = {
           cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
           cardFaceElement: {
+            cardFaceElementType: 'Image',
             cardFaceElementId:  cardFaceElementPerCardFaceId,
-            cardFaceElementContent: 'https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg',
-            cardFaceElementType: 'image',
             style: {
               styleId: "0",
               width: '100', // Modify
@@ -433,35 +466,47 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     return this.currentCardFaceElementsPerCardFace.find(cfe => cfe.cardFaceElement.cardFaceElementId === cardFaceElementId);
   }
 
+  // TODO: Move it into a utils
+
   onEnableRte(event: Event, cardFaceElementId: string) {
     this.setElementAttributes(cardFaceElementId);
 
     let currentCardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+
+    if (currentCardFaceElementPerCardFace?.cardFaceElement === undefined || currentCardFaceElementPerCardFace?.cardFaceElement.cardFaceElementType !== "Rte")
+      return;
+
+    let cardFaceElementRt: CardFaceElementRt | undefined =( getCardFaceElementRt(currentCardFaceElementPerCardFace.cardFaceElement));
     
-    if (currentCardFaceElementPerCardFace?.cardFaceElement && currentCardFaceElementPerCardFace?.cardFaceElement.cardFaceElementType === "rte") {
-      {
-        this.cardEditorControlsDesignRteService.setOnEnableRte(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent);
-      }
-    }
+    if (!cardFaceElementRt)
+      throw new Error("On enable RTE: Card face element RT is undefined");
+
+    this.cardEditorControlsDesignRteService.setOnEnableRte(cardFaceElementRt.cardFaceElementContent ?? "");
   }
 
   onRteTextChange() {
-    // TODO: Subscribe to the service's on RTE editor change, then take the element ID that was passed in, then update here by setting the content from the element ID
     this.cardEditorControlsDesignRteService.onRteTextChange$
       .pipe(
         takeUntilDestroyed()
       )
       .subscribe((text: string) => {
-      let currentCardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-    
-      if (currentCardFaceElementPerCardFace?.cardFaceElement && currentCardFaceElementPerCardFace?.cardFaceElement.cardFaceElementType === "rte") {
-        currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent = text;
-      }
+        // CHECKME: It should be modifying the original reference, because objects are passed by reference in TS?
+        let currentCardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+
+        if (currentCardFaceElementPerCardFace?.cardFaceElement === undefined || currentCardFaceElementPerCardFace?.cardFaceElement.cardFaceElementType !== "Rte")
+          throw new Error("Card face element is undefined or not an RTE");
+
+        let cardFaceElementRt: CardFaceElementRt | undefined = (getCardFaceElementRt(currentCardFaceElementPerCardFace.cardFaceElement));
+
+        if (cardFaceElementRt === undefined)
+          throw new Error("Card face element rich text is undefined");
+
+        (cardFaceElementRt.cardFaceElementContent as string) = text;
     })
   }
 
   onDisableRte() {
-    // TODO: Unsubscribe from onRteTextChange here?
+    // CHECKME: Unsubscribe from onRteTextChange here?
     this.cardEditorControlsDesignRteService.setOnDisableRte();
   }
 
@@ -540,7 +585,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
       let currentCardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
 
-      if (currentCardFaceElementPerCardFace?.cardFaceElement && currentCardFaceElementPerCardFace?.cardFaceElement.cardFaceElementType !== "image")
+      if (currentCardFaceElementPerCardFace?.cardFaceElement && currentCardFaceElementPerCardFace?.cardFaceElement.cardFaceElementType !== "Image")
         return;
 
       this.setCardFaceImageElementSrc(src);
@@ -633,13 +678,43 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       if (!cardFaceElementPerCardFace)
         return;
   
-      blobToDataURL(croppedImage).then((base64Image) => {
-        cardFaceElementPerCardFace.cardFaceElement.cardFaceElementContent = base64Image;
-  
-        // console.log("croppedImage:", base64Image); // Check if it starts with "data:image/"
-  
-        // let updated = this.updateCardFaceElementPerCardFace(this.currentCardFaceElementsPerCardFace, cardFaceElementPerCardFace);
-        // console.log("After set card face image element source: ", JSON.stringify(this.currentCardFaceElementsPerCardFace));
+    from(blobToDataURL(croppedImage))
+      .pipe(
+        switchMap((base64Image) =>
+          this.cardEditorPreviewService.getImageFormData$(base64Image)
+        ),
+        switchMap((formData: FormData | undefined) => {
+          if (!formData)
+            throw new Error("No card face element image file to upload");
+
+          let cardFaceElementImage: CardFaceElementImage | undefined = getCardFaceElementImage(cardFaceElementPerCardFace.cardFaceElement);
+
+          if (!cardFaceElementImage)
+            throw new Error("Not a card face element image");
+
+          return this.cardEditorPreviewService.createCardFaceElementImage$(
+            cardFaceElementImage.cardFaceElementId,
+            formData
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (cardFaceElementImageFileMetadata: FileMetadata | undefined) => {
+          if (!cardFaceElementImageFileMetadata) {
+            throw new Error("Set card face image element src: Card face element image file metadata is empty");
+          }
+
+          let cardFaceElementImage: CardFaceElementImage = (cardFaceElementPerCardFace.cardFaceElement as CardFaceElementImage);
+
+          if (cardFaceElementImage.imageFileMetadata === undefined)
+            throw new Error("Set card face image element src: Image file metadata is undefined");
+          
+          cardFaceElementImage.imageFileMetadata = cardFaceElementImageFileMetadata;
+        },
+        error: (err) => {
+          console.error(err);
+        }
       });
     }
 }

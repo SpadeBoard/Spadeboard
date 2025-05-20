@@ -33,6 +33,7 @@ export class CardEditorPreviewComponent {
 
   handleCardCreate() {
     // TODO: Always assign the owner ID, use the game room service here to get owner ID
+    this.cardEditorPreviewService.cardEditorCardDto.ownerId = '5811e387-1551-4090-9485-a3ebe30efb5a';
     this.cardEditorFacePreview.createCard();
   }
 

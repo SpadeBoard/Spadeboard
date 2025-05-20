@@ -1,26 +1,40 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Models.DndItems;
+using Models.Files;
 using Models.Styles;
 using Services;
+using System.Text.Json.Serialization;
 
 namespace Models.Cards
 {
-    // TODO: Use the DTO instead of CardFaceElement for the CardEditorCardDto as well as the services
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "cardFaceElementType")]
+    [JsonDerivedType(typeof(CardFaceElementRtDto), "Rte")]
+    [JsonDerivedType(typeof(CardFaceElementImageDto), "Image")]
     public class CardFaceElementDto
     {
        public string CardFaceElementId { get; set; } = "0";
-       
-        public string? CardFaceElementContent {get; set;}
-
-        public string? CardFaceElementType {get; set;}
 
         public string? StyleId {get; set;} = "0";
         public virtual StyleDto? Style {get; set;}
     }
 
-    [Table("CardFaceElements")] // Maps this entity to the "Cards" table
-    public class CardFaceElement: ICrudId
+    public class CardFaceElementRtDto : CardFaceElementDto
+    {
+        public string? CardFaceElementContent { get; set; }
+    }
+
+    public class CardFaceElementImageDto : CardFaceElementDto
+    {
+        public string? ImageFileMetadataId { get; set; }
+        public FileMetadataDto? ImageFileMetadata { get; set; }
+    }
+
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "cardFaceElementType")]
+    [JsonDerivedType(typeof(CardFaceElementRt), "Rte")]
+    [JsonDerivedType(typeof(CardFaceElementImage), "Image")]
+    [Table("CardFaceElements")] 
+    public abstract class CardFaceElement: ICrudId
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -29,12 +43,22 @@ namespace Models.Cards
         [NotMapped]
         public long Id { get => CardFaceElementId; set => CardFaceElementId = value; }
 
-        public string? CardFaceElementContent {get; set;}
-
-        public string? CardFaceElementType {get; set;}
-
         public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style {get; set;}
+    }
+
+    [Table("CardFaceElementRts")]
+    public class CardFaceElementRt : CardFaceElement
+    {
+       public string? CardFaceElementContent {get; set;}
+    }
+
+     [Table("CardFaceElementImages")]
+    public class CardFaceElementImage : CardFaceElement
+    {
+        public long? ImageFileMetadataId {get; set;}
+        [ForeignKey("ImageFileMetadataId")]
+        public FileMetadata? ImageFileMetadata {get; set;}
     }
 }

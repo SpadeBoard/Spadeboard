@@ -68,7 +68,7 @@ export class CardComponent {
       id: 0,
       name: 'Flip',
       action: (card?: Card) => {
-        if (card === undefined) return;
+        if (!card) return;
         card.currentCardFaceIndex = (card.currentCardFaceIndex === 0) ? 1 : 0;
         this.currentCardFace = this.cardFaces[card.currentCardFaceIndex];
       }
@@ -77,7 +77,7 @@ export class CardComponent {
       id: 1,
       name: 'Edit Card',
       action: (card?: Card) => {
-        if (card === undefined) return;
+        if (!card) return;
         this.cardPreviewEditorService.getCardEditorCardDtoByCardId(card.cardId);
         this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
       }

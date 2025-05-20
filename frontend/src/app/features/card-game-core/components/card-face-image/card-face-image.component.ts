@@ -1,8 +1,9 @@
-import { Component, computed, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef, Signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef, Signal } from '@angular/core';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { EMPTY, Observable, Subscriber, switchMap } from 'rxjs';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { clamp } from '../../../../utils/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-card-face-image',
@@ -31,6 +32,10 @@ export class CardFaceImageComponent {
     width: 0,
     height: 0
   };
+ 
+  private previousImageUrl: string = "";
+  
+  private destroyRef: DestroyRef = inject(DestroyRef);
 
   setInitialImage() {
     this.imageHtmlContent = {
@@ -42,20 +47,19 @@ export class CardFaceImageComponent {
   }
 
   setImageSrc(url: string) {
+    this.previousImageUrl = url; // For the comparison above, we don't want to reset the image constantly based on effect, make sure the new url's actually different
+    
+    // So there's two steps, here the source is already a blob, we revoke it then assign it to the new url
+    this.onRevokeSrc(this.imageHtmlContent.src);
     this.imageHtmlContent.src = url;
 
-    // TODO: Replace the front portion with the client URL
-    // http://localhost:4200/
-    let clientUrl: string = 'http:\/\/localhost:4200\/';
     let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
-    
-   //  let newRegex: RegExp = new RegExp(clientUrl + guidPattern);
-
-    // let newRegex: RegExp = /^http:\/\/localhost:4200\/(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
 
     if (this.imageHtmlContent.src.match(guidPattern))
     {
-      this.getImageFromStorage$(this.imageHtmlContent.src).subscribe((image: HTMLImageElement) =>{
+      this.getImageFromStorage$(this.imageHtmlContent.src)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((image: HTMLImageElement) =>{
         this.imageHtmlContent.src = image.src;
         this.imageHtmlContent.alt = image.alt;
       })
@@ -66,18 +70,18 @@ export class CardFaceImageComponent {
     this.setInitialImage();
 
     effect(() => {
-      if (this.cardFaceImageSrc() !== '' && this.cardFaceImageSrc() !== undefined) {
+      if (this.cardFaceImageSrc() !== '' && this.cardFaceImageSrc() !== undefined && this.cardFaceImageSrc() !== this.previousImageUrl) {
         this.setImageSrc(this.cardFaceImageSrc() as string);
       }
 
       if (this.cardFaceImageWidth() > 0) {
         this.imageHtmlContent.width = this.cardFaceImageWidth();
-        console.log(`Card face image width change: ${this.imageHtmlContent.width}`);
+        // console.log(`Card face image width change: ${this.imageHtmlContent.width}`);
       }
 
       if (this.cardFaceImageHeight() > 0) {
         this.imageHtmlContent.height = this.cardFaceImageHeight();
-        console.log(`Card face image height change: ${this.imageHtmlContent.height}`);
+        // console.log(`Card face image height change: ${this.imageHtmlContent.height}`);
       }
     });
   }
@@ -99,7 +103,7 @@ export class CardFaceImageComponent {
     if (!guid)
       return EMPTY;
     
-    return this.fileUploadApiService.getFile(guid, 'card-face-element-image').pipe(
+    return this.fileUploadApiService.getFile$(guid, 'card-face-element-image').pipe(
         switchMap((blob: Blob | undefined) => {
           if (blob === undefined)
             return EMPTY;
@@ -125,11 +129,18 @@ export class CardFaceImageComponent {
     this.showImageEditor.emit(); // no payload
   }
 
-  onImageLoad(url: string) {
+  onRevokeSrc(url: string) {
     if (!url.startsWith('blob:'))
       return;
 
     URL.revokeObjectURL(url);
     // console.log('Blob URL revoked after image loaded');
+  }
+
+  ngOnDestroy() {
+    // Image not loading on flipped card, problem is it's being destroyed as the card's being flipped, so it's not present in the DOM to be taken images of
+    setTimeout(() => {
+      this.onRevokeSrc(this.imageHtmlContent.src);
+    }, 1000);
   }
 }

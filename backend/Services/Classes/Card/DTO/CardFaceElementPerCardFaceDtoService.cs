@@ -47,6 +47,11 @@ namespace Services
 
         public async Task<CardFaceElementPerCardFaceDto> CreateDtoNavAsync(CardFaceElementPerCardFaceDto cardFaceElementPerCardFaceDto)
         {
+            if (cardFaceElementPerCardFaceDto.CardFaceElement == null)
+                throw new ArgumentNullException(nameof(cardFaceElementPerCardFaceDto), "Card Face Element Per Card Face Dto - Create Dto Nav Async: Card face element is null");
+            
+            Console.WriteLine(cardFaceElementPerCardFaceDto.CardFaceElement.GetType().Name);
+
             CardFaceElementPerCardFace cardFaceElementPerCardFace = _mapper.Map<CardFaceElementPerCardFace>(cardFaceElementPerCardFaceDto);
             cardFaceElementPerCardFace = await  _cardFaceElementPerCardFaceService.CreateNavAsync(cardFaceElementPerCardFace);
             return  _mapper.Map<CardFaceElementPerCardFaceDto>(cardFaceElementPerCardFace);
@@ -101,6 +106,17 @@ namespace Services
         {
             try
             {
+                // CHECKME: Need to make sure it's actually getting the correct type
+                foreach (var dto in cardFaceElementsPerCardFaceDtos)
+                {
+                    if (dto.CardFaceElement == null)
+                        throw new ArgumentNullException(nameof(dto.CardFaceElement), "CardFaceElement is null!");
+
+                    Console.WriteLine($"CardFaceElementPerCardFaceId: {dto.CardFaceElementPerCardFaceId}, Type: {dto.CardFaceElement.GetType().Name}");
+                
+                    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(dto.CardFaceElement));
+                }
+
                 CardFaceElementPerCardFace[] cardFaceElementsPerCardFace = _mapper.Map<CardFaceElementPerCardFace[]>(cardFaceElementsPerCardFaceDtos);
                 CardFace cardFace = _mapper.Map<CardFace>(cardFaceDto);
 
@@ -125,6 +141,15 @@ namespace Services
 
         public async Task<IEnumerable<CardFaceElementPerCardFaceDto>> CreateAllNavDtoByCardFaceIdFromExistingAllNavDtoAsync(CardFaceElementPerCardFaceDto[] cardFaceElementsPerCardFaceDtos, CardFaceDto cardFaceDto) 
         {
+            // CHECKME: Need to make sure it's actually getting the correct type
+            foreach (var dto in cardFaceElementsPerCardFaceDtos)
+            {
+                if (dto.CardFaceElement == null)
+                    throw new ArgumentNullException(nameof(dto.CardFaceElement), "CardFaceElement is null!");
+
+                Console.WriteLine($"CardFaceElementPerCardFaceId: {dto.CardFaceElementPerCardFaceId}, Type: {dto.CardFaceElement.GetType().Name}");
+            }
+
             CardFaceElementPerCardFace[] cardFaceElementsPerCardFace = _mapper.Map<CardFaceElementPerCardFace[]>(cardFaceElementsPerCardFaceDtos);
             CardFace cardFace = _mapper.Map<CardFace>(cardFaceDto);
 

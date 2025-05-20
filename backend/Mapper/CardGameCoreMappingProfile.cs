@@ -4,6 +4,7 @@ using Models.DndItems;
 using Models.Styles;
 using Models.Bridge;
 using Models.GameRooms;
+using Models.Files;
 
 // https://stackoverflow.com/questions/40275195/how-to-set-up-automapper-in-asp-net-core
 // https://docs.automapper.org/en/stable/Configuration.html#naming-conventions
@@ -51,7 +52,30 @@ namespace Mapper
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Long -> String
-            CreateMap<CardFaceElement, CardFaceElementDto>();
+            CreateMap<CardFaceElement, CardFaceElementDto>()
+                .Include<CardFaceElementRt, CardFaceElementRtDto>()
+                .Include<CardFaceElementImage, CardFaceElementImageDto>()
+                .ReverseMap();
+
+            CreateMap<CardFaceElementRt, CardFaceElementRtDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<CardFaceElementImage, CardFaceElementImageDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.ImageFileMetadataId,
+                    opt => opt.MapFrom(src =>
+                        string.IsNullOrEmpty(src.ImageFileMetadataId) ? (long?)null : long.Parse(src.ImageFileMetadataId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<CardFaceElementImageDto, CardFaceElementImage>()
+              .ForMember(dest => dest.ImageFileMetadataId,
+                   opt => opt.MapFrom(src =>
+                       string.IsNullOrEmpty(src.ImageFileMetadataId) ? (long?)null : long.Parse(src.ImageFileMetadataId)))
+               .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+             CreateMap<CardFaceElementRtDto, CardFaceElementRt>()
+               .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // String -> Long
             CreateMap<CardFaceElementDto, CardFaceElement>()
@@ -131,6 +155,14 @@ namespace Mapper
                 .ForMember(dest => dest.GameRoomId, 
                            opt => opt.MapFrom(src => long.Parse(src.GameRoomId)))
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<FileMetadata, FileMetadataDto>();
+
+            // String -> Long
+            CreateMap<FileMetadataDto, FileMetadata>()
+                .ForMember(dest => dest.FileMetadataId,
+                           opt => opt.MapFrom(src => long.Parse(src.FileMetadataId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore()); ;
         }
     }
 }
