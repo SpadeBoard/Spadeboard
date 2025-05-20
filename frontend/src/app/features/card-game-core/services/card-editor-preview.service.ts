@@ -338,42 +338,15 @@ export class CardEditorPreviewService {
     );
   }
 
-  markFileMetadataStatus(fileMetadata: FileMetadata, fileMetadataStatus: FileMetadataStatus) {
-   fileMetadata.fileMetadataStatus = fileMetadataStatus;
-
-    this.fileMetadataApiService.updateFileMetadata$(fileMetadata.fileMetadataId, fileMetadata).subscribe();
-  }
-
-  attachFileMetadata(fileMetadata: FileMetadata[]) {
-    fileMetadata.forEach((fm: FileMetadata) => {
-      this.markFileMetadataStatus(fm, FileMetadataStatus.Attached);
-    })
-  }
-
   orphanFileMetadata(fileMetadata: FileMetadata[]) {
     fileMetadata.forEach((fm: FileMetadata) => {
-      this.markFileMetadataStatus(fm, FileMetadataStatus.Orphaned);
-    })
-  }
+      fm.fileMetadataStatus = FileMetadataStatus.Orphaned;
+    });
 
-  attachAllCardFaceThumbnails(cardEditorCardDto: CardEditorCardDto) {
-    let fileMetadatas: FileMetadata[] = cardEditorCardDto.cardEditorCardFacesDto
-      .map((cardEditorCardFaceDto: CardEditorCardFaceDto) => cardEditorCardFaceDto.cardFace.cardFaceThumbnailFileMetadata)
-      .filter((fm): fm is FileMetadata => fm != null);
-
-    this.attachFileMetadata(fileMetadatas);
-  }
-
-  attachAllCardFaceElementImages(cardEditorCardDto: CardEditorCardDto) {
-    let fileMetadatas: FileMetadata[] = cardEditorCardDto.cardEditorCardFacesDto
-      .flatMap(cardEditorCardFaceDto =>
-        cardEditorCardFaceDto.cardFaceElementsPerCardFace
-          .filter(el => el.cardFaceElement.cardFaceElementType === "Image")
-          .map(el => (el.cardFaceElement as CardFaceElementImage).imageFileMetadata)
-          .filter((fm): fm is FileMetadata => fm != null)
-      );
-
-    this.attachFileMetadata(fileMetadatas);
+    this.fileMetadataApiService.updateAllFileMetadata$(fileMetadata).subscribe({
+      next: () => fileMetadata = [],
+      error: err => console.error('Update all file metadata failed', err)
+    });
   }
 
   // NOTE: This should be called whenever you upload an image
@@ -538,20 +511,10 @@ export class CardEditorPreviewService {
   }
 
   markOrphanedData() {
-    while (this.orphanedFileMetadata.length > 0) {
-      let orphaned: FileMetadata | undefined = this.orphanedFileMetadata.pop();
-      
-      if (orphaned === undefined)
-        continue;
-      
-      this.markFileMetadataStatus(orphaned, FileMetadataStatus.Orphaned);
-    }
-  }
+    if (this.orphanedFileMetadata.length <= 0)
+      throw new Error("No files to orphan");
 
-  postCardApiOperation() {
-    // We want to set the file metadata to attached when we create the card, because there's no point of updating it from pending unless it's actually already created
-    this.attachAllCardFaceThumbnails(this.cardEditorCardDto);
-    this.attachAllCardFaceElementImages(this.cardEditorCardDto);
+    this.orphanFileMetadata(this.orphanedFileMetadata);
   }
 
   // TODO: Create a function to get all text content, convert them to BB Code then save them
@@ -574,7 +537,6 @@ export class CardEditorPreviewService {
             this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);   
             
             this.markOrphanedData();
-            this.postCardApiOperation();
           }
         },
         error: (err) => {
@@ -608,8 +570,6 @@ export class CardEditorPreviewService {
 
             this.setOnCreateCard();
             this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);    // TODO: Remember to use file metadata file path instead of thumbnail image file path
-            
-            this.postCardApiOperation();
 
             // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
             // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
@@ -652,7 +612,6 @@ export class CardEditorPreviewService {
             this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // TODO: Remember to use file metadata file path instead of thumbnail image file path
           
             this.markOrphanedData();
-            this.postCardApiOperation();
           }
         },
         error: (err) => {

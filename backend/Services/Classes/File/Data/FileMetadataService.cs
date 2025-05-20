@@ -50,6 +50,15 @@ namespace Services
             return await _crudService.UpdateAsync(id, item);
         }
 
+        public async Task<bool> UpdateAllAsync(FileMetadata[] fileMetadata)
+        {
+            foreach (FileMetadata fileMetadatum in fileMetadata) {
+                await UpdateAsync(fileMetadatum.FileMetadataId, fileMetadatum);
+            }
+
+            return true;
+        }
+
         public async Task<bool> UpdateStatusByVolumePathAndFileNameAsync(string volumePath, string fileName, FileMetadataStatus fileMetadataStatus)
         {
             FileMetadata? fileMetadata = await _context.FileMetadata.FirstOrDefaultAsync(f => f.VolumePath == volumePath && f.FileName == fileName);
@@ -61,6 +70,18 @@ namespace Services
             fileMetadata.FileMetadataStatus =fileMetadataStatus;
             int changes = await _context.SaveChangesAsync();
             return changes > 0;
+        }
+
+        public async Task<bool> MarkAsAttachedByIdAsync(long fileMetadataId)
+        {
+             FileMetadata? fileMetadata =  await GetAsync(fileMetadataId);
+
+            if (fileMetadata == null) {
+                return false;
+            }
+
+            fileMetadata.FileMetadataStatus = FileMetadataStatus.Attached;
+            return await UpdateAsync(fileMetadata.FileMetadataId, fileMetadata);
         }
 
         public async Task<bool> MarkAsOrphanedByIdAsync(long fileMetadataId)

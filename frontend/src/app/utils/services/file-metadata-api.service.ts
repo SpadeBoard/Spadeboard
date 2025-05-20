@@ -21,4 +21,8 @@ export class FileMetadataApiService {
    updateFileMetadata$(fileMetadataId: string, fileMetadata: Partial<FileMetadata>): Observable<FileMetadata | undefined> {
      return this.http.put<FileMetadata>(`${this.apiUrl}/${fileMetadataId}`, fileMetadata);
   }
+
+  updateAllFileMetadata$(fileMetadata: FileMetadata[]): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/`, fileMetadata);
+  }
 }

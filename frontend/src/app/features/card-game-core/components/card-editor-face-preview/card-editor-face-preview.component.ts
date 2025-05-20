@@ -92,16 +92,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   updateCardEditorCardFaceDto() {
-    /*this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((images: FormData[]) => {
-      if (images.length <= 0)
-        return;
-
-      this.cardFaceElementsPerCardFace.setCurrentCardFaceElementsPerCardFace();
-      this.cardEditorPreviewService.updateCardEditorCardFaceDto();
-    })*/
-
     this.setCardFaceThumbnailImage$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
       .pipe(
         takeUntilDestroyed(this.destroyRef)

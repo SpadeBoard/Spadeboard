@@ -95,10 +95,25 @@ namespace Services
                 _context.Entry(nav.Style).State = EntityState.Modified;
             }
 
-            // This should be fine, we're not necessarily updating the card face thumbnail file metadata
+            // Again, this should be just attached just in case
             if (nav.CardFaceThumbnailFileMetadata != null)
             {
-                _context.Entry(nav.CardFaceThumbnailFileMetadata).State = EntityState.Modified;
+                long id = nav.CardFaceThumbnailFileMetadata.FileMetadataId;
+                
+                // Again, speed
+                if (nav.CardFaceThumbnailFileMetadata.FileMetadataStatus != FileMetadataStatus.Attached)
+                {
+                    await _fileMetadataService.MarkAsAttachedByIdAsync(id);
+                }
+
+                // Ok, this has to be redundant and can be simplified somehow
+                // The problem is we're just marking the file metadata as attached, we need to reassign the imageElement.FileMetadata, and then modiify it
+                // Because we need to reassign the file metadata, else it's not going to override what we previously had
+                FileMetadata? updatedFileMetadata = await _fileMetadataService.GetAsync(id);
+                if (updatedFileMetadata != null) {
+                    nav.CardFaceThumbnailFileMetadata = updatedFileMetadata;
+                    _context.Entry(nav.CardFaceThumbnailFileMetadata).State = EntityState.Modified;
+                }
             }
 
             _context.Entry(nav).State = EntityState.Modified;
@@ -157,9 +172,15 @@ namespace Services
                     throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadataproperty of CardFace must already exist", nameof(nav));
                 }
 
+                if (!await _fileMetadataService.MarkAsAttachedByIdAsync(nav.CardFaceThumbnailFileMetadata.FileMetadataId))
+                {
+                    throw new Exception("Card face thumbnail wasn't attached");
+                }
+
                 nav.CardFaceThumbnailFileMetadataId = nav.CardFaceThumbnailFileMetadata.FileMetadataId;
                 nav.CardFaceThumbnailFileMetadata = null;
             }
+
             // TODO: Use this when we set up the LODs
             /*if (!_cardFaceThumbnailFileMetadataService.Exists(nav.CardFaceThumbnailFileMetadata.CardFaceThumbnailFileMetadataId) {
                 throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadataproperty of CardFace must already exist", nameof(nav));

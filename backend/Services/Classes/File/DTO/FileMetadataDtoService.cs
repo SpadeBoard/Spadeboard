@@ -40,6 +40,12 @@ namespace Services
              return await _dtoCrudService.UpdateDtoAsync(id, styleDto);
         }
 
+        public async Task<bool> UpdateAllDtoAsync(FileMetadataDto[] fileMetadataDto)
+        {
+            FileMetadata[] fileMetadata = _mapper.Map<FileMetadata[]>(fileMetadataDto);
+            return await _fileMetadataService.UpdateAllAsync(fileMetadata);
+        }
+
         public async Task<bool> DeleteDtoAsync(string id)
         {
             return await _dtoCrudService.DeleteDtoAsync(id);

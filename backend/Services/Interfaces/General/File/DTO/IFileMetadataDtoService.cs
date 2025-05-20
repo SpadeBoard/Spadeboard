@@ -9,6 +9,6 @@ namespace Services
 {
     public interface IFileMetadataDtoService: ICrudDto<FileMetadataDto>
     {
-        
+        public Task<bool> UpdateAllDtoAsync(FileMetadataDto[] fileMetadataDto);
     }
 }

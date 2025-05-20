@@ -56,6 +56,17 @@ namespace backend.Controllers
             return NotFound();
         }
 
+        [HttpPut]
+        public async Task<IActionResult> PutFileMetadata(FileMetadataDto[] item)
+        {
+            if (item.Length <= 0)
+                return BadRequest();
+
+            var result = await _fileMetadataDtoService.UpdateAllDtoAsync(item);
+            
+            return (result) ? NoContent() : NotFound();
+        }
+
         [HttpPost]
         public async Task<ActionResult<FileMetadataDto>> PostCard(FileMetadataDto item)
         {

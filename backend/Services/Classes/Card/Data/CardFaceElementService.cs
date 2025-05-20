@@ -78,12 +78,27 @@ namespace Services
         {
             if (cardFaceElement.Style != null /*&& _styleService.IsModified(cardFaceElement.Style)*/)
                 _context.Entry(cardFaceElement.Style).State = EntityState.Modified;
-            
+
             // TODO: Refactor this, absolutely necessary
-           if (cardFaceElement is CardFaceElementImage imageElement)
+            if (cardFaceElement is CardFaceElementImage imageElement && imageElement.ImageFileMetadata != null)
             {
-               if (imageElement.ImageFileMetadata != null)
-                 _context.Entry(imageElement.ImageFileMetadata).State = EntityState.Modified;
+                // TODO: Split this into two
+                long id = imageElement.ImageFileMetadata.FileMetadataId;
+
+                // Speed
+                if (imageElement.ImageFileMetadata.FileMetadataStatus != FileMetadataStatus.Attached)
+                {
+                    await _fileMetadataService.MarkAsAttachedByIdAsync(id);
+                }
+                
+                // Ok, this has to be redundant and can be simplified somehow
+                // The problem is we're just marking the file metadata as attached, we need to reassign the imageElement.FileMetadata, and then modiify it
+                // Because we need to reassign the file metadata, else it's not going to override what we previously had
+                FileMetadata? updatedFileMetadata = await _fileMetadataService.GetAsync(id );
+                if (updatedFileMetadata != null) {
+                    imageElement.ImageFileMetadata = updatedFileMetadata;
+                    _context.Entry(imageElement.ImageFileMetadata).State = EntityState.Modified;
+                }
             }
 
             _context.Entry(cardFaceElement).State = EntityState.Modified;
@@ -125,9 +140,9 @@ namespace Services
             }
 
             // TODO: Refactor
-            if (cardFaceElement is CardFaceElementImage imageElement && imageElement.ImageFileMetadataId != null)
+            if (cardFaceElement is CardFaceElementImage imageElement && imageElement.ImageFileMetadataId != null && !await _fileMetadataService.MarkAsOrphanedByIdAsync(imageElement.ImageFileMetadataId.Value))
             {
-                await _fileMetadataService.MarkAsOrphanedByIdAsync(imageElement.ImageFileMetadataId.Value);
+               throw new Exception("Despite card face element having an image, it's not being marked as orphaned although being deleted");
             }
 
             _context.CardFaceElement.Remove(cardFaceElement);
@@ -171,19 +186,24 @@ namespace Services
 
             // It's theoretically possible for a card face to never have a thumbnail image taken of
             // TODO: Please refactor this
-            if (nav is CardFaceElementImage imageElement)
+            if (nav is CardFaceElementImage imageElement && imageElement.ImageFileMetadata != null)
             {
-                // Now you can access imageElement.ImageFileMetadata
-                if (imageElement.ImageFileMetadata != null)
-                {
-                    if (!_fileMetadataService.Exists(imageElement.ImageFileMetadata.FileMetadataId))
-                    {
-                        throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadata property of CardFace must already exist", nameof(nav));
-                    }
+                long fileMetadataId = imageElement.ImageFileMetadata.FileMetadataId;
 
-                    imageElement.ImageFileMetadataId = imageElement.ImageFileMetadata.FileMetadataId;
-                    imageElement.ImageFileMetadata = null;
+                if (!_fileMetadataService.Exists(fileMetadataId))
+                {
+                    throw new ArgumentException(
+                        "Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadata property of CardFace must already exist",
+                        nameof(nav));
                 }
+
+                if (!await _fileMetadataService.MarkAsAttachedByIdAsync(fileMetadataId))
+                {
+                    throw new Exception("Card face element image wasn't attached despite creating a card face element");
+                }
+
+                imageElement.ImageFileMetadataId = fileMetadataId;
+                imageElement.ImageFileMetadata = null;
             }
 
             nav.Style.StyleId = Snowflake.NewId();
