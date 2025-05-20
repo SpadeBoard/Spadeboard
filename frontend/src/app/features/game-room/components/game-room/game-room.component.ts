@@ -15,6 +15,7 @@ import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.servi
 import { GameRoomService } from '../../services/game-room.service';
 import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
 import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
+import { SpadeboardHeaderNavComponent } from '../spadeboard-header-nav/spadeboard-header-nav.component';
 
 @Component({
   selector: 'app-game-room',
@@ -23,7 +24,8 @@ import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
     CdkDrag, CdkDragHandle, DragDropModule,
     NgOptimizedImage,
     CardComponent, CardsCollectionComponent,
-    DndBoardComponent, GameRoomNavComponent
+    DndBoardComponent, GameRoomNavComponent,
+    SpadeboardHeaderNavComponent
   ],
   templateUrl: './game-room.component.html',
   styleUrl: './game-room.component.css'

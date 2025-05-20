@@ -1,0 +1,21 @@
+.bar {
+    background-color: #3A454F;
+    width: 100vw;
+    display: flex;
+    padding: 1%;
+    /*position: fixed;
+    z-index: 1;*/
+}
+
+.nav-list {
+    display: flex;
+    gap: 2.5rem;
+    right: 5%;
+    color: #EEE4D7;
+    font-weight: 600;
+    font-size: x-large;
+    position: absolute;
+    align-items: center;
+    font-family: 'Roboto', sans-serif;
+    opacity: 0.5; /*TODO: Remove this, temporary disable*/
+}
