@@ -28,6 +28,10 @@
     /*justify-content: center;*/
 }
 
+.cec-design-container {
+    max-width: 100%;
+}
+
 .container .left-column {
     display: flex;
     flex-direction: column;
