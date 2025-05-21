@@ -3,3 +3,10 @@
     flex-direction:column;
     gap: 1.5rem;
 }
+
+.cec-design-attributes-row {
+    display: flex;
+    flex-direction: row; 
+    gap: 5rem;
+    padding-left: 5%;           
+}

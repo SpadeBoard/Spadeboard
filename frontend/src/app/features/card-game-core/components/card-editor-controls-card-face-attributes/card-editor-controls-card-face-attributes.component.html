@@ -1,1 +1,25 @@
-<p>card-editor-controls-card-face-attributes works!</p>
+<div class="card-face-attributes-columns">
+    <div class="card-face-dimensions-container">
+        <span class="card-face-dimensions">
+            Face
+        </span>
+        <table>
+            <tr>
+                <td>W:</td>
+                <td><input id="width" type="number" placeholder="W" min="0" max="500" [(ngModel)]="width"></td>
+            </tr>
+            <tr>
+                <td>H:</td>
+                <td><input type="number" id="height" placeholder="H" min="0" max="800" [(ngModel)]="height"></td>
+            </tr>
+        </table>
+    </div>
+    <div class ="card-face-attributes-container">
+        <app-color-picker [colorPickerName]="'Face'" [(colorValue)]="cardFaceColor" />
+        <div class="number-input-container">
+            Border radius: <input type="number" min="0.01" max="100" (input)="onBorderRadiusChange($event)"
+                [value]="$any(borderRadius)" />
+        </div>
+        <app-color-picker [colorPickerName]="'Edge'" [(colorValue)]="borderColor" />
+    </div>
+</div>

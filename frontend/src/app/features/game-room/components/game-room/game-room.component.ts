@@ -6,16 +6,12 @@ import { CardEditorComponent } from '../../../card-game-core/components/card-edi
 // import { DndBoardComponent } from '../../../card-game-core/components/dnd-board/dnd-board.component';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
-import { CardApiService } from '../../../card-game-core/services/card-game-core/card-api.service';
 import { CardComponent } from '../../../card-game-core/components/card/card.component';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
 import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/dnd-board.component';
-import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { GameRoomService } from '../../services/game-room.service';
 import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
 import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
-import { SpadeboardHeaderNavComponent } from '../spadeboard-header-nav/spadeboard-header-nav.component';
 
 @Component({
   selector: 'app-game-room',
@@ -25,7 +21,6 @@ import { SpadeboardHeaderNavComponent } from '../spadeboard-header-nav/spadeboar
     NgOptimizedImage,
     CardComponent, CardsCollectionComponent,
     DndBoardComponent, GameRoomNavComponent,
-    SpadeboardHeaderNavComponent
   ],
   templateUrl: './game-room.component.html',
   styleUrl: './game-room.component.css'

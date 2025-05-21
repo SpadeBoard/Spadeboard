@@ -28,13 +28,18 @@ export class CardEditorPreviewService {
   defaultCardEditorFaceStyle: Style = {
     styleId: "0",
     backgroundColor: '#fefffe',
-    aspectRatio: '63/88',
+    width: '351px',
     height: '483px',
     // height: '80%',
-    minHeight: '80%',
+    minWidth: '25%',
+    minHeight: '25%',
+    maxWidth: '415px',
+    maxHeight: '800px',
     display: 'block',
     position: 'relative',
     borderRadius: '10px',
+    borderStyle: 'solid', // Set border left width, etc.
+    borderColor: '#fefffe',
     fontSize: '14px'
     /*overflow: hidden;*/
   }
@@ -52,7 +57,7 @@ export class CardEditorPreviewService {
       {
         cardFace: {
           cardFaceId: "0",
-          style: this.defaultCardEditorFaceStyle,
+          style: {...this.defaultCardEditorFaceStyle}, //FIXED: What was happening is that due to them sharing the same reference to the same object, they were both being updated simultaneously. Because when you assign style to this.defaultCardEditorFaceStyle, you're not assigning by value, you're literally equating it to the object itself. AGH.  When you later update face.style (e.g., set borderRadius or backgroundColor), you are mutating that single object, so both card faces reflect the change.
         },
         cardFaceElementsPerCardFace: [
         ]
@@ -60,7 +65,7 @@ export class CardEditorPreviewService {
       {
         cardFace: {
           cardFaceId: "-1",
-          style: this.defaultCardEditorFaceStyle,
+          style: {...this.defaultCardEditorFaceStyle},
         },
         cardFaceElementsPerCardFace: []
       }
@@ -88,6 +93,9 @@ export class CardEditorPreviewService {
 
   private onFlip$$: Subject<void> = new Subject<void>();
   onFlip$: Observable<void> = this.onFlip$$.asObservable();
+
+   private postFlip$$: Subject<void> = new Subject<void>();
+  postFlip$: Observable<void> = this.postFlip$$.asObservable();
 
   private onCreateCard$$: Subject<void> = new Subject<void>();
   onCreateCard$: Observable<void> = this.onCreateCard$$.asObservable();
@@ -120,7 +128,7 @@ export class CardEditorPreviewService {
         {
           cardFace: {
             cardFaceId: "0",
-            style: this.defaultCardEditorFaceStyle,
+            style: {...this.defaultCardEditorFaceStyle},
           },
           cardFaceElementsPerCardFace: [
           ]
@@ -128,7 +136,7 @@ export class CardEditorPreviewService {
         {
           cardFace: {
             cardFaceId: "-1",
-            style: this.defaultCardEditorFaceStyle,
+            style: {...this.defaultCardEditorFaceStyle},
           },
           cardFaceElementsPerCardFace: []
         }
@@ -278,6 +286,8 @@ export class CardEditorPreviewService {
   onFlipCurrentCardFace() {
     this.cardEditorCardDto.card.currentCardFaceIndex = (this.getCurrentCardFaceIndex() === 0) ? 1: 0;
     this.setCurrentCardEditorCardFaceDto();
+
+    this.postFlip$$.next();
   }
 
   // Again, this should be fine, we're not going to override anything, just upload the files and link to a new URL, because automatic file deletion's a thing we can do
