@@ -1,6 +1,9 @@
 .app-header {
     width: fit-content;
     height: fit-content;
+    position: sticky;
+    left: 0;
+    top: 0;
 }
 
 .app-body {
