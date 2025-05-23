@@ -156,7 +156,8 @@ if (filtered.height)
     return new Promise((resolve, reject) => {
       // TODO: Pass in the ref and scale as parameters
       html2canvas(cardEditorFace.nativeElement, {
-        scale: 0.45
+        scale: 0.45,
+        backgroundColor: "transparent"
       })
         .then((canvas: any) => {
           canvas.toBlob((blob: Blob | null) => {
