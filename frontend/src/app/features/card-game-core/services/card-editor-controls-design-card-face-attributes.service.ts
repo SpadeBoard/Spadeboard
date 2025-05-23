@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
+import { BorderDimensions } from '../../style/models/style';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +25,22 @@ export class CardEditorControlsDesignCardFaceAttributesService {
   private _height: number = 0;
   private _width: number = 0;
 
+  private _borderDimensions: BorderDimensions = {
+    borderWidth: 0,
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0
+  }
+
+  get borderDimensions(): BorderDimensions {
+    return this._borderDimensions;
+  }
+
+  set borderDimensions(borderDimensions: BorderDimensions) {
+    this._borderDimensions = borderDimensions;
+  }
+
    private onSetWidth$$ = new Subject<number>();
     onSetWidth$: Observable<number> = this.onSetWidth$$.asObservable();
   
@@ -39,13 +56,19 @@ export class CardEditorControlsDesignCardFaceAttributesService {
   private onBorderRadiusChange$$: Subject<number> = new Subject<number>();
   onBorderRadiusChange$: Observable<number> = this.onBorderRadiusChange$$.asObservable();
 
+  private onBorderWidthChange$$: Subject<number> = new Subject<number>();
+  onBorderWidthChange$: Observable<number> = this.onBorderWidthChange$$.asObservable();
+
+  private onBorderDimensionsChange$$: Subject<BorderDimensions> = new Subject<BorderDimensions>();
+  onBorderDimensionsChange$: Observable<BorderDimensions> = this.onBorderDimensionsChange$$.asObservable();
+
   constructor() { }
 
   setOnFaceColorChange(color: string) {
     this.onFaceColorChange$$.next(color);
   }
 
-    setOnBorderRadiusChange(borderRadius: number) {
+  setOnBorderRadiusChange(borderRadius: number) {
     this.onBorderRadiusChange$$.next(borderRadius);
   }
 
@@ -59,5 +82,13 @@ export class CardEditorControlsDesignCardFaceAttributesService {
 
   setWidth(width: number) {
     this.onSetWidth$$.next(width);
+  }
+
+  setOnBorderDimensionsChange(borderDimensions: BorderDimensions) {
+    this.onBorderDimensionsChange$$.next(borderDimensions);
+  }
+
+  setOnBorderWidthChange(borderWidth: number) {
+   this.onBorderWidthChange$$.next(borderWidth);
   }
 }

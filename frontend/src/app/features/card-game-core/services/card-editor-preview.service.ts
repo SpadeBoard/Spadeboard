@@ -40,6 +40,7 @@ export class CardEditorPreviewService {
     borderRadius: '10px',
     borderStyle: 'solid', // Set border left width, etc.
     borderColor: '#fefffe',
+    borderWidth: '2px',
     fontSize: '14px'
     /*overflow: hidden;*/
   }

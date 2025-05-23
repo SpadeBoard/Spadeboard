@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, inject, input, InputSignal, ViewChild } from '@angular/core';
-import { Style } from '../../../style/models/style';
+import { BorderDimensions, Style } from '../../../style/models/style';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 import { isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -44,6 +44,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
     this.onSetWidth();
     this.onSetHeight();
+    this.onBorderDimensionsChange();
   }
 
   setCardEditorFaceBorderRadius() {
@@ -95,15 +96,58 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   getCardEditorFaceStyle(): Omit<Style, 'styleId'> {
     let { styleId, ...rest } = this.cardEditorPreviewService.getCurrentCardFace().style;
 
-    let filtered = filterAgainstNull(rest);
+    let filtered: Omit<Style, "styleId"> = filterAgainstNull(rest);
+
+    let service = this.cardEditorControlsDesignCardFaceAttributesService;
 
     if (filtered.width)
-  this.cardEditorControlsDesignCardFaceAttributesService.width = parseFloat(String(filtered.width).replace(/[^0-9.\-]+/g, ''));
+      service.width = parseFloat(String(filtered.width).replace(/[^0-9.\-]+/g, ''));
 
-if (filtered.height)
-  this.cardEditorControlsDesignCardFaceAttributesService.height = parseFloat(String(filtered.height).replace(/[^0-9.\-]+/g, ''));
+    if (filtered.height)
+      service.height = parseFloat(String(filtered.height).replace(/[^0-9.\-]+/g, ''));
 
-    return filtered;
+    if (filtered.borderWidth) 
+      service.borderDimensions.borderWidth = parseFloat(String(filtered.borderWidth).replace(/[^0-9.\-]+/g, ''));
+
+    let fallback = service.borderDimensions.borderWidth;
+
+    service.borderDimensions.borderTopWidth = this.parseBorderWidth(filtered.borderTopWidth, fallback);
+    service.borderDimensions.borderBottomWidth = this.parseBorderWidth(filtered.borderBottomWidth, fallback);
+    service.borderDimensions.borderLeftWidth = this.parseBorderWidth(filtered.borderLeftWidth, fallback);
+    service.borderDimensions.borderRightWidth = this.parseBorderWidth(filtered.borderRightWidth, fallback);
+
+    // Problem is since border width is after the individual borders in terms of order, it'll override those so we need to do this
+    let reordered: Omit<Style, "styleId"> = this.reorderBorderDimensions(filtered);
+
+    // TODO: We refactor to have border dimensions inside of the service then pass that back in
+
+    console.log(`Get card editor face style: ${JSON.stringify(reordered)}`);
+    return reordered;
+  }
+
+  parseBorderWidth(value: any, fallback: number): number {
+    let parsed = parseFloat(String(value).replace(/[^0-9.\-]+/g, ''));
+    return isNaN(parsed) ? fallback : parsed;
+  }
+
+  reorderBorderDimensions(filtered: Omit<Style, "styleId">): Omit<Style, "styleId"> {
+    let reordered: Partial<Omit<Style, "styleId">> = {};
+
+    // 1. Add borderWidth first (shorthand)
+    if (filtered.borderWidth) reordered.borderWidth = filtered.borderWidth;
+
+    // 2. Add individual border sides in order, should override
+    (["borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth"] as const).forEach(side => {
+      if (filtered[side]) reordered[side] = filtered[side];
+    });
+
+    // 3. Add the rest of the properties (if not already added)
+    (Object.keys(filtered) as Array<keyof typeof filtered>).forEach(key => {
+      if (!(key in reordered)) reordered[key] = filtered[key];
+    });
+
+    // Type assertion is safe here because we only copy properties from filtered
+    return reordered as Omit<Style, "styleId">;
   }
 
   // TODO: If style of card face is passed in, get the aspect ratio and set the card editor face style
@@ -122,6 +166,24 @@ if (filtered.height)
     this.cardEditorPreviewService.updateCardEditorCardFaceDto();
 
     console.log(`Update current card editor card face dto\nCurrent card face: ${JSON.stringify(this.cardEditorPreviewService.getCurrentCardFace())}\nCurrent Card Editor Card Face Dto: ${JSON.stringify(this.cardEditorPreviewService.currentCardEditorCardFaceDto)}`);
+  }
+
+  onBorderDimensionsChange() {
+    this.cardEditorControlsDesignCardFaceAttributesService.onBorderDimensionsChange$.pipe(
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((borderDimensions: BorderDimensions) => {
+      let face = this.cardEditorPreviewService.getCurrentCardFace();
+      if (face && face.style) {
+        face.style.borderWidth = `${borderDimensions.borderWidth}px`;
+        face.style.borderTopWidth = `${borderDimensions.borderTopWidth}px`;
+        face.style.borderBottomWidth = `${borderDimensions.borderBottomWidth}px`;
+        face.style.borderLeftWidth = `${borderDimensions.borderLeftWidth}px`;
+        face.style.borderRightWidth = `${borderDimensions.borderRightWidth}px`;
+      }
+
+      this.setCardEditorFaceStyle(face.style);
+    })
   }
 
    onSetWidth() {
@@ -266,15 +328,6 @@ if (filtered.height)
 
         this.cardEditorPreviewService.updateCard();
       });
-
-    /*this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((images: FormData[]) => {
-      if (!this.handleUpdateCardFaceImages(images.length))
-        return;
-
-      this.cardEditorPreviewService.updateCard();
-    });*/
   }
 
   handleUpdateCardFaceImages(imagesLength: number): boolean
