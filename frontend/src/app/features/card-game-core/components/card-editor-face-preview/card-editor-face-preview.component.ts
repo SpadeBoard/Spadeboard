@@ -28,6 +28,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   @ViewChild("cardFaceElementsPerCardFace") cardFaceElementsPerCardFace!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
 
   constructor() {
+    this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
   }
 
   ngOnInit() {
@@ -45,6 +46,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.onSetWidth();
     this.onSetHeight();
     this.onBorderDimensionsChange();
+
+    this.onCreateCard();
   }
 
   setCardEditorFaceBorderRadius() {
@@ -267,6 +270,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
         this.cardEditorPreviewService.onFlipCurrentCardFace();
 
+        this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
         this.cardFaceElementsPerCardFace.getCurrentCardFaceElementsPerCardFace();
       });
   }
@@ -314,6 +318,14 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
           this.cardEditorPreviewService.duplicateCard();
         }
       });
+  }
+
+  onCreateCard() {
+    this.cardEditorPreviewService.onCreateCard$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+        this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
+    })
   }
 
   saveCard() {

@@ -41,6 +41,8 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     this._borderDimensions = borderDimensions;
   }
 
+  cardFaceId: string = "";
+
    private onSetWidth$$ = new Subject<number>();
     onSetWidth$: Observable<number> = this.onSetWidth$$.asObservable();
   

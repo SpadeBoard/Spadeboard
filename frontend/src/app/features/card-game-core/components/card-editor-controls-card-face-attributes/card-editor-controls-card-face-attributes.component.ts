@@ -37,6 +37,10 @@ export class CardEditorControlsCardFaceAttributesComponent {
       });
   }
 
+  get cardFaceId() {
+    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId;
+  }
+
   get cardFaceColor() {
     return this._cardFaceColor;
   }
