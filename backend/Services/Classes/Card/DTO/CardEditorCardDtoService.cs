@@ -87,6 +87,7 @@ namespace Services
             }
         }
 
+        // TODO: Get rid of these sync it's unnecessary
          public async Task<CardEditorCardDto> CreateDtoFromExistingDtoAsync(CardEditorCardDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -154,6 +155,8 @@ namespace Services
                         throw new Exception("Didn't delete record in Card Per Owner");
                     }
                 } 
+
+                // TODO: Delete from card position per room too if it exists in the room
 
                 deleted = await _cardDtoService.DeleteDtoAsync(dto.Card.CardId);
                 

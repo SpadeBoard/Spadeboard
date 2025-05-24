@@ -213,6 +213,9 @@ export class CardPositionPerRoomComponent {
       this.cardGameCoreService.onDeleteCardEditorCardDto$
         .pipe(takeUntilDestroyed())
         .subscribe((cardId: string) => {
+          this.unculledCprs = this.unculledCprs.filter(cpr => cpr.card.cardId !== cardId);
+          
+          // Again, this is in case if the user scrolls away from the current card being deleted, for instance
           this.cprs = this.cprs.filter(cpr => cpr.card.cardId !== cardId);
         });
     }
