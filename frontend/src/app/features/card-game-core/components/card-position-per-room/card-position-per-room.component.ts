@@ -1,6 +1,6 @@
 import { Component, effect, ElementRef, inject, Injectable, input, ViewChild  } from '@angular/core';
 import { CardPositionPerRoomApiService } from '../../services/card-game-core/card-position-per-room-api.service';
-import { CardPositionPerRoom } from '../../models/card';
+import { CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragRef, Point} from '@angular/cdk/drag-drop';
 import { CardComponent } from '../card/card.component';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -10,6 +10,7 @@ import { mergeMap } from 'rxjs';
 import { snapToGridCellCentre, snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 import { isCardPositionPerRoom } from '../../utils/card-game-core.utils';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -40,6 +41,9 @@ export class CardPositionPerRoomComponent {
 
   constructor() {
    // this.updateGridSize();
+
+    this.onUpdateCardEditorCardDto();
+    this.onDeleteCardEditorCardDto();
 
     effect(() => {
       if (parseFloat(this.gameRoomService.currentGameRoomId()) > 0) {
@@ -188,13 +192,30 @@ export class CardPositionPerRoomComponent {
     });
   }
 
-  private deleteCardPositionPerRoom(id: string) {
-    // TODO: Delete from the bridge table
-    this.cprs = this.cprs.filter(cpr => cpr.cardPositionPerRoomId !== id);
+   private onUpdateCardEditorCardDto() {
+      // ASSUMPTION:
+      // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
+      // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
+      this.cardGameCoreService.onUpdateCardEditorCardDto$
+        .pipe(takeUntilDestroyed())
+        .subscribe((cardEditorCardDto: CardEditorCardDto) => {
+        if (cardEditorCardDto) {
+          let index = this.cprs.findIndex(cpr => cpr.card.cardId === cardEditorCardDto.card.cardId);
+  
+          if (index !== -1) {
+            this.cprs[index].card = cardEditorCardDto.card;
+          }
+        }
+      });
+    }
 
-    // TODO: If it's the only reference in there, then delete the entire card from the database
-    this.cardPositionPerRoomApiService.deleteCardPositionPerRoom(id);
-  }
+  private onDeleteCardEditorCardDto() {
+      this.cardGameCoreService.onDeleteCardEditorCardDto$
+        .pipe(takeUntilDestroyed())
+        .subscribe((cardId: string) => {
+          this.cprs = this.cprs.filter(cpr => cpr.card.cardId !== cardId);
+        });
+    }
 
   onDragStarted(event: CdkDragStart<any>, item: CardPositionPerRoom) {
     let mouseAU = this.dndBoardService.getMouseAUCoordinates();
