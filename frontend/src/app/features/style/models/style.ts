@@ -348,3 +348,11 @@ export interface Style {
     zIndex?: string;
     zoom?: string;
 }
+
+export interface BorderDimensions {
+    borderWidth: number;
+    borderTopWidth: number;
+    borderBottomWidth: number;
+    borderLeftWidth: number;
+    borderRightWidth: number;
+}

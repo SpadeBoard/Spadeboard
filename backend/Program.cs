@@ -27,8 +27,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: DevelopmentOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200", 
-                "http://localhost:3000")
+            policy
+                .SetIsOriginAllowed(origin =>
+                    origin.StartsWith("http://10.") && origin.EndsWith(":4200") || // Guest VM and other computers on physical network if bridged adapter
+                    origin.StartsWith("http://localhost") // Host machine frontend
+                )
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });

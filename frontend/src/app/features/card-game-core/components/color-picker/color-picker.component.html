@@ -1,0 +1,9 @@
+<div class ="color-picker-container">
+    <div class="color-picker-separator">
+        <input id="color-picker-input" type="color" (ngModelChange)="onColorChange($event)" [(ngModel)]="colorValue" />
+        <span>{{colorPickerName()}}</span>
+    </div>
+    <div class="color-picker-separator">
+        <span>{{colorValueName}}</span>
+    </div>
+</div>

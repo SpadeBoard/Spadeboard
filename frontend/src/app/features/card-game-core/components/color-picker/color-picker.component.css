@@ -1,0 +1,32 @@
+.color-picker-container {
+    background-color: #E6E6E6;
+    color: #676767;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    width: fit-content;
+    padding: 1%;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 5px;
+}
+
+.color-picker-separator {
+    display: flex;
+    align-items: center;
+    padding: 1%;
+    gap: 0.25rem;
+    padding-right: 0.25rem;
+}
+
+.color-picker-separator:nth-child(1) {
+    border-right: 1px solid #555555;
+}
+
+#color-picker-input {
+    width: 25px;
+    height: 25px;
+    border: none;
+    background: transparent;
+}

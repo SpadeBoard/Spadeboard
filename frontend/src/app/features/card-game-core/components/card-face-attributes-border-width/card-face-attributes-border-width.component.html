@@ -1,0 +1,38 @@
+<div class ="border-width-container">
+    <div class="border-width-separator">
+        <label for="border-width-input">Border width: </label>
+    </div>
+    <div class="border-width-separator">
+        @if (isMixed) {
+            <span (click)="onMixedClick($event)">Mixed</span>
+        }
+        @else {
+            <input id="border-width-input" type="number" min="0.01" max="100" [(ngModel)]="$any(borderWidthValue)" (ngModelChange)="onBorderWidthChange($event)" />
+        }
+        <img src="/arrow-down.svg" class="dropdown-image"(click)="onDropdownActivation($event)"/>
+    </div>
+</div>
+@if (shouldDropDown) {
+    <table class="border-width-mixed-table">
+        <tr>
+            <td>
+                <img src="/card-face-attributes_border-top-icon.svg"/>
+                <input id="top-edge" type="number" placeholder="T" min="0" max="500" [(ngModel)]="$any(borderTopWidthValue)" (ngModelChange)="onBorderWidthMixedChange($event)">
+            </td>
+            <td>
+                <img src="/card-face-attributes_border-bottom-icon.svg"/>
+                <input id="bottom-edge" type="number" placeholder="B" min="0" max="500" [(ngModel)]="$any(borderBottomWidthValue)" (ngModelChange)="onBorderWidthMixedChange($event)">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <img src="/card-face-attributes_border-left-icon.svg"/>
+                <input type="number" id="left-edge" placeholder="L" min="0" max="800" [(ngModel)]="$any(borderLeftWidthValue)" (ngModelChange)="onBorderWidthMixedChange($event)">
+            </td>
+            <td>
+                <img src="/card-face-attributes_border-right-icon.svg"/>
+                <input id="right-edge" type="number" placeholder="R" min="0" max="500" [(ngModel)]="$any(borderRightWidthValue)" (ngModelChange)="onBorderWidthMixedChange($event)" >
+            </td>
+        </tr>
+    </table>
+}
