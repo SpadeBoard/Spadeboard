@@ -13,6 +13,7 @@ namespace Services
 
         public Task<bool> UpdateAllNavAsync(CardPositionPerRoom[] cprs);
 
+        public Task<CardPositionPerRoom?> GetByCardIdAsync(long cardId);
         // https://www.owlbear.rodeo/
         // https://docs.owlbear.rodeo/extensions/getting-started/
         // https://github.com/orgs/owlbear-rodeo/repositories

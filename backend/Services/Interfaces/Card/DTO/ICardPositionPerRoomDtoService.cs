@@ -8,5 +8,7 @@ namespace Services
         public Task<bool> UpdateAllDtoNavAsync(CardPositionPerRoomDto[] cardPositionPerRoomDtos);
 
         public Task<IEnumerable<CardPositionPerRoomDto>> GetAllDtoNavByRoomIdAsync(string gameRoomId);
+    
+        public Task<CardPositionPerRoomDto?> GetDtoByCardIdAsync(string cardId);
     }
 }

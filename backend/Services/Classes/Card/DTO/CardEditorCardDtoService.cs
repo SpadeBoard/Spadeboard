@@ -19,13 +19,13 @@ using System.Linq;
 
 namespace Services
 {
-    public class CardEditorCardDtoService(ApplicationDbContext context, ICardFacePerCardDtoService cardFacePerCardDtoService, ICardDtoService cardDtoService, ICardEditorCardFaceDtoService cardEditorCardFaceDtoService, ICardPerOwnerDtoService cardPerOwnerDtoService) : ICardEditorCardDtoService
+    public class CardEditorCardDtoService(ApplicationDbContext context, ICardFacePerCardDtoService cardFacePerCardDtoService, ICardDtoService cardDtoService, ICardEditorCardFaceDtoService cardEditorCardFaceDtoService, ICardPerOwnerDtoService cardPerOwnerDtoService, ICardPositionPerRoomDtoService cardPositionPerRoomDtoService) : ICardEditorCardDtoService
     {
         private readonly ICardDtoService _cardDtoService = cardDtoService;
         private readonly ICardFacePerCardDtoService _cardFacePerCardDtoService = cardFacePerCardDtoService;
         private readonly ICardPerOwnerDtoService _cardPerOwnerDtoService = cardPerOwnerDtoService;
         private readonly ICardEditorCardFaceDtoService _cardEditorCardFaceDtoService = cardEditorCardFaceDtoService;
-
+        private readonly ICardPositionPerRoomDtoService _cardPositionPerRoomDtoService = cardPositionPerRoomDtoService;
         private readonly ApplicationDbContext _context = context;
 
         // ASSUMPTION: You can create a card for yourself, can't create a card for a room
@@ -87,6 +87,7 @@ namespace Services
             }
         }
 
+        // TODO: Get rid of these sync it's unnecessary
          public async Task<CardEditorCardDto> CreateDtoFromExistingDtoAsync(CardEditorCardDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -155,12 +156,26 @@ namespace Services
                     }
                 } 
 
-                deleted = await _cardDtoService.DeleteDtoAsync(dto.Card.CardId);
-                
-                if (!deleted) {
-                    throw new Exception("Didn't delete record in Card");
-                }
+                // NOTE: We're assuming there's only one card one position one dnd item 
+                CardPositionPerRoomDto? cpr = await _cardPositionPerRoomDtoService.GetDtoByCardIdAsync(dto.Card.CardId);
 
+                if (cpr == null) {
+                    deleted = await _cardDtoService.DeleteDtoAsync(dto.Card.CardId);
+
+                    if (!deleted)
+                    {
+                        throw new Exception("Didn't delete record in Card");
+                    }
+                }
+                else
+                {
+                    deleted = await _cardPositionPerRoomDtoService.DeleteDtoNavAsync(cpr.CardPositionPerRoomId);
+                
+                     if (!deleted)
+                    {
+                        throw new Exception("Didn't delete record in Card Position Per Room and all subsequent navigational properties");
+                    }
+                }
 
                 foreach (CardEditorCardFaceDto cardEditorCardFaceDto in dto.CardEditorCardFacesDto)
                 {

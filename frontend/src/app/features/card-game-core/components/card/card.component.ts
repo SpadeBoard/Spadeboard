@@ -81,6 +81,14 @@ export class CardComponent {
         this.cardPreviewEditorService.getCardEditorCardDtoByCardId(card.cardId);
         this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
       }
+    },
+    {
+      id: 2,
+      name: 'Delete Card',
+      action: (card?: Card) => {
+        if (!card) return;
+        this.cardPreviewEditorService.deleteCard(card.cardId);
+      }
     }
   ];
 
@@ -123,6 +131,9 @@ export class CardComponent {
   }
 
   onCardRightClick(event: MouseEvent): void {
+    if (this.card().cardId === "0")
+      return;
+
       event.preventDefault();
       this.rightClickMenuPositionX = event.clientX;
       this.rightClickMenuPositionY = event.clientY;

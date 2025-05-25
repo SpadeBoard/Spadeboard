@@ -25,6 +25,35 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<CardFaceElement>().UseTptMappingStrategy();
 
+        // NOTE: All for bridge tables
+        // TODO: Refactor the nav async stuff
+        /*builder
+            .Entity<CardPositionPerRoom>()
+            .HasOne(e => e.Card)
+            .WithMany()
+            .HasForeignKey(e => e.CardId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+           .Entity<CardPositionPerRoom>()
+           .HasOne(e => e.DndItem)
+           .WithMany()
+           .HasForeignKey(e => e.DndItemId)
+           .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+           .Entity<CardPositionPerRoom>()
+           .HasOne(e => e.DndPosition)
+           .WithMany()
+           .HasForeignKey(e => e.DndPositionId)
+           .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+           .Entity<CardPositionPerRoom>()
+           .HasOne(e => e.GameRoom)
+           .WithMany()
+           .HasForeignKey(e => e.GameRoomId)
+           .OnDelete(DeleteBehavior.Restrict);*/
 
         // FIXME: TEMPORARY SEED DATA
         builder.Entity<GameRoom>()

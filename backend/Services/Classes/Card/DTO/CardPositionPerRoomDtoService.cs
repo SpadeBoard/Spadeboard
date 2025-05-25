@@ -103,5 +103,9 @@ namespace Services
         {
             return _mapper.Map<IEnumerable<CardPositionPerRoomDto>>(await _cardPositionPerRoomService.GetAllNavByRoomIdAsync(DtoIdConversion.DtoStringToLong(gameRoomId)));
         }
+
+        public async Task<CardPositionPerRoomDto?> GetDtoByCardIdAsync(string cardId) {
+            return  _mapper.Map<CardPositionPerRoomDto?>(await _cardPositionPerRoomService.GetByCardIdAsync(DtoIdConversion.DtoStringToLong(cardId)));
+        }
     }
 }

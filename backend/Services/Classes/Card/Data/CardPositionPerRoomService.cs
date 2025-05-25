@@ -214,9 +214,49 @@ namespace Services
             }
         }
 
+        public async Task<CardPositionPerRoom?> GetByCardIdAsync(long cardId) {
+            return await _context.CardPositionPerRoom.FirstOrDefaultAsync(c => c.CardId == cardId);
+        }
+
+        // NOTE: Don't delete the game room because it has a many relationship
         public async Task<bool> DeleteNavAsync(long id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                CardPositionPerRoom? cardPositionPerRoom = await GetAsync(id);
+
+                if (cardPositionPerRoom == null)
+                {
+                    return false;
+                }
+
+                bool deleted = await DeleteAsync(id);
+
+                if (!deleted)
+                    throw new Exception("Card position per room wasn't deleted");
+
+                deleted = await _cardService.DeleteAsync(cardPositionPerRoom.CardId);
+
+                if (!deleted)
+                    throw new Exception("Card wasn't deleted");
+
+                deleted = await _dndItemService.DeleteAsync(cardPositionPerRoom.DndItemId);
+
+                if (!deleted)
+                    throw new Exception("Dnd item wasn't deleted");
+
+                deleted = await _dndPositionService.DeleteAsync(cardPositionPerRoom.DndPositionId);
+
+                if (!deleted)
+                    throw new Exception("Dnd position wasn't deleted");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
 
         public async Task<bool> UpdateAllNavAsync(CardPositionPerRoom[] cprs)
