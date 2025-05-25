@@ -181,7 +181,8 @@ export class CardsCollectionComponent {
                 dndPositionId: "0", x: dndPosition.gridX, y: dndPosition.gridY
               } as DndPosition,
               gameRoom: {
-                gameRoomId: "1"
+                gameRoomId: "1",
+                autosaveInterval: 30000
               }
             };
 

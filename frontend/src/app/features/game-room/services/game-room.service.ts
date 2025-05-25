@@ -1,15 +1,18 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { CardPositionPerRoomApiService } from '../../card-game-core/services/card-game-core/card-position-per-room-api.service';
 import { CardPositionPerRoom } from '../../card-game-core/models/card';
 import { DndBoardService } from '../../drag-and-drop/services/dnd-board.service';
-import { BehaviorSubject, interval, Subject } from 'rxjs';
+import { BehaviorSubject, interval, Observable, Subject, tap } from 'rxjs';
+import { GameRoomApiService } from './game-room-api.service';
+import { GameRoom } from '../models/game-room/game-room';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameRoomService {
-  private cardPositionPerRoomApiService = inject(CardPositionPerRoomApiService);
-  private dndBoardService = inject(DndBoardService);
+  private readonly gameRoomApiService: GameRoomApiService = inject(GameRoomApiService); 
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   currentGameRoomId: WritableSignal<string> = signal<string>("0");
   autosaveInterval: WritableSignal<number> = signal<number>(300000);
@@ -20,7 +23,19 @@ export class GameRoomService {
   private onSaveGameRoom$$ = new Subject<void>();
   onSaveGameRoom$ = this.onSaveGameRoom$$.asObservable();
 
-  constructor() { }
+  constructor() { 
+
+  }
+
+  getGameRoom$(): Observable<GameRoom | undefined> {
+  return this.gameRoomApiService.getGameRoom$(this.currentGameRoomId()).pipe(
+    tap((gameRoom: GameRoom | undefined) => {
+      if (gameRoom) {
+        this.autosaveInterval.set(gameRoom.autosaveInterval);
+      }
+    })
+  );
+}
 
   setCurrentGameRoomId(newCurrentGameRoomId: string) {
     this.currentGameRoomId.set(newCurrentGameRoomId);
@@ -43,8 +58,10 @@ export class GameRoomService {
 
   // TODO: Handle where you're saving and autosaving simultaneously, DB Concurrency Exception issues? Gotta disable the Save button somehow, send a signal here?
   onAutosaveTimeout(): void {
-    let autosaveTimeoutSubscription = interval(this.autosaveInterval()).subscribe(() => {
-      this.onSave();
+    let autosaveTimeoutSubscription = interval(this.autosaveInterval())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.onSave();
     });
   }
 
