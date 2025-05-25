@@ -20,16 +20,23 @@ namespace backend.Controllers
 
         // GET: api/GameRooms
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GameRoom>>> GetGameRoom()
+        public async Task<ActionResult<IEnumerable<GameRoomDto>>> GetGameRoom()
         {
-            return await _context.GameRoom.ToListAsync();
+             var gr = await _gameRoomDtoService.GetAllDtoAsync();
+
+            if (gr== null)
+            {
+                return NotFound();
+            }
+
+            return Ok(gr);
         }
 
         // GET: api/GameRooms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<GameRoom>> GetGameRoom(long id)
+        public async Task<ActionResult<GameRoomDto>> GetGameRoom(string id)
         {
-            var gameRoom = await _context.GameRoom.FindAsync(id);
+            var gameRoom = await _gameRoomDtoService.GetDtoAsync(id);
 
             if (gameRoom == null)
             {
@@ -42,43 +49,27 @@ namespace backend.Controllers
         // PUT: api/GameRooms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGameRoom(long id, GameRoom gameRoom)
+        public async Task<IActionResult> PutGameRoom(string id, GameRoomDto gameRoom)
         {
+            var result = await _gameRoomDtoService.UpdateDtoAsync(id, gameRoom);
+
+            if (result == true)
+                return NoContent();
+
+            // Could be either bad request or not found, you may want to distinguish these
             if (id != gameRoom.GameRoomId)
-            {
                 return BadRequest();
-            }
 
-            _context.Entry(gameRoom).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!GameRoomExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return NotFound();
         }
 
         // POST: api/GameRooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<GameRoom>> PostGameRoom(GameRoom gameRoom)
+        public async Task<ActionResult<GameRoomDto>> PostGameRoom(GameRoomDto gameRoom)
         {
-            await _context.GameRoom.AddAsync(gameRoom);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetGameRoom", new { id = gameRoom.GameRoomId }, gameRoom);
+            GameRoomDto newGameRoom= await _gameRoomDtoService.CreateDtoAsync(gameRoom);
+            return CreatedAtAction("GetCard", new { id = newGameRoom.GameRoomId }, newGameRoom);
         }
 
         // DELETE: api/GameRooms/5
@@ -87,11 +78,6 @@ namespace backend.Controllers
         {
             var deleted = await _gameRoomDtoService.DeleteDtoAsync(id);
             return deleted ? NoContent() : NotFound();
-        }
-
-        private bool GameRoomExists(long id)
-        {
-            return _context.GameRoom.Any(e => e.GameRoomId == id);
         }
     }
 }

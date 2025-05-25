@@ -12,6 +12,7 @@ import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/d
 import { GameRoomService } from '../../services/game-room.service';
 import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
 import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-game-room',
@@ -38,10 +39,20 @@ export class GameRoomComponent implements AfterViewChecked{
   private ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a";
 
   constructor() {
-    this.gameRoomService.setCurrentGameRoomId("1");
-    this.gameRoomService.onAutosaveTimeout();
+    this.activateGameRoomService();
     
     this.cardGameCoreService.setUserId(this.ownerId);
+  }
+
+  activateGameRoomService() {
+    this.gameRoomService.setCurrentGameRoomId("1");
+    this.gameRoomService.getGameRoom$()
+      .pipe(takeUntilDestroyed())
+      .subscribe((gameRoom) => {
+      if (gameRoom) {
+        this.gameRoomService.onAutosaveTimeout();
+      }
+    });
   }
 
   ngAfterViewChecked(): void {

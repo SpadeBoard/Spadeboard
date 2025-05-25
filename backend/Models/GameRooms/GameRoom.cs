@@ -13,10 +13,14 @@ namespace Models.GameRooms
 
          [NotMapped]
         public long Id { get => GameRoomId; set => GameRoomId = value; }
+
+        public int AutosaveInterval {get; set;} = 300000;
     }
 
     public class GameRoomDto
     {
         public string GameRoomId { get; set; } = "0";
+
+         public int AutosaveInterval {get; set;} = 300000;
     }
 }
