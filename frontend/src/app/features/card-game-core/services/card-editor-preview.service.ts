@@ -444,6 +444,7 @@ export class CardEditorPreviewService {
   duplicateCardFaceElementImages$(cardEditorCardDto: CardEditorCardDto): Observable<void> {
     let observables: Array<Observable<FileMetadata | undefined>> = [];
     let elements: CardFaceElementPerCardFace[] = [];
+    let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
 
     cardEditorCardDto.cardEditorCardFacesDto.forEach((cardEditorCardFaceDto: CardEditorCardFaceDto) => {
       cardEditorCardFaceDto.cardFaceElementsPerCardFace
@@ -453,7 +454,12 @@ export class CardEditorPreviewService {
         .forEach((cardFaceElementPerCardFace: CardFaceElementPerCardFace) => {
           let cardFaceElementImage: CardFaceElementImage = cardFaceElementPerCardFace.cardFaceElement as CardFaceElementImage;
           
-          if (cardFaceElementImage.imageFileMetadata === undefined)
+          // FIXED: Checking for undefined doesn't check for null. Couldn't add a card to room with nonexistent card face element image null file metadata
+          if (!cardFaceElementImage.imageFileMetadata)
+            return;
+          
+          // NOTE: Just checks to make sure that the file name actually matches teh pattern else you're going to get nothing back anyways
+          if (!cardFaceElementImage.imageFileMetadata.fileName.match(guidPattern))
             return;
 
           observables.push(
