@@ -25,6 +25,81 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<CardFaceElement>().UseTptMappingStrategy();
 
+        // NOTE: We assume that there could be multiple cards for one room
+        builder.Entity<CardPositionPerRoom>()
+            .HasOne(cp => cp.Card)
+            .WithOne()
+            .HasForeignKey<CardPositionPerRoom>(cp => cp.CardId)
+            .IsRequired();
+
+        builder.Entity<CardPositionPerRoom>()
+            .HasOne(cp => cp.DndItem)
+            .WithOne()
+            .HasForeignKey<CardPositionPerRoom>(cp => cp.DndItemId)
+            .IsRequired();
+
+        builder.Entity<CardPositionPerRoom>()
+            .HasOne(cp => cp.DndPosition)
+            .WithOne()
+            .HasForeignKey<CardPositionPerRoom>(cp => cp.DndPositionId)
+            .IsRequired();
+
+        builder.Entity<CardPositionPerRoom>()
+            .HasOne(cp => cp.GameRoom)
+            .WithMany()
+            .HasForeignKey(cp => cp.GameRoomId)
+            .IsRequired();
+
+        builder.Entity<CardFacePerCard>()
+            .HasOne(cp => cp.CardFace)
+            .WithOne()
+            .HasForeignKey<CardFacePerCard>(cp => cp.CardFaceId)
+            .IsRequired();
+
+        builder.Entity<CardFacePerCard>()
+            .HasOne(cp => cp.Card)
+            .WithMany()
+            .HasForeignKey(cp => cp.CardId)
+            .IsRequired();
+
+        builder.Entity<CardPerOwner>()
+            .HasOne(cpo => cpo.Card)
+            .WithOne()
+            .HasForeignKey<CardPerOwner>(cpo => cpo.CardId)
+            .IsRequired();
+
+        builder.Entity<CardPerOwner>()
+            .HasOne(cpo => cpo.Owner)
+            .WithMany()
+            .HasForeignKey(cpo => cpo.OwnerId)
+            .IsRequired();
+
+        builder.Entity<CardFaceElementPerCardFace>()
+            .HasOne(cp => cp.CardFaceElement)
+            .WithOne()
+            .HasForeignKey<CardFaceElementPerCardFace>(cp => cp.CardFaceElementId)
+            .IsRequired();
+
+        builder.Entity<CardFaceElementPerCardFace>()
+            .HasOne(cp => cp.DndItem)
+            .WithOne()
+            .HasForeignKey<CardFaceElementPerCardFace>(cp => cp.DndItemId)
+            .IsRequired();
+
+        builder.Entity<CardFaceElementPerCardFace>()
+            .HasOne(cp => cp.DndPosition)
+            .WithOne()
+            .HasForeignKey<CardFaceElementPerCardFace>(cp => cp.DndPositionId)
+            .IsRequired();
+
+        builder.Entity<CardFaceElementPerCardFace>()
+            .HasOne(cp => cp.CardFace)
+            .WithMany()
+            .HasForeignKey(cp => cp.CardFaceId)
+            .IsRequired();
+
+        // TODO: Set up relationships with rest of bridge tables
+
         // NOTE: All for bridge tables
         // TODO: Refactor the nav async stuff
         /*builder
