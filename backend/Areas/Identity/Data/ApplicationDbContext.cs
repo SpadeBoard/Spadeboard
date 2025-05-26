@@ -98,7 +98,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(cp => cp.CardFaceId)
             .IsRequired();
 
-        // TODO: Set up relationships with rest of bridge tables
+
+
+        /*****************************************************************/
+        builder.Entity<CardFace>()
+            .HasOne(cp => cp.Style)
+            .WithMany()
+            .HasForeignKey(cp => cp.StyleId)
+            .IsRequired(false);
+
+        builder.Entity<CardFaceElement>()
+            .HasOne(cp => cp.Style)
+            .WithMany()
+            .HasForeignKey(cp => cp.StyleId)
+            .IsRequired(false);
 
         // NOTE: All for bridge tables
         // TODO: Refactor the nav async stuff
