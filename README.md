@@ -33,3 +33,6 @@ An open source self-hostable app where you can create rooms to design your table
 6. Open `http://localhost:4200/` to head to SpadeBoard
 
 7. To stop the program, either run `docker compose -f docker-compose.yml down` or press the square on your container inside of Docker Desktop to stop it. If you want to delete your volumes and images, run `docker compose -f docker-compose.yml down --volumes --rmi all`, or delete them via Docker Desktop.
+
+# Contributing
+Please read [CONTRIBUTING.md](/CONTRIBUTING.md).
