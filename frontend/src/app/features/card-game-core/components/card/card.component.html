@@ -1,6 +1,6 @@
 <!--TODO: Modify this so that the inside of the component for the card, it actually switches between multicard faces-->
-<div [style.transform]="transform()" (contextmenu)="onCardRightClick($event)">
-    <app-card-face [cardFaceInput]="currentCardFace" />
+<div (contextmenu)="onCardRightClick($event)">
+    <app-card-face [cardFaceInput]="currentCardFace" [cardFaceScale]="cardScaleComputed()" #cardFace/>
 </div>
 @if (isDisplayContextMenu)
 {

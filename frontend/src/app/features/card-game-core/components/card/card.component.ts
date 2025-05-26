@@ -1,4 +1,4 @@
-import { Component, Signal, viewChildren, output, input, inject, effect, computed, SimpleChanges, InputSignal, Input, HostListener } from '@angular/core';
+import { Component, Signal, viewChildren, output, input, inject, effect, computed, SimpleChanges, InputSignal, Input, HostListener, ViewChild, ElementRef, AfterViewInit, afterRenderEffect } from '@angular/core';
 
 import { Card } from '../../models/card';
 import { cardFlipAnimation } from './card.animations';
@@ -39,6 +39,8 @@ export class CardComponent {
 
   private rightClickMenuPositionX: number = 0;
   private rightClickMenuPositionY: number = 0;
+
+  @ViewChild('cardFace') cardFaceRef!: CardFaceComponent;
 
   card: InputSignal<Card> = input<Card >({
     cardId: "0",
@@ -96,11 +98,11 @@ export class CardComponent {
 
   actionContextMenuItemsChange = output<ActionContextMenuItem[]>();
 
-  zoomLevel: InputSignal<number> =  input<number>(1);
-  scaleLevel: number = 1;
+  cardScale: InputSignal<number> =  input<number>(1);
+  cardScaleComputed: Signal<number>  = computed(() => this.cardScale());
 
   transform() {
-    return `scale(${this.scaleLevel})`;
+    return `scale(${this.cardScaleComputed()})`;
   }
   
   constructor() {
@@ -111,13 +113,13 @@ export class CardComponent {
       if (card !== undefined) {
         this.loadCardFaces(card);
       }
-
-      let zoomLevel: number | undefined = this.zoomLevel();
-
-      if (zoomLevel !== undefined && zoomLevel !== 0) {
-        this.scaleLevel = zoomLevel;
-      }
     });
+  }
+
+  setCardFaceImageDimensionsOnDndBoard(): void {
+    if (this.cardFaceRef && this.cardScale() && this.cardScale() !== 0) {
+      this.cardFaceRef.setCardFaceImageDimensions(this.cardScale());
+    }
   }
 
   // TODO: Rework this, use cardApiService to get the card face IDs, then use a switch map, pass it into the next then assign the cardFaces

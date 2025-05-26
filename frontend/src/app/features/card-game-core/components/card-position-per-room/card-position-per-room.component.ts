@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, inject, Injectable, input, ViewChild  } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, Injectable, input, QueryList, ViewChild, ViewChildren  } from '@angular/core';
 import { CardPositionPerRoomApiService } from '../../services/card-game-core/card-position-per-room-api.service';
 import { CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragRef, Point} from '@angular/cdk/drag-drop';
@@ -29,13 +29,15 @@ export class CardPositionPerRoomComponent {
 
   cprs: CardPositionPerRoom[] = [];
 
+  @ViewChildren('cardsPositionPerRoom') cardsPositionPerRoomRef!: QueryList<ElementRef<HTMLDivElement>>;
+
   // NOTE: For rendering only
   unculledCprs: CardPositionPerRoom[] = [];
 
   private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
   
   // TODO: Refactor the bloody architecture
-  cardsZoomLevel: number = 1;
+  cardsPositionPerRoomScale: number = 1;
   
   private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
 
@@ -119,7 +121,25 @@ export class CardPositionPerRoomComponent {
   // TODO: Refactor this into the dndBoardService
   private setCardsZoomLevel(): void {
     this.dndBoardService.zoomLevel$.subscribe((zoomLevel: number) => {     
-      this.cardsZoomLevel = zoomLevel;
+      let itemRenderScale: number = this.dndBoardService.getItemRenderScale();
+      
+      if (itemRenderScale !== 0) {
+        this.cardsPositionPerRoomScale = itemRenderScale;
+      }
+
+      // TODO: Set the unculled cpr levels for each
+      /*this.cardsPositionPerRoomRef.forEach((cardPositionPerRoom, index) => {
+        let width = cardPositionPerRoom.nativeElement.offsetWidth;
+        let height = cardPositionPerRoom.nativeElement.offsetHeight;
+
+        let scaledDimensions: {
+          scaledWidth: number;
+          scaledHeight: number;
+        } = this.dndBoardService.getScaledItemRenderDimensions(width, height, this.dndBoardService.getItemRenderScale());
+      
+        cardPositionPerRoom.nativeElement.style.width = scaledDimensions.scaledWidth + 'px';
+        cardPositionPerRoom.nativeElement.style.height = scaledDimensions.scaledHeight + 'px';
+      });*/
     })
   }
   
