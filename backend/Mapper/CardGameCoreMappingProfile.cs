@@ -5,6 +5,7 @@ using Models.Styles;
 using Models.Bridge;
 using Models.GameRooms;
 using Models.Files;
+using Models.LODs;
 
 // https://stackoverflow.com/questions/40275195/how-to-set-up-automapper-in-asp-net-core
 // https://docs.automapper.org/en/stable/Configuration.html#naming-conventions
@@ -162,7 +163,20 @@ namespace Mapper
             CreateMap<FileMetadataDto, FileMetadata>()
                 .ForMember(dest => dest.FileMetadataId,
                            opt => opt.MapFrom(src => long.Parse(src.FileMetadataId)))
-                .ForMember(dest => dest.Id, opt => opt.Ignore()); ;
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<Lod, LodDto>();
+
+            CreateMap<LodDto, Lod>()
+                 .ForMember(dest => dest.LodId,
+                           opt => opt.MapFrom(src => long.Parse(src.LodId)))
+                 .ForMember(dest => dest.Lod0Id,
+                           opt => opt.MapFrom(src => long.Parse(src.Lod0Id)))
+                 .ForMember(dest => dest.Lod1Id,
+                           opt => opt.MapFrom(src => long.Parse(src.Lod1Id)))
+                 .ForMember(dest => dest.Lod2Id,
+                           opt => opt.MapFrom(src => long.Parse(src.Lod2Id)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
 }
