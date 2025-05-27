@@ -51,3 +51,14 @@ export async function blobToDataURL(blobUrl: string): Promise<string> {
         reader.readAsDataURL(blob);
     });
 }
+
+export function getScaledItemRenderDimensions(
+  originalWidth: number,
+  originalHeight: number,
+  scale: number
+): { scaledWidth: number; scaledHeight: number } {
+  return {
+    scaledWidth: originalWidth * scale,
+    scaledHeight: originalHeight * scale
+  };
+}

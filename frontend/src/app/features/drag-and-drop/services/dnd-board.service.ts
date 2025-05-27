@@ -1,7 +1,7 @@
 import { Injectable, HostListener, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { DndPosition } from '../models/dnd-types';
-import { clamp } from '../../../utils/utils';
+import { clamp, getScaledItemRenderDimensions } from '../../../utils/utils';
 @Injectable({
   providedIn: 'root'
 })
@@ -208,22 +208,29 @@ export class DndBoardService {
 
   // Item Position AU: Raw position on virtual board
   // Original: Physical image dimensions
-  getScaledItemRenderData(itemPositionXAU: number, itemPositionYAU: number, originalWidth: number, originalHeight: number): {
+  getScaledItemRenderData(itemPositionXAU: number, itemPositionYAU: number, originalWidth: number, originalHeight: number
+  ): {
     screenX: number;
     screenY: number;
     scaledWidth: number;
     scaledHeight: number;
   } {
-    let { screenX, screenY } = this.aUToScreenCoordinates(itemPositionXAU, itemPositionYAU);
+    let { screenX, screenY } = this.getScaledItemRenderCoordinates(itemPositionXAU, itemPositionYAU);
+    let scale: number = this.getItemRenderScale();
+    let { scaledWidth, scaledHeight } = getScaledItemRenderDimensions(originalWidth, originalHeight, scale);
 
-    let scale = this.getItemRenderScale();
-
-    // Scale width and height
-    let scaledWidth = originalWidth * scale;
-    let scaledHeight = originalHeight * scale;
-  
     return { screenX, screenY, scaledWidth, scaledHeight };
   }
+
+  // Use let scale: number = this.getItemRenderScale();
+
+// Returns the screen coordinates for rendering the item
+getScaledItemRenderCoordinates(itemPositionXAU: number, itemPositionYAU: number): {
+    screenX: number;
+    screenY: number;
+} {
+  return this.aUToScreenCoordinates(itemPositionXAU, itemPositionYAU);
+}
 
   getItemRenderScale() {
     return this.getScaledCellSize() / this.cellSizeScreen;

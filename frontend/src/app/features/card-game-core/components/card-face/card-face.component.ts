@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, effect, inject, input, InputSignal, Signal } from '@angular/core';
+import { afterRenderEffect, Component, computed, DestroyRef, effect, inject, Input, input, InputSignal, Signal } from '@angular/core';
 
 import { CardFace } from '../../models/card-face';
 
@@ -13,6 +13,8 @@ import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FileMetadataApiService } from '../../../../utils/services/file-metadata-api.service';
 import { FileMetadataStatus } from '../../../../utils/models/file-metadata';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
+import { getScaledItemRenderDimensions } from '../../../../utils/utils';
 
 // https://medium.com/@niteshdaga000/optimizing-performance-with-memory-caching-in-angular-applications-dad3efeb1f99
 // TODO: When loading in the cards menu, use a hybdrid approach of storing the indices, caching the images in memory, using LRU, and only replacing the images that have changed via checking timestamp
@@ -24,7 +26,7 @@ import { FileMetadataStatus } from '../../../../utils/models/file-metadata';
 })
 export class CardFaceComponent {
   private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
-  
+ 
   // TODO: Have the calculation to convert the card face elements here
   cardFaceInput: InputSignal<CardFace | undefined>=  input<CardFace | undefined>({
     cardFaceId: "0",
@@ -42,16 +44,40 @@ export class CardFaceComponent {
     }
   });
 
+  cardFaceScale: InputSignal<number> = input<number>(1);
+
   // TODO: Card face image here
   // https://stackoverflow.com/a/27197907
   private destroyRef: DestroyRef = inject(DestroyRef);
 
+  DEFAULT_BASE_WIDTH: number = 154;
+  DEFAULT_BASE_HEIGHT: number = 215;
+
+  baseDimensions = {
+    width: this.DEFAULT_BASE_WIDTH,
+    height: this.DEFAULT_BASE_HEIGHT
+  }
+
   image= {
     src: '/blank-card-canvas.svg',
-    alt: '',
-    width: 154,
-    height: 215
+    alt: 'Placeholder card face',
+    width: this.baseDimensions.width,
+    height: this.baseDimensions.height
   };
+
+  // TODO: Refactor this, this should not be here?
+  // To be used on DND Board, but should just be general in case?
+  // Here's the problem, if you just use transform scale here, the interactive area's not going to resize, which is going to cause issues with UX
+  setCardFaceImageDimensions(scale: number) {
+    let scaledDimensions: {
+      scaledWidth: number;
+      scaledHeight: number;
+    } = getScaledItemRenderDimensions(this.baseDimensions.width, this.baseDimensions.height, scale); // NOTE: Should this even be in this service? It's just a general scaling function
+
+    // FIXED: It was taking the new width and height then multiplying by that instead. Compounded scaling.
+    this.image.width = scaledDimensions.scaledWidth;
+    this.image.height = scaledDimensions.scaledHeight;
+  }
 
   getCardFaceImageSrc(cardFace: CardFace): Promise<HTMLImageElement | undefined> {
     if (!cardFace.cardFaceThumbnailFileMetadata) {
@@ -109,20 +135,53 @@ export class CardFaceComponent {
       
       if (cardFace !== undefined && parseFloat(cardFace.cardFaceId) !== 0) {
         if (!cardFace.cardFaceThumbnailFileMetadata) {
-          this.image.src = "/blank-card-canvas.svg";
+          this.setPlaceholderCardFace();
           return;
         }
 
         this.getCardFaceImageSrc(cardFace).then((image: HTMLImageElement | undefined) => {
-          if (image === undefined)
+          if (!image) {
             return;
+          }
 
           this.image.src = image.src;
-          this.image.width = image.width;
           this.image.alt = image.alt;
-          this.image.height = image.height;
+
+          this.setBaseDimensions(image.width, image.height);
         })
+
+        // This is indeed necessary, because we might not even be grabbing the card face,
+        // To be frank I can't remember why I wrote this here, shouldn't it just be moved outside of this check?
+        // Probably should use guard clausing instead
+         if (this.shouldScaleCardFace()) {
+           this.setCardFaceImageDimensions(this.cardFaceScale());
+         }
       }
     });
+  }
+
+  shouldScaleCardFace(): boolean {
+    let scale = this.cardFaceScale();
+    return scale !== undefined && scale !== null && scale !== 0 && scale !== 1;
+  }
+
+  setBaseDimensions(baseDimensionWidth: number, baseDimensionHeight: number) {
+    this.baseDimensions.width = baseDimensionWidth;
+    this.baseDimensions.height = baseDimensionHeight;
+    
+    if (this.shouldScaleCardFace()) {
+      this.setCardFaceImageDimensions(this.cardFaceScale());
+      return;
+    }
+
+     this.image.width = this.baseDimensions.width;
+     this.image.height = this.baseDimensions.height;
+  }
+
+  setPlaceholderCardFace() {
+    this.image.src = "/blank-card-canvas.svg";
+    this.image.alt = 'Placeholder card face';
+
+    this.setBaseDimensions(this.DEFAULT_BASE_WIDTH, this.DEFAULT_BASE_HEIGHT);
   }
 }
