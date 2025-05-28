@@ -4,6 +4,6 @@
         [style.height]="'fit-content'" (cdkDragStarted)="onDragStarted($event, cpr)" (cdkDragMoved)="onDragMoved($event)"
         (cdkDragDropped)="onDragDrop($event, cpr)"
         #cardsPositionPerRoom>
-        <app-card [cardScale]="cardsPositionPerRoomScale" [card]="cpr.card" />
+        <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" />
     </div>
 }
