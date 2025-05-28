@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { CardComponent } from '../card/card.component';
 import { Card, CardEditorCardDto } from '../../models/card';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
@@ -6,10 +6,13 @@ import { CardApiService } from '../../services/card-game-core/card-api.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';
+import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
-  imports: [CardComponent, CardDeleteButtonComponent],
+  imports: [CardComponent, CardDeleteButtonComponent, CommonModule, ActionContextMenuComponent],
   templateUrl: './card-editor-controls-cards-template-collection.component.html',
   styleUrl: './card-editor-controls-cards-template-collection.component.css'
 })
@@ -27,11 +30,38 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
       currentCardFaceIndex: 0
     }
 
+  private rightClickMenuPositionX: number = 0;
+  private rightClickMenuPositionY: number = 0;
+  currentContextMenuId: string = "";
+
+  // TODO: Probably refactor this, how do we get this information up there?
+  actionContextMenuItems: ActionContextMenuItem[] = [
+    {
+      id: 0,
+      name: 'Flip',
+      action: (card?: Card) => {
+        if (!card) return;
+
+        let idx = this.cards.findIndex(c => c.cardId === card.cardId);
+        if (idx !== -1) {
+          this.cards[idx] = {
+            ...card,
+            currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
+          };
+        }
+      }
+    }
+  ];
+
   constructor() {
     this.getCardTemplates();
     this.onCreateCardEditorCardDto();
     this.onUpdateCardEditorCardDto();
     this.onDeleteCardEditorCardDto();
+  }
+
+  getCurrentEditedCardId(): string {
+    return this.cardEditorPreviewService.cardEditorCardDto.card.cardId;
   }
 
   getCardTemplates() {
@@ -83,5 +113,47 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
       .subscribe((cardId: string) => {
         this.cards = this.cards.filter(c => c.cardId !== cardId);
       });
+  }
+
+  onCardRightClick(event: MouseEvent, cardId: string): void {
+    if (cardId === "0")
+      return;
+
+    event.preventDefault();
+
+    /// Find the .menu element (ancestor), might just want to use a template ref? Not sure.
+    let menuElem: HTMLElement | null = (event.currentTarget as HTMLElement).closest('.menu') as HTMLElement | null;
+    if (!menuElem) return;
+
+    let menuRect: DOMRect = menuElem.getBoundingClientRect();
+
+    // Calculate mouse position relative to .menu
+    let relativeX: number = event.clientX - menuRect.left;
+    let relativeY: number = event.clientY - menuRect.top;
+
+    this.rightClickMenuPositionX = relativeX;
+    this.rightClickMenuPositionY = relativeY;
+
+    this.currentContextMenuId = cardId;
+  }
+
+  @HostListener('document:click')
+  documentClick(): void {
+    this.currentContextMenuId = "";
+  }
+
+  getRightClickMenuStyle() {
+    return {
+      position: 'absolute', // Due to menu ancestor
+      left: `${this.rightClickMenuPositionX}px`,
+      top: `${this.rightClickMenuPositionY}px`,
+    }
+  }
+
+  handleActionContextMenuItemClick(item: ActionContextMenuItem) {
+    let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextMenuId);
+
+    if (card)
+      item.action(card);
   }
 }

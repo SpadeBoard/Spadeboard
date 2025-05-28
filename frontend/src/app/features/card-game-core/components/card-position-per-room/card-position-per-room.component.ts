@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, effect, ElementRef, inject, Injectable, input, QueryList, ViewChild, ViewChildren  } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, HostListener, inject, Injectable, input, QueryList, ViewChild, ViewChildren  } from '@angular/core';
 import { CardPositionPerRoomApiService } from '../../services/card-game-core/card-position-per-room-api.service';
-import { CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
+import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragRef, Point} from '@angular/cdk/drag-drop';
 import { CardComponent } from '../card/card.component';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -11,12 +11,16 @@ import { snapToGridCellCentre, snapToGridNearestVertex } from '../../../drag-and
 import { isCardPositionPerRoom } from '../../utils/card-game-core.utils';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-card-position-per-room',
   imports: [
     CdkDrag,
-    CardComponent
+    CardComponent, ActionContextMenuComponent, CommonModule
   ],
   templateUrl: './card-position-per-room.component.html',
   styleUrl: './card-position-per-room.component.css'
@@ -26,6 +30,9 @@ export class CardPositionPerRoomComponent {
   private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
   private dndBoardService: DndBoardService = inject(DndBoardService);
   private gameRoomService: GameRoomService = inject(GameRoomService);
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+   
+  private el = inject(ElementRef);
 
   cprs: CardPositionPerRoom[] = [];
 
@@ -40,6 +47,45 @@ export class CardPositionPerRoomComponent {
   cardsPositionPerRoomScale: number = 1;
   
   private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
+
+  private rightClickMenuPositionX: number = 0;
+  private rightClickMenuPositionY: number = 0;
+  currentContextMenuId: string = "";
+
+  get actionContextMenuItems(): ActionContextMenuItem[] {
+    return [
+      {
+        id: 0,
+        name: 'Flip',
+        action: (cpr?: CardPositionPerRoom) => {
+          if (!cpr) return;
+          cpr.card = {
+            ...cpr.card,
+            currentCardFaceIndex: (cpr.card.currentCardFaceIndex === 0) ? 1 : 0
+          };
+        }
+      },
+      {
+        id: 1,
+        name: 'Edit Card',
+        action: (cpr?: CardPositionPerRoom) => {
+          if (!cpr) return;
+          this.cardEditorPreviewService.getCardEditorCardDtoByCardId(cpr.card.cardId);
+          this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
+        }
+      },
+      {
+        id: 2,
+        name: (this.currentContextMenuId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)
+          ? "Can't delete - Being edited..."
+          : 'Delete Card',
+        action: (cpr?: CardPositionPerRoom) => {
+          if (!cpr || cpr.card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
+          this.cardEditorPreviewService.deleteCard(cpr.card.cardId);
+        }
+      }
+    ];
+  }
 
   constructor() {
    // this.updateGridSize();
@@ -363,5 +409,41 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
     // console.log(`Offset computeDragRenderPos: ${JSON.stringify({offsetX, offsetY})}`);
 
     return { x: offsetX, y: offsetY };
+  }
+
+  onCardRightClick(event: MouseEvent, cardId: string): void {
+    event.preventDefault();
+    
+    // Get the parent element and its bounding rect
+    let parentElement: HTMLElement | null = this.el.nativeElement.parentElement;
+    if (!parentElement) return; 
+
+    let parentRect: DOMRect = parentElement.getBoundingClientRect();
+
+    // Calculate menu position relative to parent
+    this.rightClickMenuPositionX = event.clientX - parentRect.left;
+    this.rightClickMenuPositionY = event.clientY - parentRect.top;
+
+    this.currentContextMenuId = cardId;
+  }
+
+  @HostListener('document:click')
+  documentClick(): void {
+    this.currentContextMenuId = "";
+  }
+
+  getRightClickMenuStyle() {
+    return {
+      position: 'absolute',
+      left: `${this.rightClickMenuPositionX}px`,
+      top: `${this.rightClickMenuPositionY}px`
+    }
+  }
+
+  handleActionContextMenuItemClick(item: ActionContextMenuItem) {
+    let cpr: CardPositionPerRoom | undefined = this.findCardPositionPerRoom(this.currentContextMenuId);
+
+    if (cpr)
+      item.action(cpr);
   }
 }

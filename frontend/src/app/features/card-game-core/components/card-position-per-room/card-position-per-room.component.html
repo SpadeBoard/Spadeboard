@@ -3,7 +3,12 @@
         [style.top.px]="calculateCardPositionPerRoomScreenPosition(cpr.dndPosition).screenY" [style.width]="'fit-content'"
         [style.height]="'fit-content'" (cdkDragStarted)="onDragStarted($event, cpr)" (cdkDragMoved)="onDragMoved($event)"
         (cdkDragDropped)="onDragDrop($event, cpr)"
+        (contextmenu)="onCardRightClick($event, cpr.card.cardId)"
         #cardsPositionPerRoom>
         <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" />
     </div>
+}
+@if (currentContextMenuId !== "") {
+<app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
+    (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
 }

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
+import { Component, DestroyRef, effect, ElementRef, HostListener, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
 import { CardComponent } from '../card/card.component';
@@ -35,13 +35,54 @@ export class CardsCollectionComponent {
   cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
   private cardApiService: CardApiService = inject(CardApiService);
   private dndBoardService: DndBoardService = inject(DndBoardService);
-  private cardPreviewEditorService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
   private readonly fileUploadApiService = inject(FileUploadApiService);
 
   private destroyRef: DestroyRef = inject(DestroyRef);
 
   cards: Card[] =[];
+
+  private rightClickMenuPositionX: number = 0;
+  private rightClickMenuPositionY: number = 0;
+  currentContextMenuId: string = "";
+
+  get actionContextMenuItems(): ActionContextMenuItem[] {
+    return [{
+      id: 0,
+      name: 'Flip',
+      action: (card?: Card) => {
+        if (!card) return;
+
+        let idx = this.cards.findIndex(c => c.cardId === card.cardId);
+        if (idx !== -1) {
+          this.cards[idx] = {
+            ...card,
+            currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
+          };
+        }
+      }
+    },
+     {
+      id: 1,
+      name: 'Edit Card',
+      action: (card?: Card) => {
+        if (!card) return;
+        this.cardEditorPreviewService.getCardEditorCardDtoByCardId(card.cardId);
+        this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
+      }
+    },
+    {
+      id: 2,
+      name: (this.currentContextMenuId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)
+          ? "Can't delete - Being edited..."
+          : 'Delete Card',
+      action: (card?: Card) => {
+        if (!card || card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
+        this.cardEditorPreviewService.deleteCard(card.cardId);
+      }
+    }
+  ]};
 
   constructor() {
     // TODO: Might want to do a behavior subject instead where we get the latest card based on when we add the card
@@ -139,8 +180,8 @@ export class CardsCollectionComponent {
 
   replaceAllImageFilePaths$(cardEditorCardDto: CardEditorCardDto): Observable<any> {
     return forkJoin([
-      this.cardPreviewEditorService.duplicateCardFaceElementImages$(cardEditorCardDto),
-      this.cardPreviewEditorService.duplicateCardFaceThumbnails$(cardEditorCardDto)]).pipe(
+      this.cardEditorPreviewService.duplicateCardFaceElementImages$(cardEditorCardDto),
+      this.cardEditorPreviewService.duplicateCardFaceThumbnails$(cardEditorCardDto)]).pipe(
         takeUntilDestroyed(this.destroyRef)
       );
   }
@@ -202,6 +243,43 @@ export class CardsCollectionComponent {
 
   private createCardPositionPerRoom(cpr: CardPositionPerRoom) {
     this.cardGameCoreService.createCardPositionPerRoom(cpr);
+  }
+
+  onCardRightClick(event: MouseEvent, cardId: string): void {
+    event.preventDefault();
+
+    let cardElem: HTMLElement = event.currentTarget as HTMLElement;
+    let cardRect: DOMRect = cardElem.getBoundingClientRect();
+
+    // Center of the card in viewport coordinates
+    let cardCenterX: number = cardRect.left + cardRect.width / 2;
+    let cardCenterY: number = cardRect.top + cardRect.height / 2;
+
+    this.rightClickMenuPositionX = cardCenterX;
+    this.rightClickMenuPositionY = cardCenterY;
+    this.currentContextMenuId = cardId;
+  }
+
+
+  @HostListener('document:click')
+  documentClick(): void {
+    this.currentContextMenuId = "";
+  }
+
+  // NOTE: Should be right considering it's not a child of the cards-menu
+  getRightClickMenuStyle() {
+    return {
+      position: 'fixed',
+      left: `${this.rightClickMenuPositionX}px`,
+      top: `${this.rightClickMenuPositionY}px`
+    }
+  }
+
+  handleActionContextMenuItemClick(item: ActionContextMenuItem) {
+    let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextMenuId);
+
+    if (card)
+      item.action(card);
   }
 
   // TODO: Refactor, use the gameRoomService here and the cardPositionPerRoomApiService here instead, pass in the item index for the subject to then communicate with the DndBoard
