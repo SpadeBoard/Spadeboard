@@ -18,7 +18,7 @@
                         (mousedown)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                         [content]="getCardFaceElementRtContentByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
                         @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
-                            <div class="example-handle" cdkDragHandle>
+                            <div class="example-handle" cdkDragHandle data-html2canvas-ignore="true">
                                 <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
                                     <path
                                         d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z">
@@ -30,7 +30,7 @@
                     </app-card-face-rt>
                         @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
                             <app-card-editor-element-delete-button
-                                [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId" />
+                                [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId" data-html2canvas-ignore="true"/>
                         }
                     }
                 @case ("Image") {
@@ -41,7 +41,7 @@
                         [cardFaceImageHeight]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
                         <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
                         @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
-                            <div class="example-handle" cdkDragHandle>
+                            <div class="example-handle" cdkDragHandle data-html2canvas-ignore="true">
                                 <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
                                     <path
                                         d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z">
@@ -54,10 +54,12 @@
                     @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
                         <app-card-editor-element-delete-button 
                             [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
-                        />
+                            data-html2canvas-ignore="true"
+                            />
                         <app-resizable-wrapper 
                             [dimensions]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                             (resizableChange)="onResizableChange($event)"
+                            data-html2canvas-ignore="true"
                     />
                     }
                 }
