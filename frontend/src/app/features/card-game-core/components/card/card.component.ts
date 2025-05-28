@@ -1,4 +1,4 @@
-import { Component, Signal, viewChildren, output, input, inject, effect, computed, SimpleChanges, InputSignal, Input, HostListener, ViewChild, ElementRef, AfterViewInit, afterRenderEffect } from '@angular/core';
+import { Component, Signal, viewChildren, output, input, inject, effect, computed, SimpleChanges, InputSignal, Input, HostListener, ViewChild, ElementRef, AfterViewInit, afterRenderEffect, ModelSignal, model } from '@angular/core';
 
 import { Card } from '../../models/card';
 import { cardFlipAnimation } from './card.animations';
@@ -42,7 +42,7 @@ export class CardComponent {
 
   @ViewChild('cardFace') cardFaceRef!: CardFaceComponent;
 
-  card: InputSignal<Card> = input<Card >({
+  card: ModelSignal<Card> =model<Card >({
     cardId: "0",
     currentCardFaceIndex: 0,
     cardName: '',
@@ -59,8 +59,6 @@ export class CardComponent {
       styleId: "0"
     }
   }
-
-  cardChange = output<Card>();
 
   isDisplayContextMenu: boolean = false;
 
@@ -101,10 +99,6 @@ export class CardComponent {
   cardScale: InputSignal<number> =  input<number>(1);
   cardScaleComputed: Signal<number>  = computed(() => this.cardScale());
 
-  transform() {
-    return `scale(${this.cardScaleComputed()})`;
-  }
-  
   constructor() {
     effect(() => {
       let card: Card | undefined = this.card();
@@ -127,7 +121,7 @@ export class CardComponent {
     this.cardFaceApiService.getCardFacesPerCard$(card.cardId).subscribe((result: CardFace[] | undefined) => {
       if (result != undefined) {
         this.cardFaces = result;
-        this.currentCardFace = this.cardFaces[0];
+        this.currentCardFace = this.cardFaces[card.currentCardFaceIndex];
       }
     });
   }

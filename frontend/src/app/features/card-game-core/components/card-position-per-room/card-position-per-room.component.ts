@@ -67,6 +67,7 @@ export class CardPositionPerRoomComponent {
 
   private onUpdateCamera() {
     this.dndBoardService.onUpdateCamera$.subscribe(() => {
+      this.updateCardsPositionPerRoom(this.unculledCprs);
       this.setOnScreenCprs();
     })
   }
@@ -126,20 +127,6 @@ export class CardPositionPerRoomComponent {
       if (itemRenderScale !== 0) {
         this.cardsPositionPerRoomScale = itemRenderScale;
       }
-
-      // TODO: Set the unculled cpr levels for each
-      /*this.cardsPositionPerRoomRef.forEach((cardPositionPerRoom, index) => {
-        let width = cardPositionPerRoom.nativeElement.offsetWidth;
-        let height = cardPositionPerRoom.nativeElement.offsetHeight;
-
-        let scaledDimensions: {
-          scaledWidth: number;
-          scaledHeight: number;
-        } = this.dndBoardService.getScaledItemRenderDimensions(width, height, this.dndBoardService.getItemRenderScale());
-      
-        cardPositionPerRoom.nativeElement.style.width = scaledDimensions.scaledWidth + 'px';
-        cardPositionPerRoom.nativeElement.style.height = scaledDimensions.scaledHeight + 'px';
-      });*/
     })
   }
   
@@ -177,9 +164,14 @@ export class CardPositionPerRoomComponent {
   }
 
   // TODO: Get the card via the ID as well as position
-  // TODO: Create a new card position per room
 
-  // TODO: Update to the backend based on idle period
+  private updateCardsPositionPerRoom(cprs: CardPositionPerRoom[])
+  {
+    cprs.forEach((cpr: CardPositionPerRoom) => {
+      this.updateCardPositionPerRoom(cpr);
+    })
+  }
+
   private updateCardPositionPerRoom(updatedCpr: CardPositionPerRoom) {
     let cprToReplace = this.findCardPositionPerRoom(updatedCpr.card.cardId);
 
