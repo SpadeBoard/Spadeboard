@@ -23,6 +23,7 @@
 
 .menu {
     display: none;
+    position: relative; /*For context menu in child below*/
     /* TODO: Add transition for animation. */
 }
 

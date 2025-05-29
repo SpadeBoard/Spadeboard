@@ -24,7 +24,7 @@ import { ActionContextMenuComponent } from '../../../actions-context-menu/compon
   selector: 'app-card',
   imports: [
     DndContentDirective, CardFaceComponent,
-    CommonModule, ActionContextMenuComponent
+    CommonModule
   ],
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
@@ -32,13 +32,8 @@ import { ActionContextMenuComponent } from '../../../actions-context-menu/compon
 })
 export class CardComponent {
   private readonly cardFaceApiService: CardFaceApiService = inject(CardFaceApiService);
-  private readonly cardPreviewEditorService: CardEditorPreviewService = inject(CardEditorPreviewService);
-  private readonly cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
   // https://medium.com/@chandrashekharsingh25/angular-signals-explained-with-practical-examples-e45de6d00925
   // Might need computed signals then
-
-  private rightClickMenuPositionX: number = 0;
-  private rightClickMenuPositionY: number = 0;
 
   @ViewChild('cardFace') cardFaceRef!: CardFaceComponent;
 
@@ -59,42 +54,6 @@ export class CardComponent {
       styleId: "0"
     }
   }
-
-  isDisplayContextMenu: boolean = false;
-
-  // TODO: Probably refactor this, how do we get this information up there?
-  actionContextMenuItems: ActionContextMenuItem[] = [
-    {
-      id: 0,
-      name: 'Flip',
-      action: (card?: Card) => {
-        if (!card) return;
-        card.currentCardFaceIndex = (card.currentCardFaceIndex === 0) ? 1 : 0;
-        this.currentCardFace = this.cardFaces[card.currentCardFaceIndex];
-      }
-    },
-    {
-      id: 1,
-      name: 'Edit Card',
-      action: (card?: Card) => {
-        if (!card) return;
-        this.cardPreviewEditorService.getCardEditorCardDtoByCardId(card.cardId);
-        this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
-      }
-    },
-    {
-      id: 2,
-      name: 'Delete Card',
-      action: (card?: Card) => {
-        if (!card) return;
-        this.cardPreviewEditorService.deleteCard(card.cardId);
-      }
-    }
-  ];
-
-
-
-  actionContextMenuItemsChange = output<ActionContextMenuItem[]>();
 
   cardScale: InputSignal<number> =  input<number>(1);
   cardScaleComputed: Signal<number>  = computed(() => this.cardScale());
@@ -124,33 +83,5 @@ export class CardComponent {
         this.currentCardFace = this.cardFaces[card.currentCardFaceIndex];
       }
     });
-  }
-
-  onCardRightClick(event: MouseEvent): void {
-    if (this.card().cardId === "0")
-      return;
-
-      event.preventDefault();
-      this.rightClickMenuPositionX = event.clientX;
-      this.rightClickMenuPositionY = event.clientY;
-  
-      this.isDisplayContextMenu = true;
-    }
-  
-  @HostListener('document:click')
-  documentClick(): void {
-    this.isDisplayContextMenu = false;
-  }
-
-  getRightClickMenuStyle() {
-    return {
-      position: 'fixed',
-      left: `${this.rightClickMenuPositionX}px`,
-      top: `${this.rightClickMenuPositionY}px`
-    }
-  }
-
-  handleActionContextMenuItemClick(item: ActionContextMenuItem) {
-    item.action(this.card());
   }
 }

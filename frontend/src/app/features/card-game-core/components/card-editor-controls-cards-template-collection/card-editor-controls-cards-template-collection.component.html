@@ -1,7 +1,13 @@
 <div class="cec-cards-template-collection">
     <app-card [card]="new" [title] ="new.cardName" (click)="onClickCard($event, new.cardId)"/>
     @for (card of cards; track card) {
-        <app-card [card]="card" [title]="card.cardName" (click)="onClickCard($event, card.cardId)"/>
-        <app-card-delete-button [cardId]="card.cardId"/>
+        <app-card [card]="card" [title]="card.cardName" (click)="onClickCard($event, card.cardId)" (contextmenu)="onCardRightClick($event, card.cardId)"/>
+        @if (card.cardId !== getCurrentEditedCardId()) {
+            <app-card-delete-button [cardId]="card.cardId"/>
+        }
     }
 </div>
+@if (currentContextMenuId !== "") {
+    <app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
+        (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
+}
