@@ -1,7 +1,7 @@
 import { Injectable, HostListener, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { DndPosition } from '../models/dnd-types';
-import { clamp, Coordinates, Dimensions, getScaledItemRenderDimensions } from '../../../utils/utils';
+import { clamp, Coordinates, Dimensions, getBoundingBox, getScaledItemRenderDimensions } from '../../../utils/utils';
 @Injectable({
   providedIn: 'root'
 })
@@ -52,12 +52,18 @@ export class DndBoardService {
   // Angujlar Unit
   // NOTE: If 1 is the scale we're starting at, it makes sense that you can't zoom out further than that 
 
+  private onShowAllItems$$: Subject<void> = new Subject<void>();
+  onShowAllItems$: Observable<void> = this.onShowAllItems$$.asObservable();
+
+  private postShowAllItems$$: Subject<void> = new Subject<void>();
+  postShowAllItems$: Observable<void> = this.postShowAllItems$$.asObservable();
+
   private cellSizeScreen: number = 50; // PX
   private dndBoardSizeAU: number = 1000; // So dndBoardSizeScreen is 50000
 
   // AU
-  private cameraX: number = 0;
-  private cameraY: number = 0;
+  cameraX: number = 0;
+  cameraY: number = 0;
 
   // TODO: Make zoom variable private
   zoom: number = 1; // 1 = 100%, 2 = 200%, 0.5 = 50%
@@ -297,5 +303,61 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
     let  y = clamp(cameraY + offsetYAU, 0, this.getGridSizeAU());
  
      this.setMouseAUCoordinates({ x, y });
+  }
+
+  setOnShowAllItems() {
+    this.onShowAllItems$$.next();
+  }
+
+  setPostShowAllItems() {
+    this.postShowAllItems$$.next();
+  }
+
+  showAllItems(aUCoordinates: Coordinates[]): void {
+    if (aUCoordinates.length <= 0)
+      return;
+
+    // Find region to focus on
+    let { min, max } = getBoundingBox(aUCoordinates);
+
+    // Center camera on points
+    let centre: Coordinates = {
+      x: (min.x + max.x) / 2, 
+      y: (min.y + max.y) / 2
+    };
+
+    let boxDimensions: Dimensions = {
+      width: max.x -min.x,
+      height: max.y - min.y
+    };
+
+    let viewportDimensions: Dimensions = {
+      width: this.viewportWidthPx,
+      height: this.viewportHeightPx
+    }
+
+    // Ensure all points are visible
+    // Calculate the zoom to fit the bounding box, with a small margin (e.g., 10%)
+    let margin: number = 1.1;
+    let zoomX: number = viewportDimensions.width / (boxDimensions.width * this.cellSizeScreen * margin);
+    let zoomY: number = viewportDimensions.height / (boxDimensions.height * this.cellSizeScreen * margin);
+    
+    let fitZoom: number = Math.min(zoomX, zoomY, this.maxZoom);
+
+    this.zoom = clamp(fitZoom, this.minZoom, this.maxZoom);
+
+    // Move camera so center is in viewport center
+    // Center region on screen
+    let visibleWidthAU: number = viewportDimensions.width / this.getScaledCellSize();
+    let visibleHeightAU: number = viewportDimensions.height / this.getScaledCellSize();
+
+    let cameraCoordinates: Coordinates = {
+      x: centre.x - visibleWidthAU / 2,
+      y: centre.y - visibleHeightAU / 2
+    };
+    this.setCameraCoordinates(cameraCoordinates, viewportDimensions);
+    this.onUpdateCamera();
+    
+    this.setPostShowAllItems();
   }
 }

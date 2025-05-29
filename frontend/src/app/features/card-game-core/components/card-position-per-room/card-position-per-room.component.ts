@@ -94,6 +94,8 @@ export class CardPositionPerRoomComponent {
     this.onUpdateCardEditorCardDto();
     this.onDeleteCardEditorCardDto();
 
+    this.onShowAllItems();
+
     effect(() => {
       if (parseFloat(this.gameRoomService.currentGameRoomId()) > 0) {
         this.getCardsPositionPerRoomByRoomId(this.gameRoomService.currentGameRoomId());
@@ -443,5 +445,19 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
 
     if (cpr)
       item.action(cpr);
+  }
+
+  // TODO: Refactor this as we're probably going to have more items than just cards
+  onShowAllItems() {
+    this.dndBoardService.onShowAllItems$.pipe(
+      takeUntilDestroyed()
+    ).subscribe(() => {
+      let coordinates: Coordinates[] = this.cprs.map(cpr => ({
+        x: cpr.dndPosition.x,
+        y: cpr.dndPosition.y
+      }));
+
+      this.dndBoardService.showAllItems(coordinates);
+    })
   }
 }

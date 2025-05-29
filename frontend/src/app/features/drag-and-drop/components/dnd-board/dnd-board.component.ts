@@ -18,6 +18,7 @@ import { DndBoardGridComponent } from '../dnd-board-grid/dnd-board-grid.componen
 import { DndBoardLayerComponent } from '../dnd-board-layer/dnd-board-layer.component';
 import { Coordinates } from '../../../../utils/utils';
 import { Dimensions } from 'ngx-image-cropper';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // ROLE: AUTOLOAD
 
@@ -72,6 +73,11 @@ export class DndBoardComponent implements AfterViewInit {
     Mouse drag to pan	Yes	Camera follows drag
     Hover/select item	No	Camera stays put
   */
+
+  constructor() {
+    this.postShowAllItems();
+  }
+  
  ngAfterViewInit(): void {
   this.updateCamera();
  }
@@ -93,6 +99,28 @@ export class DndBoardComponent implements AfterViewInit {
     // this.dndBoardService.setScreenPxDimensions(viewportWidthPx, viewportHeightPx);
     // console.log(`On update camera - Set Dnd Board Camera: Camera AU coordinates: ${JSON.stringify(this.dndBoardService.getCameraCoordinates())}, Camera screen coordinates: ${JSON.stringify({scrollLeft, scrollTop})}`);
     this.dndBoardService.onUpdateCamera();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.code === 'ShiftLeft') {
+      this.dndBoardService.setOnShowAllItems();
+    }
+  }
+
+   postShowAllItems() {
+    this.dndBoardService.postShowAllItems$.pipe(takeUntilDestroyed())
+    .subscribe(() => {
+      if (this.dndBoard && this.dndBoard.nativeElement) {
+        let scrollLeft: number = this.dndBoardService.cameraX * this.dndBoardService.getScaledCellSize();
+        let scrollTop: number = this.dndBoardService.cameraY * this.dndBoardService.getScaledCellSize();
+        this.dndBoard.nativeElement.scrollTo({
+          left: scrollLeft,
+          top: scrollTop,
+          behavior: 'smooth'
+        });
+      }
+    })
   }
 
   onScroll(event: Event) {
