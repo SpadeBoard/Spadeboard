@@ -1,4 +1,4 @@
-import { Component, effect, input, InputSignal } from '@angular/core';
+import { Component, computed, effect, input, InputSignal, Signal } from '@angular/core';
 import { bbCodeToHtml, html, decodeHtml } from '../../utils/rich-text-sanitizer.utils';
 import { CardFaceElementDto } from '../../models/card-face-element';
 import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
@@ -17,6 +17,12 @@ export class CardFaceRtComponent {
 
   // We grab the BBCode from the card face element
   content: InputSignal<string> = input<string>("");
+
+  cardFaceRtWidth: InputSignal<number> = input<number>(0.01);
+  cardFaceRtWidthComputed: Signal<string> = computed(() => `${this.cardFaceRtWidth()}px`);
+  
+  cardFaceRtHeight: InputSignal<number> = input<number>(0.01);
+  cardFaceRtHeightComputed: Signal<string> = computed(() => `${this.cardFaceRtHeight()}px`);
 
   html: string = "";
 
@@ -37,8 +43,8 @@ export class CardFaceRtComponent {
       // Properties from AngularEditorConfig
       editable: false,
       spellcheck: false,
-      height: 'fit-content',
-      width: 'fit-content',
+      height: this.cardFaceRtHeightComputed(),
+      width: this.cardFaceRtWidthComputed(),
       minHeight: '20px',
       minWidth: '50px',
       maxHeight: this.maxHeight(),
