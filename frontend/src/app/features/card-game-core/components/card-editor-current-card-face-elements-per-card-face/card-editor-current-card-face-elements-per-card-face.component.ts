@@ -556,7 +556,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.cardEditorControlsDesignImageService.setOnEnableImageEditor();
   }
 
-  getCardFaceImageElementDimensions(id: string): {width: number, height: number} {
+  getCardFaceElementDimensions(id: string): {width: number, height: number} {
     let cardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(id);
 
     if (cardFaceElementPerCardFace) {

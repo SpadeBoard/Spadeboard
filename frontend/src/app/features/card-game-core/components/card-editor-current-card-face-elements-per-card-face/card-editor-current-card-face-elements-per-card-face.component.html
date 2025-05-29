@@ -15,6 +15,8 @@
             @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
                 @case ("Rte") {
                     <app-card-face-rt 
+                        [cardFaceRtWidth]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
+                        [cardFaceRtHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height"
                         (mousedown)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                         [content]="getCardFaceElementRtContentByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
                         @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
@@ -31,14 +33,17 @@
                         @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
                             <app-card-editor-element-delete-button
                                 [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId" data-html2canvas-ignore="true"/>
+                            <app-resizable-wrapper
+                                [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                                (resizableChange)="onResizableChange($event)" data-html2canvas-ignore="true" />
                         }
                     }
                 @case ("Image") {
                     <app-card-face-image 
                         (mousedown)="onFocusImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                         [cardFaceImageSrc]="getCardFaceElementImageSrcByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) ?? placeholderImageSrc"
-                        [cardFaceImageWidth]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
-                        [cardFaceImageHeight]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
+                        [cardFaceImageWidth]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
+                        [cardFaceImageHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
                         <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
                         @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
                             <div class="example-handle" cdkDragHandle data-html2canvas-ignore="true">
@@ -57,7 +62,7 @@
                             data-html2canvas-ignore="true"
                             />
                         <app-resizable-wrapper 
-                            [dimensions]="getCardFaceImageElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                            [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                             (resizableChange)="onResizableChange($event)"
                             data-html2canvas-ignore="true"
                     />
