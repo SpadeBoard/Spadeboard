@@ -177,6 +177,30 @@ namespace Mapper
                  .ForMember(dest => dest.Lod2Id,
                            opt => opt.MapFrom(src => long.Parse(src.Lod2Id)))
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<PlayersPerRoom, PlayersPerRoomDto>();
+
+            // String -> Long
+            CreateMap<PlayersPerRoomDto,PlayersPerRoom>()
+                .ForMember(dest => dest.PlayersPerRoomId, 
+                           opt => opt.MapFrom(src => long.Parse(src.PlayersPerRoomId)))
+                .ForMember(dest => dest.GameRoomId, 
+                           opt => opt.MapFrom(src => long.Parse(src.GameRoomId)))
+                .ForMember(dest => dest.Player, opt => opt.Ignore())
+                .ForMember(dest => dest.GameRoom, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<OwnersPerRoom, OwnersPerRoomDto>();
+
+            // String -> Long
+            CreateMap<OwnersPerRoomDto,OwnersPerRoom>()
+                .ForMember(dest => dest.OwnersPerRoomId, 
+                           opt => opt.MapFrom(src => long.Parse(src.OwnersPerRoomId)))
+                .ForMember(dest => dest.GameRoomId, 
+                           opt => opt.MapFrom(src => long.Parse(src.GameRoomId)))
+                .ForMember(dest => dest.Owner, opt => opt.Ignore())
+                .ForMember(dest => dest.GameRoom, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
 }
