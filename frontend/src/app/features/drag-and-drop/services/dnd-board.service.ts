@@ -346,6 +346,9 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
 
     this.zoom = clamp(fitZoom, this.minZoom, this.maxZoom);
 
+    // FIXED: Items were being rendered too closely with one another after this process, zoom was still set to 'fit all' value, but the cards scale wasn't updated
+    this.setZoomLevel(this.zoom);
+
     // Move camera so center is in viewport center
     // Center region on screen
     let visibleWidthAU: number = viewportDimensions.width / this.getScaledCellSize();
