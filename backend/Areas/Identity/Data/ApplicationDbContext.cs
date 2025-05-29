@@ -99,6 +99,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .IsRequired();
 
 
+        /*****************************************************************/
+        // https://code-maze.com/efcore-add-unique-constraints-to-a-property-code-first/
+        // https://stackoverflow.com/questions/49526370/is-there-a-data-annotation-for-unique-constraint-in-ef-core-code-first
+        builder.Entity<PlayersPerRoom>()
+            .HasIndex(a => new {a.PlayerId, a.GameRoomId})
+            .IsUnique();
+
+         builder.Entity<OwnersPerRoom>()
+            .HasIndex(a => new {a.OwnerId, a.GameRoomId})
+            .IsUnique();
 
         /*****************************************************************/
         builder.Entity<CardFace>()
@@ -113,36 +123,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(cp => cp.StyleId)
             .IsRequired(false);
 
-        // NOTE: All for bridge tables
         // TODO: Refactor the nav async stuff
-        /*builder
-            .Entity<CardPositionPerRoom>()
-            .HasOne(e => e.Card)
-            .WithMany()
-            .HasForeignKey(e => e.CardId)
-            .OnDelete(DeleteBehavior.Cascade);
 
-        builder
-           .Entity<CardPositionPerRoom>()
-           .HasOne(e => e.DndItem)
-           .WithMany()
-           .HasForeignKey(e => e.DndItemId)
-           .OnDelete(DeleteBehavior.Cascade);
-
-        builder
-           .Entity<CardPositionPerRoom>()
-           .HasOne(e => e.DndPosition)
-           .WithMany()
-           .HasForeignKey(e => e.DndPositionId)
-           .OnDelete(DeleteBehavior.Cascade);
-
-        builder
-           .Entity<CardPositionPerRoom>()
-           .HasOne(e => e.GameRoom)
-           .WithMany()
-           .HasForeignKey(e => e.GameRoomId)
-           .OnDelete(DeleteBehavior.Restrict);*/
-
+        /****************************************************************/
+    
         // FIXME: TEMPORARY SEED DATA
         builder.Entity<GameRoom>()
             .HasData(new GameRoom
@@ -151,36 +135,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             }
         );
         
-        builder.Entity<Style>()
-            .HasData(
-                new Style{ StyleId = 1}
-            );
-
-        builder.Entity<DndDragBoundary>()
-            .HasData(
-                new DndDragBoundary {
-                    DndDragBoundaryId =1,
-                    Width = "100",
-                    Height = "100",
-                    Border = "",
-                    MaxWidth= ""
-                }
-            );
-
-        builder.Entity<DndPosition>()
-            .HasData(
-                new DndPosition { DndPositionId = 1, X = -1, Y = -1 }
-            );
-
-        builder.Entity<DndItem>()
-            .HasData(
-                new DndItem {
-                    DndItemId = 1, 
-                    IsDraggable = true,
-                    IsDroppable=true,
-                }
-            );
-
         builder.Entity<IdentityUser>().HasData(
             new IdentityUser
             {
@@ -228,4 +182,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<FileMetadata> FileMetadata {get; set;} = default!;
 
+    public DbSet<PlayersPerRoom> PlayersPerRoom {get; set;} = default!;
+
+    public DbSet<OwnersPerRoom> OwnersPerRoom {get; set;} = default!;
 }
