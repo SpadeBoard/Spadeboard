@@ -35,7 +35,7 @@ export class DndBoardLayerComponent {
         Mouse Screen coordinates (clientX, clientY): (${result.mouseScreenX}, ${result.mouseScreenY})
         Mouse relative to board (mouseX, mouseY): (${result.mouseX}, ${result.mouseY})
         Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.getMouseAUCoordinates())})
-        Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates().gridX, this.dndBoardService.getMouseAUCoordinates().gridY))})
+        Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates()))})
         Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
         Grid size AU: ${this.dndBoardService.getGridSizeAU()}
         Viewport size: (${this.viewportWidth}, ${this.viewportHeight})

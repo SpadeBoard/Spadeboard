@@ -2,18 +2,9 @@ import { afterRenderEffect, Component, computed, DestroyRef, effect, inject, Inp
 
 import { CardFace } from '../../models/card-face';
 
-import { CardFaceElement, CardFaceElementDto } from '../../models/card-face-element';
-import { convertToRelativeCoordinates } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
-import { CardFaceElementApiService } from '../../services/card-game-core/card-face-element-api.service';
-import { parseCssDimensionToNumber } from '../../../style/utils/parse-css-dimensions.utils';
-import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { isCardFaceElementDto } from '../../utils/card-game-core.utils';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
-import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { FileMetadataApiService } from '../../../../utils/services/file-metadata-api.service';
 import { FileMetadataStatus } from '../../../../utils/models/file-metadata';
-import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { getScaledItemRenderDimensions } from '../../../../utils/utils';
 
 // https://medium.com/@niteshdaga000/optimizing-performance-with-memory-caching-in-angular-applications-dad3efeb1f99

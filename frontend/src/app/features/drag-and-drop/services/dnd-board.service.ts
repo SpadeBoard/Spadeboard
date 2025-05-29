@@ -1,7 +1,7 @@
 import { Injectable, HostListener, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { DndPosition } from '../models/dnd-types';
-import { clamp, getScaledItemRenderDimensions } from '../../../utils/utils';
+import { clamp, Coordinates, Dimensions, getBoundingBox, getScaledItemRenderDimensions } from '../../../utils/utils';
 @Injectable({
   providedIn: 'root'
 })
@@ -32,7 +32,7 @@ export class DndBoardService {
       }
     
       C. Expose Conversion Methods
-      aUToScreenCoordinates(gridX, gridY)
+      aUToScreenCoordinates(x, y)
       screenToAUCoordinates(screenX, screenY)
       (Optionally) getGridSizeAU(), getVisibleDimensionAU(screenPx), etc.
 
@@ -52,12 +52,18 @@ export class DndBoardService {
   // Angujlar Unit
   // NOTE: If 1 is the scale we're starting at, it makes sense that you can't zoom out further than that 
 
+  private onShowAllItems$$: Subject<void> = new Subject<void>();
+  onShowAllItems$: Observable<void> = this.onShowAllItems$$.asObservable();
+
+  private postShowAllItems$$: Subject<void> = new Subject<void>();
+  postShowAllItems$: Observable<void> = this.postShowAllItems$$.asObservable();
+
   private cellSizeScreen: number = 50; // PX
   private dndBoardSizeAU: number = 1000; // So dndBoardSizeScreen is 50000
 
   // AU
-  private cameraX: number = 0;
-  private cameraY: number = 0;
+  cameraX: number = 0;
+  cameraY: number = 0;
 
   // TODO: Make zoom variable private
   zoom: number = 1; // 1 = 100%, 2 = 200%, 0.5 = 50%
@@ -68,31 +74,22 @@ export class DndBoardService {
   private viewportHeightPx: number = window.innerHeight;
   // AU
   // TODO: Make separate conversion functions for mouse position
-  private mouseAUCoordinates: { gridX: number; gridY: number; } = {
-    gridX: 0,
-    gridY: 0
+  private mouseAUCoordinates: Coordinates = {
+    x: 0,
+    y: 0
   };
 
-  setMouseAUCoordinates(mouseAUCoordinates: {
-    gridX: number;
-    gridY: number;
-  }) {
+  setMouseAUCoordinates(mouseAUCoordinates: Coordinates) {
     this.mouseAUCoordinates = mouseAUCoordinates;
   }
 
-  getMouseAUCoordinates(): {
-    gridX: number;
-    gridY: number;
-  } {
+  getMouseAUCoordinates(): Coordinates {
     // console.log(`Get mouse AU coordinates: ${JSON.stringify(this.mouseAUCoordinates)}`);
     return this.mouseAUCoordinates;
   }
 
-  getMouseScreenCoordinates(): {
-    screenX: number;
-    screenY: number;
-  } {
-    return this.aUToScreenCoordinates(this.mouseAUCoordinates.gridX, this.mouseAUCoordinates.gridY);
+  getMouseScreenCoordinates(): Coordinates {
+    return this.aUToScreenCoordinates(this.mouseAUCoordinates);
   }
 
   private zoomLevel$$ = new Subject<number>();
@@ -129,31 +126,25 @@ export class DndBoardService {
   /*
   Why Are You Getting Negative Values?
   A. Camera Position
-    If your cameraX or cameraY is greater than the item's gridX or gridY,
-    then (gridX - cameraX) will be negative.
+    If your cameraX or cameraY is greater than the item's x or y,
+    then (x - cameraX) will be negative.
   */
 
   // For BOARD ITEMS (cards/grid):
-  aUToScreenCoordinates(gridX: number, gridY: number): {
-    screenX: number;
-    screenY: number;
-  } {
-    let screenX = (gridX - this.cameraX) * this.getScaledCellSize();
-    let screenY = (gridY - this.cameraY) * this.getScaledCellSize();
-
-    return { screenX, screenY };
+  aUToScreenCoordinates(coordinates: Coordinates): Coordinates {
+    return { 
+      x: (coordinates.x - this.cameraX) * this.getScaledCellSize(), 
+      y: (coordinates.y - this.cameraY) * this.getScaledCellSize() 
+    };
   }
 
   // screen coordinates relative to the wrapper
   // For VIEWPORT POSITIONING:
-  screenToAUCoordinates(screenX: number, screenY: number): {
-    gridX: number;
-    gridY: number;
-  }{
-    let gridX = clamp(screenX / this.getScaledCellSize() + this.cameraX, 0 , this.dndBoardSizeAU);
-    let gridY =  clamp(screenY / this.getScaledCellSize() + this.cameraY, 0 , this.dndBoardSizeAU);
-
-    return {gridX, gridY};
+  screenToAUCoordinates(coordinates: Coordinates): Coordinates {
+    return {
+      x: clamp(coordinates.x / this.getScaledCellSize() + this.cameraX, 0 , this.dndBoardSizeAU),
+      y: clamp(coordinates.y / this.getScaledCellSize() + this.cameraY, 0 , this.dndBoardSizeAU)
+    };
   }
 
   // https://stackoverflow.com/questions/38534900/how-to-make-angular2-listen-to-pinchmove-and-pan-event-simultaneously
@@ -171,20 +162,20 @@ export class DndBoardService {
     this.zoom = clamp(parseFloat((this.zoom / value).toFixed(2)), this.minZoom, this.maxZoom);
   }
 
-  setCameraCoordinates(cameraX: number, cameraY: number, screenWidthPx: number, screenHeightPx: number) {
+  setCameraCoordinates(camera: Coordinates, screen: Dimensions) {
     let boardWidthAU = this.getGridSizeAU();
     let boardHeightAU = this.getGridSizeAU();
-    let visibleWidthAU = this.getVisibleDimensionAU(screenWidthPx);
-    let visibleHeightAU = this.getVisibleDimensionAU(screenHeightPx);
+    let visibleWidthAU = this.getVisibleDimensionAU(screen.width);
+    let visibleHeightAU = this.getVisibleDimensionAU(screen.height);
 
     let maxCameraX = Math.max(0, boardWidthAU - visibleWidthAU);
     let maxCameraY = Math.max(0, boardHeightAU - visibleHeightAU);
 
-    this.viewportWidthPx = screenWidthPx;
-    this.viewportHeightPx = screenHeightPx;
+    this.viewportWidthPx = screen.width;
+    this.viewportHeightPx = screen.height;
 
-    this.cameraX = clamp(cameraX, 0, maxCameraX);
-    this.cameraY = clamp(cameraY, 0, maxCameraY);
+    this.cameraX = clamp(camera.x, 0, maxCameraX);
+    this.cameraY = clamp(camera.y, 0, maxCameraY);
   }
 
   getViewportDimensions(): {viewportWidthPx: number, viewportHeightPx: number} {
@@ -208,28 +199,24 @@ export class DndBoardService {
 
   // Item Position AU: Raw position on virtual board
   // Original: Physical image dimensions
-  getScaledItemRenderData(itemPositionXAU: number, itemPositionYAU: number, originalWidth: number, originalHeight: number
+  getScaledItemRenderData(itemPosition: Coordinates, originalWidth: number, originalHeight: number
   ): {
-    screenX: number;
-    screenY: number;
+    screenCoordinates: Coordinates;
     scaledWidth: number;
     scaledHeight: number;
   } {
-    let { screenX, screenY } = this.getScaledItemRenderCoordinates(itemPositionXAU, itemPositionYAU);
+    let screenCoordinates: Coordinates = this.getScaledItemRenderCoordinates(itemPosition);
     let scale: number = this.getItemRenderScale();
     let { scaledWidth, scaledHeight } = getScaledItemRenderDimensions(originalWidth, originalHeight, scale);
 
-    return { screenX, screenY, scaledWidth, scaledHeight };
+    return { screenCoordinates, scaledWidth, scaledHeight };
   }
 
   // Use let scale: number = this.getItemRenderScale();
 
 // Returns the screen coordinates for rendering the item
-getScaledItemRenderCoordinates(itemPositionXAU: number, itemPositionYAU: number): {
-    screenX: number;
-    screenY: number;
-} {
-  return this.aUToScreenCoordinates(itemPositionXAU, itemPositionYAU);
+getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
+  return this.aUToScreenCoordinates(itemPosition);
 }
 
   getItemRenderScale() {
@@ -257,8 +244,8 @@ getScaledItemRenderCoordinates(itemPositionXAU: number, itemPositionYAU: number)
   }
 
   isPositionInCameraSpace(
-    gridX: number,
-    gridY: number,
+    x: number,
+    y: number,
     screenWidthPx: number,
     screenHeightPx: number
   ): boolean {
@@ -274,8 +261,8 @@ getScaledItemRenderCoordinates(itemPositionXAU: number, itemPositionYAU: number)
     let bottom = top + visibleHeightAU + buffer; // Allows for some leeway, item gets dragged off screen
 
     /*console.log({
-      "Item Grid X": gridX,
-      "Item Grid Y": gridY,
+      "Item Grid X": x,
+      "Item Grid Y": y,
       "Camera X (AU)": this.cameraX,
       "Camera Y (AU)": this.cameraY,
       "Visible Width (AU)": visibleWidthAU,
@@ -287,23 +274,22 @@ getScaledItemRenderCoordinates(itemPositionXAU: number, itemPositionYAU: number)
     });*/
   
     return (
-      gridX >= left &&
-      gridX < right &&
-      gridY >= top &&
-      gridY < bottom
+      x >= left &&
+      x < right &&
+      y >= top &&
+      y < bottom
     );
   }
 
   updateMouseAUCoordinatesFromScreen(
-    screenX: number,
-    screenY: number,
+    screen: Coordinates,
     dndBoardElement: HTMLElement
   ) {
     // Get bounding rect and scroll
     let rect = dndBoardElement.getBoundingClientRect();
     
-    let mouseX = screenX - rect.left;
-    let mouseY = screenY - rect.top;
+    let mouseX = screen.x - rect.left;
+    let mouseY = screen.y - rect.top;
     
     let  scaledCellSize = this.getScaledCellSize();
     let  offsetXAU = mouseX / scaledCellSize;
@@ -313,9 +299,68 @@ getScaledItemRenderCoordinates(itemPositionXAU: number, itemPositionYAU: number)
     let  { cameraX, cameraY } = this.getCameraCoordinates(); // Or this.dndBoardService.getCameraCoordinates()
 
     // Mouse AU = camera AU + offset in AU
-    let  gridX = clamp(cameraX + offsetXAU, 0, this.getGridSizeAU());
-    let  gridY = clamp(cameraY + offsetYAU, 0, this.getGridSizeAU());
+    let  x = clamp(cameraX + offsetXAU, 0, this.getGridSizeAU());
+    let  y = clamp(cameraY + offsetYAU, 0, this.getGridSizeAU());
  
-     this.setMouseAUCoordinates({ gridX, gridY });
+     this.setMouseAUCoordinates({ x, y });
+  }
+
+  setOnShowAllItems() {
+    this.onShowAllItems$$.next();
+  }
+
+  setPostShowAllItems() {
+    this.postShowAllItems$$.next();
+  }
+
+  showAllItems(aUCoordinates: Coordinates[]): void {
+    if (aUCoordinates.length <= 0)
+      return;
+
+    // Find region to focus on
+    let { min, max } = getBoundingBox(aUCoordinates);
+
+    // Center camera on points
+    let centre: Coordinates = {
+      x: (min.x + max.x) / 2, 
+      y: (min.y + max.y) / 2
+    };
+
+    let boxDimensions: Dimensions = {
+      width: max.x -min.x,
+      height: max.y - min.y
+    };
+
+    let viewportDimensions: Dimensions = {
+      width: this.viewportWidthPx,
+      height: this.viewportHeightPx
+    }
+
+    // Ensure all points are visible
+    // Calculate the zoom to fit the bounding box, with a small margin (e.g., 10%)
+    let margin: number = 1.1;
+    let zoomX: number = viewportDimensions.width / (boxDimensions.width * this.cellSizeScreen * margin);
+    let zoomY: number = viewportDimensions.height / (boxDimensions.height * this.cellSizeScreen * margin);
+    
+    let fitZoom: number = Math.min(zoomX, zoomY, this.maxZoom);
+
+    this.zoom = clamp(fitZoom, this.minZoom, this.maxZoom);
+
+    // FIXED: Items were being rendered too closely with one another after this process, zoom was still set to 'fit all' value, but the cards scale wasn't updated
+    this.setZoomLevel(this.zoom);
+
+    // Move camera so center is in viewport center
+    // Center region on screen
+    let visibleWidthAU: number = viewportDimensions.width / this.getScaledCellSize();
+    let visibleHeightAU: number = viewportDimensions.height / this.getScaledCellSize();
+
+    let cameraCoordinates: Coordinates = {
+      x: centre.x - visibleWidthAU / 2,
+      y: centre.y - visibleHeightAU / 2
+    };
+    this.setCameraCoordinates(cameraCoordinates, viewportDimensions);
+    this.onUpdateCamera();
+    
+    this.setPostShowAllItems();
   }
 }

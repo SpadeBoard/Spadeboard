@@ -16,6 +16,9 @@ import { CardPositionPerRoomComponent } from '../../../card-game-core/components
 import { GameRoomService } from '../../../game-room/services/game-room.service';
 import { DndBoardGridComponent } from '../dnd-board-grid/dnd-board-grid.component';
 import { DndBoardLayerComponent } from '../dnd-board-layer/dnd-board-layer.component';
+import { Coordinates } from '../../../../utils/utils';
+import { Dimensions } from 'ngx-image-cropper';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // ROLE: AUTOLOAD
 
@@ -70,6 +73,11 @@ export class DndBoardComponent implements AfterViewInit {
     Mouse drag to pan	Yes	Camera follows drag
     Hover/select item	No	Camera stays put
   */
+
+  constructor() {
+    this.postShowAllItems();
+  }
+  
  ngAfterViewInit(): void {
   this.updateCamera();
  }
@@ -84,16 +92,35 @@ export class DndBoardComponent implements AfterViewInit {
     // When converting scroll position to camera AU position, do NOT add the current cameraX/cameraY.
     // You want the scroll position alone to determine the new camera AU.
     // If you add cameraX in screenToAUCoordinates when converting scroll to AU, you get a value that is always offset, so scrolling back to the same place doesn't yield the same camera coordinates.
-    let cameraX = scrollLeft / this.dndBoardService.getScaledCellSize();
-    let cameraY = scrollTop / this.dndBoardService.getScaledCellSize();
-
-    let viewportWidthPx = wrapper.clientWidth;
-    let viewportHeightPx = wrapper.clientHeight;
+    let camera: Coordinates = {x: scrollLeft / this.dndBoardService.getScaledCellSize(), y: scrollTop / this.dndBoardService.getScaledCellSize()};
+    let viewportDimensions: Dimensions = {width: wrapper.clientWidth, height: wrapper.clientHeight};
   
-    this.dndBoardService.setCameraCoordinates(cameraX, cameraY, viewportWidthPx, viewportHeightPx);
+    this.dndBoardService.setCameraCoordinates(camera, viewportDimensions);
     // this.dndBoardService.setScreenPxDimensions(viewportWidthPx, viewportHeightPx);
     // console.log(`On update camera - Set Dnd Board Camera: Camera AU coordinates: ${JSON.stringify(this.dndBoardService.getCameraCoordinates())}, Camera screen coordinates: ${JSON.stringify({scrollLeft, scrollTop})}`);
     this.dndBoardService.onUpdateCamera();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.code === 'ShiftLeft') {
+      this.dndBoardService.setOnShowAllItems();
+    }
+  }
+
+   postShowAllItems() {
+    this.dndBoardService.postShowAllItems$.pipe(takeUntilDestroyed())
+    .subscribe(() => {
+      if (this.dndBoard && this.dndBoard.nativeElement) {
+        let scrollLeft: number = this.dndBoardService.cameraX * this.dndBoardService.getScaledCellSize();
+        let scrollTop: number = this.dndBoardService.cameraY * this.dndBoardService.getScaledCellSize();
+        this.dndBoard.nativeElement.scrollTo({
+          left: scrollLeft,
+          top: scrollTop,
+          behavior: 'smooth'
+        });
+      }
+    })
   }
 
   onScroll(event: Event) {
@@ -106,11 +133,16 @@ export class DndBoardComponent implements AfterViewInit {
   let mouseScreenX = event.clientX;
   let mouseScreenY = event.clientY;
 
+  let screen: Coordinates = {
+    x: event.clientX,
+    y: event.clientY
+  }
+
   let rect = this.dndBoard.nativeElement.getBoundingClientRect();
   let mouseX = event.clientX - rect.left;
   let mouseY = event.clientY - rect.top;
 
-  this.dndBoardService.updateMouseAUCoordinatesFromScreen(event.clientX, event.clientY, this.dndBoard.nativeElement);
+  this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, this.dndBoard.nativeElement);
   // this.setDndBoardMousePosition(mouseScreenX, mouseScreenY);
   // 2. Convert to AU coordinates
   // let mouseAUCoordinates = this.dndBoardService.screenToAUCoordinates(mouseScreenX, mouseScreenY);
@@ -121,7 +153,7 @@ export class DndBoardComponent implements AfterViewInit {
     /*this.mouseMoveLog = `On Mouse Move:
      Mouse Screen coordinates (clientX, clientY): (${mouseScreenX}, ${mouseScreenY})
       Mouse relative to board (mouseX, mouseY): (${mouseX}, ${mouseY})
-     Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates().gridX, this.dndBoardService.getMouseAUCoordinates().gridY))})
+     Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates()))})
      Grid size AU: ${this.dndBoardService.getGridSizeAU()}
      Grid size screen: (${this.gridWidthScreen}, ${this.gridHeightScreen})
      Zoom Level: ${this.dndBoardService.zoom}
@@ -143,8 +175,13 @@ export class DndBoardComponent implements AfterViewInit {
 
     this.updateCamera();
 
+    let screen: Coordinates = {
+      x: event.clientX,
+      y: event.clientY
+    }
+
     // this.setDndBoardMousePosition(event.clientX, event.clientY);
-    this.dndBoardService.updateMouseAUCoordinatesFromScreen(event.clientX, event.clientY, this.dndBoard.nativeElement);   
+    this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, this.dndBoard.nativeElement);   
     this.dndBoardService.setZoomLevel();
     
     // console.log(`On Wheel: Grid size AU: ${JSON.stringify(this.dndBoardService.screenToAUCoordinates(this.gridWidthScreen, this.gridHeightScreen))} Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}, Cell Size: ${this.cellSizeScreen}`);
