@@ -52,6 +52,7 @@ export async function blobToDataURL(blobUrl: string): Promise<string> {
     });
 }
 
+// TODO: Refactor all these functions, probably should split them into smaller files
 export function getScaledItemRenderDimensions(
   originalWidth: number,
   originalHeight: number,
@@ -66,6 +67,11 @@ export function getScaledItemRenderDimensions(
 export type Coordinates = {
     x: number;
     y: number;
+}
+
+export type Dimensions = {
+    width: number;
+    height: number;
 }
 
 // https://www.geeksforgeeks.org/convex-hull-using-jarvis-algorithm-or-wrapping/

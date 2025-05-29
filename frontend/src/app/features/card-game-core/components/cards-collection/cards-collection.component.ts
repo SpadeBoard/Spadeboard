@@ -219,7 +219,7 @@ export class CardsCollectionComponent {
                 isDroppable: false
               },
               dndPosition: {
-                dndPositionId: "0", x: dndPosition.gridX, y: dndPosition.gridY
+                dndPositionId: "0", x: dndPosition.x, y: dndPosition.y
               } as DndPosition,
               gameRoom: {
                 gameRoomId: "1",

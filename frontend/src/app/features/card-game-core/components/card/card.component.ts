@@ -3,22 +3,12 @@ import { Component, Signal, viewChildren, output, input, inject, effect, compute
 import { Card } from '../../models/card';
 import { cardFlipAnimation } from './card.animations';
 
-import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { DndContentDirective } from '../../../drag-and-drop/directives/dnd-content.directive';
-import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 
-import { Style } from '../../../style/models/style';
 import { CardFaceComponent } from '../card-face/card-face.component';
-import { parseCssDimension, parseCssDimensionToNumber } from '../../../style/utils/parse-css-dimensions.utils';
 import { CardFaceApiService } from '../../services/card-game-core/card-face-api.service';
 import { CardFace } from '../../models/card-face';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
-import { convertToRelativeCoordinates, convertToRelativeDimensions } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
-import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
-import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 
 @Component({
   selector: 'app-card',

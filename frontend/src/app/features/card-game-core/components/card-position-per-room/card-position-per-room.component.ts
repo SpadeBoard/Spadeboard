@@ -15,6 +15,7 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { CommonModule } from '@angular/common';
+import { Coordinates } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -138,11 +139,8 @@ export class CardPositionPerRoomComponent {
   }
 
   // NOTE: Assumes the dndPosition is in AU and set to the mouse AU coordinates
-  calculateCardPositionPerRoomScreenPosition(dndPositionAU: DndPosition): {
-    screenX: number;
-    screenY: number;
-  } {
-    let cprScreenCoordinates = this.dndBoardService.aUToScreenCoordinates(dndPositionAU.x, dndPositionAU.y);
+  calculateCardPositionPerRoomScreenPosition(dndPositionAU: DndPosition): Coordinates {
+    let cprScreenCoordinates = this.dndBoardService.aUToScreenCoordinates({x: dndPositionAU.x, y: dndPositionAU.y});
 
     // console.log(`Calculate CPR screen position - AU coordinates: ${JSON.stringify(dndPositionAU)}, Screen coordinates: ${JSON.stringify(cprScreenCoordinates)}`);
 
@@ -155,7 +153,7 @@ export class CardPositionPerRoomComponent {
       Mouse Screen coordinates (clientX, clientY): (${result.mouseScreenX}, ${result.mouseScreenY})
       Mouse relative to board (mouseX, mouseY): (${result.mouseX}, ${result.mouseY})
       Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.getMouseAUCoordinates())})
-      Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates().gridX, this.dndBoardService.getMouseAUCoordinates().gridY))})
+      Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates()))})
       Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
       Grid size AU: ${this.dndBoardService.getGridSizeAU()}
       Zoom Level: ${this.dndBoardService.zoom}`;
@@ -282,8 +280,8 @@ export class CardPositionPerRoomComponent {
     let mouseAU = this.dndBoardService.getMouseAUCoordinates();
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
     this.dragOffset = {
-      x: mouseAU.gridX - item.dndPosition.x,
-      y: mouseAU.gridY - item.dndPosition.y
+      x: mouseAU.x - item.dndPosition.x,
+      y: mouseAU.y - item.dndPosition.y
     };
   }
 
@@ -366,14 +364,14 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
 
     item.dndPosition = {
       dndPositionId: item.dndPosition.dndPositionId,
-      x: mouseAUCoordinates.gridX - this.dragOffset.x,
-      y: mouseAUCoordinates.gridY - this.dragOffset.y
+      x: mouseAUCoordinates.x - this.dragOffset.x,
+      y: mouseAUCoordinates.y - this.dragOffset.y
     };
 
     let mouseMoveLog: string = `On Drag Dropped:
      Mouse coordinates relative to viewport: (${event.dropPoint.x}, ${event.dropPoint.y})
      Mouse AU coordinates: (${JSON.stringify(mouseAUCoordinates)})
-     Mouse AU to Screen coordinates - relative to board : (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(mouseAUCoordinates.gridX, mouseAUCoordinates.gridY))})
+     Mouse AU to Screen coordinates - relative to board : (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(mouseAUCoordinates))})
      Dnd Position: (${JSON.stringify(item.dndPosition)})
      Viewport dimensions: (${JSON.stringify(this.dndBoardService.getViewportDimensions())})
      Grid size AU: ${this.dndBoardService.getGridSizeAU()}

@@ -1,24 +1,7 @@
 import { AfterViewInit, Component, computed, ElementRef, inject, input, Type, ViewChild, WritableSignal, Injector, ChangeDetectorRef, InputSignal, Signal, effect } from '@angular/core';
-import { CardEditorCardFaceDto, CardFace } from '../../models/card-face';
-import { Card, CardEditorCardDto } from '../../models/card';
-import { CdkDrag, DragDropModule, CdkDragHandle, CdkDragMove, CdkDragEnd, Point, DragRef, CdkDragStart, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-/*import { CardFaceElementApiService } from '../../services/card-face-element-api.service';
-import { CardApiService } from '../../services/card-api.service';
-import { CardFaceApiService } from '../../services/card-face-api.service';
-import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
-import { CardFaceImageEditorComponent } from '../card-face-image-editor/card-face-image-editor.component';
-import { CardFaceRteComponent } from '../card-face-rte/card-face-rte.component';
-import { FileUploadComponent } from '../../../../utils/components/file-upload/file-upload.component';
-import { DomSanitizer } from '@angular/platform-browser';*/
-import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace, CardFaceRte } from '../../models/card-face-element';
-import { convertToRelativeDimensions } from '../../../style/utils/convert-dimensions.utils';
 
 import { Image } from '../../../style/models/image';
 import { Style } from '../../../style/models/style';
-import { convertToRelativeCoordinates, pageToLocalCoordinates } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
-import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { isDndItem } from '../../../drag-and-drop/utils/dnd-item.utils';
-import {isCardEditorCardDto, isCardFaceElement, isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CommonModule, NgComponentOutlet } from '@angular/common';
 import { CROPPED_IMAGE_TOKEN, CLOSE_IMAGE_EDITOR_TOKEN, RTE_HTML_CONTENT } from '../../../../shared/tokens';
