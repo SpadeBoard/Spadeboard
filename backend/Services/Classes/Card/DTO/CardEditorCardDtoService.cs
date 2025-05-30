@@ -62,63 +62,6 @@ namespace Services
             }
         }
 
-         // NOTE: We don't want to save cpo because cards in rooms shouldn't have owners
-         public async Task<CardEditorCardDto> CreateDtoForGameRoomFromExistingDtoAsync(CardEditorCardDto dto)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                if (dto.CardEditorCardFacesDto != null) {
-                    dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto)).ToArray();
-                }
-
-                dto.Card.CardId = "0";
-                dto.Card = await  _cardDtoService.CreateDtoAsync(dto.Card);
-
-                await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
-
-                await transaction.CommitAsync();
-                return dto;
-            }
-            catch (Exception)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-        }
-
-        // TODO: Get rid of these sync it's unnecessary
-         public async Task<CardEditorCardDto> CreateDtoFromExistingDtoAsync(CardEditorCardDto dto)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                if (dto.CardEditorCardFacesDto != null) {
-                    dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.CreateAllDtoFromExistingAllDtoAsync(dto.CardEditorCardFacesDto)).ToArray();
-                }
-
-                dto.Card.CardId = "0";
-                dto.Card = await  _cardDtoService.CreateDtoAsync(dto.Card);
-
-                CardPerOwnerDto cpo = new(){
-                    CardId = dto.Card.CardId,
-                    OwnerId = dto.OwnerId
-                };
-
-                await _cardPerOwnerDtoService.CreateDtoAsync(cpo);
-
-                await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
-
-                await transaction.CommitAsync();
-                return dto;
-            }
-            catch (Exception)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-        }
-
         public async Task<bool> DeleteDtoAsync(string id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();

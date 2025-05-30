@@ -160,43 +160,6 @@ namespace backend.Controllers
             }
         }
 
-         [HttpPost("dto/create-from-existing")]
-        public async Task<ActionResult<CardEditorCardDto>> PostCardEditorCardDtoFromExistingDto(CardEditorCardDto cardEditorCardDto)
-        {
-            Console.WriteLine("Post card DTO");
-
-            // TODO: Pass in the DndItem and DndPosition separately, add those to CardEditorCardDto, make sure that the frontend also pass them in separately somehow?
-            // TODO:  When adding elements, there will be a style, so that should be handled
-            try
-            {
-                cardEditorCardDto = await _cardEditorCardDtoService.CreateDtoFromExistingDtoAsync(cardEditorCardDto);
-                return CreatedAtAction("GetCardEditorCardDto", new { id = cardEditorCardDto.Card.CardId }, cardEditorCardDto);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
-            }
-        }
-
-         [HttpPost("dto/game-room")]
-        public async Task<ActionResult<CardEditorCardDto>> PostCardEditorCardDtoForGameRoomFromExistingDto(CardEditorCardDto cardEditorCardDto)
-        {
-            Console.WriteLine("Post card DTO");
-
-            // TODO: Pass in the DndItem and DndPosition separately, add those to CardEditorCardDto, make sure that the frontend also pass them in separately somehow?
-            // TODO:  When adding elements, there will be a style, so that should be handled
-            try
-            {
-                // TODO: Don't return the card, return the DTO
-                await _cardEditorCardDtoService.CreateDtoForGameRoomFromExistingDtoAsync(cardEditorCardDto);
-                return CreatedAtAction("GetCardEditorCardDto", new { id = cardEditorCardDto.Card.CardId }, cardEditorCardDto);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
-            }
-        }
-
         // DELETE: api/Cards/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCard(string id)

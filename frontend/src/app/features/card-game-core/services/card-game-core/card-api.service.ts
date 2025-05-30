@@ -124,22 +124,6 @@ export class CardApiService {
     return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto`, cardEditorCardDto);
   }
 
-  createCardEditorCardDtoFromExistingDto$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
-    if (cardEditorCardDto === undefined) {
-      return of(undefined);
-    } 
-
-    return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto/create-from-existing`, cardEditorCardDto);
-  }
-
-  createCardEditorCardDtoForGameRoomFromExistingDto$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
-    if (cardEditorCardDto === undefined) {
-      return of(undefined);
-    } 
-
-    return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto/game-room`, cardEditorCardDto);
-  }
-
   // FIXME: Updating shouldn't be returning anything
   updateCard$(cardEditorCardDto: CardEditorCardDto): Observable<Card | CardEditorCardDto | void | undefined> {
     if (cardEditorCardDto.cardEditorCardFacesDto !== undefined ) {
