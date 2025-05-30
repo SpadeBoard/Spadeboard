@@ -1,6 +1,5 @@
 import { Component, computed, effect, input, InputSignal, Signal } from '@angular/core';
 import { bbCodeToHtml, html, decodeHtml } from '../../utils/rich-text-sanitizer.utils';
-import { CardFaceElementDto } from '../../models/card-face-element';
 import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';

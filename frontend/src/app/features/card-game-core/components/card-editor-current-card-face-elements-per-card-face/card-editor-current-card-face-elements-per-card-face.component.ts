@@ -231,6 +231,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         dndItemId: "0",
         isDraggable: false,
         isDroppable: false,
+        isRotatable: false
       },
       dndPosition: dndPosition,
     }
@@ -253,6 +254,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
             dndItemId: "0",
             isDraggable: false,
             isDroppable: false,
+            isRotatable: false
           },
           dndPosition: dndPosition
         }
@@ -274,6 +276,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
             dndItemId: "0",
             isDraggable: false,
             isDroppable: false,
+            isRotatable: false
           },
           dndPosition: dndPosition
         }

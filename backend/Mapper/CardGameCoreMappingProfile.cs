@@ -120,6 +120,14 @@ namespace Mapper
                            opt => opt.MapFrom(src => long.Parse(src.DndPositionId)))
                 .ForMember(dest => dest.Id, opt => opt.Ignore());;
         
+            CreateMap<DndRotation, DndRotationDto>();
+
+            // String -> Long
+            CreateMap<DndRotationDto, DndRotation>()
+                .ForMember(dest => dest.DndRotationId, 
+                           opt => opt.MapFrom(src => long.Parse(src.DndRotationId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());;
+
              CreateMap<DndDragBoundary, DndDragBoundaryDto>();
 
             // String -> Long
