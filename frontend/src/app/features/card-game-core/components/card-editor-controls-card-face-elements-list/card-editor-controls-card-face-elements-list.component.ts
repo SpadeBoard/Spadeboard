@@ -10,7 +10,7 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
   styleUrl: './card-editor-controls-card-face-elements-list.component.css'
 })
 export class CardEditorControlsCardFaceElementsListComponent {
-  private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
   onDragDropped(event: CdkDragDrop<any>) {
     if (!event.isPointerOverContainer) {
@@ -23,6 +23,11 @@ export class CardEditorControlsCardFaceElementsListComponent {
       }
 
       this.cardEditorPreviewService.setOnCreateCardFaceElementPerCardFace(type, dndPosition);
+      this.getDisabledAesthetics();
     }
+  }
+
+  getDisabledAesthetics(): number {
+    return (this.cardEditorPreviewService.getCurrentCardFaceElementsPerCardFaceAmt() >= this.cardEditorPreviewService.MAX_CURRENT_ELEMENTS_PER_CARD_FACE) ? 0.5 : 1;
   }
 }

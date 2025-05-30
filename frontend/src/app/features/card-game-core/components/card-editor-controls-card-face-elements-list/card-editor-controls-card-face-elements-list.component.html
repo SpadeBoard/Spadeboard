@@ -1,4 +1,5 @@
-<div cdkDropList cdkDropListOrientation="horizontal">
+<div cdkDropList cdkDropListOrientation="horizontal"
+    [style.opacity]="getDisabledAesthetics()">
     <div title="Rich text" cdkDrag (cdkDragDropped)="onDragDropped($event)" [style.z-index]="0"
         [cdkDragData]="'Rte'">
         <img src="/card-editor-controls_card-face-elements-list_text-element-icon.svg"
