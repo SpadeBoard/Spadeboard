@@ -3,6 +3,8 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { inject, Injectable, ResourceRef } from '@angular/core';
 
 import { DndItem } from '../models/dnd-item';
+import { environment } from '../../../../environments/environment.production';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,32 +13,32 @@ export class DndItemApiService {
   private http = inject(HttpClient);
 
   // TODO: Replace with actual API url from the config
-  private apiUrl = "";
+  private apiUrl = `${environment.hostServerUrl}/api/DndItems`;
 
   constructor() { }
 
   // Read (Get all DndItems)
-  getDndItems: ResourceRef<DndItem[] | undefined> = rxResource({
-      loader: () => this.http.get<DndItem[]>(this.apiUrl)
-  });
+  getDndItems$(): Observable<DndItem[] | undefined> {
+    return this.http.get<DndItem[]>(this.apiUrl);
+  }
 
   // Read (get one dndItem)
-  getDndItem: ResourceRef<DndItem | undefined> = rxResource<DndItem, [number]>({
-    loader: (id) => this.http.get<DndItem>(`${this.apiUrl}/${id}`)
-  });
+  getDndItem$(id: string): Observable<DndItem | undefined> {
+    return this.http.get<DndItem>(`${this.apiUrl}/${id}`);
+  }
 
   // Create
-  createDndItem: ResourceRef<DndItem | undefined>  = rxResource<DndItem, [Omit<DndItem, 'id'>]>({
-    loader: (dndItem) => this.http.post<DndItem>(this.apiUrl, dndItem)
-  });
+  createDndItem$(item: DndItem): Observable<DndItem | undefined> {
+    return this.http.post<DndItem>(this.apiUrl, item);
+  }
 
   // Update
-  updateDndItem: ResourceRef<DndItem | undefined>  = rxResource<DndItem, [number, Partial<DndItem>]>({
-    loader: ([id, dndItem]) => this.http.put<DndItem>(`${this.apiUrl}/${id}`, dndItem)
-  });
+  updateDndItem$(item: DndItem): Observable<void | undefined> {
+    return this.http.put<void>(`${this.apiUrl}/${item.dndItemId}`, item);
+  };
 
   // Delete
-  deleteDndItem: ResourceRef<void | undefined> = rxResource<void, [number]>({
-    loader: (id) => this.http.delete<void>(`${this.apiUrl}/${id}`)
-  });
+  deleteDndItem$(id: string): Observable<void | undefined> {
+    return  this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }
