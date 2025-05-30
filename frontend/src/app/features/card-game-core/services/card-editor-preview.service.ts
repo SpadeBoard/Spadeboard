@@ -25,6 +25,8 @@ export class CardEditorPreviewService {
   
   private destroyRef: DestroyRef = inject(DestroyRef);
 
+  MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
+
   defaultCardEditorFaceStyle: Style = {
     styleId: "0",
     backgroundColor: '#fefffe',
@@ -194,6 +196,10 @@ export class CardEditorPreviewService {
 
   getCardName(): string {
     return this.cardEditorCardDto.card.cardName;
+  }
+
+  getCurrentCardFaceElementsPerCardFaceAmt(): number {
+    return this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.length;
   }
 
   // TODO: Get rid of this
