@@ -1,12 +1,41 @@
 .action-context-menu {
     display: flex;
     flex-direction: column;
-    width: 100px;
-    height: 100px;
-    background-color: gray;
-    gap: 1rem;
+    min-width: 140px;
+    height: fit-content;
+    background-color: #676767;
+    gap: 0.75rem;
+    padding: 5%;
+    border-radius: 5px;
 }
 
 .action-context-menu-item {
     color: white;
+    width: 100%;
+    background-color: #676767;
+    font-size: medium;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    text-align: left;
+    padding: 5%;
+    border-radius: 5px;
+}
+
+.action-context-menu-item,
+.action-context-menu-item:focus,
+.action-context-menu-item:active,
+.action-context-menu-item:focus-visible {
+    outline: #69c4d8;
+    border: #69c4d8;
+}
+
+.action-context-menu-item:hover {
+    background-color: #4D8A98;
+}
+
+.action-context-menu-item:disabled {
+    opacity: 0.5;
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
 }

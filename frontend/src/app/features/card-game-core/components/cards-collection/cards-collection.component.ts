@@ -61,26 +61,27 @@ export class CardsCollectionComponent {
             currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
           };
         }
-      }
+      },
+      disabled: false
     },
      {
-      id: 1,
-      name: 'Edit Card',
-      action: (card?: Card) => {
-        if (!card) return;
-        this.cardEditorPreviewService.getCardEditorCardDtoByCardId(card.cardId);
-        this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
-      }
-    },
+       id: 1,
+       name: 'Edit Card',
+       action: (card?: Card) => {
+         if (!card) return;
+         this.cardEditorPreviewService.getCardEditorCardDtoByCardId(card.cardId);
+         this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
+       },
+       disabled: false
+     },
     {
       id: 2,
-      name: (this.currentContextMenuId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)
-          ? "Can't delete - Being edited..."
-          : 'Delete Card',
+      name: 'Delete Card',
       action: (card?: Card) => {
         if (!card || card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
         this.cardEditorPreviewService.deleteCard(card.cardId);
-      }
+      },
+       disabled: ((this.currentContextMenuId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)) ? true: false
     }
   ]};
 

@@ -34,7 +34,6 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   private rightClickMenuPositionY: number = 0;
   currentContextMenuId: string = "";
 
-  // TODO: Probably refactor this, how do we get this information up there?
   actionContextMenuItems: ActionContextMenuItem[] = [
     {
       id: 0,
@@ -49,7 +48,8 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
             currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
           };
         }
-      }
+      },
+      disabled: false
     }
   ];
 
