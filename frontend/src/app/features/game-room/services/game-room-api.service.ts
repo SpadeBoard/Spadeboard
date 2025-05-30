@@ -27,11 +27,11 @@ export class GameRoomApiService {
     return this.http.post<GameRoom>(this.apiUrl, gameRoom);
   }
 
-  updateGameRoom(gameRoom: GameRoom): Observable<void | undefined> {
+  updateGameRoom$(gameRoom: GameRoom): Observable<void | undefined> {
     return this.http.put<void>(`${this.apiUrl}/${gameRoom.gameRoomId}`, gameRoom);
   }
 
-  deleteGameRoom(gameRoom: GameRoom): Observable<void | undefined> {
-    return this.http.delete<void>(`${this.apiUrl}/${gameRoom.gameRoomId}`);
+  deleteGameRoom$(id: string): Observable<void | undefined> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

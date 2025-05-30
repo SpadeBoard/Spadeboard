@@ -11,15 +11,11 @@ import { Observable, of } from 'rxjs';
 export class CardFaceApiService {
   private http = inject(HttpClient);
   
-  private apiUrl = `${environment.hostServerUrl}/api/cardFaces`;
+  private apiUrl = `${environment.hostServerUrl}/api/CardFaces`;
 
   constructor() { }
 
-  getCardFaces(cardId?: number): Observable<CardFace[] | undefined> {
-    /*if (cardId !== undefined) {
-      return this.http.get<CardFace[]>(`${this.apiUrl}/card/${cardId}`);
-    }*/
-
+  getCardFaces$(): Observable<CardFace[] | undefined> {
     return this.http.get<CardFace[]>(this.apiUrl);
   }
 
