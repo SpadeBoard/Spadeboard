@@ -60,6 +60,7 @@ builder.Services.AddScoped<ICardPerOwnerDtoService, CardPerOwnerDtoService>();
 
 builder.Services.AddScoped<IDndItemService, DndItemService>();
 builder.Services.AddScoped<IDndPositionService, DndPositionService>();
+builder.Services.AddScoped<IDndRotationService, DndRotationService>();
 
 builder.Services.AddScoped<IStyleService, StyleService>();
 

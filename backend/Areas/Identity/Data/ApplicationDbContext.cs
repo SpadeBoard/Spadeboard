@@ -45,6 +45,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .IsRequired();
 
         builder.Entity<CardPositionPerRoom>()
+            .HasOne(cp => cp.DndRotation)
+            .WithOne()
+            .HasForeignKey<CardPositionPerRoom>(cp => cp.DndRotationId)
+            .IsRequired();
+
+        builder.Entity<CardPositionPerRoom>()
             .HasOne(cp => cp.GameRoom)
             .WithMany()
             .HasForeignKey(cp => cp.GameRoomId)
@@ -169,6 +175,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<DndDragBoundary> DndDragBoundary {get;set;} = default!;
 
     public DbSet<DndPosition> DndPosition {get;set;} = default!;
+
+    public DbSet<DndRotation> DndRotation {get;set;} = default!;
 
     public DbSet<CardPositionPerRoom> CardPositionPerRoom {get;set;} = default!;
 

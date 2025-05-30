@@ -15,7 +15,8 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { CommonModule } from '@angular/common';
-import { Coordinates } from '../../../../utils/utils';
+import { clamp, Coordinates } from '../../../../utils/utils';
+import { CardRotationService } from '../../services/card-game-core/card-rotation.service';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -51,8 +52,12 @@ export class CardPositionPerRoomComponent {
 
   private rightClickMenuPositionX: number = 0;
   private rightClickMenuPositionY: number = 0;
-  currentContextMenuId: string = "";
+  
+  currentContentMenuCpr: CardPositionPerRoom | undefined = undefined;
+  
+  private readonly cardRotationService: CardRotationService = inject(CardRotationService);
 
+  // TODO: Pass in the cpr here as a parameter to determine whether you can rotate?
   get actionContextMenuItems(): ActionContextMenuItem[] {
     return [
       {
@@ -69,6 +74,35 @@ export class CardPositionPerRoomComponent {
       },
       {
         id: 1,
+        name: 'Rotate Left',
+        action: (cpr?: CardPositionPerRoom) => {
+          if (!cpr) return;
+
+          cpr.dndRotation = {
+            ...cpr.dndRotation,
+            degrees: clamp(cpr.dndRotation.degrees -= 45, -360, 360)
+          }
+
+        },
+       disabled: this.currentContentMenuCpr?.dndItem.isRotatable === false ||
+                        (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) <= -360
+      },
+      {
+        id: 2,
+        name: 'Rotate Right',
+        action: (cpr?: CardPositionPerRoom) => {
+          if (!cpr) return;
+
+          cpr.dndRotation = {
+            ...cpr.dndRotation,
+            degrees: clamp(cpr.dndRotation.degrees += 45, -360, 360)
+          }
+        },
+        disabled: this.currentContentMenuCpr?.dndItem.isRotatable === false ||
+          (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) >= 360
+      },
+      {
+        id: 3,
         name: 'Edit Card',
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr) return;
@@ -78,13 +112,13 @@ export class CardPositionPerRoomComponent {
         disabled: false
       },
       {
-        id: 2,
+        id: 4,
         name: 'Delete Card',
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr || cpr.card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
           this.cardEditorPreviewService.deleteCard(cpr.card.cardId);
         },
-        disabled: ((this.currentContextMenuId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)) ? true: false
+        disabled: ((this.currentContentMenuCpr?.card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)) ? true: false
       }
     ];
   }
@@ -425,12 +459,17 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
     this.rightClickMenuPositionX = event.clientX - parentRect.left;
     this.rightClickMenuPositionY = event.clientY - parentRect.top;
 
-    this.currentContextMenuId = cardId;
+    let potentialCurrentContextMenuCpr: CardPositionPerRoom | undefined= this.findCardPositionPerRoom(cardId);
+
+    if (!potentialCurrentContextMenuCpr)
+      throw new Error("Current context menu CPR is undefined");
+
+    this.currentContentMenuCpr = potentialCurrentContextMenuCpr;
   }
 
   @HostListener('document:click')
   documentClick(): void {
-    this.currentContextMenuId = "";
+    this.currentContentMenuCpr = undefined;
   }
 
   getRightClickMenuStyle() {
@@ -442,10 +481,7 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
   }
 
   handleActionContextMenuItemClick(item: ActionContextMenuItem) {
-    let cpr: CardPositionPerRoom | undefined = this.findCardPositionPerRoom(this.currentContextMenuId);
-
-    if (cpr)
-      item.action(cpr);
+    item.action(this.currentContentMenuCpr);
   }
 
   // TODO: Refactor this as we're probably going to have more items than just cards

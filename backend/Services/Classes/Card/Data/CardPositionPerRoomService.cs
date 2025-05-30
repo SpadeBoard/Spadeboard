@@ -7,7 +7,7 @@ using Models.Bridge;
 
 namespace Services
 {
-    public class CardPositionPerRoomService(ApplicationDbContext context, IGameRoomService gameRoomService, ICardService cardService, IDndItemService dndItemService, IDndPositionService dndPositionService) : ICardPositionPerRoomService
+    public class CardPositionPerRoomService(ApplicationDbContext context, IGameRoomService gameRoomService, ICardService cardService, IDndItemService dndItemService, IDndPositionService dndPositionService, IDndRotationService dndRotationService) : ICardPositionPerRoomService
     {
         private readonly ApplicationDbContext _context = context;
 
@@ -16,6 +16,8 @@ namespace Services
         private readonly IDndItemService _dndItemService = dndItemService;
 
         private readonly IDndPositionService _dndPositionService = dndPositionService;
+
+        private readonly IDndRotationService _dndRotationService = dndRotationService;
 
         private readonly IGameRoomService _gameRoomService = gameRoomService;
 
@@ -62,6 +64,7 @@ namespace Services
                 .Include(cpr => cpr.Card)
                 .Include(cpr => cpr.DndItem)
                 .Include(cpr => cpr.DndPosition)
+                .Include(cpr => cpr.DndRotation)
                 .Include(cpr => cpr.GameRoom)
                 .Where(cpr => cpr.GameRoomId == gameRoomId)
                 .ToListAsync();
@@ -75,6 +78,7 @@ namespace Services
             .Include(cpr => cpr.Card)
             .Include(cpr => cpr.DndItem)
             .Include(cpr => cpr.DndPosition)
+            .Include(cpr => cpr.DndRotation)
             .Include(cpr => cpr.GameRoom)
             .FirstOrDefaultAsync(cpr => cpr.CardPositionPerRoomId == id);
 
@@ -139,17 +143,31 @@ namespace Services
 
            if (nav.DndPosition == null )
             {
-                throw new ArgumentException("Item: Card Face Element Per Card Face\nFunction: Create Nav Async\nThe DndPosition property of CardFaceElementPerCardFace cannot be null.", nameof(nav));
+                throw new ArgumentException("Item: Card Position Per Room Per Card Face\nFunction: Create Nav Async\nThe DndPosition property of CardPositionPerRoom cannot be null.", nameof(nav));
             }
 
             if (_dndPositionService.Exists(nav.DndPosition.DndPositionId))
             {
-                throw new ArgumentException("Item: Card Face Element\nFunction: Create Nav Async\nThe DndPosition property of CardFaceElementPerCardFace should not exist.", nameof(nav));
+                throw new ArgumentException("Item: Card Position Per Room\nFunction: Create Nav Async\nThe DndPosition property of CardPositionPerRoom should not exist.", nameof(nav));
             }
 
             nav.DndPosition = await _dndPositionService.CreateAsync(nav.DndPosition);
             nav.DndPositionId = nav.DndPosition.DndPositionId;
             nav.DndPosition = null;
+
+            if (nav.DndRotation == null )
+            {
+                throw new ArgumentException("Item: Card Position Per Room Per Card Face\nFunction: Create Nav Async\nThe DndRotation property of CardPositionPerRoom cannot be null.", nameof(nav));
+            }
+
+            if (_dndPositionService.Exists(nav.DndRotation.DndRotationId))
+            {
+                throw new ArgumentException("Item: Card Position Per Room\nFunction: Create Nav Async\nThe DndRotation property of CardPositionPerRoom should not exist.", nameof(nav));
+            }
+
+            nav.DndRotation = await _dndRotationService.CreateAsync(nav.DndRotation);
+            nav.DndRotationId = nav.DndRotation.DndRotationId;
+            nav.DndRotation = null;
 
             nav.CardPositionPerRoomId = Snowflake.NewId();
             await _context.CardPositionPerRoom.AddAsync(nav);
@@ -172,7 +190,7 @@ namespace Services
         {
             try
             {
-                if (nav.Card == null || nav.DndItem == null || nav.DndPosition == null)
+                if (nav.Card == null || nav.DndItem == null || nav.DndPosition == null || nav.DndRotation == null)
                 {
                     throw new ArgumentNullException(nameof(nav), "Card Position Per Room - Update nav async: At least one navigational property is null");
                 }
@@ -194,6 +212,8 @@ namespace Services
                 }*/
 
                 updated =  await _dndPositionService.UpdateAsync(nav.DndPositionId, nav.DndPosition);
+
+                updated =  await _dndRotationService.UpdateAsync(nav.DndRotationId, nav.DndRotation);
 
                 return true;
             }

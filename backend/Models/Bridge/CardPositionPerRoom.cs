@@ -38,6 +38,11 @@ namespace Models.Bridge
         [ForeignKey("DndPositionId")]
         public virtual DndPosition? DndPosition {get; set;}
 
+         [Required]
+        public long DndRotationId {get; set;}
+        [ForeignKey("DndRotationId")]
+        public virtual DndRotation? DndRotation {get; set;}
+
         [Required]
         public long GameRoomId {get; set;}
         [ForeignKey("GameRoomId")]
@@ -56,6 +61,9 @@ namespace Models.Bridge
 
         public string DndPositionId {get; set;} = "0";
         public virtual DndPositionDto? DndPosition {get; set;}
+
+        public string DndRotationId {get; set;} = "0";
+        public virtual DndRotationDto? DndRotation {get; set;}
 
         public string GameRoomId {get; set;} = "0";
         public virtual GameRoomDto? GameRoom {get; set;}

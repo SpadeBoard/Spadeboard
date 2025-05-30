@@ -6,6 +6,5 @@ export function isDndItem(obj: any): obj is DndItem {
         && 'dndItemId' in obj
         && 'isDraggable' in obj
         && 'isDroppable' in obj
-        && 'dndPosition' in obj
-        && 'styleId' in obj; // Adjust based on DndItem properties
+        && 'isRotatable' in obj; // Adjust based on DndItem properties
 }

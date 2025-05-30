@@ -11,6 +11,7 @@ namespace Models.DndItems
         public string DndItemId { get; set; } = "0";
         public bool IsDraggable { get; set; }
         public bool IsDroppable { get; set; }
+        public bool IsRotatable {get; set;}
     }
 
     public class DndPositionDto
@@ -60,6 +61,24 @@ namespace Models.DndItems
         public string? Border { get; set; }
     }
 
+    public class DndRotationDto
+    {
+        public string DndRotationId { get; set; } = "0";
+        public int Degrees {get; set;}
+    }
+
+    [Table("DndRotations")]
+    public class DndRotation: ICrudId
+    {
+        // TODO: If position already exists, then use it, don't need for an ID? Unless we want to keep history
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long DndRotationId { get; set; }
+        [NotMapped]
+        public long Id { get => DndRotationId; set => DndRotationId = value; }
+        public int Degrees {get; set;}
+    }
+
     [Table("DndItems")]
     public class DndItem: ICrudId
     {
@@ -75,5 +94,8 @@ namespace Models.DndItems
 
         [Required]
         public bool IsDroppable { get; set; }
+
+        [Required]
+        public bool IsRotatable {get; set;}
     }
 }

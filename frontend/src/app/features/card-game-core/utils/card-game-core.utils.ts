@@ -1,5 +1,5 @@
 import { Card, CardEditorCardDto, CardPositionPerRoom } from "../models/card";
-import { CardFaceElement, CardFaceElementDto, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from "../models/card-face-element";
+import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from "../models/card-face-element";
 import { Deck } from "../models/deck";
 import { CardPositionPerRoomService } from "../services/card-game-core/card-position-per-room.service";
 
@@ -32,13 +32,6 @@ export function isCardFaceElement(obj: any): obj is CardFaceElement {
         && typeof obj === 'object'
         && 'cardFaceElementType' in obj
         && 'cardFaceElementId' in obj
-}
-
-export function isCardFaceElementDto(obj: any): obj is CardFaceElementDto {
-    return obj
-        && typeof obj === 'object'
-        && 'cardFaceElement' in obj
-        && 'dndItemDto' in obj
 }
 
 export function isCardFaceElementPerCardFace(obj: any): obj is CardFaceElementPerCardFace {

@@ -1,9 +1,8 @@
 import { DndItem } from "../../drag-and-drop/models/dnd-item";
-import { DndPosition } from "../../drag-and-drop/models/dnd-types";
+import { DndPosition, DndRotation } from "../../drag-and-drop/models/dnd-types";
 import { GameRoom } from "../../game-room/models/game-room/game-room";
 import { Style } from "../../style/models/style";
 import { CardFace, CardEditorCardFaceDto } from "./card-face";
-import { CardFaceElement, CardFaceElementDto, CardFaceElementPerCardFace } from "./card-face-element";
 
 // TODO: Instead of having DndItem itself, have the card extends the item
 export interface Card {
@@ -28,5 +27,6 @@ export interface CardPositionPerRoom {
     card: Card;
     dndItem: DndItem;
     dndPosition: DndPosition;
+    dndRotation: DndRotation;
     gameRoom: GameRoom;
 }

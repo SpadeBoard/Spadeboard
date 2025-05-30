@@ -217,15 +217,20 @@ export class CardsCollectionComponent {
               dndItem: {
                 dndItemId: "0",
                 isDraggable: false,
-                isDroppable: false
+                isDroppable: false,
+                isRotatable: true
               },
               dndPosition: {
                 dndPositionId: "0", x: dndPosition.x, y: dndPosition.y
               } as DndPosition,
+              dndRotation: {
+                dndRotationId: "0",
+                degrees: 0
+              },
               gameRoom: {
-                gameRoomId: "1",
+                gameRoomId: "1", // FIXME: Replace this with getting the actual current game room
                 autosaveInterval: 30000
-              }
+              },
             };
 
             this.createCardPositionPerRoom(cpr);

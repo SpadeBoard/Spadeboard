@@ -4,6 +4,11 @@ export type DndPosition = {
     y: number;
 }
 
+export type DndRotation = {
+    dndRotationId: string;
+    degrees: number;
+}
+
 export type DndDragBoundary = {
     dndDragBoundaryId?: number;
     width: string;
