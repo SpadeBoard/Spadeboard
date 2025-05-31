@@ -49,7 +49,7 @@ export class DndBoardLayerComponent {
   getViewportTransform() {
     let camera = this.dndBoardService.getCameraCoordinates();
     let cellSize = this.dndBoardService.getScaledCellSize();
-    return `translate(${camera.cameraX * cellSize}px, ${camera.cameraY * cellSize}px)`;
+    return `translate(${camera.x * cellSize}px, ${camera.y * cellSize}px)`;
   }
 
   private onUpdateCamera() {
