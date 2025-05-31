@@ -62,20 +62,24 @@ export class DndBoardService {
   private dndBoardSizeAU: number = 1000; // So dndBoardSizeScreen is 50000
 
   // AU
+  readonly MAX_SHIFT = 10;
+
+  // AU
   camera: Coordinates = {
     x: 0,
     y: 0
   }
-  cameraX: number = 0;
-  cameraY: number = 0;
 
   // TODO: Make zoom variable private
   zoom: number = 1; // 1 = 100%, 2 = 200%, 0.5 = 50%
   private readonly maxZoom: number = 3;
   private readonly minZoom: number = 0.1;
 
-  viewportWidthPx: number = window.innerWidth; 
-  viewportHeightPx: number = window.innerHeight;
+  viewportDimensions: Dimensions = {
+    width: window.innerWidth,
+    height: window.innerHeight
+  };
+
   // AU
   // TODO: Make separate conversion functions for mouse position
   private mouseAUCoordinates: Coordinates = {
@@ -167,25 +171,31 @@ export class DndBoardService {
   }
 
   setCameraCoordinates(camera: Coordinates, screen: Dimensions) {
-    let boardWidthAU = this.getGridSizeAU();
-    let boardHeightAU = this.getGridSizeAU();
-    let visibleWidthAU = this.getVisibleDimensionAU(screen.width);
-    let visibleHeightAU = this.getVisibleDimensionAU(screen.height);
+    let boardWidthAU: number = this.getGridSizeAU();
+    let boardHeightAU: number = this.getGridSizeAU();
 
-    let maxCameraX = Math.max(0, boardWidthAU - visibleWidthAU);
-    let maxCameraY = Math.max(0, boardHeightAU - visibleHeightAU);
+    let visibleAU: Dimensions = this.getVisibleDimensionsAU(screen);
 
-    this.viewportWidthPx = screen.width;
-    this.viewportHeightPx = screen.height;
+    let maxCameraX: number = Math.max(0, boardWidthAU - visibleAU.width);
+    let maxCameraY: number = Math.max(0, boardHeightAU - visibleAU.height);
 
+    this.viewportDimensions = screen;
+  
     this.camera = {
       x: clamp(camera.x, 0, maxCameraX),
       y: clamp(camera.y, 0, maxCameraY)
     };
   }
 
-  getViewportDimensions(): {viewportWidthPx: number, viewportHeightPx: number} {
-    return {viewportWidthPx: this.viewportWidthPx, viewportHeightPx: this.viewportHeightPx};
+  getViewportDimensions(): Dimensions {
+    return this.viewportDimensions;
+  }
+
+  getVisibleDimensionsAU(screen: Dimensions): Dimensions {
+    return {
+      width: this.getVisibleDimensionAU(screen.width),
+      height: this.getVisibleDimensionAU(screen.height)
+    }
   }
 
   getVisibleDimensionAU(screenPx: number): number {
@@ -202,17 +212,16 @@ export class DndBoardService {
 
   // Item Position AU: Raw position on virtual board
   // Original: Physical image dimensions
-  getScaledItemRenderData(itemPosition: Coordinates, originalWidth: number, originalHeight: number
+  getScaledItemRenderData(itemPosition: Coordinates, original: Dimensions
   ): {
     screenCoordinates: Coordinates;
-    scaledWidth: number;
-    scaledHeight: number;
+    scaledDimensions: Dimensions
   } {
     let screenCoordinates: Coordinates = this.getScaledItemRenderCoordinates(itemPosition);
     let scale: number = this.getItemRenderScale();
-    let { scaledWidth, scaledHeight } = getScaledItemRenderDimensions(originalWidth, originalHeight, scale);
+    let scaledDimensions: Dimensions = getScaledItemRenderDimensions(original, scale);
 
-    return { screenCoordinates, scaledWidth, scaledHeight };
+    return { screenCoordinates, scaledDimensions };
   }
 
   // Use let scale: number = this.getItemRenderScale();
@@ -247,29 +256,32 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
   }
 
   isPositionInCameraSpace(
-    x: number,
-    y: number,
-    screenWidthPx: number,
-    screenHeightPx: number
+    position: Coordinates,
+    screen: Dimensions
   ): boolean {
-    let visibleWidthAU = this.getVisibleDimensionAU(screenWidthPx);
-    let visibleHeightAU = this.getVisibleDimensionAU(screenHeightPx);
-  
-    let desiredBufferPx = 50; // 1 AU
-    let buffer = desiredBufferPx / this.getScaledCellSize();
+    let visibleDimensions: Dimensions = this.getVisibleDimensionsAU(screen);
 
-    let left = this.camera.x - buffer;
-    let top = this.camera.y - buffer;
-    let right = left + visibleWidthAU + buffer; // Allows for some leeway, item gets dragged off screen
-    let bottom = top + visibleHeightAU + buffer; // Allows for some leeway, item gets dragged off screen
+    // 25% of visible width and height
+    // Want the buffer to scale with the visible world, so it always feels “proportional” to what the user sees
+    // let buffer: number = 0.25 * Math.min(visibleDimensions.width, visibleDimensions.height);
+
+    // FIXED: When zooming in way too close, the cards were disappearing
+    // NOTE: Want items to always be visible for a certain distance from the screen edge, regardless of zoom.
+    let desiredBufferPx: number = 500; // 10 AU at 1 zoom, I did this because I think the this.dndBoardService.MAX_SHIFT is what's causing it and it's 10 AU, you probably want to have a math function for getting this, store this.dndBoardService.MAX_SHIFT here as a general variable instead?
+    let buffer: number = desiredBufferPx / this.getScaledCellSize(); // Converts to AU
+
+    let left: number = this.camera.x - buffer;
+    let top: number = this.camera.y - buffer;
+    let right: number = left + visibleDimensions.width + buffer; // Allows for some leeway, item gets dragged off screen
+    let bottom: number = top + visibleDimensions.height + buffer; // Allows for some leeway, item gets dragged off screen
 
     /*console.log({
       "Item Grid X": x,
       "Item Grid Y": y,
       "Camera X (AU)": this.camera.x,
       "Camera Y (AU)": this.camera.y,
-      "Visible Width (AU)": visibleWidthAU,
-      "Visible Height (AU)": visibleHeightAU,
+      "Visible Width (AU)": visibleDimensions.width,
+      "Visible Height (AU)": visibleDimensions.height,
       "Camera Left Bound (AU)": left,
       "Camera Right Bound (AU)": right,
       "Camera Top Bound (AU)": top,
@@ -277,35 +289,34 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
     });*/
   
     return (
-      x >= left &&
-      x < right &&
-      y >= top &&
-      y < bottom
+      position.x >= left &&
+      position.x < right &&
+      position.y >= top &&
+      position.y < bottom
     );
   }
 
   updateMouseAUCoordinatesFromScreen(
     screen: Coordinates,
-    dndBoardElement: HTMLElement
+    rect: DOMRect
   ) {
-    // Get bounding rect and scroll
-    let rect = dndBoardElement.getBoundingClientRect();
-    
-    let mouseX = screen.x - rect.left;
-    let mouseY = screen.y - rect.top;
-    
-    let  scaledCellSize = this.getScaledCellSize();
-    let  offsetXAU = mouseX / scaledCellSize;
-    let  offsetYAU = mouseY / scaledCellSize;
+    let scaledCellSize: number = this.getScaledCellSize();
+    // mouse / scaled cell size converts to AU
+    let offsetAU: Coordinates = {
+      x: (screen.x - rect.left)/ scaledCellSize,
+      y: (screen.y - rect.top)/ scaledCellSize
+    };
 
     // Get the current camera position in AU (already updated by updateCamera)
     let camera: Coordinates = this.getCameraCoordinates(); // Or this.dndBoardService.getCameraCoordinates()
 
     // Mouse AU = camera AU + offset in AU
-    let  x = clamp(camera.x + offsetXAU, 0, this.getGridSizeAU());
-    let  y = clamp(camera.y + offsetYAU, 0, this.getGridSizeAU());
- 
-     this.setMouseAUCoordinates({ x, y });
+    let mouseAUCoordinates: Coordinates = {
+      x: clamp(camera.x + offsetAU.x, 0, this.getGridSizeAU()),
+      y: clamp(camera.y + offsetAU.y, 0, this.getGridSizeAU())
+    }
+
+     this.setMouseAUCoordinates(mouseAUCoordinates);
   }
 
   setOnShowAllItems() {
@@ -335,8 +346,8 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
     };
 
     let viewportDimensions: Dimensions = {
-      width: this.viewportWidthPx,
-      height: this.viewportHeightPx
+      width: this.viewportDimensions.width,
+      height: this.viewportDimensions.height
     }
 
     // Ensure all points are visible
@@ -352,14 +363,18 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
     // FIXED: Items were being rendered too closely with one another after this process, zoom was still set to 'fit all' value, but the cards scale wasn't updated
     this.setZoomLevel(this.zoom);
 
+    let scaledCellSize: number = this.getScaledCellSize();
+
     // Move camera so center is in viewport center
     // Center region on screen
-    let visibleWidthAU: number = viewportDimensions.width / this.getScaledCellSize();
-    let visibleHeightAU: number = viewportDimensions.height / this.getScaledCellSize();
-
+    let visibleDimensionsAU: Dimensions = {
+      width: viewportDimensions.width / scaledCellSize,
+      height: viewportDimensions.height / scaledCellSize
+    }
+  
     let cameraCoordinates: Coordinates = {
-      x: centre.x - visibleWidthAU / 2,
-      y: centre.y - visibleHeightAU / 2
+      x: centre.x - visibleDimensionsAU.width / 2,
+      y: centre.y - visibleDimensionsAU.width / 2
     };
     this.setCameraCoordinates(cameraCoordinates, viewportDimensions);
     this.onUpdateCamera();

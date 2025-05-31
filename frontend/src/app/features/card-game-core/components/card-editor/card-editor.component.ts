@@ -1,25 +1,17 @@
-import { AfterViewInit, Component, computed, ElementRef, inject, input, Type, ViewChild, WritableSignal, Injector, ChangeDetectorRef, InputSignal, Signal, effect } from '@angular/core';
+import { AfterViewInit, Component, inject, input, Type, ViewChild, WritableSignal, Injector, ChangeDetectorRef, InputSignal, Signal, effect } from '@angular/core';
 
 import { Image } from '../../../style/models/image';
 import { Style } from '../../../style/models/style';
-import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CommonModule, NgComponentOutlet } from '@angular/common';
-import { CROPPED_IMAGE_TOKEN, CLOSE_IMAGE_EDITOR_TOKEN, RTE_HTML_CONTENT } from '../../../../shared/tokens';
 import { CardFaceImageEditorComponent } from '../card-face-image-editor/card-face-image-editor.component';
-import { SafeUrl } from '@angular/platform-browser';
-import { parseCssDimension } from '../../../style/utils/parse-css-dimensions.utils';
-import { blobToDataURL } from '../../../../utils/utils';
 import { CardFaceRteComponent } from '../card-face-rte/card-face-rte.component';
-import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
+import { AngularEditorModule } from '@kolkov/angular-editor';
 import { FormsModule } from '@angular/forms';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
-import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
-import { catchError, concatMap, EMPTY, forkJoin, from, map, mergeMap, Observable, ObservedValueOf, of, pipe, switchMap, tap } from 'rxjs';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { CardEditorPreviewComponent } from '../card-editor-preview/card-editor-preview.component';
 import { CardEditorControlsDesignComponent } from '../card-editor-controls-design/card-editor-controls-design.component';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
-import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { CardEditorCloseComponent } from '../card-editor-close/card-editor-close.component';
 
 // TODO: Resizable card face, have arrows for dragging, make sure there's a max width/height for that card face
@@ -28,7 +20,7 @@ import { CardEditorCloseComponent } from '../card-editor-close/card-editor-close
   imports: [
     AngularEditorModule, FormsModule,
     CommonModule, NgComponentOutlet,
-    CardFaceRteComponent, CardFaceImageComponent,
+    CardFaceRteComponent,
     CardEditorPreviewComponent, CardEditorControlsDesignComponent,
     CardEditorCloseComponent
   ], // TODO: Remove CdkDrag

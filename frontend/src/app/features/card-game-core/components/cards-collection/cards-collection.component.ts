@@ -8,20 +8,17 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { isCard } from '../../utils/card-game-core.utils';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
-import { CardEditorCardFaceDto } from '../../models/card-face';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
-import { CardFaceElementPerCardFace } from '../../models/card-face-element';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';
 
 @Component({
   selector: 'app-cards-collection',
   imports: [ 
-    CardComponent, CardDeleteButtonComponent, CommonModule,
+    CardComponent, CommonModule,
     CdkDrag, CdkDragHandle, DragDropModule, ActionContextMenuComponent
   ],
   templateUrl: './cards-collection.component.html',

@@ -54,13 +54,12 @@ export async function blobToDataURL(blobUrl: string): Promise<string> {
 
 // TODO: Refactor all these functions, probably should split them into smaller files
 export function getScaledItemRenderDimensions(
-  originalWidth: number,
-  originalHeight: number,
+  original: Dimensions,
   scale: number
-): { scaledWidth: number; scaledHeight: number } {
+): Dimensions {
   return {
-    scaledWidth: originalWidth * scale,
-    scaledHeight: originalHeight * scale
+    width: original.width * scale,
+    height: original.height * scale
   };
 }
 

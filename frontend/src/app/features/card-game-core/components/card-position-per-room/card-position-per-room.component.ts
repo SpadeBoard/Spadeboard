@@ -15,7 +15,7 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { CommonModule } from '@angular/common';
-import { clamp, Coordinates } from '../../../../utils/utils';
+import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
 import { CardRotationService } from '../../services/card-game-core/card-rotation.service';
 
 @Component({
@@ -161,18 +161,13 @@ export class CardPositionPerRoomComponent {
   // Have a function to replace cprs and then render them
   private setOnScreenCprs(): void {
     if (this.cprs.length > 0) {
-      let getViewportDimensions = this.dndBoardService.getViewportDimensions();
-
-      let viewportWidth = getViewportDimensions.viewportWidthPx;
-      let viewportHeight = getViewportDimensions.viewportHeightPx;
-
-      this.unculledCprs = this.getOnScreenCprs(viewportWidth, viewportHeight);
+      this.unculledCprs = this.getOnScreenCprs(this.dndBoardService.getViewportDimensions());
       // console.log(`Card position per room set on screen CPRs: ${JSON.stringify(this.unculledCprs)}`);
     }
   }
 
-  getOnScreenCprs(screenPxX: number, screenPxY: number) {
-    return this.cprs.filter(cpr => this.dndBoardService.isPositionInCameraSpace(cpr.dndPosition.x, cpr.dndPosition.y, screenPxX, screenPxY) == true);
+  getOnScreenCprs(screen: Dimensions) {
+    return this.cprs.filter(cpr => this.dndBoardService.isPositionInCameraSpace({x: cpr.dndPosition.x, y: cpr.dndPosition.y}, screen) == true);
   }
 
   // NOTE: Assumes the dndPosition is in AU and set to the mouse AU coordinates
@@ -269,7 +264,7 @@ export class CardPositionPerRoomComponent {
   
   private refreshUnculledCprs() {
     let dimensions = this.dndBoardService.getViewportDimensions();
-    this.unculledCprs = this.getOnScreenCprs(dimensions.viewportWidthPx, dimensions.viewportHeightPx);
+    this.unculledCprs = this.getOnScreenCprs(dimensions);
   }
 
   private updateCardPositionPerRoomOnSave() {
