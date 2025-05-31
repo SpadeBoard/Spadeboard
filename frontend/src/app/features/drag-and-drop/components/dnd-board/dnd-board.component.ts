@@ -16,7 +16,7 @@ import { CardPositionPerRoomComponent } from '../../../card-game-core/components
 import { GameRoomService } from '../../../game-room/services/game-room.service';
 import { DndBoardGridComponent } from '../dnd-board-grid/dnd-board-grid.component';
 import { DndBoardLayerComponent } from '../dnd-board-layer/dnd-board-layer.component';
-import { Coordinates } from '../../../../utils/utils';
+import { clamp, Coordinates } from '../../../../utils/utils';
 import { Dimensions } from 'ngx-image-cropper';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -79,10 +79,10 @@ export class DndBoardComponent implements AfterViewInit {
   }
   
  ngAfterViewInit(): void {
-  this.updateCamera();
+  this.updateCameraOnScroll();
  }
  
-  updateCamera() {
+  updateCameraOnScroll() {
     let wrapper = this.dndBoard.nativeElement;
 
     let scrollLeft = wrapper.scrollLeft;
@@ -111,20 +111,24 @@ export class DndBoardComponent implements AfterViewInit {
    postShowAllItems() {
     this.dndBoardService.postShowAllItems$.pipe(takeUntilDestroyed())
     .subscribe(() => {
-      if (this.dndBoard && this.dndBoard.nativeElement) {
-        let scrollLeft: number = this.dndBoardService.cameraX * this.dndBoardService.getScaledCellSize();
-        let scrollTop: number = this.dndBoardService.cameraY * this.dndBoardService.getScaledCellSize();
-        this.dndBoard.nativeElement.scrollTo({
-          left: scrollLeft,
-          top: scrollTop,
-          behavior: 'smooth'
-        });
-      }
+      this.scrollBasedOnCamera('smooth');
     })
   }
 
+  scrollBasedOnCamera(scrollBehavior: 'auto' | 'smooth' = 'auto'): void {
+    if (this.dndBoard && this.dndBoard.nativeElement) {
+        let scrollLeft: number = this.dndBoardService.camera.x * this.dndBoardService.getScaledCellSize();
+        let scrollTop: number = this.dndBoardService.camera.y * this.dndBoardService.getScaledCellSize();
+        this.dndBoard.nativeElement.scrollTo({
+          left: scrollLeft,
+          top: scrollTop,
+          behavior: scrollBehavior // Rapid, repeated updates (like during drag or continuous zoom), smooth can cause a "lag" or "rubber-banding" effect
+        });
+      };
+  }
+
   onScroll(event: Event) {
-    this.updateCamera();
+    this.updateCameraOnScroll();
   }
 
   @HostListener('document:mousemove', ['$event']) 
@@ -163,30 +167,137 @@ export class DndBoardComponent implements AfterViewInit {
     console.log(this.mouseMoveLog);*/
   }
 
-  // NOTE: Call this.updateCamera immediately after zooming, scrolling, or resizing, using the current viewport size.
+  // NOTE: Call this.updateCameraOnScroll immediately after zooming, scrolling, or resizing, using the current viewport size.
   @HostListener('wheel', ['$event'])
   onWheel(event: WheelEvent) {
     event.preventDefault();
 
-       // TODO: Use subscriptions to determine what to do after zooming out, like resizing the images
+    let screen: Coordinates = { x: event.clientX, y: event.clientY };
+
+    // We need this because the problem is it scrolls even though there's no difference between positioning
+    let prevCamera: Coordinates = this.dndBoardService.camera;
+
+    // adjustCameraForZoom: We need the difference between before positioning and after
+    let mouseAUBefore: Coordinates = this.dndBoardService.screenToAUCoordinates(screen);
+
+    // Gotta zoom first so it scales correctly, the relationship between screen (pixel) coordinates and board (AU) coordinates changes
     if (event.deltaY < 0) this.dndBoardService.zoomIn(1.1);
     else this.dndBoardService.zoomOut(1.1);
 
+    let mouseAUAfter: Coordinates = this.dndBoardService.screenToAUCoordinates(screen);
 
-    this.updateCamera();
+    // FIXME: So this isn't exact, but should be good enough for now? Unless we want to use the other function centreCameraOnMouse but pass in the scroll behavior as auto?
+    // Actually centreCameraOnMouse was way worse
+    this.adjustCameraForZoom(mouseAUBefore, mouseAUAfter);
 
-    let screen: Coordinates = {
-      x: event.clientX,
-      y: event.clientY
-    }
+    // Update rendering and mouse coordinates
+    // Only scroll if the camera actually moved
+    let newCamera: Coordinates = this.dndBoardService.camera;
 
-    // this.setDndBoardMousePosition(event.clientX, event.clientY);
-    this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, this.dndBoard.nativeElement);   
+    if (this.isCameraTranslationHighEnough(prevCamera, newCamera))
+      // We need to scroll because the board's a scrollable container 
+      this.scrollBasedOnCamera('auto');
+
+    this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, this.dndBoard.nativeElement);
     this.dndBoardService.setZoomLevel();
-    
+
     // console.log(`On Wheel: Grid size AU: ${JSON.stringify(this.dndBoardService.screenToAUCoordinates(this.gridWidthScreen, this.gridHeightScreen))} Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}, Cell Size: ${this.cellSizeScreen}`);
 
     // 1.1 = 10%
+  }
+
+  getViewportDimensions(): Dimensions {
+     let wrapper: HTMLDivElement = this.dndBoard.nativeElement;
+    let viewportDimensions: Dimensions = { width: wrapper.clientWidth, height: wrapper.clientHeight };
+  
+    return viewportDimensions;
+  }
+
+  getCameraMovementVector(mouseAUBefore: Coordinates, mouseAUAfter: Coordinates): Coordinates {
+    return {
+      x: mouseAUBefore.x - mouseAUAfter.x,
+      y: mouseAUBefore.y - mouseAUAfter.y
+    }
+  }
+
+  isCameraTranslationHighEnough(prevCamera: Coordinates, newCamera: Coordinates): boolean {
+     let CAMERA_MOVEMENT_VECTOR_DIFFERENCE_EPSILON: number = 1e-6;
+
+    return (Math.abs(newCamera.x - prevCamera.x) > CAMERA_MOVEMENT_VECTOR_DIFFERENCE_EPSILON ||
+      Math.abs(newCamera.y - prevCamera.y) > CAMERA_MOVEMENT_VECTOR_DIFFERENCE_EPSILON);
+  }
+
+  // NOTE: https://math.stackexchange.com/questions/2585598/3d-camera-transformation-versus-object-transformation
+  adjustCameraForZoom(mouseAUBefore: Coordinates, mouseAUAfter: Coordinates): void {
+    // Adjust camera so the AU point under the mouse stays fixed
+    //    camera = camera + (mouseAUBefore - mouseAUAfter)
+    // Shifts based on the difference before and after
+
+    // This is basically the movement vector
+    let d: Coordinates = this.getCameraMovementVector(mouseAUBefore, mouseAUAfter);
+
+    // So this is all meant to prevent the hypersensivity of the movement
+    /***************************************************** */
+    // Prevents camera microjitter, there's potential floating-point noise.
+    let DEAD_ZONE: number = 0.01;
+    if (Math.abs(d.x) < DEAD_ZONE) d.x = 0;
+    if (Math.abs(d.y) < DEAD_ZONE) d.y = 0;
+
+    // Reduce camera magnitude by a value between 0 and 1 to make zooming feel smoother.
+    // Acts as 'interpolation' essentially but not really interpolation
+    let SENSITIVITY = 0.7;
+
+    // Even after scaling, a large zoom or a big movement vector could cause the camera to jump.
+    // Ensure the camera never shifts more than MAX_SHIFT units (AU) per event, keeps movement manageable and prevents sudden jumps.
+    let MAX_SHIFT = 10;
+    d.x = clamp(d.x * SENSITIVITY, -MAX_SHIFT, MAX_SHIFT);
+    d.y = clamp(d.y * SENSITIVITY, -MAX_SHIFT, MAX_SHIFT);
+    /***************************************************** */
+
+    // Basically what this is it's taking the camera's values and shifting by the movement vector
+    let camera: Coordinates = {
+      x: this.dndBoardService.camera.x + d.x,
+      y: this.dndBoardService.camera.y + d.y
+    }
+
+    // We need to do this because if we're setting the camera, and the change is so small, it's going to snap back and forth otherwise
+    if (!this.isCameraTranslationHighEnough(this.dndBoardService.camera, camera))
+      return;
+
+    let viewportDimensions: Dimensions = this.getViewportDimensions();
+
+    // Clamp camera to board bounds just so it never goes out of bounds
+    this.dndBoardService.setCameraCoordinates(
+      camera,
+      viewportDimensions
+    );
+  }
+
+  centreCameraOnMouse(mouseAU: Coordinates): void {
+    let viewportDimensions: Dimensions = this.getViewportDimensions();
+
+    // Calculate the visible area in AU based on the current zoom and viewport size
+    let visibleWidthAU: number = this.dndBoardService.getVisibleDimensionAU(viewportDimensions.width);
+    let visibleHeightAU: number =this.dndBoardService.getVisibleDimensionAU(viewportDimensions.height);
+
+    // Set camera so that mouseAU is at the center of the viewport
+    let camera: Coordinates = {
+      x: mouseAU.x - visibleWidthAU / 2,
+      y:mouseAU.y - visibleHeightAU / 2
+    };
+
+    this.dndBoardService.setCameraCoordinates(
+      camera,
+      viewportDimensions
+    );
+  }
+
+  @HostListener('dblclick', ['$event'])
+  onDoubleClick(event: MouseEvent) {
+    let screen: Coordinates = { x: event.clientX, y: event.clientY };
+    let mouseAU = this.dndBoardService.screenToAUCoordinates(screen);
+    this.centreCameraOnMouse(mouseAU);
+    this.scrollBasedOnCamera('smooth');
   }
 
   /* 
@@ -198,7 +309,7 @@ Mouse move for highlight	No	Only need to update highlight
 
   @HostListener('window:resize')
   onResize() {
-    this.updateCamera();
+    this.updateCameraOnScroll();
   }
 
   @HostListener('pan', ['$event'])
