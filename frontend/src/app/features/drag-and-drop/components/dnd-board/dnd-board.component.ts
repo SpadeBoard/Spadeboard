@@ -96,7 +96,7 @@ export class DndBoardComponent implements AfterViewInit {
     let viewportDimensions: Dimensions = {width: wrapper.clientWidth, height: wrapper.clientHeight};
   
     this.dndBoardService.setCameraCoordinates(camera, viewportDimensions);
-    // this.dndBoardService.setScreenPxDimensions(viewportWidthPx, viewportHeightPx);
+    // this.dndBoardService.setScreenPxDimensions(viewportDimensions.width, viewportDimensions.height);
     // console.log(`On update camera - Set Dnd Board Camera: Camera AU coordinates: ${JSON.stringify(this.dndBoardService.getCameraCoordinates())}, Camera screen coordinates: ${JSON.stringify({scrollLeft, scrollTop})}`);
     this.dndBoardService.onUpdateCamera();
   }
@@ -134,19 +134,19 @@ export class DndBoardComponent implements AfterViewInit {
   @HostListener('document:mousemove', ['$event']) 
   onMouseMove(event: MouseEvent) {
     // 1. Get mouse screen coordinates
-  let mouseScreenX = event.clientX;
-  let mouseScreenY = event.clientY;
+  let mouseScreenX: number = event.clientX;
+  let mouseScreenY: number = event.clientY;
 
   let screen: Coordinates = {
     x: event.clientX,
     y: event.clientY
   }
 
-  let rect = this.dndBoard.nativeElement.getBoundingClientRect();
-  let mouseX = event.clientX - rect.left;
-  let mouseY = event.clientY - rect.top;
+  let rect: DOMRect = this.dndBoard.nativeElement.getBoundingClientRect();
+  let mouseX: number = event.clientX - rect.left;
+  let mouseY: number = event.clientY - rect.top;
 
-  this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, this.dndBoard.nativeElement);
+  this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, rect);
   // this.setDndBoardMousePosition(mouseScreenX, mouseScreenY);
   // 2. Convert to AU coordinates
   // let mouseAUCoordinates = this.dndBoardService.screenToAUCoordinates(mouseScreenX, mouseScreenY);
@@ -198,7 +198,9 @@ export class DndBoardComponent implements AfterViewInit {
       // We need to scroll because the board's a scrollable container 
       this.scrollBasedOnCamera('auto');
 
-    this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, this.dndBoard.nativeElement);
+    let rect: DOMRect = this.dndBoard.nativeElement.getBoundingClientRect();
+
+    this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen,  rect);
     this.dndBoardService.setZoomLevel();
 
     // console.log(`On Wheel: Grid size AU: ${JSON.stringify(this.dndBoardService.screenToAUCoordinates(this.gridWidthScreen, this.gridHeightScreen))} Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}, Cell Size: ${this.cellSizeScreen}`);
@@ -227,17 +229,8 @@ export class DndBoardComponent implements AfterViewInit {
       Math.abs(newCamera.y - prevCamera.y) > CAMERA_MOVEMENT_VECTOR_DIFFERENCE_EPSILON);
   }
 
-  // NOTE: https://math.stackexchange.com/questions/2585598/3d-camera-transformation-versus-object-transformation
-  adjustCameraForZoom(mouseAUBefore: Coordinates, mouseAUAfter: Coordinates): void {
-    // Adjust camera so the AU point under the mouse stays fixed
-    //    camera = camera + (mouseAUBefore - mouseAUAfter)
-    // Shifts based on the difference before and after
-
-    // This is basically the movement vector
-    let d: Coordinates = this.getCameraMovementVector(mouseAUBefore, mouseAUAfter);
-
-    // So this is all meant to prevent the hypersensivity of the movement
-    /***************************************************** */
+   // So this is all meant to prevent the hypersensivity of the movement
+  applyCameraMovementVectorConstraints(d: Coordinates): Coordinates {
     // Prevents camera microjitter, there's potential floating-point noise.
     let DEAD_ZONE: number = 0.01;
     if (Math.abs(d.x) < DEAD_ZONE) d.x = 0;
@@ -248,11 +241,21 @@ export class DndBoardComponent implements AfterViewInit {
     let SENSITIVITY = 0.7;
 
     // Even after scaling, a large zoom or a big movement vector could cause the camera to jump.
-    // Ensure the camera never shifts more than MAX_SHIFT units (AU) per event, keeps movement manageable and prevents sudden jumps.
-    let MAX_SHIFT = 10;
-    d.x = clamp(d.x * SENSITIVITY, -MAX_SHIFT, MAX_SHIFT);
-    d.y = clamp(d.y * SENSITIVITY, -MAX_SHIFT, MAX_SHIFT);
-    /***************************************************** */
+    // Ensure the camera never shifts more than this.dndBoardService.MAX_SHIFT units (AU) per event, keeps movement manageable and prevents sudden jumps.
+    d.x = clamp(d.x * SENSITIVITY, -this.dndBoardService.MAX_SHIFT, this.dndBoardService.MAX_SHIFT);
+    d.y = clamp(d.y * SENSITIVITY, -this.dndBoardService.MAX_SHIFT, this.dndBoardService.MAX_SHIFT);
+
+    return d;
+  }
+
+  // NOTE: https://math.stackexchange.com/questions/2585598/3d-camera-transformation-versus-object-transformation
+  adjustCameraForZoom(mouseAUBefore: Coordinates, mouseAUAfter: Coordinates): void {
+    // Adjust camera so the AU point under the mouse stays fixed
+    //    camera = camera + (mouseAUBefore - mouseAUAfter)
+    // Shifts based on the difference before and after
+
+    // This is basically the movement vector
+    let d: Coordinates = this.applyCameraMovementVectorConstraints(this.getCameraMovementVector(mouseAUBefore, mouseAUAfter));
 
     // Basically what this is it's taking the camera's values and shifting by the movement vector
     let camera: Coordinates = {
@@ -277,13 +280,12 @@ export class DndBoardComponent implements AfterViewInit {
     let viewportDimensions: Dimensions = this.getViewportDimensions();
 
     // Calculate the visible area in AU based on the current zoom and viewport size
-    let visibleWidthAU: number = this.dndBoardService.getVisibleDimensionAU(viewportDimensions.width);
-    let visibleHeightAU: number =this.dndBoardService.getVisibleDimensionAU(viewportDimensions.height);
+    let visibleDimensions: Dimensions = this.dndBoardService.getVisibleDimensionsAU(viewportDimensions);
 
     // Set camera so that mouseAU is at the center of the viewport
     let camera: Coordinates = {
-      x: mouseAU.x - visibleWidthAU / 2,
-      y:mouseAU.y - visibleHeightAU / 2
+      x: mouseAU.x - visibleDimensions.width / 2,
+      y:mouseAU.y - visibleDimensions.height / 2
     };
 
     this.dndBoardService.setCameraCoordinates(

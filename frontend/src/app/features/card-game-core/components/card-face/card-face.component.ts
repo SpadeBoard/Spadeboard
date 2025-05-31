@@ -5,7 +5,7 @@ import { CardFace } from '../../models/card-face';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { CommonModule } from '@angular/common';
 import { FileMetadataStatus } from '../../../../utils/models/file-metadata';
-import { getScaledItemRenderDimensions } from '../../../../utils/utils';
+import { Dimensions, getScaledItemRenderDimensions } from '../../../../utils/utils';
 
 // https://medium.com/@niteshdaga000/optimizing-performance-with-memory-caching-in-angular-applications-dad3efeb1f99
 // TODO: When loading in the cards menu, use a hybdrid approach of storing the indices, caching the images in memory, using LRU, and only replacing the images that have changed via checking timestamp
@@ -44,7 +44,7 @@ export class CardFaceComponent {
   DEFAULT_BASE_WIDTH: number = 154;
   DEFAULT_BASE_HEIGHT: number = 215;
 
-  baseDimensions = {
+  baseDimensions: Dimensions = {
     width: this.DEFAULT_BASE_WIDTH,
     height: this.DEFAULT_BASE_HEIGHT
   }
@@ -60,14 +60,11 @@ export class CardFaceComponent {
   // To be used on DND Board, but should just be general in case?
   // Here's the problem, if you just use transform scale here, the interactive area's not going to resize, which is going to cause issues with UX
   setCardFaceImageDimensions(scale: number) {
-    let scaledDimensions: {
-      scaledWidth: number;
-      scaledHeight: number;
-    } = getScaledItemRenderDimensions(this.baseDimensions.width, this.baseDimensions.height, scale); // NOTE: Should this even be in this service? It's just a general scaling function
+    let scaledDimensions: Dimensions = getScaledItemRenderDimensions(this.baseDimensions, scale); // NOTE: Should this even be in this service? It's just a general scaling function
 
     // FIXED: It was taking the new width and height then multiplying by that instead. Compounded scaling.
-    this.image.width = scaledDimensions.scaledWidth;
-    this.image.height = scaledDimensions.scaledHeight;
+    this.image.width = scaledDimensions.width;
+    this.image.height = scaledDimensions.height;
   }
 
   getCardFaceImageSrc(cardFace: CardFace): Promise<HTMLImageElement | undefined> {

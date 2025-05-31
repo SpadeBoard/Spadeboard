@@ -67,8 +67,8 @@ export class DndBoardLayerComponent {
   private updateGridSize() {
     let getViewportDimensions = this.dndBoardService.getViewportDimensions();
 
-    this.viewportWidth = getViewportDimensions.viewportWidthPx;
-    this.viewportHeight = getViewportDimensions.viewportHeightPx;
+    this.viewportWidth = getViewportDimensions.width;
+    this.viewportHeight = getViewportDimensions.height;
 
     this.getViewportTransform();
     // console.log(`On update Card Position Per Room Grid Size: Viewport size: ${this.viewportWidth}, ${this.viewportHeight}, Zoom Level: ${this.dndBoardService.zoom}`);
