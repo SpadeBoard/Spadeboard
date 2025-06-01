@@ -106,7 +106,7 @@ export class CardsCollectionComponent {
       this.userId).subscribe((result: Card[] | undefined) => {
         if (result !== undefined)
         {
-          this.cards = result.filter(card => !card.isTemplate);
+          this.cards = result;
           return;
         }
     });
@@ -138,7 +138,7 @@ export class CardsCollectionComponent {
     this.cardGameCoreService.onCreateCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
-      if (cardEditorCardDto && this.cards.length > 0 && !cardEditorCardDto.card.isTemplate) {
+      if (cardEditorCardDto && this.cards.length > 0) {
         this.cards.push(cardEditorCardDto.card);
         return;
       }
@@ -154,7 +154,7 @@ export class CardsCollectionComponent {
     this.cardGameCoreService.onUpdateCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
-      if (cardEditorCardDto && this.cards.length > 0 && !cardEditorCardDto.card.isTemplate) {
+      if (cardEditorCardDto && this.cards.length > 0) {
         let index = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
 
         if (index !== -1) {
