@@ -124,6 +124,29 @@ export class ResizableWrapperComponent {
   constructor() {
   }
 
+  topLeftResize(offsetX: number, offsetY: number) {
+    let current = this.dimensionsComputed();
+    let newWidth = clamp(current.width - offsetX, 0.01, 400);
+    let newHeight = clamp(current.height - offsetY, 0.01, 400);
+
+    this.resizableChange.emit({ width: newWidth, height: newHeight });
+  }
+
+  topRightResize(offsetX: number, offsetY: number) {
+    let current = this.dimensionsComputed();
+    let newWidth = clamp(current.width + offsetX, 0.01, 400);
+    let newHeight = clamp(current.height - offsetY, 0.01, 400);
+
+    this.resizableChange.emit({ width: newWidth, height: newHeight });
+  }
+
+  bottomLeftResize(offsetX: number, offsetY: number) {
+    let current = this.dimensionsComputed();
+    let newWidth = clamp(current.width - offsetX, 0.01, 400);
+    let newHeight = clamp(current.height + offsetY, 0.01, 400);
+
+    this.resizableChange.emit({ width: newWidth, height: newHeight });
+  }
 
   bottomRightResize(offsetX: number, offsetY: number) {
     let current = this.dimensionsComputed();
@@ -155,8 +178,21 @@ export class ResizableWrapperComponent {
 
     let corner = this.draggingAttributes.corner;
 
-    if (corner === "bottom-right") {
-      this.bottomRightResize(offsetX, offsetY);
+    switch (corner) {
+      case 'top-left':
+        this.topLeftResize(offsetX, offsetY);
+        break;
+      case 'top-right':
+        this.topRightResize(offsetX, offsetY);
+        break;
+      case 'bottom-left':
+        this.bottomLeftResize(offsetX, offsetY);
+        break;
+      case 'bottom-right':
+        this.bottomRightResize(offsetX, offsetY);
+        break;
+      default:
+        throw new Error("No legitimate corner");
     }
 
     this.draggingAttributes.px = event.clientX;
