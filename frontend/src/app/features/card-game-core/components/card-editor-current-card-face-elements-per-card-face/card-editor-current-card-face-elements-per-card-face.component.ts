@@ -11,7 +11,7 @@ import { CardEditorControlsDesignRteService } from '../../services/card-editor-c
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
-import { blobToDataURL, moveToBack, moveToFront } from '../../../../utils/utils';
+import { blobToDataURL, clamp, Coordinates, moveToBack, moveToFront } from '../../../../utils/utils';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { distinctUntilChanged, EMPTY, from, switchMap } from 'rxjs';
@@ -50,8 +50,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.mousePosition = {x: event.clientX, y: event.clientY};
   }
 
-  private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
-  private mousePosition: {x: number, y: number} = {x:0, y: 0};
+  private dragOffset: Coordinates = {x: 0, y: 0};
+  private mousePosition: Coordinates = {x:0, y: 0};
 
   currentEditedCardFaceElementId: string = "-1";
 
@@ -231,7 +231,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         cardFaceElementType: 'Rte',
         cardFaceElementId: cardFaceElementPerCardFaceId,
         style: {
-          styleId: "0"
+          styleId: "0",
+          zIndex: '1'
         },
       },
       dndItem: {
@@ -254,7 +255,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
               styleId: "0",
               width: '100', // TODO: Set this for Angular Editor
               height: '100', // TODO: Set this for Angular Editor
-              zIndex: 'inherit'
+              zIndex: '1'
             }
           },
           dndItem: {
@@ -276,7 +277,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
               styleId: "0",
               width: '100', // Modify
               height: '100', //Modify
-              zIndex: 'inherit'
+              zIndex: '1'
             }
           },
           dndItem: {
@@ -310,10 +311,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       y: item.dndPosition.y - this.mousePosition.y
     };
   }
-
-    changeZIndex() {
-
-    }
 
     private getRelativeDropPosition(dropPoint: {x: number, y: number}): DndPosition {
       let containerRect = this.getCardFaceClientRect(); // Should return DOMRect
@@ -421,7 +418,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     if (!isCardFaceElementPerCardFace(event.item.data) && this.position === undefined)
       return;
 
-    let localDropPosition = this.getRelativeDropPosition({x: event.dropPoint.x, y: event.dropPoint.y});
+    let localDropPosition = this.getRelativeDropPosition({
+      x: event.dropPoint.x, 
+      y: event.dropPoint.y});
 
     this.position = {
       dndPositionId: this.position.dndPositionId,
@@ -726,29 +725,65 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       });
     }
 
-    onBringToFront() {
-      this.cardEditorControlsElementLayeringAttributesService.onBringToFront$
+  // Is this even necessary? The CSS should be handling the stacking, but I guess the question is the drag and drop functionality?
+  sortOrder() {
+    this.currentCardFaceElementsPerCardFace = this.currentCardFaceElementsPerCardFace.sort((a, b) => {
+      if (
+        a.cardFaceElement.style === undefined ||
+        b.cardFaceElement.style === undefined ||
+        a.cardFaceElement.style['zIndex'] === undefined ||
+        b.cardFaceElement.style['zIndex'] === undefined
+      ) return 1;
+
+      // 1 - A comes after B
+      // -1 - A comes before B
+      // 0 - No change in order
+      return parseInt(a.cardFaceElement.style['zIndex']) > parseInt(b.cardFaceElement.style['zIndex'])
+        ? 1 : parseInt(a.cardFaceElement.style['zIndex']) < parseInt(b.cardFaceElement.style['zIndex'])
+          ? -1 : 0;
+    });
+  }
+
+  onBringToFront() {
+    this.cardEditorControlsElementLayeringAttributesService.onBringToFront$
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
-        let idx: number = this.currentCardFaceElementsPerCardFace.findIndex(c => c.cardFaceElement.cardFaceElementId === this.currentEditedCardFaceElementId);
+        let maxZIndex: number = Math.max(
+          ...this.currentCardFaceElementsPerCardFace.map(
+            e => parseInt(e.cardFaceElement.style?.zIndex ?? "1") || 0
+          )
+        );
 
-        if (idx === -1)
-          return;
+        let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.currentCardFaceElementsPerCardFace.find(c => c.cardFaceElement.cardFaceElementId === this.currentEditedCardFaceElementId);
 
-        moveToBack(this.currentCardFaceElementsPerCardFace, idx);
+        if (!cardFaceElementPerCardFace) return;
+
+        if (!cardFaceElementPerCardFace.cardFaceElement.style)
+          throw new Error("Card face element has no style to add Z index to");
+
+        cardFaceElementPerCardFace.cardFaceElement.style.zIndex = `${clamp(maxZIndex + 1, 0, this.currentCardFaceElementsPerCardFace.length)}`;
       })
-    }
+  }
 
-    onSendToBack() {
-      this.cardEditorControlsElementLayeringAttributesService.onSendToBack$
-        .pipe(takeUntilDestroyed())
-        .subscribe(() => {
-          let idx: number = this.currentCardFaceElementsPerCardFace.findIndex(c => c.cardFaceElement.cardFaceElementId === this.currentEditedCardFaceElementId);
+  onSendToBack() {
+    this.cardEditorControlsElementLayeringAttributesService.onSendToBack$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        let minZIndex: number = Math.min(
+          ...this.currentCardFaceElementsPerCardFace.map(
+            e => parseInt(e.cardFaceElement.style?.zIndex ?? "1") || 0
+          )
+        );
 
-          if (idx === -1)
-            return;
+        let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.currentCardFaceElementsPerCardFace.find(c => c.cardFaceElement.cardFaceElementId === this.currentEditedCardFaceElementId);
 
-          moveToFront(this.currentCardFaceElementsPerCardFace, idx);
-        });
-    }
+        if (!cardFaceElementPerCardFace) return;
+
+        if (!cardFaceElementPerCardFace.cardFaceElement.style)
+          throw new Error("Card face element has no style to add Z index to");
+
+        // minZIndex - 1 makes it invisible, for some reason -1 makes it invisible?
+        cardFaceElementPerCardFace.cardFaceElement.style.zIndex = `${clamp(minZIndex -1, 0, this.currentCardFaceElementsPerCardFace.length)}`;
+      })
+  }
 }
