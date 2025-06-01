@@ -185,3 +185,19 @@ export function getBoundingBox(coordinates: Coordinates[]): {
         max: getMaxCoordinates(coordinates)
     };
 }
+
+export function moveToFront(array: any[], index: number) {
+  if (index > 0 && index < array.length) {
+    let [item]: any = array.splice(index, 1);
+    array.unshift(item);
+  }
+  return array;
+}
+
+export function moveToBack(array: any[], index: number) {
+  if (index >= 0 && index < array.length) {
+    let [item]: any = array.splice(index, 1);
+    array.push(item);
+  }
+  return array;
+}
