@@ -204,7 +204,6 @@ export class CardEditorPreviewService {
     return this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace.length;
   }
 
-  // TODO: Get rid of this
   getCurrentCardFaceElementsPerCardFace(): CardFaceElementPerCardFace[] {
     return this.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace;
   }

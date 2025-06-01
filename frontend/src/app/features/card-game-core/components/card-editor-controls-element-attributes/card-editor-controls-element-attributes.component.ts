@@ -1,10 +1,11 @@
 import { Component, effect, inject } from '@angular/core';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { FormsModule } from '@angular/forms';
+import { CardEditorControlsElementLayeringAttributesComponent } from '../card-editor-controls-element-layering-attributes/card-editor-controls-element-layering-attributes.component';
 
 @Component({
   selector: 'app-card-editor-controls-element-attributes',
-  imports: [FormsModule],
+  imports: [FormsModule, CardEditorControlsElementLayeringAttributesComponent],
   templateUrl: './card-editor-controls-element-attributes.component.html',
   styleUrl: './card-editor-controls-element-attributes.component.css'
 })

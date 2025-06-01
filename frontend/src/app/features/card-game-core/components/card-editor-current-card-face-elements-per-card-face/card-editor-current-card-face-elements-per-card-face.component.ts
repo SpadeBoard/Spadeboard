@@ -11,7 +11,7 @@ import { CardEditorControlsDesignRteService } from '../../services/card-editor-c
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
-import { blobToDataURL } from '../../../../utils/utils';
+import { blobToDataURL, moveToBack, moveToFront } from '../../../../utils/utils';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { distinctUntilChanged, EMPTY, from, switchMap } from 'rxjs';
@@ -20,6 +20,8 @@ import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-d
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileMetadata } from '../../../../utils/models/file-metadata';
+import { CardEditorControlsElementLayeringAttributesComponent } from '../card-editor-controls-element-layering-attributes/card-editor-controls-element-layering-attributes.component';
+import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -33,6 +35,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   private readonly cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
   private readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);
+  
+  private readonly cardEditorControlsElementLayeringAttributesService: CardEditorControlsElementLayeringAttributesService = inject(CardEditorControlsElementLayeringAttributesService);
   
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
@@ -118,6 +122,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.onCreateCardFaceElementPerCardFace();
     this.onDeleteCardFaceElementPerCardFace();
     this.onUpdateCard();
+
+    this.onBringToFront();
+    this.onSendToBack();
   }
 
   ngOnInit() {
@@ -717,5 +724,31 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
           console.error(err);
         }
       });
+    }
+
+    onBringToFront() {
+      this.cardEditorControlsElementLayeringAttributesService.onBringToFront$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        let idx: number = this.currentCardFaceElementsPerCardFace.findIndex(c => c.cardFaceElement.cardFaceElementId === this.currentEditedCardFaceElementId);
+
+        if (idx === -1)
+          return;
+
+        moveToBack(this.currentCardFaceElementsPerCardFace, idx);
+      })
+    }
+
+    onSendToBack() {
+      this.cardEditorControlsElementLayeringAttributesService.onSendToBack$
+        .pipe(takeUntilDestroyed())
+        .subscribe(() => {
+          let idx: number = this.currentCardFaceElementsPerCardFace.findIndex(c => c.cardFaceElement.cardFaceElementId === this.currentEditedCardFaceElementId);
+
+          if (idx === -1)
+            return;
+
+          moveToFront(this.currentCardFaceElementsPerCardFace, idx);
+        });
     }
 }
