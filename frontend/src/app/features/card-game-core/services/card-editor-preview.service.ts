@@ -25,7 +25,9 @@ export class CardEditorPreviewService {
   
   private destroyRef: DestroyRef = inject(DestroyRef);
 
-  MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
+  readonly MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
+  readonly MAX_CARD_FACE_WIDTH: number = 500;
+  readonly MAX_CARD_FACE_HEIGHT: number = 800;
 
   defaultCardEditorFaceStyle: Style = {
     styleId: "0",
@@ -35,8 +37,8 @@ export class CardEditorPreviewService {
     // height: '80%',
     minWidth: '25%',
     minHeight: '25%',
-    maxWidth: '415px',
-    maxHeight: '800px',
+    maxWidth: `${this.MAX_CARD_FACE_WIDTH}px`,
+    maxHeight: `${this.MAX_CARD_FACE_HEIGHT}px`,
     display: 'block',
     position: 'relative',
     borderRadius: '10px',
