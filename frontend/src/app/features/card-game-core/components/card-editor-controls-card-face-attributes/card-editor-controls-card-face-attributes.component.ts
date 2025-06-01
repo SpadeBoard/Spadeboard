@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ColorPickerComponent } from '../color-picker/color-picker.component';
 import { FormsModule } from '@angular/forms';
 import { CardFaceAttributesBorderWidthComponent } from '../card-face-attributes-border-width/card-face-attributes-border-width.component';
+import { clamp } from '../../../../utils/utils';
 @Component({
   selector: 'app-card-editor-controls-card-face-attributes',
   imports: [ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
@@ -200,12 +201,16 @@ export class CardEditorControlsCardFaceAttributesComponent {
 
    set height(height: number) {
     // console.log(`Element attributes - Set Height`);
+    height = clamp(height, 0, this.cardEditorPreviewService.MAX_CARD_FACE_HEIGHT);
+
     this.cardEditorControlsDesignCardFaceAttributesService.height = height;
     this.cardEditorControlsDesignCardFaceAttributesService.setHeight(height);
   }
 
   set width(width: number) {
     // console.log(`Element attributes - Set Width`);
+    width = clamp(width, 0, this.cardEditorPreviewService.MAX_CARD_FACE_WIDTH);
+
     this.cardEditorControlsDesignCardFaceAttributesService.width = width;
     this.cardEditorControlsDesignCardFaceAttributesService.setWidth(width);
   }

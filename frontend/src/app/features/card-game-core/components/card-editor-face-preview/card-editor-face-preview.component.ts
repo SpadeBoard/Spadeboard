@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
+import { clamp } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -194,6 +195,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((width: number) => {
+      width = clamp(width, 0, this.cardEditorPreviewService.MAX_CARD_FACE_WIDTH);
+      
       let face = this.cardEditorPreviewService.getCurrentCardFace();
       if (face && face.style) {
         face.style.width = `${width}px`;
@@ -208,6 +211,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((height: number) => {
+      height = clamp(height, 0, this.cardEditorPreviewService.MAX_CARD_FACE_HEIGHT);
+      
       let face = this.cardEditorPreviewService.getCurrentCardFace();
       if (face && face.style) {
         face.style.height = `${height}px`;
