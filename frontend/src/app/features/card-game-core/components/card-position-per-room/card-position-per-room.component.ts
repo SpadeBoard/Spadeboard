@@ -15,7 +15,7 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { CommonModule } from '@angular/common';
-import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
+import { clamp, Coordinates, Dimensions, moveToBack } from '../../../../utils/utils';
 import { CardRotationService } from '../../services/card-game-core/card-rotation.service';
 
 @Component({
@@ -256,6 +256,11 @@ export class CardPositionPerRoomComponent {
       // console.log(`Cpr to replace: ${JSON.stringify(cprToReplace)}, Updated CPR: ${JSON.stringify(updatedCpr)}`);
 
       Object.assign(cprToReplace, updatedCpr);
+
+      // FIXME: This is a temporary solution, because we're going to have more items than just cards
+      // Basically what's happening here is that we always move the item to the back
+      // Which means in the DOM it'll always be rendered last and therefore higher
+      moveToBack(this.cprs, this.cprs.findIndex(c => c.cardPositionPerRoomId === cprToReplace.cardPositionPerRoomId));
 
       // Force unculled refresh
       this.refreshUnculledCprs();
