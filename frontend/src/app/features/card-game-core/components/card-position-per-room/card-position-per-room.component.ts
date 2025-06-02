@@ -55,6 +55,10 @@ export class CardPositionPerRoomComponent {
   
   currentContentMenuCpr: CardPositionPerRoom | undefined = undefined;
   
+  private get maxZIndex() {
+    return  Math.max(...this.cprs.map(
+            e => e.zIndex))
+  }
   // TODO: Pass in the cpr here as a parameter to determine whether you can rotate?
   get actionContextMenuItems(): ActionContextMenuItem[] {
     return [
@@ -252,13 +256,8 @@ export class CardPositionPerRoomComponent {
     if (cprToReplace !== undefined) {
       // TODO: Get rid of this whole function
       // console.log(`Cpr to replace: ${JSON.stringify(cprToReplace)}, Updated CPR: ${JSON.stringify(updatedCpr)}`);
-
+      
       Object.assign(cprToReplace, updatedCpr);
-
-      // FIXME: This is a temporary solution, because we're going to have more items than just cards
-      // Basically what's happening here is that we always move the item to the back
-      // Which means in the DOM it'll always be rendered last and therefore higher
-      moveToBack(this.cprs, this.cprs.findIndex(c => c.cardPositionPerRoomId === cprToReplace.cardPositionPerRoomId));
 
       // Force unculled refresh
       this.refreshUnculledCprs();
@@ -300,6 +299,14 @@ export class CardPositionPerRoomComponent {
       });
     }
 
+    private sortOrder() {
+      this.cprs.forEach((cpr: CardPositionPerRoom) => {
+        if (cpr.zIndex > this.cprs.length) {
+          cpr.zIndex = this.cprs.length;
+        }
+      })
+    }
+
   private onDeleteCardEditorCardDto() {
     this.cardGameCoreService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed())
@@ -308,6 +315,8 @@ export class CardPositionPerRoomComponent {
 
         // Again, this is in case if the user scrolls away from the current card being deleted, for instance
         this.cprs = this.cprs.filter(cpr => cpr.card.cardId !== cardId);
+
+        this.sortOrder();
       });
   }
 
@@ -318,6 +327,9 @@ export class CardPositionPerRoomComponent {
       x: mouseAU.x - item.dndPosition.x,
       y: mouseAU.y - item.dndPosition.y
     };
+
+    // NOTE: Maintain the stacking order
+    this.raiseOverlappedItems(item.dndPosition);
   }
 
   onDragMoved(event: CdkDragMove) {
@@ -421,7 +433,83 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
 
     // console.log(`On drag drop: AU - ${JSON.stringify(item.dndPosition)}), Screen PX - ${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(item.dndPosition.x, item.dndPosition.y))}`);
 
+    // If it's overlapping another item
+    if (this.lowerOverlappedItems(item.dndPosition)) {
+      item.zIndex = clamp(this.maxZIndex + 1, 0, this.cprs.length);
+    }
+
     this.updateCardPositionPerRoom(item);
+  }
+
+  // The reason why this exists is that if we place the item on the same area over 
+  // And over again, the overlapped items don't keep shifting down
+  // Because eventually they would all hit 0th index
+  // We need to keep the stacking order
+  raiseOverlappedItems(dndPosition: DndPosition): boolean {
+    let hasLoweredOverlappedItems: boolean = false;
+
+    // CHECKME: Do we want unculled or all
+    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
+      if (!this.isInsideOverlappingItemsBoundary(
+        {x: cpr.dndPosition.x, y: cpr.dndPosition.y},
+        this.getOverlappingItemsBoundary({x: dndPosition.x, y: dndPosition.y}, 50))) // NOTE: Arbitrary number
+        return;
+
+      // We need to do this to update the main cpr list
+      cpr.zIndex = clamp(cpr.zIndex + 1, 0, this.cprs.length);
+      this.updateCardPositionPerRoom(cpr);
+      hasLoweredOverlappedItems = true;
+    })
+
+    return hasLoweredOverlappedItems;
+  }
+
+  lowerOverlappedItems(dndPosition: DndPosition): boolean {
+    let hasLoweredOverlappedItems: boolean = false;
+
+    // CHECKME: Do we want unculled or all
+    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
+      if (!this.isInsideOverlappingItemsBoundary(
+        {x: cpr.dndPosition.x, y: cpr.dndPosition.y},
+        this.getOverlappingItemsBoundary({x: dndPosition.x, y: dndPosition.y}, 50))) // NOTE: Arbitrary number
+        return;
+
+      // We need to do this to update the main cpr list
+      cpr.zIndex = clamp(cpr.zIndex - 1, 0, this.cprs.length);
+      this.updateCardPositionPerRoom(cpr);
+      hasLoweredOverlappedItems = true;
+    })
+
+    return hasLoweredOverlappedItems;
+  }
+
+  // TODO: Refactor this, this is temporary overlap check
+  // Here's the thing, what we actually really need is the precise size
+  // Of the card itself, it would just be better to have it so that
+  // If there's an overlap, we just 'hide the card', aka cull it
+  // Especially since there's multiple cards that can be stacked on each other
+  // Does that mean the z-index is unnecessary, I mean what we  can do is just
+  // Have a z-index of -1, if indeed it is negative 1, don't render it?
+  // That means that whenever the card moves, the overlapped card (-1) would have to shift up at least 1 index
+  getOverlappingItemsBoundary(coordinate: Coordinates, distance: number) {
+    return {
+      left: coordinate.x - distance,
+      right: coordinate.x + distance,
+      top: coordinate.y - distance,
+      bottom: coordinate.y + distance
+    }
+  }
+
+  isInsideOverlappingItemsBoundary(
+    coordinate: { x: number; y: number },
+    boundary: { left: number; right: number; top: number; bottom: number }
+  ): boolean {
+    return (
+      coordinate.x >= boundary.left &&
+      coordinate.x <= boundary.right &&
+      coordinate.y >= boundary.top &&
+      coordinate.y <= boundary.bottom
+    );
   }
 
   snapToGrid(gridSize: number, userPointerPosition: Point)
