@@ -8,6 +8,7 @@ using Models.DndItems;
 using System.Configuration;
 using Models.Bridge;
 using Models.Files;
+using Models.Tags;
 
 namespace Data;
 
@@ -131,6 +132,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         // TODO: Refactor the nav async stuff
 
+        /*****************************************************************/
+        builder.Entity<Tag>()
+            .HasIndex(a => new {a.TagName})
+            .IsUnique();
+
+        builder.Entity<Tag>()
+            .HasData(new Tag
+            {
+                TagId = 1,
+                TagName="#template"
+            }
+        );
+
         /****************************************************************/
     
         // FIXME: TEMPORARY SEED DATA
@@ -193,4 +207,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<PlayersPerRoom> PlayersPerRoom {get; set;} = default!;
 
     public DbSet<OwnersPerRoom> OwnersPerRoom {get; set;} = default!;
+
+    public DbSet<Tag> Tag {get; set;} =default!;
 }
