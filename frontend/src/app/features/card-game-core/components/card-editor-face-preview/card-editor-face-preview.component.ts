@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, inject, input, InputSignal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, ViewChild } from '@angular/core';
 import { BorderDimensions, Style } from '../../../style/models/style';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 import { isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
@@ -12,11 +12,14 @@ import { CommonModule } from '@angular/common';
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
-import { clamp } from '../../../../utils/utils';
+import { clamp, Coordinates, getMidpoint } from '../../../../utils/utils';
+import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { CardEditorCardDto } from '../../models/card';
+import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 
 @Component({
   selector: 'app-card-editor-face-preview',
-  imports: [CdkDrag, CdkDragHandle, DragDropModule, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule],
+  imports: [CdkDrag, CdkDragHandle, DragDropModule, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule, ActionContextMenuComponent],
   templateUrl: './card-editor-face-preview.component.html',
   styleUrl: './card-editor-face-preview.component.css'
 })
@@ -28,6 +31,74 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChild("cardFaceElementsPerCardFace") cardFaceElementsPerCardFace!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
 
+  private contextMenuPosition: Coordinates = {
+    x: 0,
+    y: 0
+  };
+
+  actionContextMenuItems: ActionContextMenuItem[] = [
+      {
+        id: 0,
+        name: 'Export Card (.sbd)',
+        action: (cardEditorCardDto: CardEditorCardDto) => {
+          if (!cardEditorCardDto) return;
+          
+          // TODO: Update the card editor card DTO to make sure it has the latest version
+          // Convert the JSON into binary?
+
+          // https://runninghill.co.za/blog/downloading-objects-as-json-files-in-angular
+          // Create a download function
+
+          // Have a flag to determine when it's done creating the file and then change the name of the action
+          // Use that flag to determine what to do?
+        },
+        disabled: true
+      },
+       {
+        id: 1,
+        name: 'Export Card (Atlas)',
+        action: () => {
+          // TODO: Grab all the file metadata's paths for the thumbnail images
+          // Create the images, somehow put them into an atlas?
+          // Wait until we have the LODs, gotta make sure we grab LOD0
+
+          // Have an invisible canvas somewhere which then adds the images onto it? Make the size of the atlas texture the dimensions of the images combined, but with a tiny bit of padding?
+
+          // Just seems handy
+          // https://stackoverflow.com/questions/52116877/save-hidden-div-as-canvas-image
+
+          // Maybe a service since canvases can be storied in memory?
+          /*
+          AtlasExportService {
+          // We probably want this to be universal, so grab the file names and attach the paths
+          async createAtlas(imagePaths: string[]): Promise<string> {
+            let canvas = document.createElement('canvas');
+           
+            let ctx = canvas.getContext('2d');
+            // We need to set the dimensions
+            // Also set that gap somehow
+            // Potentially 2 per row?
+
+            for (let path of imagePaths) {
+              // get file paths
+              let  img: Image = new Image();
+              img.src = path;
+
+              // Grab that blob, then draw image?
+
+              // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+              ctx.drawImage(img, ...);
+            }
+            return canvas.toDataURL('image/png');
+          }
+           */
+        },
+        disabled: true
+      }
+    ];
+
+  isDisplayContextMenu: boolean = false;
+      
   constructor() {
     this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
   }
@@ -356,5 +427,44 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardFaceElementsPerCardFace.setCurrentCardFaceElementsPerCardFace(); 
     this.cardEditorPreviewService.updateCardEditorCardFaceDto();
     return true;
+  }
+
+  onCardEditorFaceRightClick(event: MouseEvent): void {
+    event.preventDefault();
+    
+    let cardFaceRect: DOMRect = this.cardEditorFace.nativeElement.getBoundingClientRect();
+    // NOTE: If we grab the top and left, it's going to cause issues because of displacement
+    // FIXME: It's still not actually centred but that's fine
+    let midpoint: Coordinates = getMidpoint(
+      {
+        x: 0,
+        y: 0
+      },
+      {
+        x: cardFaceRect.width,
+        y: cardFaceRect.height
+      }
+    );
+
+    this.contextMenuPosition = midpoint;
+    this.isDisplayContextMenu = true;
+  }
+
+  @HostListener('document:click')
+  documentClick(): void {
+    this.isDisplayContextMenu = false;
+  }
+
+  // NOTE: Should be right considering it's not a child of the cards face itself
+  getRightClickMenuStyle() {
+    return {
+      position: 'fixed',
+      left: `${this.contextMenuPosition.x}px`,
+      top: `${this.contextMenuPosition.y}px`
+    }
+  }
+
+  handleActionContextMenuItemClick(item: ActionContextMenuItem) {
+
   }
 }
