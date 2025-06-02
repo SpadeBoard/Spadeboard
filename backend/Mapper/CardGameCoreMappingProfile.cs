@@ -6,6 +6,7 @@ using Models.Bridge;
 using Models.GameRooms;
 using Models.Files;
 using Models.LODs;
+using Models.Tags;
 
 // https://stackoverflow.com/questions/40275195/how-to-set-up-automapper-in-asp-net-core
 // https://docs.automapper.org/en/stable/Configuration.html#naming-conventions
@@ -208,6 +209,13 @@ namespace Mapper
                            opt => opt.MapFrom(src => long.Parse(src.GameRoomId)))
                 .ForMember(dest => dest.Owner, opt => opt.Ignore())
                 .ForMember(dest => dest.GameRoom, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<Tag, TagDto>();
+
+            CreateMap<TagDto,Tag>()
+                .ForMember(dest => dest.TagId, 
+                           opt => opt.MapFrom(src => long.Parse(src.TagId)))
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
