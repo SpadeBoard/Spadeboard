@@ -98,6 +98,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     ];
 
   isDisplayContextMenu: boolean = false;
+
+  borderRadius: number = 2;
       
   constructor() {
     this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
@@ -131,6 +133,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       let face = this.cardEditorPreviewService.getCurrentCardFace();
       if (face && face.style) {
         face.style.borderRadius = `${borderRadius}px`;
+        this.borderRadius = borderRadius;
       }
 
       this.setCardEditorFaceStyle(face.style);
@@ -180,6 +183,9 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
     if (filtered.height)
       service.height = parseFloat(String(filtered.height).replace(/[^0-9.\-]+/g, ''));
+
+    if (filtered.borderRadius)
+      this.borderRadius = parseFloat(String(filtered.borderRadius).replace(/[^0-9.\-]+/g, ''));
 
     if (filtered.borderWidth) 
       service.borderDimensions.borderWidth = parseFloat(String(filtered.borderWidth).replace(/[^0-9.\-]+/g, ''));
