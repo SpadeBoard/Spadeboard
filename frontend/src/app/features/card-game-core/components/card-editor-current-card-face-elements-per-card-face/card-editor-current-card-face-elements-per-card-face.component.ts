@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, computed, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChild, ViewChildren } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from '../../models/card-face-element';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -44,6 +44,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChildren('cardFaceElement') cardFaceElements!: QueryList<ElementRef>;
+
+  borderRadius: InputSignal<number> = input<number>(2);
+  borderRadiusComputed: Signal<number> = computed(() => this.borderRadius());
   
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
@@ -68,7 +71,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   getDropListStyle(): Omit<Style, 'styleId'> {
     return {
       width: `100%`,
-      height:  `100%`
+      height:  `100%`,
+      borderRadius: `${this.borderRadiusComputed()}px`
     }
   }
 
