@@ -8,7 +8,6 @@ import { GameRoomService } from '../../../game-room/services/game-room.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { mergeMap } from 'rxjs';
 import { snapToGridCellCentre, snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
-import { isCardPositionPerRoom } from '../../utils/card-game-core.utils';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
@@ -16,7 +15,6 @@ import { ActionContextMenuItem } from '../../../actions-context-menu/models/acti
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { CommonModule } from '@angular/common';
 import { clamp, Coordinates, Dimensions, moveToBack } from '../../../../utils/utils';
-import { CardRotationService } from '../../services/card-game-core/card-rotation.service';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -50,13 +48,13 @@ export class CardPositionPerRoomComponent {
   
   private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
 
-  private rightClickMenuPositionX: number = 0;
-  private rightClickMenuPositionY: number = 0;
+  private contextMenuPosition: Coordinates = {
+    x: 0,
+    y: 0
+  };
   
   currentContentMenuCpr: CardPositionPerRoom | undefined = undefined;
   
-  private readonly cardRotationService: CardRotationService = inject(CardRotationService);
-
   // TODO: Pass in the cpr here as a parameter to determine whether you can rotate?
   get actionContextMenuItems(): ActionContextMenuItem[] {
     return [
@@ -456,9 +454,11 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
     let parentRect: DOMRect = parentElement.getBoundingClientRect();
 
     // Calculate menu position relative to parent
-    this.rightClickMenuPositionX = event.clientX - parentRect.left;
-    this.rightClickMenuPositionY = event.clientY - parentRect.top;
-
+    this.contextMenuPosition = {
+      x: event.clientX - parentRect.left,
+      y:event.clientY - parentRect.top
+    }
+  
     let potentialCurrentContextMenuCpr: CardPositionPerRoom | undefined= this.findCardPositionPerRoom(cardId);
 
     if (!potentialCurrentContextMenuCpr)
@@ -475,8 +475,8 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
   getRightClickMenuStyle() {
     return {
       position: 'absolute',
-      left: `${this.rightClickMenuPositionX}px`,
-      top: `${this.rightClickMenuPositionY}px`
+      left: `${this.contextMenuPosition.x}px`,
+      top: `${this.contextMenuPosition.y}px`
     }
   }
 

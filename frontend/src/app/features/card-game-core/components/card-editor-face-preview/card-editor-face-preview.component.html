@@ -1,3 +1,7 @@
-<div #cardEditorFace [ngStyle]="getCardEditorFaceStyle()">
+<div #cardEditorFace [ngStyle]="getCardEditorFaceStyle()" (contextmenu)="onCardEditorFaceRightClick($event)">
     <app-card-editor-current-card-face-elements-per-card-face #cardFaceElementsPerCardFace/>
 </div>
+@if (isDisplayContextMenu) {
+<app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
+    (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
+}

@@ -8,12 +8,12 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { isCard } from '../../utils/card-game-core.utils';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
-import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Coordinates, getMidpoint } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-cards-collection',
@@ -34,14 +34,15 @@ export class CardsCollectionComponent {
   private dndBoardService: DndBoardService = inject(DndBoardService);
   private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
-  private readonly fileUploadApiService = inject(FileUploadApiService);
-
   private destroyRef: DestroyRef = inject(DestroyRef);
 
   cards: Card[] =[];
 
-  private rightClickMenuPositionX: number = 0;
-  private rightClickMenuPositionY: number = 0;
+  private contextMenuPosition: Coordinates = {
+    x: 0,
+    y: 0
+  };
+
   currentContextMenuId: string = "";
 
   get actionContextMenuItems(): ActionContextMenuItem[] {
@@ -255,11 +256,19 @@ export class CardsCollectionComponent {
     let cardRect: DOMRect = cardElem.getBoundingClientRect();
 
     // Center of the card in viewport coordinates
-    let cardCenterX: number = cardRect.left + cardRect.width / 2;
-    let cardCenterY: number = cardRect.top + cardRect.height / 2;
+    let midpoint: Coordinates = getMidpoint(
+      {
+        x: cardRect.left,
+        y: cardRect.top
+      },
+      {
+        x: cardRect.width,
+        y: cardRect.height
+      }
+    );
 
-    this.rightClickMenuPositionX = cardCenterX;
-    this.rightClickMenuPositionY = cardCenterY;
+    this.contextMenuPosition = midpoint;
+
     this.currentContextMenuId = cardId;
   }
 
@@ -273,8 +282,8 @@ export class CardsCollectionComponent {
   getRightClickMenuStyle() {
     return {
       position: 'fixed',
-      left: `${this.rightClickMenuPositionX}px`,
-      top: `${this.rightClickMenuPositionY}px`
+      left: `${this.contextMenuPosition.x}px`,
+      top: `${this.contextMenuPosition.y}px`
     }
   }
 

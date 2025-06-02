@@ -201,3 +201,10 @@ export function moveToBack(array: any[], index: number) {
   }
   return array;
 }
+
+export function getMidpoint(a: Coordinates, b: Coordinates): Coordinates {
+    return {
+        x: a.x + b.x /2,
+        y: a.y + b.y /2
+    }
+}

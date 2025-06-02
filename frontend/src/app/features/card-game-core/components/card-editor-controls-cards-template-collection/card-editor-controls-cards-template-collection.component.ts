@@ -9,6 +9,7 @@ import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-but
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { CommonModule } from '@angular/common';
+import { Coordinates } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
@@ -30,8 +31,11 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
       currentCardFaceIndex: 0
     }
 
-  private rightClickMenuPositionX: number = 0;
-  private rightClickMenuPositionY: number = 0;
+  private contextMenuPosition: Coordinates = {
+      x: 0,
+      y: 0
+    };
+    
   currentContextMenuId: string = "";
 
   actionContextMenuItems: ActionContextMenuItem[] = [
@@ -128,11 +132,10 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     let menuRect: DOMRect = menuElem.getBoundingClientRect();
 
     // Calculate mouse position relative to .menu
-    let relativeX: number = event.clientX - menuRect.left;
-    let relativeY: number = event.clientY - menuRect.top;
-
-    this.rightClickMenuPositionX = relativeX;
-    this.rightClickMenuPositionY = relativeY;
+    this.contextMenuPosition = {
+      x: event.clientX - menuRect.left,
+      y: event.clientY - menuRect.top
+    }
 
     this.currentContextMenuId = cardId;
   }
@@ -145,8 +148,8 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   getRightClickMenuStyle() {
     return {
       position: 'absolute', // Due to menu ancestor
-      left: `${this.rightClickMenuPositionX}px`,
-      top: `${this.rightClickMenuPositionY}px`,
+      left: `${this.contextMenuPosition.x}px`,
+      top: `${this.contextMenuPosition.y}px`,
     }
   }
 
