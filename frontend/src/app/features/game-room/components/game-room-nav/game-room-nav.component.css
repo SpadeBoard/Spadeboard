@@ -1,12 +1,95 @@
+@font-face {
+    font-family: "Kumbh Sans";
+    src: url("https://github.com/xconsau/KumbhSans/raw/refs/heads/master/fonts/ttf/KumbhSans-Bold.ttf");
+}
 
 .game-room-nav {
-    background-color: #E6EBEF;
+    background-color: #e6ebee;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    width: 10vw;
+    width: max-content;
     filter: drop-shadow(grey 0.25rem 0.25rem 0.25rem);
     position: absolute;
-    top: 15%;
+    top: 7%;
+    padding-top: 2vh;
+    padding-bottom: 2vh;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    border-top-right-radius: 15%;
+    border-bottom-right-radius: 15%;
     /* Use vw if you want it relative to viewport, or use px/% as needed */
+}
+
+.game-room-save {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: absolute;
+    padding-top: 3vh;
+    padding-bottom: 2vh;
+    padding-left: 0.5vw;
+    padding-right: 1vw;
+}
+
+.game-room-save-button {
+    border: none;
+    fill-opacity: 0;
+    background: none;
+}
+
+.game-room-save-img {
+    width: 20px;
+}
+
+.game-room-save-button:active>.game-room-save-img {
+    filter: brightness(0) saturate(100%) invert(45%) sepia(100%) saturate(696%) hue-rotate(329deg) brightness(103%) contrast(91%);
+}
+
+.game-room-nav-button {
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: medium;
+    font-weight: bold;
+    color: #173552;
+    border: none;
+    text-align: left;
+    fill-opacity: 0;
+    background: none;
+}
+
+.game-room-nav-svg {
+    fill-opacity: 1;
+    vertical-align: -10px;
+    padding-right: 5px;
+    width: 35px;
+}
+
+.game-room-nav-button:active {
+    color: #4D8A98;
+}
+
+.game-room-nav-button:active>svg>.game-room-nav-svg-fill-change {
+    fill: #4D8A98;
+}
+
+.game-room-nav-button:active>svg>path {
+    stroke: #4D8A98;
+}
+
+.game-room-nav>button>img {
+    vertical-align: -10px;
+    padding-right: 10px;
+    width: 35px;
+}
+
+.game-room-nav-button:disabled>svg>.game-room-nav-svg-fill-change {
+    fill: rgba(23, 53, 82, 0.5);
+}
+
+.game-room-nav-button:disabled>svg>path {
+    stroke: rgba(23, 53, 82, 0.5);
+}
+
+.game-room-nav-button:disabled {
+    color: rgba(23, 53, 82, 0.5);
 }
