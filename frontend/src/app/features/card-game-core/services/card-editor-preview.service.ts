@@ -28,6 +28,7 @@ export class CardEditorPreviewService {
   readonly MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
   readonly MAX_CARD_FACE_WIDTH: number = 500;
   readonly MAX_CARD_FACE_HEIGHT: number = 800;
+  readonly MAX_BORDER_RADIUS: number = 100;
 
   defaultCardEditorFaceStyle: Style = {
     styleId: "0",
