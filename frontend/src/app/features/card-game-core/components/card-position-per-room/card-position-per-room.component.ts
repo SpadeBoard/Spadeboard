@@ -43,8 +43,6 @@ export class CardPositionPerRoomComponent {
  private overlappedCprs: Map<string, CardPositionPerRoom[]> = new Map();
 
   private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
-
-  readonly MAX_ROTATION_DEGREES: number = 360;
   
   // TODO: Refactor the bloody architecture
   cardsPositionPerRoomScale: number = 1;
@@ -88,20 +86,28 @@ export class CardPositionPerRoomComponent {
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr) return;
 
-          cpr.dndRotation.degrees = clamp(cpr.dndRotation.degrees -= 45, -this.MAX_ROTATION_DEGREES, this.MAX_ROTATION_DEGREES);
+          cpr.dndRotation = {
+            ...cpr.dndRotation,
+            degrees: clamp(cpr.dndRotation.degrees -= 45, -360, 360)
+          }
+
         },
        disabled: this.currentContentMenuCpr?.dndItem.isRotatable === false ||
-                        (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) <= -this.MAX_ROTATION_DEGREES
+                        (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) <= -360
       },
       {
         id: 2,
         name: 'Rotate Right',
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr) return;
-          cpr.dndRotation.degrees = clamp(cpr.dndRotation.degrees += 45, -this.MAX_ROTATION_DEGREES, this.MAX_ROTATION_DEGREES);
+
+          cpr.dndRotation = {
+            ...cpr.dndRotation,
+            degrees: clamp(cpr.dndRotation.degrees += 45, -360, 360)
+          }
         },
         disabled: this.currentContentMenuCpr?.dndItem.isRotatable === false ||
-          (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) >= this.MAX_ROTATION_DEGREES
+          (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) >= 360
       },
       {
         id: 3,
