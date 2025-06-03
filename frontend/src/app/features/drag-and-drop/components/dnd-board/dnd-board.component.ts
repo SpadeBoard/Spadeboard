@@ -1,24 +1,12 @@
-import { AfterViewInit, Component, ElementRef, HostListener, inject, input, output, ViewChild } from '@angular/core';
-import { DndBoardService } from '../../services/dnd-board.service';
-import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
-import { map, Subscription } from 'rxjs';
-import { Deck } from '../../../card-game-core/models/deck';
-import { Card, CardPositionPerRoom } from '../../../card-game-core/models/card';
-import { isCard, isDeck } from '../../../card-game-core/utils/card-game-core.utils';
-import { CdkDrag, CdkDragDrop, CdkDragEnter, CdkDragExit, CdkDragMove, CdkDropList } from '@angular/cdk/drag-drop';
-import { DndFunctionality } from '../../models/dnd-functionality';
-import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
-import { DisplaceCardMenuComponent } from '../../../card-game-core/components/displace-card-menu/displace-card-menu.component';
-import { CardFace } from '../../../card-game-core/models/card-face';
-import { CardFaceElement } from '../../../card-game-core/models/card-face-element';
-import { CardPositionPerRoomService } from '../../../card-game-core/services/card-game-core/card-position-per-room.service';
+import { CdkDropList } from '@angular/cdk/drag-drop';
+import { AfterViewInit, Component, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Dimensions } from 'ngx-image-cropper';
+import { clamp, Coordinates } from '../../../../utils/utils';
 import { CardPositionPerRoomComponent } from '../../../card-game-core/components/card-position-per-room/card-position-per-room.component';
-import { GameRoomService } from '../../../game-room/services/game-room.service';
+import { DndBoardService } from '../../services/dnd-board.service';
 import { DndBoardGridComponent } from '../dnd-board-grid/dnd-board-grid.component';
 import { DndBoardLayerComponent } from '../dnd-board-layer/dnd-board-layer.component';
-import { clamp, Coordinates } from '../../../../utils/utils';
-import { Dimensions } from 'ngx-image-cropper';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // ROLE: AUTOLOAD
 

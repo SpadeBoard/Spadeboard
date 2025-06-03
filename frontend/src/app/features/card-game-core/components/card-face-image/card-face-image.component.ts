@@ -1,9 +1,7 @@
-import { Component, computed, DestroyRef, effect, HostListener, inject, input, InputSignal, output, OutputEmitterRef, Signal } from '@angular/core';
-import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
-import { EMPTY, Observable, Subscriber, switchMap } from 'rxjs';
-import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
-import { clamp } from '../../../../utils/utils';
+import { Component, DestroyRef, effect, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EMPTY, Observable, Subscriber, switchMap } from 'rxjs';
+import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 
 @Component({
   selector: 'app-card-face-image',
@@ -14,7 +12,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class CardFaceImageComponent {
   // TODO: Make sure that it's always passing in the data url and not a blob
   private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
-  private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
 
   cardFaceImageSrc: InputSignal<string | undefined> = input<string | undefined>('');
 

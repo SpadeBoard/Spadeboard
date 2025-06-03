@@ -1,14 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, ResourceLoaderParams, ResourceRef } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
-import { rxResource } from '@angular/core/rxjs-interop';
 
-import { Card, CardEditorCardDto } from '../../models/card';
+import { Observable, of } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
-import { DndItem } from '../../../drag-and-drop/models/dnd-item';
-import { map, Observable, of } from 'rxjs';
-import { CardFace } from '../../models/card-face';
-import { Style } from '../../../style/models/style';
+import { Card, CardEditorCardDto } from '../../models/card';
 
 @Injectable({
   providedIn: 'root'

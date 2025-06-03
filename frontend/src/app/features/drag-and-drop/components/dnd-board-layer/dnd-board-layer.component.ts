@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, inject, Injectable, input, ViewChild  } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 @Component({

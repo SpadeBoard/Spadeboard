@@ -1,18 +1,18 @@
 import { DestroyRef, effect, inject, Injectable } from '@angular/core';
-import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
-import { CardEditorCardDto } from '../models/card';
-import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace } from '../models/card-face-element';
-import { catchError, concatMap, defer, EMPTY, forkJoin, from, iif, map, mergeMap, Observable, of, Subject, switchMap, tap } from 'rxjs';
-import { FileUploadApiService } from '../../../utils/services/file-upload-api.service';
-import { CardGameCoreService } from './card-game-core/card-game-core.service';
-import { CardApiService } from './card-game-core/card-api.service';
-import { isCardEditorCardDto } from '../utils/card-game-core.utils';
-import { Style } from '../../style/models/style';
-import { DndPosition } from '../../drag-and-drop/models/dnd-types';
-import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, EMPTY, forkJoin, from, iif, map, Observable, of, Subject, switchMap, tap } from 'rxjs';
 import { FileMetadata, FileMetadataStatus } from '../../../utils/models/file-metadata';
 import { FileMetadataApiService } from '../../../utils/services/file-metadata-api.service';
+import { FileUploadApiService } from '../../../utils/services/file-upload-api.service';
+import { DndPosition } from '../../drag-and-drop/models/dnd-types';
+import { Style } from '../../style/models/style';
+import { CardEditorCardDto } from '../models/card';
+import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
+import { CardFaceElementImage, CardFaceElementPerCardFace } from '../models/card-face-element';
+import { isCardEditorCardDto } from '../utils/card-game-core.utils';
+import { CardApiService } from './card-game-core/card-api.service';
+import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
+import { CardGameCoreService } from './card-game-core/card-game-core.service';
 
 @Injectable({
   providedIn: 'root'

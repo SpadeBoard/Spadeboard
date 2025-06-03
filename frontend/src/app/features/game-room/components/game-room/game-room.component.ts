@@ -1,7 +1,7 @@
 import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
 import { CommonModule } from '@angular/common';
-import { CdkDrag, CdkDragDrop, CdkDragHandle, DragDropModule } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
 import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/dnd-board.component';
 import { GameRoomService } from '../../services/game-room.service';
@@ -13,7 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   selector: 'app-game-room',
   imports: [
     CardEditorComponent, CommonModule,
-    CdkDrag, CdkDragHandle, DragDropModule, CardsCollectionComponent,
+    DragDropModule, CardsCollectionComponent,
     DndBoardComponent, GameRoomNavComponent,
   ],
   templateUrl: './game-room.component.html',
