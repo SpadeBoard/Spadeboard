@@ -1,25 +1,22 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, ViewChild } from '@angular/core';
-import { BorderDimensions, Style } from '../../../style/models/style';
-import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
-import { isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
-import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { CardEditorCardFaceDto } from '../../models/card-face';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import html2canvas from 'html2canvas';
-import { distinctUntilChanged, from, map, Observable, switchMap, takeUntil } from 'rxjs';
+import { distinctUntilChanged, from, map, Observable, switchMap } from 'rxjs';
+import { clamp, Coordinates, getMidpoint } from '../../../../utils/utils';
+import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
+import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { BorderDimensions, Style } from '../../../style/models/style';
+import { filterAgainstNull } from '../../../style/utils/get-style';
+import { CardEditorCardDto } from '../../models/card';
+import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
-import { CommonModule } from '@angular/common';
-import { filterAgainstNull } from '../../../style/utils/get-style';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
-import { clamp, Coordinates, getMidpoint } from '../../../../utils/utils';
-import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
-import { CardEditorCardDto } from '../../models/card';
-import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 
 @Component({
   selector: 'app-card-editor-face-preview',
-  imports: [CdkDrag, CdkDragHandle, DragDropModule, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule, ActionContextMenuComponent],
+  imports: [DragDropModule, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule, ActionContextMenuComponent],
   templateUrl: './card-editor-face-preview.component.html',
   styleUrl: './card-editor-face-preview.component.css'
 })

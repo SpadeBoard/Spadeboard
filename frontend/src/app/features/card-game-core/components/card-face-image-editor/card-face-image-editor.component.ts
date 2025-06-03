@@ -1,12 +1,9 @@
-import { Component, computed, inject, input, InputSignal, output, SecurityContext } from '@angular/core';
-import { FileUploadComponent } from '../../../../utils/components/file-upload/file-upload.component';
-import { Style } from '../../../style/models/style';
+import { Component, computed, inject, input, InputSignal, SecurityContext } from '@angular/core';
 import { Image } from '../../../style/models/image';
+import { Style } from '../../../style/models/style';
 
-import { ImageCropperComponent, ImageCroppedEvent, LoadedImage } from 'ngx-image-cropper';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { CLOSE_IMAGE_EDITOR_TOKEN, CROPPED_IMAGE_TOKEN } from '../../../../shared/tokens';
-import { onLoadReadBlobAsBase64, safeUrlToBlob } from '../../../../utils/utils';
+import { ImageCroppedEvent, ImageCropperComponent, LoadedImage } from 'ngx-image-cropper';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 
 @Component({

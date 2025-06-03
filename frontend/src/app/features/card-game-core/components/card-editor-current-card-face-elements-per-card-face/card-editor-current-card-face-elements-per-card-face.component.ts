@@ -20,12 +20,11 @@ import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-d
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileMetadata } from '../../../../utils/models/file-metadata';
-import { CardEditorControlsElementLayeringAttributesComponent } from '../card-editor-controls-element-layering-attributes/card-editor-controls-element-layering-attributes.component';
 import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
-  imports: [CdkDrag, CdkDragHandle, DragDropModule, CardFaceImageComponent, 
+  imports: [CdkDrag, DragDropModule, CardFaceImageComponent, 
     CommonModule, CardFaceRtComponent, ResizableWrapperComponent, CardEditorElementDeleteButtonComponent],
   templateUrl: './card-editor-current-card-face-elements-per-card-face.component.html',
   styleUrl: './card-editor-current-card-face-elements-per-card-face.component.css'

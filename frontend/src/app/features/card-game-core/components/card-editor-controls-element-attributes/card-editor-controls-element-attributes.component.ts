@@ -1,6 +1,6 @@
-import { Component, effect, inject } from '@angular/core';
-import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { CardEditorControlsElementLayeringAttributesComponent } from '../card-editor-controls-element-layering-attributes/card-editor-controls-element-layering-attributes.component';
 
 @Component({

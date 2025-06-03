@@ -20,7 +20,6 @@ import { CardEditorCloseComponent } from '../card-editor-close/card-editor-close
   imports: [
     AngularEditorModule, FormsModule,
     CommonModule, NgComponentOutlet,
-    CardFaceRteComponent,
     CardEditorPreviewComponent, CardEditorControlsDesignComponent,
     CardEditorCloseComponent
   ], // TODO: Remove CdkDrag

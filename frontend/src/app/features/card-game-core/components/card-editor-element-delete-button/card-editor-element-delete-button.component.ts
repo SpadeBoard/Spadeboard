@@ -1,5 +1,4 @@
 import { Component, computed, inject, input, InputSignal, Signal } from '@angular/core';
-import { CardFaceElementApiService } from '../../services/card-game-core/card-face-element-api.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 
 @Component({

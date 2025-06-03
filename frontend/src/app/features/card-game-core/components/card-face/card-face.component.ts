@@ -1,10 +1,10 @@
-import { afterRenderEffect, Component, computed, DestroyRef, effect, inject, Input, input, InputSignal, Signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, input, InputSignal } from '@angular/core';
 
 import { CardFace } from '../../models/card-face';
 
-import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { CommonModule } from '@angular/common';
 import { FileMetadataStatus } from '../../../../utils/models/file-metadata';
+import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { Dimensions, getScaledItemRenderDimensions } from '../../../../utils/utils';
 
 // https://medium.com/@niteshdaga000/optimizing-performance-with-memory-caching-in-angular-applications-dad3efeb1f99

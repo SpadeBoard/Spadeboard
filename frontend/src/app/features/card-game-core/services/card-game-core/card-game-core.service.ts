@@ -1,6 +1,5 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { CardPositionPerRoomApiService } from './card-position-per-room-api.service';
 import { CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 
 @Injectable({

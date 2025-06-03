@@ -1,4 +1,4 @@
-import { Component, input, InputSignal, model, ModelSignal, output, OutputEmitterRef } from '@angular/core';
+import { Component, input, InputSignal, model, ModelSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
