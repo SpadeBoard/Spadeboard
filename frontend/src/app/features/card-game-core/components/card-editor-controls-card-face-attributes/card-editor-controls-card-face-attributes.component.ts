@@ -16,10 +16,8 @@ import { clamp } from '../../../../utils/utils';
 export class CardEditorControlsCardFaceAttributesComponent {
   // TODO: Probably grab these default values from the editor preview service
   private _cardFaceColor: string = "#fefffe";
-  
-  private _borderColor: string = "";
 
-  borderRadius: number = 5;
+  private _borderColor: string = "";
 
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);
@@ -27,9 +25,9 @@ export class CardEditorControlsCardFaceAttributesComponent {
   // Use to set the values properly in the inputs
   @ViewChild('widthInput') widthRef!: ElementRef<HTMLInputElement>;
   @ViewChild('heightInput') heightRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('borderRadiusInput') borderRadiusRef!: ElementRef<HTMLInputElement>;
 
-  constructor() 
-  {
+  constructor() {
     this.setCardFaceAttributes();
     this.postFlip();
   }
@@ -53,7 +51,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
   set cardFaceColor(newColor: string) {
     if (this._cardFaceColor !== newColor) {
       this._cardFaceColor = newColor;
-      
+
       this.cardEditorControlsDesignCardFaceAttributesService.setOnFaceColorChange(this.cardFaceColor);
     }
   }
@@ -62,7 +60,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
     return this._borderColor;
   }
 
-   set borderColor(newColor: string) {
+  set borderColor(newColor: string) {
     if (this._borderColor !== newColor) {
       this._borderColor = newColor;
 
@@ -71,14 +69,14 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   get borderWidth() {
-    return  this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderWidth;
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderWidth;
   }
 
   set borderWidth(newBorderWidth: number) {
     if (this.borderWidth !== newBorderWidth) {
       this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderWidth = newBorderWidth;
 
-       this.setBorderDimensions();
+      this.setBorderDimensions();
     }
   }
 
@@ -90,7 +88,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
     if (this.borderTopWidth !== newBorderTop) {
       this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderTopWidth = newBorderTop;
 
-       this.setBorderDimensions();
+      this.setBorderDimensions();
     }
   }
 
@@ -132,7 +130,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
     }
   }
 
-   get borderRightWidth() {
+  get borderRightWidth() {
     return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderRightWidth;
   }
 
@@ -144,21 +142,21 @@ export class CardEditorControlsCardFaceAttributesComponent {
     }
   }
 
-  private setCardFaceAttributes()
-  {
-    let currentCardFaceStyle: Style= this.cardEditorPreviewService.getCurrentCardFace().style;
+  private setCardFaceAttributes() {
+    let currentCardFaceStyle: Style = this.cardEditorPreviewService.getCurrentCardFace().style;
     this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? "#fefffe";
 
     if (currentCardFaceStyle.borderRadius) {
-      let numericValue = currentCardFaceStyle.borderRadius.match(/[\d.]+/);
-      if (numericValue) {
-        this.borderRadius = parseFloat(numericValue[0]);
+      // Because it's going to be in pxs
+      let numeric: string = currentCardFaceStyle.borderRadius.replace(/[^0-9.]/g, '');
+      if (numeric) {
+        this.borderRadius = parseFloat(numeric);
       }
     }
 
-     if (currentCardFaceStyle.borderWidth) {
+    if (currentCardFaceStyle.borderWidth) {
       let numericValue: RegExpMatchArray | null = currentCardFaceStyle.borderWidth.match(/[\d.]+/);
-      
+
       if (numericValue) {
         this.borderWidth = parseFloat(numericValue[0]);
 
@@ -175,7 +173,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
 
         input = currentCardFaceStyle.borderLeftWidth;
         match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
-        this.borderLeftWidth= match ? parseFloat(match[0]) : this.borderWidth;
+        this.borderLeftWidth = match ? parseFloat(match[0]) : this.borderWidth;
 
         input = currentCardFaceStyle.borderRightWidth;
         match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
@@ -186,12 +184,32 @@ export class CardEditorControlsCardFaceAttributesComponent {
     this.borderColor = (currentCardFaceStyle.borderColor) ?? "#fefffe";
   }
 
- onBorderRadiusChange(event: Event) {
-  let value = (event.target as HTMLInputElement).value;
-  this.borderRadius =  parseFloat(value);
+  get borderRadius() {
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderRadius;
+  }
 
-  this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderRadiusChange(this.borderRadius);
-}
+  set borderRadius(borderRadius: number) {
+    borderRadius = clamp(borderRadius, 0.01, this.cardEditorPreviewService.MAX_BORDER_RADIUS);
+    
+    this.cardEditorControlsDesignCardFaceAttributesService.borderRadius = borderRadius;
+    this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderRadiusChange(borderRadius);
+  
+     if (this.borderRadiusRef && this.borderRadiusRef.nativeElement && this.borderRadiusRef.nativeElement.value !== `${borderRadius}`) {
+      this.borderRadiusRef.nativeElement.value = `${borderRadius}`;
+    }
+  }
+
+  get maxWidth(): number {
+    return this.cardEditorPreviewService.MAX_CARD_FACE_WIDTH;
+  }
+
+  get maxHeight(): number {
+    return this.cardEditorPreviewService.MAX_CARD_FACE_HEIGHT;
+  }
+
+  get maxBorderRadius(): number {
+    return this.cardEditorPreviewService.MAX_BORDER_RADIUS;
+  }
 
   get height(): number {
     // console.log(`Element attributes - Get Height`);
@@ -203,7 +221,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
     return this.cardEditorControlsDesignCardFaceAttributesService.width;
   }
 
-   set height(height: number) {
+  set height(height: number) {
     // console.log(`Element attributes - Set Height`);
     // https://stackoverflow.com/a/63300675
     height = clamp(height, 0, this.cardEditorPreviewService.MAX_CARD_FACE_HEIGHT);

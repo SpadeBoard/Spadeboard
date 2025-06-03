@@ -22,8 +22,17 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     this._width =  width;
   }
 
+  get borderRadius(): number {
+    return this._borderRadius;
+  }
+
+  set borderRadius(borderRadius: number) {
+    this._borderRadius = borderRadius;
+  }
+
   private _height: number = 0;
   private _width: number = 0;
+  private _borderRadius: number = 0;
 
   private _borderDimensions: BorderDimensions = {
     borderWidth: 0,
