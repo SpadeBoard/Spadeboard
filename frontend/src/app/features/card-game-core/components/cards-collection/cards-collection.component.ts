@@ -1,9 +1,9 @@
-import { Component, DestroyRef, effect, ElementRef, HostListener, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
+import { Component, DestroyRef, effect, HostListener, inject } from '@angular/core';
 import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardApiService } from '../../services/card-game-core/card-api.service';
 import { CardComponent } from '../card/card.component';
-import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragMove, DragDropModule } from '@angular/cdk/drag-drop';
-import { catchError, forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
+import { CdkDrag, CdkDragDrop, CdkDragMove, DragDropModule } from '@angular/cdk/drag-drop';
+import { forkJoin, Observable, switchMap} from 'rxjs';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { isCard } from '../../utils/card-game-core.utils';
@@ -19,7 +19,7 @@ import { Coordinates, getMidpoint } from '../../../../utils/utils';
   selector: 'app-cards-collection',
   imports: [ 
     CardComponent, CommonModule,
-    CdkDrag, CdkDragHandle, DragDropModule, ActionContextMenuComponent
+    CdkDrag, DragDropModule, ActionContextMenuComponent
   ],
   templateUrl: './cards-collection.component.html',
   styleUrl: './cards-collection.component.css'

@@ -1,11 +1,10 @@
-import { Component, computed, HostListener, input, output } from '@angular/core';
+import { Component, HostListener, input, output } from '@angular/core';
 import { CdkDragDrop, CdkDragEnter, CdkDragExit, CdkDragMove, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { Card } from '../../models/card';
 import { Style } from '../../../style/models/style';
 import { DndDragBoundary } from '../../../drag-and-drop/models/dnd-types';
 import { clamp } from '../../../../utils/utils';
-import { convertToRelativeDimensions } from '../../../style/utils/convert-dimensions.utils';
 import { CardComponent } from '../card/card.component';
 
 @Component({

@@ -3,8 +3,6 @@ import { Component, Signal, viewChildren, output, input, inject, effect, compute
 import { Card } from '../../models/card';
 import { cardFlipAnimation } from './card.animations';
 
-import { DndContentDirective } from '../../../drag-and-drop/directives/dnd-content.directive';
-
 import { CardFaceComponent } from '../card-face/card-face.component';
 import { CardFaceApiService } from '../../services/card-game-core/card-face-api.service';
 import { CardFace } from '../../models/card-face';
@@ -13,7 +11,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-card',
   imports: [
-    DndContentDirective, CardFaceComponent,
+    CardFaceComponent,
     CommonModule
   ],
   templateUrl: './card.component.html',

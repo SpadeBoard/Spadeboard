@@ -67,6 +67,8 @@ export class CardPositionPerRoomComponent {
   // or want to keep your zIndex values manageable for debugging and maintenance
 
   // TODO: Pass in the cpr here as a parameter to determine whether you can rotate?
+  // TODO: Have two context menus, for partial overlap and right click
+  // The partial overlap will handle adding to deck, etc.
   get actionContextMenuItems(): ActionContextMenuItem[] {
     return [
       {

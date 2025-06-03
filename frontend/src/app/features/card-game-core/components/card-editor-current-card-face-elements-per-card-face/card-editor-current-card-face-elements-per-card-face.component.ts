@@ -1,17 +1,15 @@
 import { AfterViewInit, Component, computed, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChild, ViewChildren } from '@angular/core';
-import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from '../../models/card-face-element';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { getCardFaceElementImage, getCardFaceElementRt, isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { Style } from '../../../style/models/style';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
-import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
 import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
-import { blobToDataURL, clamp, Coordinates, moveToBack, moveToFront } from '../../../../utils/utils';
+import { blobToDataURL, clamp, Coordinates } from '../../../../utils/utils';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { distinctUntilChanged, EMPTY, from, switchMap } from 'rxjs';
@@ -20,12 +18,11 @@ import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-d
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileMetadata } from '../../../../utils/models/file-metadata';
-import { CardEditorControlsElementLayeringAttributesComponent } from '../card-editor-controls-element-layering-attributes/card-editor-controls-element-layering-attributes.component';
 import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
-  imports: [CdkDrag, CdkDragHandle, DragDropModule, CardFaceImageComponent, 
+  imports: [CdkDrag, DragDropModule, CardFaceImageComponent, 
     CommonModule, CardFaceRtComponent, ResizableWrapperComponent, CardEditorElementDeleteButtonComponent],
   templateUrl: './card-editor-current-card-face-elements-per-card-face.component.html',
   styleUrl: './card-editor-current-card-face-elements-per-card-face.component.css'
