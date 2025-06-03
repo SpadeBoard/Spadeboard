@@ -1,4 +1,4 @@
-<div cdkDropList cdkDropListOrientation="horizontal"
+<div cdkDropList cdkDropListOrientation="horizontal" [cdkDropListSortingDisabled]="true"
     [style.opacity]="getDisabledAesthetics()">
     <div title="Rich text" cdkDrag (cdkDragDropped)="onDragDropped($event)" [style.z-index]="0"
         [cdkDragData]="'Rte'">
