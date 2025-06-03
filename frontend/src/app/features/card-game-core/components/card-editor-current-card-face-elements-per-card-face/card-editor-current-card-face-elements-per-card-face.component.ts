@@ -216,9 +216,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
       let dndPosition = this.getRelativeDropPosition({ x: result.dndPosition.x, y: result.dndPosition.y });
 
-      let cardFaceElementPerCardFaceId: string = (this.cardEditorPreviewService.isNewCardEditorCardDto())
-        ? `${this.currentCardFaceElementsPerCardFace.length}`
-        : `${this.currentCardFaceElementsPerCardFace.length + 1}`;
+      // FIXED: Elements can share the same ID, so you can accidentally select double
+      // So we'll just do Date.now which should return a large number and it should still be fine because it is parseable in the backend
+      let cardFaceElementPerCardFaceId: string = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
       this.createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId, result.type, dndPosition);
 
