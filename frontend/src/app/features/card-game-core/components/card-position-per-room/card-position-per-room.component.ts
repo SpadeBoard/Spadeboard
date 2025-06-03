@@ -60,6 +60,12 @@ export class CardPositionPerRoomComponent {
     return  Math.max(...this.cprs.map(
             e => e.zIndex))
   }
+
+  // NOTE: Reset it when there's no more cards in the room
+  // Reset the global zIndex counter only if you anticipate integer overflow, 
+  // performance issues, 
+  // or want to keep your zIndex values manageable for debugging and maintenance
+
   // TODO: Pass in the cpr here as a parameter to determine whether you can rotate?
   get actionContextMenuItems(): ActionContextMenuItem[] {
     return [
@@ -216,6 +222,7 @@ export class CardPositionPerRoomComponent {
         if (result !== undefined) {
           this.cprs = result;
           this.refreshUnculledCprs();
+          this.dndBoardService.globalZIndexCounter = Math.max(...this.cprs.map(c => c.zIndex)) + 1;
         }
     });
   }
@@ -272,6 +279,9 @@ export class CardPositionPerRoomComponent {
 
   private updateCardPositionPerRoomOnSave() {
     this.gameRoomService.onSaveGameRoom$.subscribe(() => {
+      // Keeps order clean and predictable, prevents potential overflow
+      this.normaliseZIndexes();
+
       console.log(`Update card position per room on save: ${JSON.stringify(this.cprs)}`);
       
       this.cardPositionPerRoomApiService.updateCardsPositionPerRoom(this.cprs).subscribe((cprs: CardPositionPerRoom[] | undefined) => {
@@ -315,7 +325,9 @@ export class CardPositionPerRoomComponent {
         // Again, this is in case if the user scrolls away from the current card being deleted, for instance
         this.cprs = this.cprs.filter(cpr => cpr.card.cardId !== cardId);
 
-        this.sortOrder();
+        // Reset the counter to prevent integer overflow
+        if (this.cprs.length <= 0) 
+          this.dndBoardService.globalZIndexCounter = 0;
       });
   }
 
@@ -362,8 +374,8 @@ export class CardPositionPerRoomComponent {
 
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
     // NOTE: Maintain the stacking order
-    this.raiseOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions);
-    this.restoreOverlappedCards(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions); // Necessary order otherwise it'll raise the restored overlapped card's z-index
+    // this.raiseOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions);
+    // this.restoreOverlappedCards(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions); // Necessary order otherwise it'll raise the restored overlapped card's z-index
   }
 
   onDragMoved(event: CdkDragMove) {
@@ -470,10 +482,13 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
 
     // If it's overlapping another item
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
+    // this.cullOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions));
 
-    if (this.lowerOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions)) {
+    /*if (this.lowerOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions)) {
       item.zIndex = clamp(this.maxZIndex + 1, 0, this.cprs.length); // We only want to raise the z Index if there is actual overlapping, otherwise what's the point
-    }
+    }*/
+
+    item.zIndex = this.dndBoardService.globalZIndexCounter++;
 
     this.updateCardPositionPerRoom(item);
   }
@@ -553,6 +568,41 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
     this.overlappedCprs.set(currentCpirId, [cpr]);
   }
 
+  cullOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions) {
+    let toCull: Set<string> = new Set();
+
+    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
+      if (cpr.cardPositionPerRoomId === currentCprId) {
+        // Skip the card being moved
+        return;
+      }
+      
+      // TODO: Probably refactor this out of here
+      /****************************************************************** */
+      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
+
+      if (this.isRectContainedIn(
+        {
+          coordinates: attributes.coordinates,
+          dimensions: attributes.dimensions
+        },
+        {
+          coordinates: coordinates,
+          dimensions: dimensions
+        }
+      )) {
+        // FIXME: Why is it not actually culling these cards
+        this.addOverlappedCpr(currentCprId, cpr);
+        toCull.add(cpr.cardPositionPerRoomId);
+        return;
+      }
+    })
+
+    this.unculledCprs = this.unculledCprs.filter(
+      c => !toCull.has(c.cardPositionPerRoomId)
+    );
+  }
+
   lowerOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): boolean {
     let hasLoweredOverlappedItems: boolean = false;
     let toCull: Set<string> = new Set();
@@ -612,6 +662,7 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
     return hasLoweredOverlappedItems;
   }
 
+  // FIXME: Why is it not culling correctly, etc.
   isRectContainedIn(
     innerRect: { coordinates: Coordinates, dimensions: Dimensions },
     outerRect: { coordinates: Coordinates, dimensions: Dimensions }
@@ -622,6 +673,17 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
       innerRect.coordinates.y >= outerRect.coordinates.y &&
       innerRect.coordinates.y + innerRect.dimensions.height <= outerRect.coordinates.y + outerRect.dimensions.height
     );
+  }
+
+  // NOTE: Just to make sure that they all have unique IDs
+  // Because the issue is despite overlapping
+  // They can share the same zIndex, so the order ends up being dependent on the DOM
+  normaliseZIndexes() {
+    // Use all cprs, not just unculled
+    let sorted: CardPositionPerRoom[] = this.cprs.slice().sort((a, b) => a.zIndex - b.zIndex);
+    sorted.forEach((cpr, idx) => cpr.zIndex = idx);
+
+    this.dndBoardService.globalZIndexCounter = sorted.length + 1;
   }
 
 
