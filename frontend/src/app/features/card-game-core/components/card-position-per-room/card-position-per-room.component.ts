@@ -790,7 +790,8 @@ getCardPositionPerRoomRectById(cardPositionPerRoomId: string): DOMRect | null {
     return {
       position: 'absolute',
       left: `${this.contextMenuPosition.x}px`,
-      top: `${this.contextMenuPosition.y}px`
+      top: `${this.contextMenuPosition.y}px`,
+      zIndex: this.dndBoardService.globalZIndexCounter // FIXED: Context menu can be behind the item that it's clicked on
     }
   }
 
