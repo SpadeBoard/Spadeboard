@@ -10,7 +10,7 @@
     @if (cards.length > 0)
     {
         <!--TODO: Implement caching for the images !-->
-        @for (card of cards; track card) {
+        @for (card of cards; track card.cardId) {
         <!--TODO: Wrap the draggable out of there-->
         <div cdkDrag (cdkDragMoved)="onDragMoved($event)" (cdkDragDropped)="onDragDrop($event, card)" (contextmenu)="onCardRightClick($event, card.cardId)">
             <app-card [card]="card" />

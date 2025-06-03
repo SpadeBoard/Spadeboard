@@ -1,6 +1,8 @@
 <div class="card-editor-face" [style]="getDropListStyle()" cdkDropList cdkDropListSortingDisabled="true" #cardEditorFace>
     @if (currentCardFaceElementsPerCardFace.length > 0) {
-        @for (currentCardFaceElementPerCardFace of currentCardFaceElementsPerCardFace; track currentCardFaceElementPerCardFace) {
+        <!--CHECKME: Track by ID, but caveat is it cause issues in scenarios where you expect the DOM or child component to fully re-render or reset—such as when generating a thumbnail image-->
+        <!--Which means there might need to be a potential refactor-->
+        @for (currentCardFaceElementPerCardFace of currentCardFaceElementsPerCardFace; track currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId) {
         <div class="dnd-wrapper" cdkDrag cdkDragBoundary=".card-editor-face" 
             (cdkDragStarted)="onDragStarted($event, currentCardFaceElementPerCardFace)"
             (cdkDragMoved)="onDragMoved($event)"
@@ -12,6 +14,7 @@
             [style.z-index]="currentCardFaceElementPerCardFace.cardFaceElement.style?.zIndex ?? 'inherit'"
             [attr.card-face-element-id]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
             #cardFaceElement>
+            <!--TODO: Potentially refactor to use ngComponentOutlet, possibly call onRevokeSrc of card face image there?-->
             @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
                 @case ("Rte") {
                     <app-card-face-rt 
@@ -20,14 +23,7 @@
                         (mousedown)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                         [content]="getCardFaceElementRtContentByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
                     </app-card-face-rt>
-                        @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
-                            <app-card-editor-element-delete-button
-                                [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId" data-html2canvas-ignore="true"/>
-                            <app-resizable-wrapper
-                                [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                                (resizableChange)="onResizableChange($event)" data-html2canvas-ignore="true" />
-                        }
-                    }
+                }
                 @case ("Image") {
                     <app-card-face-image 
                         (mousedown)="onFocusImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
@@ -36,18 +32,15 @@
                         [cardFaceImageHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
                         <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
                     </app-card-face-image>
-                    @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
-                        <app-card-editor-element-delete-button 
-                            [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
-                            data-html2canvas-ignore="true"
-                            />
-                        <app-resizable-wrapper 
-                            [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                            (resizableChange)="onResizableChange($event)"
-                            data-html2canvas-ignore="true"
-                    />
-                    }
                 }
+            }
+            @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
+                <app-card-editor-element-delete-button
+                    [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
+                    data-html2canvas-ignore="true" />
+                <app-resizable-wrapper
+                    [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    (resizableChange)="onResizableChange($event)" data-html2canvas-ignore="true" />
             }
         </div>
         }
