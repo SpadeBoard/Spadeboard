@@ -144,6 +144,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe(() => {
         this.getCurrentCardFaceElementsPerCardFace();
+        this.resetCardFaceElementAttributes();
       })
   }
 
@@ -154,7 +155,21 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe(() => {
         this.getCurrentCardFaceElementsPerCardFace();
+        this.resetCardFaceElementAttributes();
       })
+  }
+
+  resetCardFaceElementAttributes() {
+    this.onDisableRte();
+    
+    this.currentEditedCardFaceElementId = ""; // Resets what's being selected
+    this.cardEditorControlsDesignElementAttributesService.setCurrentCardFaceElementId(this.currentEditedCardFaceElementId); 
+
+    this.cardEditorControlsDesignElementAttributesService.x = 0;
+    this.cardEditorControlsDesignElementAttributesService.y = 0;
+
+    this.cardEditorControlsDesignElementAttributesService.width =0;
+    this.cardEditorControlsDesignElementAttributesService.height =0;
   }
 
   private onDeleteCardFaceElementPerCardFace() {
