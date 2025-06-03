@@ -43,6 +43,8 @@ export class CardPositionPerRoomComponent {
  private overlappedCprs: Map<string, CardPositionPerRoom[]> = new Map();
 
   private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
+
+  readonly MAX_ROTATION_DEGREES: number = 360;
   
   // TODO: Refactor the bloody architecture
   cardsPositionPerRoomScale: number = 1;
@@ -76,10 +78,7 @@ export class CardPositionPerRoomComponent {
         name: 'Flip',
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr) return;
-          cpr.card = {
-            ...cpr.card,
-            currentCardFaceIndex: (cpr.card.currentCardFaceIndex === 0) ? 1 : 0
-          };
+          cpr.card.currentCardFaceIndex =  (cpr.card.currentCardFaceIndex === 0) ? 1 : 0;
         },
         disabled: false
       },
@@ -89,28 +88,20 @@ export class CardPositionPerRoomComponent {
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr) return;
 
-          cpr.dndRotation = {
-            ...cpr.dndRotation,
-            degrees: clamp(cpr.dndRotation.degrees -= 45, -360, 360)
-          }
-
+          cpr.dndRotation.degrees = clamp(cpr.dndRotation.degrees -= 45, -this.MAX_ROTATION_DEGREES, this.MAX_ROTATION_DEGREES);
         },
        disabled: this.currentContentMenuCpr?.dndItem.isRotatable === false ||
-                        (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) <= -360
+                        (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) <= -this.MAX_ROTATION_DEGREES
       },
       {
         id: 2,
         name: 'Rotate Right',
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr) return;
-
-          cpr.dndRotation = {
-            ...cpr.dndRotation,
-            degrees: clamp(cpr.dndRotation.degrees += 45, -360, 360)
-          }
+          cpr.dndRotation.degrees = clamp(cpr.dndRotation.degrees += 45, -this.MAX_ROTATION_DEGREES, this.MAX_ROTATION_DEGREES);
         },
         disabled: this.currentContentMenuCpr?.dndItem.isRotatable === false ||
-          (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) >= 360
+          (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) >= this.MAX_ROTATION_DEGREES
       },
       {
         id: 3,

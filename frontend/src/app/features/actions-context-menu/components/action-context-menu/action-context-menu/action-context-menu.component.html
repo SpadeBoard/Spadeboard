@@ -1,7 +1,7 @@
 @let items = actionContextMenuItems();
 @if (items && items.length > 0) {
   <div class="action-context-menu">
-    @for (actionContextMenuItem of items; track actionContextMenuItem) {
+    @for (actionContextMenuItem of items; track actionContextMenuItem.id) {
       <button class="action-context-menu-item" [disabled]="actionContextMenuItem.disabled" (click)="onContextMenuItemClick(actionContextMenuItem)">
         {{ actionContextMenuItem.name }}
       </button>
