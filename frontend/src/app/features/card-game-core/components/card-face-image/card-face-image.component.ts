@@ -139,6 +139,8 @@ export class CardFaceImageComponent {
 
   ngOnDestroy() {
     // Image not loading on flipped card, problem is it's being destroyed as the card's being flipped, so it's not present in the DOM to be taken images of
+    // TODO: Actually call the revoke source somehow
+    // This is literally just a workaround and not gonna work
     setTimeout(() => {
       this.onRevokeSrc(this.imageHtmlContent.src);
     }, 1000);
