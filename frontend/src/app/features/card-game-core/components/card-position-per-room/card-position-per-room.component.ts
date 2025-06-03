@@ -1,20 +1,20 @@
-import { AfterViewInit, Component, effect, ElementRef, HostListener, inject, Injectable, input, QueryList, ViewChild, ViewChildren  } from '@angular/core';
-import { CardPositionPerRoomApiService } from '../../services/card-game-core/card-position-per-room-api.service';
-import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
-import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragRef, Point} from '@angular/cdk/drag-drop';
-import { CardComponent } from '../card/card.component';
-import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { GameRoomService } from '../../../game-room/services/game-room.service';
-import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
-import { mergeMap } from 'rxjs';
-import { snapToGridCellCentre, snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
-import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
-import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
+import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { clamp, Coordinates, Dimensions, moveToBack } from '../../../../utils/utils';
+import { Component, effect, ElementRef, HostListener, inject, QueryList, ViewChildren } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { mergeMap } from 'rxjs';
+import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
+import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
+import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
+import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
+import { snapToGridCellCentre, snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
+import { GameRoomService } from '../../../game-room/services/game-room.service';
+import { CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
+import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
+import { CardPositionPerRoomApiService } from '../../services/card-game-core/card-position-per-room-api.service';
+import { CardComponent } from '../card/card.component';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -56,6 +56,8 @@ export class CardPositionPerRoomComponent {
   
   currentContentMenuCpr: CardPositionPerRoom | undefined = undefined;
   
+  private readonly MAX_ROTATION_DEGREE: number = 360;
+  
   private get maxZIndex() {
     return  Math.max(...this.cprs.map(
             e => e.zIndex))
@@ -67,9 +69,8 @@ export class CardPositionPerRoomComponent {
   // or want to keep your zIndex values manageable for debugging and maintenance
 
   // TODO: Pass in the cpr here as a parameter to determine whether you can rotate?
-  get actionContextMenuItems(): ActionContextMenuItem[] {
-    return [
-      {
+  private _cprActionContextMenuItems: ActionContextMenuItem[] = [
+    {
         id: 0,
         name: 'Flip',
         action: (cpr?: CardPositionPerRoom) => {
@@ -86,29 +87,18 @@ export class CardPositionPerRoomComponent {
         name: 'Rotate Left',
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr) return;
-
-          cpr.dndRotation = {
-            ...cpr.dndRotation,
-            degrees: clamp(cpr.dndRotation.degrees -= 45, -360, 360)
-          }
-
+          this.rotateCardPositionPerRoom(-45, cpr);
         },
-       disabled: this.currentContentMenuCpr?.dndItem.isRotatable === false ||
-                        (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) <= -360
+       disabled: false
       },
       {
         id: 2,
         name: 'Rotate Right',
         action: (cpr?: CardPositionPerRoom) => {
           if (!cpr) return;
-
-          cpr.dndRotation = {
-            ...cpr.dndRotation,
-            degrees: clamp(cpr.dndRotation.degrees += 45, -360, 360)
-          }
+           this.rotateCardPositionPerRoom(45, cpr);
         },
-        disabled: this.currentContentMenuCpr?.dndItem.isRotatable === false ||
-          (this.currentContentMenuCpr?.dndRotation?.degrees ?? 0) >= 360
+        disabled: false
       },
       {
         id: 3,
@@ -127,9 +117,17 @@ export class CardPositionPerRoomComponent {
           if (!cpr || cpr.card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
           this.cardEditorPreviewService.deleteCard(cpr.card.cardId);
         },
-        disabled: ((this.currentContentMenuCpr?.card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)) ? true: false
+        disabled: false
       }
-    ];
+  ]
+  
+  get cprActionContextMenuItems(): ActionContextMenuItem[] {
+    return this._cprActionContextMenuItems;
+  }
+
+  rotateCardPositionPerRoom(degrees: number, cpr: CardPositionPerRoom) {
+    if (!cpr) return;
+    cpr.dndRotation.degrees = clamp(cpr.dndRotation.degrees + degrees, -this.MAX_ROTATION_DEGREE, this.MAX_ROTATION_DEGREE);
   }
 
   constructor() {
@@ -288,6 +286,7 @@ export class CardPositionPerRoomComponent {
         if (cprs !== undefined) {
           // console.log(`Updated CPRs on save: ${JSON.stringify(cprs)}`);
           this.cprs = cprs;
+          this.refreshUnculledCprs(); // FIXED: Force rerendering in order to make sure the flip, rotate works immediately after saving
         }
       });
     });
@@ -779,6 +778,17 @@ getCardPositionPerRoomRectById(cardPositionPerRoomId: string): DOMRect | null {
       throw new Error("Current context menu CPR is undefined");
 
     this.currentContentMenuCpr = potentialCurrentContextMenuCpr;
+    this.setDisableContextMenuItems(this.currentContentMenuCpr);
+  }
+
+  setDisableContextMenuItems(currentContextMenuCpr: CardPositionPerRoom) {
+    this._cprActionContextMenuItems[1].disabled = currentContextMenuCpr?.dndItem.isRotatable === false ||
+      (currentContextMenuCpr?.dndRotation?.degrees ?? 0) <= -this.MAX_ROTATION_DEGREE;
+
+    this._cprActionContextMenuItems[2].disabled = currentContextMenuCpr?.dndItem.isRotatable === false ||
+      (currentContextMenuCpr?.dndRotation?.degrees ?? 0) >= this.MAX_ROTATION_DEGREE;
+
+    this._cprActionContextMenuItems[4].disabled = (currentContextMenuCpr?.card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId);
   }
 
   @HostListener('document:click')
