@@ -1,10 +1,12 @@
-@for (cpr of unculledCprs; track cpr) {
+@for (cpr of unculledCprs; track cpr.cardPositionPerRoomId) {
     <div cdkDrag class="cpr-cdk" [style.left.px]="calculateCardPositionPerRoomScreenPosition(cpr.dndPosition).x"
         [style.top.px]="calculateCardPositionPerRoomScreenPosition(cpr.dndPosition).y" [style.width]="'fit-content'"
         [style.height]="'fit-content'" (cdkDragStarted)="onDragStarted($event, cpr)" (cdkDragMoved)="onDragMoved($event)"
         [style.transform]="'rotate(' + cpr.dndRotation.degrees + 'deg)'"
+        [style.z-index]="cpr.zIndex"
         (cdkDragDropped)="onDragDrop($event, cpr)"
         (contextmenu)="onCardRightClick($event, cpr.card.cardId)"
+        [attr.card-position-per-room-id]="cpr.cardPositionPerRoomId"
         #cardsPositionPerRoom>
         <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" />
     </div>

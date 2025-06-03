@@ -46,6 +46,7 @@ export function isCardPositionPerRoom(obj: any): obj is CardPositionPerRoom {
     return obj
         && typeof obj === 'object'
         && 'card' in obj
+        && 'zIndex' in obj
         && 'dndItem' in obj
         && 'dndPosition' in obj
         && 'gameRoom' in obj

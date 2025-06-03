@@ -29,6 +29,8 @@ namespace Models.Bridge
         [ForeignKey("CardId")]
         public virtual Card? Card { get; set; }
 
+        public int ZIndex {get; set;} = 1;
+
         public long DndItemId { get; set; }
         [ForeignKey("DndItemId")]
         public virtual DndItem? DndItem { get; set; }
@@ -55,6 +57,8 @@ namespace Models.Bridge
 
         public string CardId { get; set; } = "0";
         public virtual CardDto? Card { get; set; }
+
+        public int ZIndex {get; set;} = 1;
 
         public string DndItemId { get; set; } = "0";
         public virtual DndItemDto? DndItem { get; set; }

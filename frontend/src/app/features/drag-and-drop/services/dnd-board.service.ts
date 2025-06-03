@@ -52,6 +52,9 @@ export class DndBoardService {
   // Angujlar Unit
   // NOTE: If 1 is the scale we're starting at, it makes sense that you can't zoom out further than that 
 
+  // TODO: Refactor this, probably use this for all items on board
+  globalZIndexCounter: number = 0;
+
   private onShowAllItems$$: Subject<void> = new Subject<void>();
   onShowAllItems$: Observable<void> = this.onShowAllItems$$.asObservable();
 

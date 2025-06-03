@@ -229,6 +229,9 @@ export class CardsCollectionComponent {
                 gameRoomId: "1", // FIXME: Replace this with getting the actual current game room
                 autosaveInterval: 30000
               },
+              zIndex: isFinite(this.dndBoardService.globalZIndexCounter)
+                ? this.dndBoardService.globalZIndexCounter++
+                : (this.dndBoardService.globalZIndexCounter = 1, 0)
             };
 
             this.createCardPositionPerRoom(cpr);

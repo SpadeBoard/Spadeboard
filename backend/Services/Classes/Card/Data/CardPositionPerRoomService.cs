@@ -195,26 +195,15 @@ namespace Services
                     throw new ArgumentNullException(nameof(nav), "Card Position Per Room - Update nav async: At least one navigational property is null");
                 }
 
-                bool updated = true;
 
-                updated = await _cardService.UpdateAsync(nav.CardId, nav.Card);
-                
-                /*if (!updated)
-                {
-                    return updated;
-                }*/
+                await _cardService.UpdateAsync(nav.CardId, nav.Card);
+                await _dndItemService.UpdateAsync(nav.DndItemId, nav.DndItem);
+                await _dndPositionService.UpdateAsync(nav.DndPositionId, nav.DndPosition);
+                await _dndRotationService.UpdateAsync(nav.DndRotationId, nav.DndRotation);
 
-                updated =  await _dndItemService.UpdateAsync(nav.DndItemId, nav.DndItem);
-
-                /*if (!updated)
-                {
-                    return updated;
-                }*/
-
-                updated =  await _dndPositionService.UpdateAsync(nav.DndPositionId, nav.DndPosition);
-
-                updated =  await _dndRotationService.UpdateAsync(nav.DndRotationId, nav.DndRotation);
-
+                // CHECKME: Is this going to work
+                // TODO: Potentially refactor? We have a property other than just foreign keys here
+                await UpdateAsync(nav.CardPositionPerRoomId, nav);
                 return true;
             }
             catch (DbUpdateConcurrencyException)

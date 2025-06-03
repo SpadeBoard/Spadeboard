@@ -25,6 +25,7 @@ export interface CardEditorCardDto {
 export interface CardPositionPerRoom {
     cardPositionPerRoomId: string;
     card: Card;
+    zIndex: number;
     dndItem: DndItem;
     dndPosition: DndPosition;
     dndRotation: DndRotation;

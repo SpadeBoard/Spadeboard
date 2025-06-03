@@ -40,6 +40,7 @@ export class CardPositionPerRoomComponent {
 
   // NOTE: For rendering only
   unculledCprs: CardPositionPerRoom[] = [];
+ private overlappedCprs: Map<string, CardPositionPerRoom[]> = new Map();
 
   private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
   
@@ -55,6 +56,16 @@ export class CardPositionPerRoomComponent {
   
   currentContentMenuCpr: CardPositionPerRoom | undefined = undefined;
   
+  private get maxZIndex() {
+    return  Math.max(...this.cprs.map(
+            e => e.zIndex))
+  }
+
+  // NOTE: Reset it when there's no more cards in the room
+  // Reset the global zIndex counter only if you anticipate integer overflow, 
+  // performance issues, 
+  // or want to keep your zIndex values manageable for debugging and maintenance
+
   // TODO: Pass in the cpr here as a parameter to determine whether you can rotate?
   get actionContextMenuItems(): ActionContextMenuItem[] {
     return [
@@ -211,6 +222,7 @@ export class CardPositionPerRoomComponent {
         if (result !== undefined) {
           this.cprs = result;
           this.refreshUnculledCprs();
+          this.dndBoardService.globalZIndexCounter = Math.max(...this.cprs.map(c => c.zIndex)) + 1;
         }
     });
   }
@@ -252,13 +264,8 @@ export class CardPositionPerRoomComponent {
     if (cprToReplace !== undefined) {
       // TODO: Get rid of this whole function
       // console.log(`Cpr to replace: ${JSON.stringify(cprToReplace)}, Updated CPR: ${JSON.stringify(updatedCpr)}`);
-
+      
       Object.assign(cprToReplace, updatedCpr);
-
-      // FIXME: This is a temporary solution, because we're going to have more items than just cards
-      // Basically what's happening here is that we always move the item to the back
-      // Which means in the DOM it'll always be rendered last and therefore higher
-      moveToBack(this.cprs, this.cprs.findIndex(c => c.cardPositionPerRoomId === cprToReplace.cardPositionPerRoomId));
 
       // Force unculled refresh
       this.refreshUnculledCprs();
@@ -272,6 +279,9 @@ export class CardPositionPerRoomComponent {
 
   private updateCardPositionPerRoomOnSave() {
     this.gameRoomService.onSaveGameRoom$.subscribe(() => {
+      // Keeps order clean and predictable, prevents potential overflow
+      this.normaliseZIndexes();
+
       console.log(`Update card position per room on save: ${JSON.stringify(this.cprs)}`);
       
       this.cardPositionPerRoomApiService.updateCardsPositionPerRoom(this.cprs).subscribe((cprs: CardPositionPerRoom[] | undefined) => {
@@ -300,6 +310,12 @@ export class CardPositionPerRoomComponent {
       });
     }
 
+    private sortOrder() {
+      this.cprs.forEach((cpr: CardPositionPerRoom) => {
+        cpr.zIndex = cpr.zIndex - (cpr.zIndex - this.cprs.length); // Again, this is to make sure it's all relative, you're always going to get the same exact difference
+      })
+    }
+
   private onDeleteCardEditorCardDto() {
     this.cardGameCoreService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed())
@@ -308,7 +324,44 @@ export class CardPositionPerRoomComponent {
 
         // Again, this is in case if the user scrolls away from the current card being deleted, for instance
         this.cprs = this.cprs.filter(cpr => cpr.card.cardId !== cardId);
+
+        // Reset the counter to prevent integer overflow
+        if (this.cprs.length <= 0) 
+          this.dndBoardService.globalZIndexCounter = 0;
       });
+  }
+
+  private restoreOverlappedCards(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): void {
+    // NOTE: Just to make sure since we're 
+    let overlapped: CardPositionPerRoom[] | undefined = this.overlappedCprs.get(currentCprId);
+
+    if (!overlapped)
+      return;
+
+    let isUnculled: boolean = false;
+
+    overlapped.forEach((cpr: CardPositionPerRoom,) => {
+      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
+
+      if (!this.isRectContainedIn(
+        {
+          coordinates: attributes.coordinates,
+          dimensions: attributes.dimensions
+        },
+        {
+          coordinates: coordinates,
+          dimensions: dimensions
+        }
+      ))
+        return;
+
+      // TODO: We need to uncull this whenever you move the card    
+      this.unculledCprs.push(cpr);
+      isUnculled = true;
+    });
+
+    if (isUnculled)
+      this.overlappedCprs.delete(currentCprId);
   }
 
   onDragStarted(event: CdkDragStart<any>, item: CardPositionPerRoom) {
@@ -318,6 +371,11 @@ export class CardPositionPerRoomComponent {
       x: mouseAU.x - item.dndPosition.x,
       y: mouseAU.y - item.dndPosition.y
     };
+
+    let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
+    // NOTE: Maintain the stacking order
+    // this.raiseOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions);
+    // this.restoreOverlappedCards(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions); // Necessary order otherwise it'll raise the restored overlapped card's z-index
   }
 
   onDragMoved(event: CdkDragMove) {
@@ -330,22 +388,22 @@ export class CardPositionPerRoomComponent {
    /* 
    This matches your expected input.
 
-Coordinate Math
-Your function subtracts the board's bounding rect (rect.left, rect.top) from the pointer position, then adds scroll, then converts to AU.
+      Coordinate Math
+      Your function subtracts the board's bounding rect (rect.left, rect.top) from the pointer position, then adds scroll, then converts to AU.
 
-This is the correct approach if your board is scrolled and zoomed, and your camera is managed via scroll position (not a separate camera variable).
+      This is the correct approach if your board is scrolled and zoomed, and your camera is managed via scroll position (not a separate camera variable).
 
-Caveats
-Make sure dndBoardElement is the actual scrollable board element.
+      Caveats
+      Make sure dndBoardElement is the actual scrollable board element.
 
-If your camera is managed by scroll, do not add cameraX/cameraY elsewhere in the conversion.
+      If your camera is managed by scroll, do not add cameraX/cameraY elsewhere in the conversion.
 
-If you programmatically pan (not just scroll), you may need to adjust your math as previously discussed.
+      If you programmatically pan (not just scroll), you may need to adjust your math as previously discussed.
 
-Summary Table
-Usage Scenario	Will it work?	Notes
-Board scrolls to pan	Yes	Your function is correct.
-Board pans programmatically (cameraX/Y)	Only if you adjust math	You must factor in cameraX/Y instead of scrollLeft/scrollTop.
+      Summary Table
+      Usage Scenario	Will it work?	Notes
+      Board scrolls to pan	Yes	Your function is correct.
+      Board pans programmatically (cameraX/Y)	Only if you adjust math	You must factor in cameraX/Y instead of scrollLeft/scrollTop.
    */
 
     if (snapToGrid) {
@@ -421,8 +479,264 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
 
     // console.log(`On drag drop: AU - ${JSON.stringify(item.dndPosition)}), Screen PX - ${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(item.dndPosition.x, item.dndPosition.y))}`);
 
+
+    // If it's overlapping another item
+    let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
+    // this.cullOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions));
+
+    /*if (this.lowerOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions)) {
+      item.zIndex = clamp(this.maxZIndex + 1, 0, this.cprs.length); // We only want to raise the z Index if there is actual overlapping, otherwise what's the point
+    }*/
+
+    item.zIndex = this.dndBoardService.globalZIndexCounter++;
+
     this.updateCardPositionPerRoom(item);
   }
+
+  // The reason why this exists is that if we place the item on the same area over 
+  // And over again, the overlapped items don't keep shifting down
+  // Because eventually they would all hit 0th index
+  // We need to keep the stacking order
+  raiseOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): boolean {
+    let hasRaisedOverlappedItems: boolean = false;
+
+    // CHECKME: Do we want unculled or all
+    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
+      if (cpr.cardPositionPerRoomId === currentCprId) {
+        // Skip the card being moved
+        return;
+      }
+  
+      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
+
+      if (!this.isPartialOverlap(
+        {
+          coordinates: coordinates,
+          dimensions: dimensions
+        },
+        {
+          coordinates: attributes.coordinates,
+          dimensions: attributes.dimensions
+        }
+      )) {
+        return
+      }
+
+      // CHECKME: If there's multiple items of the same z index, is this going to be an issue
+      // We need to do this to update the main cpr list
+      cpr.zIndex = clamp(cpr.zIndex + 1, 0, this.cprs.length);
+      this.updateCardPositionPerRoom(cpr);
+      hasRaisedOverlappedItems = true;
+    })
+
+    return hasRaisedOverlappedItems;
+  }
+
+  getCardPositionPerRoomOverlappingAttributes(item: CardPositionPerRoom): {
+    coordinates: Coordinates;
+    dimensions: Dimensions;
+} {
+    let coordinates: Coordinates = {
+      x: item.dndPosition.x,
+      y: item.dndPosition.y
+    };
+
+    let rect: DOMRect | null = this.getCardPositionPerRoomRectById(item.cardPositionPerRoomId);
+
+    if (!rect)
+      throw new Error("Card position per room can't get back its own width and height!?");
+
+    let dimensions: Dimensions = {
+      width: rect.width,
+      height: rect.height
+    };
+
+    return {
+      coordinates,
+      dimensions
+    };
+  }
+
+  addOverlappedCpr(currentCpirId: string, cpr: CardPositionPerRoom) {
+    let overlapped: CardPositionPerRoom[] | undefined = this.overlappedCprs.get(currentCpirId);
+
+    if (overlapped) {
+      overlapped.push(cpr);
+      return;
+    }
+    
+    this.overlappedCprs.set(currentCpirId, [cpr]);
+  }
+
+  cullOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions) {
+    let toCull: Set<string> = new Set();
+
+    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
+      if (cpr.cardPositionPerRoomId === currentCprId) {
+        // Skip the card being moved
+        return;
+      }
+      
+      // TODO: Probably refactor this out of here
+      /****************************************************************** */
+      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
+
+      if (this.isRectContainedIn(
+        {
+          coordinates: attributes.coordinates,
+          dimensions: attributes.dimensions
+        },
+        {
+          coordinates: coordinates,
+          dimensions: dimensions
+        }
+      )) {
+        // FIXME: Why is it not actually culling these cards
+        this.addOverlappedCpr(currentCprId, cpr);
+        toCull.add(cpr.cardPositionPerRoomId);
+        return;
+      }
+    })
+
+    this.unculledCprs = this.unculledCprs.filter(
+      c => !toCull.has(c.cardPositionPerRoomId)
+    );
+  }
+
+  lowerOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): boolean {
+    let hasLoweredOverlappedItems: boolean = false;
+    let toCull: Set<string> = new Set();
+
+    // CHECKME: Do we want unculled or all
+    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
+      if (cpr.cardPositionPerRoomId === currentCprId) {
+        // Skip the card being moved
+        return;
+      }
+      
+      // TODO: Probably refactor this out of here
+      /****************************************************************** */
+      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
+
+      if (this.isRectContainedIn(
+        {
+          coordinates: attributes.coordinates,
+          dimensions: attributes.dimensions
+        },
+        {
+          coordinates: coordinates,
+          dimensions: dimensions
+        }
+      )) {
+        // TODO: We need to uncull this whenever you move the card
+        this.addOverlappedCpr(currentCprId, cpr);
+        toCull.add(cpr.cardPositionPerRoomId);
+        return;
+      }
+      /********************************************************/
+
+      if (!this.isPartialOverlap(
+        {
+          coordinates: coordinates,
+          dimensions: dimensions
+        },
+        {
+          coordinates: attributes.coordinates,
+          dimensions: attributes.dimensions
+        }
+      )) {
+        return;
+      }
+
+      // CHECKME: If there's multiple items of the same z index, is this going to be an issue
+      // We need to do this to update the main cpr list
+      cpr.zIndex = clamp(cpr.zIndex - 1, 0, this.cprs.length);
+      this.updateCardPositionPerRoom(cpr);
+      hasLoweredOverlappedItems = true;
+    })
+
+    this.unculledCprs = this.unculledCprs.filter(
+      c => !toCull.has(c.cardPositionPerRoomId)
+    );
+
+    return hasLoweredOverlappedItems;
+  }
+
+  // FIXME: Why is it not culling correctly, etc.
+  isRectContainedIn(
+    innerRect: { coordinates: Coordinates, dimensions: Dimensions },
+    outerRect: { coordinates: Coordinates, dimensions: Dimensions }
+  ): boolean {
+    return (
+      innerRect.coordinates.x >= outerRect.coordinates.x &&
+      innerRect.coordinates.x + innerRect.dimensions.width <= outerRect.coordinates.x + outerRect.dimensions.width &&
+      innerRect.coordinates.y >= outerRect.coordinates.y &&
+      innerRect.coordinates.y + innerRect.dimensions.height <= outerRect.coordinates.y + outerRect.dimensions.height
+    );
+  }
+
+  // NOTE: Just to make sure that they all have unique IDs
+  // Because the issue is despite overlapping
+  // They can share the same zIndex, so the order ends up being dependent on the DOM
+  normaliseZIndexes() {
+    // Use all cprs, not just unculled
+    let sorted: CardPositionPerRoom[] = this.cprs.slice().sort((a, b) => a.zIndex - b.zIndex);
+    sorted.forEach((cpr, idx) => cpr.zIndex = idx);
+
+    this.dndBoardService.globalZIndexCounter = sorted.length + 1;
+  }
+
+
+  // TODO: Refactor this, this is temporary overlap check
+  // Here's the thing, what we actually really need is the precise size
+  // Of the card itself, it would just be better to have it so that
+  // If there's an overlap, we just 'hide the card', aka cull it
+  // Especially since there's multiple cards that can be stacked on each other
+  // Does that mean the z-index is unnecessary, I mean what we  can do is just
+  // Have a z-index of -1, if indeed it is negative 1, don't render it?
+  // That means that whenever the card moves, the overlapped card (-1) would have to shift up at least 1 index
+  
+  /******************** PARTIAL OVERLAP*************************/
+  getOverlappingItemsBoundary(coordinate: Coordinates, distance: number) {
+    return {
+      left: coordinate.x - distance,
+      right: coordinate.x + distance,
+      top: coordinate.y - distance,
+      bottom: coordinate.y + distance
+    }
+  }
+
+  isInBoundary(
+    coordinate: { x: number; y: number },
+    boundary: { left: number; right: number; top: number; bottom: number }
+  ): boolean {
+    return (
+      coordinate.x >= boundary.left &&
+      coordinate.x <= boundary.right &&
+      coordinate.y >= boundary.top &&
+      coordinate.y <= boundary.bottom
+    );
+  }
+
+ isPartialOverlap(
+  rect1: { coordinates: Coordinates, dimensions: Dimensions },
+  rect2: { coordinates: Coordinates, dimensions: Dimensions }
+): boolean {
+  return (
+    rect1.coordinates.x < rect2.coordinates.x + rect2.dimensions.width &&
+    rect1.coordinates.x + rect1.dimensions.width > rect2.coordinates.x &&
+    rect1.coordinates.y < rect2.coordinates.y + rect2.dimensions.height &&
+    rect1.coordinates.y + rect1.dimensions.height > rect2.coordinates.y
+  );
+}
+
+getCardPositionPerRoomRectById(cardPositionPerRoomId: string): DOMRect | null {
+  let element: ElementRef<HTMLDivElement> | undefined = this.cardsPositionPerRoomRef.find(ref =>
+    ref.nativeElement.getAttribute('card-position-per-room-id') === cardPositionPerRoomId
+  );
+  
+  return element ? element.nativeElement.getBoundingClientRect() : null;
+}
 
   snapToGrid(gridSize: number, userPointerPosition: Point)
   {
@@ -476,7 +790,8 @@ The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinate
     return {
       position: 'absolute',
       left: `${this.contextMenuPosition.x}px`,
-      top: `${this.contextMenuPosition.y}px`
+      top: `${this.contextMenuPosition.y}px`,
+      zIndex: this.dndBoardService.globalZIndexCounter // FIXED: Context menu can be behind the item that it's clicked on
     }
   }
 

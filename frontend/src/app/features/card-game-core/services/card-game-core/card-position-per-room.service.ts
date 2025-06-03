@@ -36,8 +36,7 @@ export class CardPositionPerRoomService {
     });
   }
 
-  updateCardPositionPerRoom(newCpr: CardPositionPerRoom) {
-
+  updateCardPositionPerRoom(cpr: CardPositionPerRoom) {
   }
 
   deleteCardPositionPerRoom(id: string) {
