@@ -47,7 +47,7 @@ export class CardPositionPerRoomComponent {
   // TODO: Refactor the bloody architecture
   cardsPositionPerRoomScale: number = 1;
   
-  private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
+  private dragOffset: Coordinates = {x: 0, y: 0};
 
   private contextMenuPosition: Coordinates = {
     x: 0,
@@ -345,6 +345,7 @@ export class CardPositionPerRoomComponent {
       });
   }
 
+  // NOTE: Drag offset will always be in AU
   setDragOffset(mouseAUCoordinates: Coordinates, dndPosition: DndPosition) {
     this.dragOffset = {
       x: mouseAUCoordinates.x - dndPosition.x,
@@ -352,41 +353,40 @@ export class CardPositionPerRoomComponent {
     };
   }
 
-  setInitialPreviewLocation(cpr: CardPositionPerRoom) {
+  // NOTE Don't ever set the positioning, preview's not absolutely positioned
+  setPreviewTransform(id: string, position: Coordinates, rotation: number) {
     let preview: HTMLElement | null = document.querySelector(
-      `[cpr-cdk-drag-preview-id="${cpr.cardPositionPerRoomId}"]`
+      `[cpr-cdk-drag-preview-id="${id}"]`
     ) as HTMLElement | null;
 
     if (!preview)
-      return;
+      throw new Error("Preview doesn't exist, which means two things, we're passing the wrong id, or we're getting a nonexistent ID somehow");
 
-    let position: Coordinates = this.screenPositionCache.get(cpr.cardPositionPerRoomId)!;
-    preview.style.left = `${position.x}px`;
-    preview.style.top = `${position.y}px`;
+    preview.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) rotate(${rotation}deg)`;
   }
 
   onDragStarted(event: CdkDragStart<any>, item: CardPositionPerRoom) {
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
     this.setDragOffset(this.dndBoardService.getMouseAUCoordinates(), item.dndPosition);
-    
-    // WORKAROUND: Problem is the preview always start at 0,0
-    // And it moves via transform3d
-    // this.setInitialPreviewLocation(item); // NOTE: By this point there should already be a cached position of the cpr
-    
+
+    // NOTE: By this point there should already be a cached position of the cpr
+    // ASSUMPTION: When you start dragging, the item shouldn't be culled
+    this.setPreviewTransform(item.cardPositionPerRoomId, this.screenPositionCache.get(item.cardPositionPerRoomId)!, item.dndRotation.degrees);
+
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
+  }
+
+  getDragMovedOffset(mouseAUCoordinates: Coordinates, dragOffset: Coordinates): Coordinates {
+    let aU: Coordinates = this.calculateAbsolutePosition(mouseAUCoordinates, dragOffset);
+    let screen: Coordinates = this.dndBoardService.aUToScreenCoordinates(aU);
+
+    return screen;
   }
 
   onDragMoved(event: CdkDragMove, item: CardPositionPerRoom): void {
     // WORKAROUND: We'll programmatically set the custom preview's transform, we just need to make sure that we set it on drag start too
     // They all have IDs, it should be apossible to grab them
-    /*let preview: HTMLElement | null = document.querySelector(
-      `[cpr-cdk-drag-preview-id="${item.cardPositionPerRoomId}"]`
-    ) as HTMLElement | null;
-    
-    if (!preview) 
-      return;
-
-    preview.style.transform = `translate3d(${event.pointerPosition.x}px, ${event.pointerPosition.y}px, 0) rotate(${item.dndRotation.degrees}deg)`;*/
+    this.setPreviewTransform(item.cardPositionPerRoomId, this.getDragMovedOffset(this.dndBoardService.getMouseAUCoordinates(), this.dragOffset), item.dndRotation.degrees);
 
     // TODO: If snap to grid, then run snap to grid else do what we have currently
     let snapToGrid: boolean = true;
@@ -396,10 +396,6 @@ export class CardPositionPerRoomComponent {
     // TODO: If snap to grid, then run snap to grid else do what we have currently
     let snapToGrid: boolean = true;
 
-    // item.dndPosition = snapToGrid ? this.snapToGridPosition: {x: event.dropPoint.x, y: event.dropPoint.y};
-    // let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
-
-    // Can't use auToScreenCoordinates in this case because mouse position is offsetted
     item.zIndex = this.dndBoardService.globalZIndexCounter++;
     this.setCardPerRoomPosition(item, this.dndBoardService.getMouseAUCoordinates(), this.dragOffset);
 
@@ -411,11 +407,20 @@ export class CardPositionPerRoomComponent {
     this.updateCardPositionPerRoom(item);
   }
 
-  setCardPerRoomPosition(cpr: CardPositionPerRoom, mouseAUCoordinates: Coordinates, dragOffset: Coordinates) {
-    cpr.dndPosition = {
-      dndPositionId: cpr.dndPosition.dndPositionId,
+  calculateAbsolutePosition(mouseAUCoordinates: Coordinates, dragOffset: Coordinates): Coordinates {
+    return {
       x: mouseAUCoordinates.x - dragOffset.x,
       y: mouseAUCoordinates.y - dragOffset.y
+    }
+  }
+
+  setCardPerRoomPosition(cpr: CardPositionPerRoom, mouseAUCoordinates: Coordinates, dragOffset: Coordinates) {
+    let position: Coordinates = this.calculateAbsolutePosition(mouseAUCoordinates, dragOffset);
+
+    cpr.dndPosition = {
+      dndPositionId: cpr.dndPosition.dndPositionId,
+      x: position.x,
+      y: position.y
     };
 
     // CHECKME: Do we want to actually set the screen position directly here?

@@ -17,17 +17,13 @@
         >
             <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" />
 
-            <!--<div *cdkDragPreview class="cpr-cdk-drag-preview"
-                [matchSize]="true"
-                [ngStyle]="{
-                    transform: 'translate3d(' + getCardScreenPosition(cpr).x + 'px, ' + getCardScreenPosition(cpr).y + 'px, 0) rotate(' + cpr.dndRotation.degrees + 'deg)'
-                }"
+            <!--WORKAROUND: Because the typical drag preview's set at 0,0, we'll make a custom one
+            Then set it programmatically as to where the preview should be-->
+            <div *cdkDragPreview class="cpr-cdk-drag-preview"
                 [attr.cpr-cdk-drag-preview-id]="cpr.cardPositionPerRoomId"
             >
                 <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" /> 
-            </div>-->
-
-            <img *cdkDragPreview src="/blank-card-canvas.svg" [alt]="cpr.card.cardId"/>
+            </div>
     </div>
     }
 
