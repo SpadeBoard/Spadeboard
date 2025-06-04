@@ -1,4 +1,4 @@
-import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragPreview, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { Component, effect, ElementRef, HostListener, inject, QueryList, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -19,7 +19,7 @@ import { CardComponent } from '../card/card.component';
 @Component({
   selector: 'app-card-position-per-room',
   imports: [
-    CdkDrag,
+    CdkDrag, CdkDragPreview,
     CardComponent, ActionContextMenuComponent, CommonModule
   ],
   templateUrl: './card-position-per-room.component.html',
@@ -47,7 +47,7 @@ export class CardPositionPerRoomComponent {
   // TODO: Refactor the bloody architecture
   cardsPositionPerRoomScale: number = 1;
   
-  private dragOffset: { x: number; y: number; } = {x: 0, y: 0};
+  private dragOffset: Coordinates = {x: 0, y: 0};
 
   private contextMenuPosition: Coordinates = {
     x: 0,
@@ -330,12 +330,6 @@ export class CardPositionPerRoomComponent {
       });
     }
 
-    private sortOrder() {
-      this.cprs.forEach((cpr: CardPositionPerRoom) => {
-        cpr.zIndex = cpr.zIndex - (cpr.zIndex - this.cprs.length); // Again, this is to make sure it's all relative, you're always going to get the same exact difference
-      })
-    }
-
   private onDeleteCardEditorCardDto() {
     this.cardGameCoreService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed())
@@ -351,6 +345,7 @@ export class CardPositionPerRoomComponent {
       });
   }
 
+  // NOTE: Drag offset will always be in AU
   setDragOffset(mouseAUCoordinates: Coordinates, dndPosition: DndPosition) {
     this.dragOffset = {
       x: mouseAUCoordinates.x - dndPosition.x,
@@ -358,14 +353,41 @@ export class CardPositionPerRoomComponent {
     };
   }
 
+  // NOTE Don't ever set the positioning, preview's not absolutely positioned
+  setPreviewTransform(id: string, position: Coordinates, rotation: number) {
+    let preview: HTMLElement | null = document.querySelector(
+      `[cpr-cdk-drag-preview-id="${id}"]`
+    ) as HTMLElement | null;
+
+    if (!preview)
+      throw new Error("Preview doesn't exist, which means two things, we're passing the wrong id, or we're getting a nonexistent ID somehow");
+
+    preview.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) rotate(${rotation}deg)`;
+  }
+
   onDragStarted(event: CdkDragStart<any>, item: CardPositionPerRoom) {
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
     this.setDragOffset(this.dndBoardService.getMouseAUCoordinates(), item.dndPosition);
- 
+
+    // NOTE: By this point there should already be a cached position of the cpr
+    // ASSUMPTION: When you start dragging, the item shouldn't be culled
+    this.setPreviewTransform(item.cardPositionPerRoomId, this.screenPositionCache.get(item.cardPositionPerRoomId)!, item.dndRotation.degrees);
+
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
   }
 
+  getDragMovedOffset(mouseAUCoordinates: Coordinates, dragOffset: Coordinates): Coordinates {
+    let aU: Coordinates = this.calculateAbsolutePosition(mouseAUCoordinates, dragOffset);
+    let screen: Coordinates = this.dndBoardService.aUToScreenCoordinates(aU);
+
+    return screen;
+  }
+
   onDragMoved(event: CdkDragMove, item: CardPositionPerRoom): void {
+    // WORKAROUND: We'll programmatically set the custom preview's transform, we just need to make sure that we set it on drag start too
+    // They all have IDs, it should be apossible to grab them
+    this.setPreviewTransform(item.cardPositionPerRoomId, this.getDragMovedOffset(this.dndBoardService.getMouseAUCoordinates(), this.dragOffset), item.dndRotation.degrees);
+
     // TODO: If snap to grid, then run snap to grid else do what we have currently
     let snapToGrid: boolean = true;
   }
@@ -374,10 +396,6 @@ export class CardPositionPerRoomComponent {
     // TODO: If snap to grid, then run snap to grid else do what we have currently
     let snapToGrid: boolean = true;
 
-    // item.dndPosition = snapToGrid ? this.snapToGridPosition: {x: event.dropPoint.x, y: event.dropPoint.y};
-    // let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
-
-    // Can't use auToScreenCoordinates in this case because mouse position is offsetted
     item.zIndex = this.dndBoardService.globalZIndexCounter++;
     this.setCardPerRoomPosition(item, this.dndBoardService.getMouseAUCoordinates(), this.dragOffset);
 
@@ -389,56 +407,26 @@ export class CardPositionPerRoomComponent {
     this.updateCardPositionPerRoom(item);
   }
 
-  setCardPerRoomPosition(cpr: CardPositionPerRoom, mouseAUCoordinates: Coordinates, dragOffset: Coordinates) {
-    cpr.dndPosition = {
-      dndPositionId: cpr.dndPosition.dndPositionId,
+  calculateAbsolutePosition(mouseAUCoordinates: Coordinates, dragOffset: Coordinates): Coordinates {
+    return {
       x: mouseAUCoordinates.x - dragOffset.x,
       y: mouseAUCoordinates.y - dragOffset.y
+    }
+  }
+
+  setCardPerRoomPosition(cpr: CardPositionPerRoom, mouseAUCoordinates: Coordinates, dragOffset: Coordinates) {
+    let position: Coordinates = this.calculateAbsolutePosition(mouseAUCoordinates, dragOffset);
+
+    cpr.dndPosition = {
+      dndPositionId: cpr.dndPosition.dndPositionId,
+      x: position.x,
+      y: position.y
     };
 
     // CHECKME: Do we want to actually set the screen position directly here?
     // It would make Angular spend less time calculating and the detection of its position will be faster
     let onScreenPosition: Coordinates = this.calculateScreenPosition(cpr.dndPosition);
     this.screenPositionCache.set(cpr.cardPositionPerRoomId, onScreenPosition);
-  }
-
-  // The reason why this exists is that if we place the item on the same area over 
-  // And over again, the overlapped items don't keep shifting down
-  // Because eventually they would all hit 0th index
-  // We need to keep the stacking order
-  raiseOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): boolean {
-    let hasRaisedOverlappedItems: boolean = false;
-
-    // CHECKME: Do we want unculled or all
-    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
-      if (cpr.cardPositionPerRoomId === currentCprId) {
-        // Skip the card being moved
-        return;
-      }
-  
-      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
-
-      if (!this.isPartialOverlap(
-        {
-          coordinates: coordinates,
-          dimensions: dimensions
-        },
-        {
-          coordinates: attributes.coordinates,
-          dimensions: attributes.dimensions
-        }
-      )) {
-        return
-      }
-
-      // CHECKME: If there's multiple items of the same z index, is this going to be an issue
-      // We need to do this to update the main cpr list
-      cpr.zIndex = clamp(cpr.zIndex + 1, 0, this.cprs.length);
-      this.updateCardPositionPerRoom(cpr);
-      hasRaisedOverlappedItems = true;
-    })
-
-    return hasRaisedOverlappedItems;
   }
 
   getCardPositionPerRoomOverlappingAttributes(item: CardPositionPerRoom): {
@@ -510,65 +498,6 @@ export class CardPositionPerRoomComponent {
     this.unculledCprs = this.unculledCprs.filter(
       c => !toCull.has(c.cardPositionPerRoomId)
     );
-  }
-
-  lowerOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): boolean {
-    let hasLoweredOverlappedItems: boolean = false;
-    let toCull: Set<string> = new Set();
-
-    // CHECKME: Do we want unculled or all
-    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
-      if (cpr.cardPositionPerRoomId === currentCprId) {
-        // Skip the card being moved
-        return;
-      }
-      
-      // TODO: Probably refactor this out of here
-      /****************************************************************** */
-      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
-
-      if (this.isRectContainedIn(
-        {
-          coordinates: attributes.coordinates,
-          dimensions: attributes.dimensions
-        },
-        {
-          coordinates: coordinates,
-          dimensions: dimensions
-        }
-      )) {
-        // TODO: We need to uncull this whenever you move the card
-        this.addOverlappedCpr(currentCprId, cpr);
-        toCull.add(cpr.cardPositionPerRoomId);
-        return;
-      }
-      /********************************************************/
-
-      if (!this.isPartialOverlap(
-        {
-          coordinates: coordinates,
-          dimensions: dimensions
-        },
-        {
-          coordinates: attributes.coordinates,
-          dimensions: attributes.dimensions
-        }
-      )) {
-        return;
-      }
-
-      // CHECKME: If there's multiple items of the same z index, is this going to be an issue
-      // We need to do this to update the main cpr list
-      cpr.zIndex = clamp(cpr.zIndex - 1, 0, this.cprs.length);
-      this.updateCardPositionPerRoom(cpr);
-      hasLoweredOverlappedItems = true;
-    })
-
-    this.unculledCprs = this.unculledCprs.filter(
-      c => !toCull.has(c.cardPositionPerRoomId)
-    );
-
-    return hasLoweredOverlappedItems;
   }
 
   // FIXME: Why is it not culling correctly, etc.
