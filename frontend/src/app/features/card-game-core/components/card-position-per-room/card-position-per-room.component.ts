@@ -330,12 +330,6 @@ export class CardPositionPerRoomComponent {
       });
     }
 
-    private sortOrder() {
-      this.cprs.forEach((cpr: CardPositionPerRoom) => {
-        cpr.zIndex = cpr.zIndex - (cpr.zIndex - this.cprs.length); // Again, this is to make sure it's all relative, you're always going to get the same exact difference
-      })
-    }
-
   private onDeleteCardEditorCardDto() {
     this.cardGameCoreService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed())
@@ -400,45 +394,6 @@ export class CardPositionPerRoomComponent {
     // It would make Angular spend less time calculating and the detection of its position will be faster
     let onScreenPosition: Coordinates = this.calculateScreenPosition(cpr.dndPosition);
     this.screenPositionCache.set(cpr.cardPositionPerRoomId, onScreenPosition);
-  }
-
-  // The reason why this exists is that if we place the item on the same area over 
-  // And over again, the overlapped items don't keep shifting down
-  // Because eventually they would all hit 0th index
-  // We need to keep the stacking order
-  raiseOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): boolean {
-    let hasRaisedOverlappedItems: boolean = false;
-
-    // CHECKME: Do we want unculled or all
-    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
-      if (cpr.cardPositionPerRoomId === currentCprId) {
-        // Skip the card being moved
-        return;
-      }
-  
-      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
-
-      if (!this.isPartialOverlap(
-        {
-          coordinates: coordinates,
-          dimensions: dimensions
-        },
-        {
-          coordinates: attributes.coordinates,
-          dimensions: attributes.dimensions
-        }
-      )) {
-        return
-      }
-
-      // CHECKME: If there's multiple items of the same z index, is this going to be an issue
-      // We need to do this to update the main cpr list
-      cpr.zIndex = clamp(cpr.zIndex + 1, 0, this.cprs.length);
-      this.updateCardPositionPerRoom(cpr);
-      hasRaisedOverlappedItems = true;
-    })
-
-    return hasRaisedOverlappedItems;
   }
 
   getCardPositionPerRoomOverlappingAttributes(item: CardPositionPerRoom): {
@@ -510,65 +465,6 @@ export class CardPositionPerRoomComponent {
     this.unculledCprs = this.unculledCprs.filter(
       c => !toCull.has(c.cardPositionPerRoomId)
     );
-  }
-
-  lowerOverlappedItems(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): boolean {
-    let hasLoweredOverlappedItems: boolean = false;
-    let toCull: Set<string> = new Set();
-
-    // CHECKME: Do we want unculled or all
-    this.unculledCprs.forEach((cpr: CardPositionPerRoom) => {
-      if (cpr.cardPositionPerRoomId === currentCprId) {
-        // Skip the card being moved
-        return;
-      }
-      
-      // TODO: Probably refactor this out of here
-      /****************************************************************** */
-      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
-
-      if (this.isRectContainedIn(
-        {
-          coordinates: attributes.coordinates,
-          dimensions: attributes.dimensions
-        },
-        {
-          coordinates: coordinates,
-          dimensions: dimensions
-        }
-      )) {
-        // TODO: We need to uncull this whenever you move the card
-        this.addOverlappedCpr(currentCprId, cpr);
-        toCull.add(cpr.cardPositionPerRoomId);
-        return;
-      }
-      /********************************************************/
-
-      if (!this.isPartialOverlap(
-        {
-          coordinates: coordinates,
-          dimensions: dimensions
-        },
-        {
-          coordinates: attributes.coordinates,
-          dimensions: attributes.dimensions
-        }
-      )) {
-        return;
-      }
-
-      // CHECKME: If there's multiple items of the same z index, is this going to be an issue
-      // We need to do this to update the main cpr list
-      cpr.zIndex = clamp(cpr.zIndex - 1, 0, this.cprs.length);
-      this.updateCardPositionPerRoom(cpr);
-      hasLoweredOverlappedItems = true;
-    })
-
-    this.unculledCprs = this.unculledCprs.filter(
-      c => !toCull.has(c.cardPositionPerRoomId)
-    );
-
-    return hasLoweredOverlappedItems;
   }
 
   // FIXME: Why is it not culling correctly, etc.
