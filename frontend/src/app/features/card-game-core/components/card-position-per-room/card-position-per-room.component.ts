@@ -63,6 +63,21 @@ export class CardPositionPerRoomComponent {
             e => e.zIndex))
   }
 
+  // TODO: Replace screen position cache with just a style cache
+  private screenPositionCache = new Map<string, Coordinates>();
+
+  getCardScreenPosition(cpr: CardPositionPerRoom): Coordinates {
+    let key: string = cpr.cardPositionPerRoomId;
+
+    if (this.screenPositionCache.has(key)) {
+      return this.screenPositionCache.get(key)!;
+    }
+    
+    let pos: Coordinates = this.calculateScreenPosition(cpr.dndPosition);
+    this.screenPositionCache.set(key, pos);
+    return pos;
+  }
+
   // NOTE: Reset it when there's no more cards in the room
   // Reset the global zIndex counter only if you anticipate integer overflow, 
   // performance issues, 
@@ -71,54 +86,55 @@ export class CardPositionPerRoomComponent {
   // TODO: Pass in the cpr here as a parameter to determine whether you can rotate?
   private _cprActionContextMenuItems: ActionContextMenuItem[] = [
     {
-        id: 0,
-        name: 'Flip',
-        action: (cpr?: CardPositionPerRoom) => {
-          if (!cpr) return;
-          cpr.card = {
-            ...cpr.card,
-            currentCardFaceIndex: (cpr.card.currentCardFaceIndex === 0) ? 1 : 0
-          };
-        },
-        disabled: false
+      id: 0,
+      name: 'Flip',
+      action: (cpr?: CardPositionPerRoom) => {
+        if (!cpr) return;
+        cpr.card = {
+          ...cpr.card,
+          currentCardFaceIndex: (cpr.card.currentCardFaceIndex === 0) ? 1 : 0
+        };
       },
-      {
-        id: 1,
-        name: 'Rotate Left',
-        action: (cpr?: CardPositionPerRoom) => {
-          if (!cpr) return;
-          this.rotateCardPositionPerRoom(-45, cpr);
-        },
-       disabled: false
+      disabled: false
+    },
+    {
+      id: 1,
+      name: 'Rotate Left',
+      action: (cpr?: CardPositionPerRoom) => {
+        if (!cpr) return;
+        this.rotateCardPositionPerRoom(-45, cpr);
       },
-      {
-        id: 2,
-        name: 'Rotate Right',
-        action: (cpr?: CardPositionPerRoom) => {
-          if (!cpr) return;
-           this.rotateCardPositionPerRoom(45, cpr);
-        },
-        disabled: false
+      disabled: false
+    },
+    {
+      id: 2,
+      name: 'Rotate Right',
+      action: (cpr?: CardPositionPerRoom) => {
+        if (!cpr) return;
+        this.rotateCardPositionPerRoom(45, cpr);
       },
-      {
-        id: 3,
-        name: 'Edit Card',
-        action: (cpr?: CardPositionPerRoom) => {
-          if (!cpr) return;
-          this.cardEditorPreviewService.getCardEditorCardDtoByCardId(cpr.card.cardId);
-          this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
-        },
-        disabled: false
+      disabled: false
+    },
+    {
+      id: 3,
+      name: 'Edit Card',
+      action: (cpr?: CardPositionPerRoom) => {
+        if (!cpr) return;
+        this.cardEditorPreviewService.getCardEditorCardDtoByCardId(cpr.card.cardId);
+        this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
       },
-      {
-        id: 4,
-        name: 'Delete Card',
-        action: (cpr?: CardPositionPerRoom) => {
-          if (!cpr || cpr.card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
-          this.cardEditorPreviewService.deleteCard(cpr.card.cardId);
-        },
-        disabled: false
-      }
+      disabled: false
+    },
+    {
+      id: 4,
+      name: 'Delete Card',
+      action: (cpr?: CardPositionPerRoom) => {
+        if (!cpr || cpr.card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
+        this.screenPositionCache.delete(cpr.cardPositionPerRoomId);
+        this.cardEditorPreviewService.deleteCard(cpr.card.cardId);
+      },
+      disabled: false
+    }
   ]
   
   get cprActionContextMenuItems(): ActionContextMenuItem[] {
@@ -156,9 +172,11 @@ export class CardPositionPerRoomComponent {
     this.setOnScreenCprs();
   }
 
-  private onUpdateCamera() {
+ private onUpdateCamera() {
     this.dndBoardService.onUpdateCamera$.subscribe(() => {
       this.updateCardsPositionPerRoom(this.unculledCprs);
+      
+      this.screenPositionCache.clear();
       this.setOnScreenCprs();
     })
   }
@@ -178,12 +196,8 @@ export class CardPositionPerRoomComponent {
   }
 
   // NOTE: Assumes the dndPosition is in AU and set to the mouse AU coordinates
-  calculateCardPositionPerRoomScreenPosition(dndPositionAU: DndPosition): Coordinates {
-    let cprScreenCoordinates = this.dndBoardService.aUToScreenCoordinates({x: dndPositionAU.x, y: dndPositionAU.y});
-
-    // console.log(`Calculate CPR screen position - AU coordinates: ${JSON.stringify(dndPositionAU)}, Screen coordinates: ${JSON.stringify(cprScreenCoordinates)}`);
-
-    return cprScreenCoordinates;
+  calculateScreenPosition(dndPositionAU: DndPosition): Coordinates {
+    return this.dndBoardService.aUToScreenCoordinates({x: dndPositionAU.x, y: dndPositionAU.y});
   }
 
   private onMouseMove(): void {
@@ -208,6 +222,7 @@ export class CardPositionPerRoomComponent {
       let itemRenderScale: number = this.dndBoardService.getItemRenderScale();
       
       if (itemRenderScale !== 0) {
+        this.screenPositionCache.clear(); // CHECKME: Do we actually want to clear the cache here and only if this check is valid?
         this.cardsPositionPerRoomScale = itemRenderScale;
       }
     })
@@ -219,7 +234,10 @@ export class CardPositionPerRoomComponent {
       gameRoomId).subscribe((result: CardPositionPerRoom[] | undefined) => {
         if (result !== undefined) {
           this.cprs = result;
+
+          this.screenPositionCache.clear();
           this.refreshUnculledCprs();
+
           this.dndBoardService.globalZIndexCounter = Math.max(...this.cprs.map(c => c.zIndex)) + 1;
         }
     });
@@ -286,6 +304,9 @@ export class CardPositionPerRoomComponent {
         if (cprs !== undefined) {
           // console.log(`Updated CPRs on save: ${JSON.stringify(cprs)}`);
           this.cprs = cprs;
+
+          // CHECKME: Do we ever actually want to clear this?
+          this.screenPositionCache.clear();
           this.refreshUnculledCprs(); // FIXED: Force rerendering in order to make sure the flip, rotate works immediately after saving
         }
       });
@@ -330,166 +351,55 @@ export class CardPositionPerRoomComponent {
       });
   }
 
-  private restoreOverlappedCards(currentCprId: string, coordinates: Coordinates, dimensions: Dimensions): void {
-    // NOTE: Just to make sure since we're 
-    let overlapped: CardPositionPerRoom[] | undefined = this.overlappedCprs.get(currentCprId);
-
-    if (!overlapped)
-      return;
-
-    let isUnculled: boolean = false;
-
-    overlapped.forEach((cpr: CardPositionPerRoom,) => {
-      let attributes = this.getCardPositionPerRoomOverlappingAttributes(cpr);
-
-      if (!this.isRectContainedIn(
-        {
-          coordinates: attributes.coordinates,
-          dimensions: attributes.dimensions
-        },
-        {
-          coordinates: coordinates,
-          dimensions: dimensions
-        }
-      ))
-        return;
-
-      // TODO: We need to uncull this whenever you move the card    
-      this.unculledCprs.push(cpr);
-      isUnculled = true;
-    });
-
-    if (isUnculled)
-      this.overlappedCprs.delete(currentCprId);
+  setDragOffset(mouseAUCoordinates: Coordinates, dndPosition: DndPosition) {
+    this.dragOffset = {
+      x: mouseAUCoordinates.x - dndPosition.x,
+      y: mouseAUCoordinates.y - dndPosition.y
+    };
   }
 
   onDragStarted(event: CdkDragStart<any>, item: CardPositionPerRoom) {
-    let mouseAU = this.dndBoardService.getMouseAUCoordinates();
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
-    this.dragOffset = {
-      x: mouseAU.x - item.dndPosition.x,
-      y: mouseAU.y - item.dndPosition.y
-    };
-
+    this.setDragOffset(this.dndBoardService.getMouseAUCoordinates(), item.dndPosition);
+ 
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
-    // NOTE: Maintain the stacking order
-    // this.raiseOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions);
-    // this.restoreOverlappedCards(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions); // Necessary order otherwise it'll raise the restored overlapped card's z-index
   }
 
-  onDragMoved(event: CdkDragMove) {
+  onDragMoved(event: CdkDragMove, item: CardPositionPerRoom): void {
     // TODO: If snap to grid, then run snap to grid else do what we have currently
-
-   // const element = event.source.element.nativeElement; // Get the draggable element's DOM node
-
-   let snapToGrid: boolean = true;
-    
-   /* 
-   This matches your expected input.
-
-      Coordinate Math
-      Your function subtracts the board's bounding rect (rect.left, rect.top) from the pointer position, then adds scroll, then converts to AU.
-
-      This is the correct approach if your board is scrolled and zoomed, and your camera is managed via scroll position (not a separate camera variable).
-
-      Caveats
-      Make sure dndBoardElement is the actual scrollable board element.
-
-      If your camera is managed by scroll, do not add cameraX/cameraY elsewhere in the conversion.
-
-      If you programmatically pan (not just scroll), you may need to adjust your math as previously discussed.
-
-      Summary Table
-      Usage Scenario	Will it work?	Notes
-      Board scrolls to pan	Yes	Your function is correct.
-      Board pans programmatically (cameraX/Y)	Only if you adjust math	You must factor in cameraX/Y instead of scrollLeft/scrollTop.
-   */
-
-    if (snapToGrid) {
-    let mouseMoveLog: string = `On Drag Moved:
-     Mouse Screen coordinates: (${event.pointerPosition.x}, ${event.pointerPosition.y})
-     Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.getMouseAUCoordinates())})
-     Grid size AU: ${this.dndBoardService.getGridSizeAU()}
-     Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
-     Zoom Level: ${this.dndBoardService.zoom}
-     Scaled cell size screen: ${this.dndBoardService.getScaledCellSize()}`;
-
-      // 3. Log everything
-      // console.log(mouseMoveLog);
-      // this.dndBoardService.updateMouseAUCoordinatesFromScreen(event.pointerPosition.x, event.pointerPosition.y, this.dndBoard.nativeElement);
-      
-      // this.setDndBoardMousePosition(event.pointerPosition.x, event.pointerPosition.y);
-      // console.log(`On drag move card position per room before snap: ${JSON.stringify(event.pointerPosition)}`);
-      /*let cellSizeScreen = this.dndBoardService.getScaledCellSize();
-      
-      // event.pointerPosition = this.snapToGrid(cellSizeScreen, event.pointerPosition);
-     let mouseScreenCoordinates = this.dndBoardService.getMouseScreenCoordinates();
-     this.snapToGridPosition = this.snapToGrid(cellSizeScreen, {x: mouseScreenCoordinates.screenX, y: mouseScreenCoordinates.screenY});
-      */
-     // this.snapToGridPosition = this.snapToGrid(cellSizeScreen, event.pointerPosition);
-      // console.log(`On drag move card position per room after snap: ${JSON.stringify(event.pointerPosition)}`);
-    } 
+    let snapToGrid: boolean = true;
   }
-
-  /* 
-  Based on your code and the search results, yes, this is likely occurring because the camera's viewport bounds are being updated during interactions while items are being positioned. Here's the breakdown:
-
-Key Reasons for Disappearing Items
-Camera Boundary Checks
-Your isPositionInCameraSpace() filters items based on current camera bounds. If camera coordinates update mid-drag or due to scroll/zoom events, items might temporarily fall outside the visible area.
-
-Drag Preview Rendering
-Angular's CDK drag creates a preview element during drag operations. If your camera calculations affect this preview's position or visibility, it might appear to vanish.
-
-Coordinate System Mismatch
-The updateMouseAUCoordinatesFromScreen() method converts screen to AU coordinates without clamping, but isPositionInCameraSpace uses clamped camera bounds. A dragged item's calculated position could briefly exist outside clamped camera bounds.
-  */
 
   onDragDrop(event: CdkDragDrop<any[]>, item: CardPositionPerRoom) {
     // TODO: If snap to grid, then run snap to grid else do what we have currently
     let snapToGrid: boolean = true;
 
     // item.dndPosition = snapToGrid ? this.snapToGridPosition: {x: event.dropPoint.x, y: event.dropPoint.y};
-    let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+    // let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
 
     // Can't use auToScreenCoordinates in this case because mouse position is offsetted
-
-    item.dndPosition = {
-      dndPositionId: item.dndPosition.dndPositionId,
-      x: mouseAUCoordinates.x - this.dragOffset.x,
-      y: mouseAUCoordinates.y - this.dragOffset.y
-    };
-
-    let mouseMoveLog: string = `On Drag Dropped:
-     Mouse coordinates relative to viewport: (${event.dropPoint.x}, ${event.dropPoint.y})
-     Mouse AU coordinates: (${JSON.stringify(mouseAUCoordinates)})
-     Mouse AU to Screen coordinates - relative to board : (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(mouseAUCoordinates))})
-     Dnd Position: (${JSON.stringify(item.dndPosition)})
-     Viewport dimensions: (${JSON.stringify(this.dndBoardService.getViewportDimensions())})
-     Grid size AU: ${this.dndBoardService.getGridSizeAU()}
-     Zoom Level: ${this.dndBoardService.zoom}
-     Scaled cell size screen: ${this.dndBoardService.getScaledCellSize()}`;
-
-    // 3. Log everything
-    // console.log(mouseMoveLog);
-
-    // item.dndPosition = {x: event.dropPoint.x, y: event.dropPoint.y};
-    // console.log(`On drag drop card position per room: ${JSON.stringify(item.dndPosition)}`);
-
-    // console.log(`On drag drop: AU - ${JSON.stringify(item.dndPosition)}), Screen PX - ${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(item.dndPosition.x, item.dndPosition.y))}`);
+    item.zIndex = this.dndBoardService.globalZIndexCounter++;
+    this.setCardPerRoomPosition(item, this.dndBoardService.getMouseAUCoordinates(), this.dragOffset);
 
 
     // If it's overlapping another item
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
     // this.cullOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions));
 
-    /*if (this.lowerOverlappedItems(item.cardPositionPerRoomId, attributes.coordinates, attributes.dimensions)) {
-      item.zIndex = clamp(this.maxZIndex + 1, 0, this.cprs.length); // We only want to raise the z Index if there is actual overlapping, otherwise what's the point
-    }*/
-
-    item.zIndex = this.dndBoardService.globalZIndexCounter++;
-
     this.updateCardPositionPerRoom(item);
+  }
+
+  setCardPerRoomPosition(cpr: CardPositionPerRoom, mouseAUCoordinates: Coordinates, dragOffset: Coordinates) {
+    cpr.dndPosition = {
+      dndPositionId: cpr.dndPosition.dndPositionId,
+      x: mouseAUCoordinates.x - dragOffset.x,
+      y: mouseAUCoordinates.y - dragOffset.y
+    };
+
+    // CHECKME: Do we want to actually set the screen position directly here?
+    // It would make Angular spend less time calculating and the detection of its position will be faster
+    let onScreenPosition: Coordinates = this.calculateScreenPosition(cpr.dndPosition);
+    this.screenPositionCache.set(cpr.cardPositionPerRoomId, onScreenPosition);
   }
 
   // The reason why this exists is that if we place the item on the same area over 
