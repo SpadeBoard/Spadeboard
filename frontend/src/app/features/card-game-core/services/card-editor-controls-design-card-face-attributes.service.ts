@@ -26,8 +26,27 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     return this._borderRadius;
   }
 
+  get cardFaceColor(): string {
+    return this._cardFaceColor;
+  }
+
+  set cardFaceColor(color: string) {
+    this._cardFaceColor = color;
+  }
+
   set borderRadius(borderRadius: number) {
     this._borderRadius = borderRadius;
+  }
+
+  private _cardFaceColor: string = "#FFFFFF";
+  private _borderColor: string = "#FFFFFF";
+
+  get borderColor(): string {
+    return this._borderColor;
+  }
+
+  set borderColor(color: string) {
+    this._borderColor = color;
   }
 
   private _height: number = 0;

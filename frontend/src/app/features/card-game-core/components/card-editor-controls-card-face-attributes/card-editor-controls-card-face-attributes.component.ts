@@ -14,9 +14,6 @@ import { clamp } from '../../../../utils/utils';
   styleUrl: './card-editor-controls-card-face-attributes.component.css'
 })
 export class CardEditorControlsCardFaceAttributesComponent {
-  // TODO: Probably grab these default values from the editor preview service
-  private _cardFaceColor: string = "#fefffe";
-
   private _borderColor: string = "";
 
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
@@ -45,24 +42,24 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   get cardFaceColor() {
-    return this._cardFaceColor;
+    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceColor;
   }
 
   set cardFaceColor(newColor: string) {
-    if (this._cardFaceColor !== newColor) {
-      this._cardFaceColor = newColor;
+    if (this.cardFaceColor !== newColor) {
+      this.cardEditorControlsDesignCardFaceAttributesService.cardFaceColor = newColor;
 
       this.cardEditorControlsDesignCardFaceAttributesService.setOnFaceColorChange(this.cardFaceColor);
     }
   }
 
   get borderColor() {
-    return this._borderColor;
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderColor;
   }
 
   set borderColor(newColor: string) {
-    if (this._borderColor !== newColor) {
-      this._borderColor = newColor;
+    if (this.borderColor !== newColor) {
+      this.cardEditorControlsDesignCardFaceAttributesService.borderColor = newColor;
 
       this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderColorChange(this.borderColor);
     }
@@ -142,6 +139,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
     }
   }
 
+  // TODO: Do we just want to assign directly to the service
   private setCardFaceAttributes() {
     let currentCardFaceStyle: Style = this.cardEditorPreviewService.getCurrentCardFace().style;
     this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? "#fefffe";

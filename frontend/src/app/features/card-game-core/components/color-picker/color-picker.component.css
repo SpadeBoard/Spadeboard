@@ -30,3 +30,11 @@
     border: none;
     background: transparent;
 }
+
+#color-value-name {
+  background-color: #D1D1D1;
+  border: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+}
