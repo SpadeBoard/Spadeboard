@@ -11,7 +11,7 @@
     }
 
     @if (currentContentMenuCpr) {
-    <app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
+    <app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="cprActionContextMenuItems"
         (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
     }
 }
