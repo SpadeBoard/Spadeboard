@@ -1,4 +1,4 @@
-import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragPreview, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { Component, effect, ElementRef, HostListener, inject, QueryList, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -19,7 +19,7 @@ import { CardComponent } from '../card/card.component';
 @Component({
   selector: 'app-card-position-per-room',
   imports: [
-    CdkDrag,
+    CdkDrag, CdkDragPreview,
     CardComponent, ActionContextMenuComponent, CommonModule
   ],
   templateUrl: './card-position-per-room.component.html',
@@ -352,14 +352,42 @@ export class CardPositionPerRoomComponent {
     };
   }
 
+  setInitialPreviewLocation(cpr: CardPositionPerRoom) {
+    let preview: HTMLElement | null = document.querySelector(
+      `[cpr-cdk-drag-preview-id="${cpr.cardPositionPerRoomId}"]`
+    ) as HTMLElement | null;
+
+    if (!preview)
+      return;
+
+    let position: Coordinates = this.screenPositionCache.get(cpr.cardPositionPerRoomId)!;
+    preview.style.left = `${position.x}px`;
+    preview.style.top = `${position.y}px`;
+  }
+
   onDragStarted(event: CdkDragStart<any>, item: CardPositionPerRoom) {
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
     this.setDragOffset(this.dndBoardService.getMouseAUCoordinates(), item.dndPosition);
- 
+    
+    // WORKAROUND: Problem is the preview always start at 0,0
+    // And it moves via transform3d
+    // this.setInitialPreviewLocation(item); // NOTE: By this point there should already be a cached position of the cpr
+    
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
   }
 
   onDragMoved(event: CdkDragMove, item: CardPositionPerRoom): void {
+    // WORKAROUND: We'll programmatically set the custom preview's transform, we just need to make sure that we set it on drag start too
+    // They all have IDs, it should be apossible to grab them
+    /*let preview: HTMLElement | null = document.querySelector(
+      `[cpr-cdk-drag-preview-id="${item.cardPositionPerRoomId}"]`
+    ) as HTMLElement | null;
+    
+    if (!preview) 
+      return;
+
+    preview.style.transform = `translate3d(${event.pointerPosition.x}px, ${event.pointerPosition.y}px, 0) rotate(${item.dndRotation.degrees}deg)`;*/
+
     // TODO: If snap to grid, then run snap to grid else do what we have currently
     let snapToGrid: boolean = true;
   }

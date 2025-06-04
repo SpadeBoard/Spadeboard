@@ -1,6 +1,7 @@
 @if (unculledCprs.length > 0) {
     @for (cpr of unculledCprs; track cpr.cardPositionPerRoomId) {
     <div cdkDrag class="cpr-cdk-drag" 
+            [cdkDragPreviewContainer]="'parent'"
             [ngStyle]="{
                 left: getCardScreenPosition(cpr).x + 'px',
                 top: getCardScreenPosition(cpr).y + 'px',
@@ -15,6 +16,18 @@
             #cardsPositionPerRoom
         >
             <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" />
+
+            <!--<div *cdkDragPreview class="cpr-cdk-drag-preview"
+                [matchSize]="true"
+                [ngStyle]="{
+                    transform: 'translate3d(' + getCardScreenPosition(cpr).x + 'px, ' + getCardScreenPosition(cpr).y + 'px, 0) rotate(' + cpr.dndRotation.degrees + 'deg)'
+                }"
+                [attr.cpr-cdk-drag-preview-id]="cpr.cardPositionPerRoomId"
+            >
+                <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" /> 
+            </div>-->
+
+            <img *cdkDragPreview src="/blank-card-canvas.svg" [alt]="cpr.card.cardId"/>
     </div>
     }
 
