@@ -1,4 +1,23 @@
-.cpr-cdk {
+.cpr-cdk-drag {
     position: absolute;
     filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+    width: fit-content;
+    height: fit-content;
+}
+
+.cdk-drag-placeholder {
+  display: none;
+}
+
+/*
+WORKAROUND: 
+What happens is that when you start dragging, 
+the drag preview is always set at 0,0 for top and left
+and then it uses transform 3d
+*/
+.cdk-drag-preview.cpr-cdk-drag-preview {
+    position: absolute;
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+    width: fit-content;
+    height: fit-content;
 }
