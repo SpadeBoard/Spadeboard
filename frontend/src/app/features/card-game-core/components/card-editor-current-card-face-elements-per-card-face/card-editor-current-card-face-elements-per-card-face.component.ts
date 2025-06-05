@@ -121,6 +121,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.onSetX();
     this.onSetY();
 
+    this.postFlip();
+
     this.onCreateCard();
     this.onCreateCardFaceElementPerCardFace();
     this.onDeleteCardFaceElementPerCardFace();
@@ -156,6 +158,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         this.getCurrentCardFaceElementsPerCardFace();
         this.resetCardFaceElementAttributes();
       })
+  }
+
+  private postFlip() {
+    this.cardEditorPreviewService.postFlip$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.resetCardFaceElementAttributes();
+      });
   }
 
   resetCardFaceElementAttributes() {
@@ -452,6 +462,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         x: clampedDndPosition.x,
         y: clampedDndPosition.y
       }
+
+      this.setElementAttributesPosition(event.item.data.dndPosition);
       return;
       // Only update position if within bounds
       /*event.item.data.dndPosition = {
@@ -468,10 +480,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   setElementAttributesPosition(position: DndPosition) {
-    this.cardEditorControlsDesignElementAttributesService.coordinates = {
-      x: position.x,
-      y: position.y
-    }
+   this.cardEditorControlsDesignElementAttributesService.setX(position.x);
+   this.cardEditorControlsDesignElementAttributesService.setY(position.y);
   }
 
   updateCurrentCardEditorCardFaceDto() {
@@ -535,25 +545,38 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   setElementAttributes(cardFaceElementId: string) {
     this.setCurrentCardFaceElementId(cardFaceElementId);
 
-    console.log(`Set element attributes - Card face element ID: ${cardFaceElementId}, Current edited card face element ID: ${this.currentEditedCardFaceElementId}`);
-
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-    if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-      this.setElementAttributesPosition(cardFaceElementPerCardFace.dndPosition);
-      this.setElementAttributesDimensions(cardFaceElementPerCardFace.cardFaceElement.style);
-    
-      console.log(`After setting the other attributes - Card face element ID: ${cardFaceElementId}, Current edited card face element ID: ${this.currentEditedCardFaceElementId}`)
-    }
+    if (!cardFaceElementPerCardFace || !cardFaceElementPerCardFace.cardFaceElement.style)
+      throw new Error("No card face element per card face or style associated");
+
+    let style: Style = cardFaceElementPerCardFace.cardFaceElement.style;
+
+    this.setElementAttributesPosition(cardFaceElementPerCardFace.dndPosition);
+
+    let dimensions: Dimensions = {
+      width: this.parseNumeric(style.width as string),
+      height: this.parseNumeric(style.height as string)
+    };
+
+    this.setElementAttributesDimensions(dimensions);
+  }
+
+  parseNumeric(value: string | number): number {
+    if (typeof value === 'number') return value;
+    // Remove anything that's not a digit, decimal, or minus sign
+    let numeric = value.match(/-?\d+(\.\d+)?/);
+    return numeric ? parseFloat(numeric[0]) : 0;
   }
 
   setCurrentCardFaceElementId(cardFaceElementId: string) {
     this.currentEditedCardFaceElementId = cardFaceElementId;
     
-    this.cardEditorControlsDesignElementAttributesService.currentCardFaceElementId = this.currentEditedCardFaceElementId;
+    this.cardEditorControlsDesignElementAttributesService.currentCardFaceElementId.set(this.currentEditedCardFaceElementId);
   }
 
-  setElementAttributesDimensions(style: Style) {
-    this.cardEditorControlsDesignElementAttributesService.dimensions =  { width: parseFloat(style.width as string), height: parseFloat(style.height as string) };
+  setElementAttributesDimensions(dimensions: Dimensions) {
+    this.cardEditorControlsDesignElementAttributesService.setWidth(dimensions.width);
+    this.cardEditorControlsDesignElementAttributesService.setHeight(dimensions.height);
   }
 
   onFocusImage(cardFaceElementId: string) {
@@ -622,8 +645,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     cardFaceElementPerCardFace.cardFaceElement.style.width = `${dimensions.width}`;
     cardFaceElementPerCardFace.cardFaceElement.style.height = `${dimensions.height}`;
 
-    // NOTE: Setting the label
-    this.cardEditorControlsDesignElementAttributesService.dimensions = dimensions;
+   this.setElementAttributesDimensions(dimensions);
   }
 
   onSetWidth() {
@@ -634,10 +656,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe((width: number) => {
       let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+      
       if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-        cardFaceElementPerCardFace.cardFaceElement.style.width = `${width}`;
-
-        // console.log(`On set width - Card face element width: ${cardFaceElementPerCardFace.cardFaceElement.style.width}`);
+        cardFaceElementPerCardFace.cardFaceElement.style.width = `${width}px`;
       }
     })
   }
@@ -650,10 +671,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe((height: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+        
         if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-          cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}`;
-
-          // console.log(`On set height - Card face element height: ${cardFaceElementPerCardFace.cardFaceElement.style.height}`);
+          cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}px`;
         }
       })
   }
@@ -666,6 +686,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe((x: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+        
         if (cardFaceElementPerCardFace) {
           cardFaceElementPerCardFace.dndPosition.x = x;
         }
@@ -680,6 +701,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe((y: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+        
         if (cardFaceElementPerCardFace) {
           cardFaceElementPerCardFace.dndPosition.y = y;
         }
