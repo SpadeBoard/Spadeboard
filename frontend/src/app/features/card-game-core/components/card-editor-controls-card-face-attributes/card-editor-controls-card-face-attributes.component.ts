@@ -1,12 +1,12 @@
-import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { clamp } from '../../../../utils/utils';
+import { BorderDimensions } from '../../../style/models/style';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { BorderDimensions, Style } from '../../../style/models/style';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ColorPickerComponent } from '../color-picker/color-picker.component';
-import { FormsModule } from '@angular/forms';
 import { CardFaceAttributesBorderWidthComponent } from '../card-face-attributes-border-width/card-face-attributes-border-width.component';
-import { clamp } from '../../../../utils/utils';
+import { ColorPickerComponent } from '../color-picker/color-picker.component';
 @Component({
   selector: 'app-card-editor-controls-card-face-attributes',
   imports: [ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
@@ -14,8 +14,6 @@ import { clamp } from '../../../../utils/utils';
   styleUrl: './card-editor-controls-card-face-attributes.component.css'
 })
 export class CardEditorControlsCardFaceAttributesComponent {
-  private _borderColor: string = "";
-
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);
 
@@ -25,7 +23,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
   @ViewChild('borderRadiusInput') borderRadiusRef!: ElementRef<HTMLInputElement>;
 
   constructor() {
-    this.setCardFaceAttributes();
+    this.onSetCardEditorCardDtoByCardId();  
     this.postFlip();
   }
 
@@ -33,7 +31,15 @@ export class CardEditorControlsCardFaceAttributesComponent {
     this.cardEditorPreviewService.postFlip$
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
-        this.setCardFaceAttributes();
+        this.cardEditorControlsDesignCardFaceAttributesService.setCardFaceAttributes();
+      });
+  }
+
+  private onSetCardEditorCardDtoByCardId() {
+    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.cardEditorControlsDesignCardFaceAttributesService.setCardFaceAttributes();
       });
   }
 
@@ -137,49 +143,6 @@ export class CardEditorControlsCardFaceAttributesComponent {
 
       this.setBorderDimensions();
     }
-  }
-
-  // TODO: Do we just want to assign directly to the service
-  private setCardFaceAttributes() {
-    let currentCardFaceStyle: Style = this.cardEditorPreviewService.getCurrentCardFace().style;
-    this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? "#fefffe";
-
-    if (currentCardFaceStyle.borderRadius) {
-      // Because it's going to be in pxs
-      let numeric: string = currentCardFaceStyle.borderRadius.replace(/[^0-9.]/g, '');
-      if (numeric) {
-        this.borderRadius = parseFloat(numeric);
-      }
-    }
-
-    if (currentCardFaceStyle.borderWidth) {
-      let numericValue: RegExpMatchArray | null = currentCardFaceStyle.borderWidth.match(/[\d.]+/);
-
-      if (numericValue) {
-        this.borderWidth = parseFloat(numericValue[0]);
-
-        let input: string | undefined;
-        let match: RegExpMatchArray | null;
-
-        input = currentCardFaceStyle.borderTopWidth;
-        match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
-        this.borderTopWidth = match ? parseFloat(match[0]) : this.borderWidth;
-
-        input = currentCardFaceStyle.borderBottomWidth;
-        match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
-        this.borderBottomWidth = match ? parseFloat(match[0]) : this.borderWidth;
-
-        input = currentCardFaceStyle.borderLeftWidth;
-        match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
-        this.borderLeftWidth = match ? parseFloat(match[0]) : this.borderWidth;
-
-        input = currentCardFaceStyle.borderRightWidth;
-        match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
-        this.borderRightWidth = match ? parseFloat(match[0]) : this.borderWidth;
-      }
-    }
-
-    this.borderColor = (currentCardFaceStyle.borderColor) ?? "#fefffe";
   }
 
   get borderRadius() {

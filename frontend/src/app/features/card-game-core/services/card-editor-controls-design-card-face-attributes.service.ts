@@ -1,11 +1,14 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { BorderDimensions } from '../../style/models/style';
+import { BorderDimensions, Style } from '../../style/models/style';
+import { CardEditorPreviewService } from './card-editor-preview.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardEditorControlsDesignCardFaceAttributesService {
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  
   get height(): number {
     return this._height;
   }
@@ -38,8 +41,10 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     this._borderRadius = borderRadius;
   }
 
-  private _cardFaceColor: string = "#FFFFFF";
-  private _borderColor: string = "#FFFFFF";
+  // TODO: Use constants from the default style 
+  // Just get rid of the setters and getters, there's no point of having them
+  private _cardFaceColor: string = "#fefffe";
+  private _borderColor: string = "#fefffe";
 
   get borderColor(): string {
     return this._borderColor;
@@ -49,16 +54,16 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     this._borderColor = color;
   }
 
-  private _height: number = 0;
-  private _width: number = 0;
-  private _borderRadius: number = 0;
+  private _height: number = 415;
+  private _width: number = 351;
+  private _borderRadius: number = 10;
 
   private _borderDimensions: BorderDimensions = {
-    borderWidth: 0,
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-    borderLeftWidth: 0,
-    borderRightWidth: 0
+    borderWidth: 2,
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
+    borderLeftWidth: 2,
+    borderRightWidth: 2
   }
 
   get borderDimensions(): BorderDimensions {
@@ -120,5 +125,47 @@ export class CardEditorControlsDesignCardFaceAttributesService {
 
   setOnBorderWidthChange(borderWidth: number) {
    this.onBorderWidthChange$$.next(borderWidth);
+  }
+
+  setCardFaceAttributes() {
+    let currentCardFaceStyle: Style = this.cardEditorPreviewService.getCurrentCardFace().style;
+        this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? "#fefffe";
+    
+        if (currentCardFaceStyle.borderRadius) {
+          // Because it's going to be in pxs
+          let numeric: string = currentCardFaceStyle.borderRadius.replace(/[^0-9.]/g, '');
+          if (numeric) {
+            this.borderRadius = parseFloat(numeric);
+          }
+        }
+    
+        if (currentCardFaceStyle.borderWidth) {
+          let numericValue: RegExpMatchArray | null = currentCardFaceStyle.borderWidth.match(/[\d.]+/);
+    
+          if (numericValue) {
+            this.borderDimensions.borderWidth = parseFloat(numericValue[0]);
+    
+            let input: string | undefined;
+            let match: RegExpMatchArray | null;
+    
+            input = currentCardFaceStyle.borderTopWidth;
+            match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
+            this.borderDimensions.borderTopWidth = match ? parseFloat(match[0]) : this.borderDimensions.borderWidth;
+    
+            input = currentCardFaceStyle.borderBottomWidth;
+            match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
+            this.borderDimensions.borderBottomWidth = match ? parseFloat(match[0]) : this.borderDimensions.borderWidth;
+    
+            input = currentCardFaceStyle.borderLeftWidth;
+            match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
+            this.borderDimensions.borderLeftWidth = match ? parseFloat(match[0]) : this.borderDimensions.borderWidth;
+    
+            input = currentCardFaceStyle.borderRightWidth;
+            match = input ? input.match(/[+-]?\d*\.?\d+/) : null;
+            this.borderDimensions.borderRightWidth = match ? parseFloat(match[0]) : this.borderDimensions.borderWidth;
+          }
+        }
+    
+        this.borderColor = (currentCardFaceStyle.borderColor) ?? "#fefffe";
   }
 }
