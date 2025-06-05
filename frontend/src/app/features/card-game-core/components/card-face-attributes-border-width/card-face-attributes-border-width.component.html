@@ -7,7 +7,13 @@
             <span (click)="onMixedClick($event)">Mixed</span>
         }
         @else {
-            <input id="border-width-input" type="number" min="0.01" max="100" [(ngModel)]="$any(borderWidthValue)" (ngModelChange)="onBorderWidthChange($event)" />
+            <input 
+                id="border-width-input" 
+                type="number" 
+                [attr.min]="minBorderDimensions" 
+                [attr.max]="maxBorderDimensions" 
+                [(ngModel)]="$any(borderWidthValue)" 
+                #borderWidthInput />
         }
         <img src="/arrow-down.svg" class="dropdown-image"(click)="onDropdownActivation($event)"/>
     </div>
@@ -17,21 +23,49 @@
         <tr>
             <td>
                 <img src="/card-face-attributes_border-top-icon.svg"/>
-                <input id="top-edge" type="number" placeholder="T" min="0" max="500" [(ngModel)]="$any(borderTopWidthValue)">
+                <input 
+                    id="top-edge" 
+                    type="number" 
+                    placeholder="T" 
+                    [attr.min]="minBorderDimensions" 
+                    [attr.max]="maxBorderDimensions" 
+                    [(ngModel)]="$any(borderTopWidthValue)"
+                    #borderTopInput />
             </td>
             <td>
                 <img src="/card-face-attributes_border-bottom-icon.svg"/>
-                <input id="bottom-edge" type="number" placeholder="B" min="0" max="500" [(ngModel)]="$any(borderBottomWidthValue)">
+                <input 
+                    id="bottom-edge"
+                    type="number" 
+                    placeholder="B" 
+                    [attr.min]="minBorderDimensions" 
+                    [attr.max]="maxBorderDimensions" 
+                    [(ngModel)]="$any(borderBottomWidthValue)"
+                    #borderBottomInput/>
             </td>
         </tr>
         <tr>
             <td>
                 <img src="/card-face-attributes_border-left-icon.svg"/>
-                <input type="number" id="left-edge" placeholder="L" min="0" max="800" [(ngModel)]="$any(borderLeftWidthValue)">
+                <input 
+                    type="number" 
+                    id="left-edge" 
+                    placeholder="L" 
+                    [attr.min]="minBorderDimensions" 
+                    [attr.max]="maxBorderDimensions" 
+                    [(ngModel)]="$any(borderLeftWidthValue)"
+                    #borderLeftInput/>
             </td>
             <td>
                 <img src="/card-face-attributes_border-right-icon.svg"/>
-                <input id="right-edge" type="number" placeholder="R" min="0" max="500" [(ngModel)]="$any(borderRightWidthValue)"  >
+                <input 
+                    id="right-edge" 
+                    type="number" 
+                    placeholder="R" 
+                    [attr.min]="minBorderDimensions" 
+                    [attr.max]="maxBorderDimensions" 
+                    [(ngModel)]="$any(borderRightWidthValue)" 
+                    #borderRightInput/>
             </td>
         </tr>
     </table>
