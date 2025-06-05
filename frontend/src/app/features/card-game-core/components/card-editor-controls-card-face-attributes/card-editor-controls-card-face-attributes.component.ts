@@ -28,6 +28,10 @@ export class CardEditorControlsCardFaceAttributesComponent {
     this.postFlip();
   }
 
+  areDimensionsEqual(): boolean {
+    return this.cardEditorControlsDesignCardFaceAttributesService.areBorderDimensionsEqual();
+  }
+
   private postFlip() {
     this.cardEditorPreviewService.postFlip$
       .pipe(takeUntilDestroyed())
@@ -72,80 +76,6 @@ export class CardEditorControlsCardFaceAttributesComponent {
     }
   }
 
-  get borderWidth() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderWidth;
-  }
-
-  set borderWidth(newBorderWidth: number) {
-    if (this.borderWidth !== newBorderWidth) {
-      this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderWidth = newBorderWidth;
-
-      this.setBorderDimensions();
-    }
-  }
-
-  get borderTopWidth() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderTopWidth;
-  }
-
-  set borderTopWidth(newBorderTop: number) {
-    if (this.borderTopWidth !== newBorderTop) {
-      this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderTopWidth = newBorderTop;
-
-      this.setBorderDimensions();
-    }
-  }
-
-  get borderBottomWidth() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderBottomWidth;
-  }
-
-  set borderBottomWidth(newBorderBottom: number) {
-    if (this.borderBottomWidth !== newBorderBottom) {
-      this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderBottomWidth = newBorderBottom;
-
-      this.setBorderDimensions();
-    }
-  }
-
-  setBorderDimensions() {
-    let borderDimensions: BorderDimensions = {
-      borderWidth: this.borderWidth,
-      borderBottomWidth: this.borderBottomWidth,
-      borderTopWidth: this.borderTopWidth,
-      borderLeftWidth: this.borderLeftWidth,
-      borderRightWidth: this.borderRightWidth
-    }
-
-    this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions = borderDimensions;
-    this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderDimensionsChange(
-      borderDimensions);
-  }
-
-  get borderLeftWidth() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderLeftWidth;
-  }
-
-  set borderLeftWidth(newBorderLeft: number) {
-    if (this.borderLeftWidth !== newBorderLeft) {
-      this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderLeftWidth = newBorderLeft;
-
-      this.setBorderDimensions();
-    }
-  }
-
-  get borderRightWidth() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderRightWidth;
-  }
-
-  set borderRightWidth(newBorderRight: number) {
-    if (this.borderRightWidth !== newBorderRight) {
-      this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderRightWidth = newBorderRight;
-
-      this.setBorderDimensions();
-    }
-  }
-
   get borderRadius() {
     return this.cardEditorControlsDesignCardFaceAttributesService.borderRadius;
   }
@@ -174,17 +104,14 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   get height(): number {
-    // console.log(`Element attributes - Get Height`);
     return this.cardEditorControlsDesignCardFaceAttributesService.height;
   }
 
   get width(): number {
-    // console.log(`Element attributes - Get Width`);
     return this.cardEditorControlsDesignCardFaceAttributesService.width;
   }
 
   set height(height: number) {
-    // console.log(`Element attributes - Set Height`);
     // https://stackoverflow.com/a/63300675
     height = clamp(height, 0, MAX_CARD_FACE_HEIGHT);
 
@@ -197,7 +124,6 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   set width(width: number) {
-    // console.log(`Element attributes - Set Width`);
     width = clamp(width, 0, MAX_CARD_FACE_WIDTH);
 
     this.cardEditorControlsDesignCardFaceAttributesService.width = width;

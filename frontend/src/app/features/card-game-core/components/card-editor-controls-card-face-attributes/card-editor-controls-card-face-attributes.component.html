@@ -25,6 +25,8 @@
                 #borderRadiusInput/>
         </div>
         <app-color-picker [colorPickerName]="'Edge'" [(colorValue)]="borderColor" />
-        <app-card-face-attributes-border-width [(borderWidth)]="borderWidth" [(borderTopWidth)]="borderTopWidth" [(borderBottomWidth)]="borderBottomWidth"  [(borderLeftWidth)]="borderLeftWidth"  [(borderRightWidth)]="borderRightWidth" />
+        <app-card-face-attributes-border-width 
+            [(borderDimensions)]="borderDimensions" 
+            [areDimensionsEqual]="areDimensionsEqual()" />
     </div>
 </div>

@@ -23,10 +23,12 @@ export class CardEditorControlsDesignCardFaceAttributesService {
 
   borderDimensions: BorderDimensions = {
     borderWidth: DEFAULT_CARD_FACE_BORDER_WIDTH,
-    borderTopWidth: DEFAULT_CARD_FACE_BORDER_WIDTH,
-    borderBottomWidth: DEFAULT_CARD_FACE_BORDER_WIDTH,
-    borderLeftWidth: DEFAULT_CARD_FACE_BORDER_WIDTH,
-    borderRightWidth: DEFAULT_CARD_FACE_BORDER_WIDTH
+    borderRect: {
+      top: DEFAULT_CARD_FACE_BORDER_WIDTH,
+      bottom: DEFAULT_CARD_FACE_BORDER_WIDTH,
+      left: DEFAULT_CARD_FACE_BORDER_WIDTH,
+      right: DEFAULT_CARD_FACE_BORDER_WIDTH
+    }
   }
 
   cardFaceId: string = "";
@@ -113,27 +115,30 @@ export class CardEditorControlsDesignCardFaceAttributesService {
 
     return {
       borderWidth: defaultWidth,
-      borderTopWidth: this.parseBorderWidth(defaultWidth, style.borderTopWidth),
-      borderBottomWidth: this.parseBorderWidth(defaultWidth, style.borderBottomWidth),
-      borderLeftWidth: this.parseBorderWidth(defaultWidth, style.borderLeftWidth),
-      borderRightWidth: this.parseBorderWidth(defaultWidth, style.borderRightWidth),
+      borderRect: {
+        top: this.parseBorderWidth(defaultWidth, style.borderTopWidth),
+        bottom: this.parseBorderWidth(defaultWidth, style.borderBottomWidth),
+        left: this.parseBorderWidth(defaultWidth, style.borderLeftWidth),
+        right: this.parseBorderWidth(defaultWidth, style.borderRightWidth)
+      }
     };
   }
 
   areBorderDimensionsEqual(): boolean {
+    let {borderWidth} = this.borderDimensions;
+
     let {
-      borderWidth,
-      borderTopWidth,
-      borderBottomWidth,
-      borderLeftWidth,
-      borderRightWidth
-    } = this.borderDimensions;
+      top,
+      bottom,
+      left,
+      right
+    } = this.borderDimensions.borderRect;
 
     return (
-      borderWidth === borderTopWidth &&
-      borderWidth === borderBottomWidth &&
-      borderWidth === borderLeftWidth &&
-      borderWidth === borderRightWidth
+      borderWidth === top &&
+      borderWidth === bottom &&
+      borderWidth === left &&
+      borderWidth === right
     );
   }
 
