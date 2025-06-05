@@ -1,4 +1,7 @@
 // ASSUMPTIONS:
+
+import { Rect } from "../../../utils/utils";
+
 // Lots of extending interfaces
 export interface Style {
     styleId: string;
@@ -351,8 +354,5 @@ export interface Style {
 
 export interface BorderDimensions {
     borderWidth: number;
-    borderTopWidth: number;
-    borderBottomWidth: number;
-    borderLeftWidth: number;
-    borderRightWidth: number;
+    borderRect: Rect;
 }

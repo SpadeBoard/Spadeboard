@@ -2,6 +2,7 @@ import { CdkDrag, CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { Component, inject } from '@angular/core';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
+import { MAX_CURRENT_ELEMENTS_PER_CARD_FACE } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-editor-controls-card-face-elements-list',
@@ -28,6 +29,6 @@ export class CardEditorControlsCardFaceElementsListComponent {
   }
 
   getDisabledAesthetics(): number {
-    return (this.cardEditorPreviewService.getCurrentCardFaceElementsPerCardFaceAmt() >= this.cardEditorPreviewService.MAX_CURRENT_ELEMENTS_PER_CARD_FACE) ? 0.5 : 1;
+    return (this.cardEditorPreviewService.getCurrentCardFaceElementsPerCardFaceAmt() >= MAX_CURRENT_ELEMENTS_PER_CARD_FACE) ? 0.5 : 1;
   }
 }

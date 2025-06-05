@@ -1,62 +1,40 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { BorderDimensions } from '../../style/models/style';
+import { BorderDimensions, Style } from '../../style/models/style';
+import { CardFace } from '../models/card-face';
+import { DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
+import { CardEditorPreviewService } from './card-editor-preview.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardEditorControlsDesignCardFaceAttributesService {
-  get height(): number {
-    return this._height;
-  }
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  
+  cardFaceColor: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+  borderColor: string = DEFAULT_CARD_FACE_BORDER_COLOR;
 
-  get width(): number {
-    return this._width;
-  }
+  height: number = DEFAULT_CARD_FACE_HEIGHT;
+  width: number = DEFAULT_CARD_FACE_WIDTH;
+  borderRadius: number = DEFAULT_CARD_FACE_BORDER_RADIUS;
 
-  set height(height: number) {
-    this._height = height;
-  }
-
-  set width( width: number) {
-    this._width =  width;
-  }
-
-  get borderRadius(): number {
-    return this._borderRadius;
-  }
-
-  set borderRadius(borderRadius: number) {
-    this._borderRadius = borderRadius;
-  }
-
-  private _height: number = 0;
-  private _width: number = 0;
-  private _borderRadius: number = 0;
-
-  private _borderDimensions: BorderDimensions = {
-    borderWidth: 0,
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-    borderLeftWidth: 0,
-    borderRightWidth: 0
-  }
-
-  get borderDimensions(): BorderDimensions {
-    return this._borderDimensions;
-  }
-
-  set borderDimensions(borderDimensions: BorderDimensions) {
-    this._borderDimensions = borderDimensions;
+  borderDimensions: BorderDimensions = {
+    borderWidth: DEFAULT_CARD_FACE_BORDER_WIDTH,
+    borderRect: {
+      top: DEFAULT_CARD_FACE_BORDER_WIDTH,
+      bottom: DEFAULT_CARD_FACE_BORDER_WIDTH,
+      left: DEFAULT_CARD_FACE_BORDER_WIDTH,
+      right: DEFAULT_CARD_FACE_BORDER_WIDTH
+    }
   }
 
   cardFaceId: string = "";
 
-   private onSetWidth$$ = new Subject<number>();
-    onSetWidth$: Observable<number> = this.onSetWidth$$.asObservable();
-  
-    private onSetHeight$$ = new Subject<number>();
-    onSetHeight$: Observable<number> = this.onSetHeight$$.asObservable();
+  private onSetWidth$$ = new Subject<number>();
+  onSetWidth$: Observable<number> = this.onSetWidth$$.asObservable();
+
+  private onSetHeight$$ = new Subject<number>();
+  onSetHeight$: Observable<number> = this.onSetHeight$$.asObservable();
 
   private onFaceColorChange$$: Subject<string> = new Subject<string>();
   onFaceColorChange$: Observable<string> = this.onFaceColorChange$$.asObservable();
@@ -101,5 +79,88 @@ export class CardEditorControlsDesignCardFaceAttributesService {
 
   setOnBorderWidthChange(borderWidth: number) {
    this.onBorderWidthChange$$.next(borderWidth);
+  }
+
+  setCurrentCardFaceId() {
+    let currentCardFace: CardFace = this.cardEditorPreviewService.getCurrentCardFace();
+    this.cardFaceId = currentCardFace.cardFaceId;
+  }
+
+  setCardFaceAttributes() {
+    let currentCardFace: CardFace = this.cardEditorPreviewService.getCurrentCardFace();
+
+    this.cardFaceId = currentCardFace.cardFaceId;
+    let currentCardFaceStyle: Style = currentCardFace.style;
+
+    this.width =  this.extractCardFaceWidth(currentCardFaceStyle.width) ?? DEFAULT_CARD_FACE_WIDTH;
+    this.height = this.extractCardFaceHeight(currentCardFaceStyle.height) ?? DEFAULT_CARD_FACE_HEIGHT;
+    
+    this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+    this.borderRadius = this.extractBorderRadius(currentCardFaceStyle.borderRadius);
+    this.borderDimensions = this.extractBorderDimensions(currentCardFaceStyle);
+    this.borderColor = (currentCardFaceStyle.borderColor) ?? DEFAULT_CARD_FACE_BORDER_COLOR;
+  }
+
+  private extractCardFaceWidth(width?: string): number {
+    if (!width)
+      return DEFAULT_CARD_FACE_WIDTH;
+
+    let numeric: string = width.replace(/[^0-9.]/g, '');
+    return parseFloat(numeric);
+  }
+
+  private extractCardFaceHeight(height?: string): number {
+    if (!height)
+      return DEFAULT_CARD_FACE_HEIGHT
+
+    let numeric: string = height.replace(/[^0-9.]/g, '');
+    return parseFloat(numeric);
+  }
+
+  private extractBorderRadius(borderRadius?: string): number {
+    if (!borderRadius) {
+      return DEFAULT_CARD_FACE_BORDER_RADIUS;
+    }
+
+    let numeric: string = borderRadius.replace(/[^0-9.]/g, '');
+    return parseFloat(numeric);
+  }
+
+  private extractBorderDimensions(style: Style): BorderDimensions {
+    let defaultWidth: number = this.parseBorderWidth(DEFAULT_CARD_FACE_BORDER_WIDTH, style.borderWidth);
+
+    return {
+      borderWidth: defaultWidth,
+      borderRect: {
+        top: this.parseBorderWidth(defaultWidth, style.borderTopWidth),
+        bottom: this.parseBorderWidth(defaultWidth, style.borderBottomWidth),
+        left: this.parseBorderWidth(defaultWidth, style.borderLeftWidth),
+        right: this.parseBorderWidth(defaultWidth, style.borderRightWidth)
+      }
+    };
+  }
+
+  areBorderDimensionsEqual(): boolean {
+    let {borderWidth} = this.borderDimensions;
+
+    let {
+      top,
+      bottom,
+      left,
+      right
+    } = this.borderDimensions.borderRect;
+
+    return (
+      borderWidth === top &&
+      borderWidth === bottom &&
+      borderWidth === left &&
+      borderWidth === right
+    );
+  }
+
+  private parseBorderWidth(fallback: number, value?: string,): number {
+    if (!value) return fallback;
+    let match: RegExpMatchArray | null = value.match(/[+-]?\d*\.?\d+/);
+    return match ? parseFloat(match[0]) : fallback;
   }
 }

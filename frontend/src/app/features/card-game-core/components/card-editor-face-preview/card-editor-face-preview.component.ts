@@ -13,6 +13,7 @@ import { CardEditorCardDto } from '../../models/card';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
+import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -99,7 +100,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   borderRadius: number = 2;
       
   constructor() {
-    this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
+    this.cardEditorControlsDesignCardFaceAttributesService.setCurrentCardFaceId();
   }
 
   ngOnInit() {
@@ -173,40 +174,62 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
     let filtered: Omit<Style, "styleId"> = filterAgainstNull(rest);
 
-    let service = this.cardEditorControlsDesignCardFaceAttributesService;
+   // Get the correct border width properties
+    let borderWidthProps: Omit<Style, 'styleId'> = this.getBorderWidthStyle(filtered);
 
-    if (filtered.width)
-      service.width = parseFloat(String(filtered.width).replace(/[^0-9.\-]+/g, ''));
+    // Remove all border width properties from filtered to avoid duplication
+    let {
+      borderTopWidth,
+      borderRightWidth,
+      borderBottomWidth,
+      borderLeftWidth,
+      borderWidth,
 
-    if (filtered.height)
-      service.height = parseFloat(String(filtered.height).replace(/[^0-9.\-]+/g, ''));
+      ...other
+    } = filtered;
 
-    if (filtered.borderRadius)
-      this.borderRadius = parseFloat(String(filtered.borderRadius).replace(/[^0-9.\-]+/g, ''));
+    // Merge the border width props with the rest of the styles
+    let final: Omit<Style, "styleId"> = {
+      ...other,
+      ...borderWidthProps
+    };
 
-    if (filtered.borderWidth) 
-      service.borderDimensions.borderWidth = parseFloat(String(filtered.borderWidth).replace(/[^0-9.\-]+/g, ''));
-
-    let fallback = service.borderDimensions.borderWidth;
-
-    service.borderDimensions.borderTopWidth = this.parseBorderWidth(filtered.borderTopWidth, fallback);
-    service.borderDimensions.borderBottomWidth = this.parseBorderWidth(filtered.borderBottomWidth, fallback);
-    service.borderDimensions.borderLeftWidth = this.parseBorderWidth(filtered.borderLeftWidth, fallback);
-    service.borderDimensions.borderRightWidth = this.parseBorderWidth(filtered.borderRightWidth, fallback);
-
-    // Problem is since border width is after the individual borders in terms of order, it'll override those so we need to do this
-    let reordered: Omit<Style, "styleId"> = this.reorderBorderDimensions(filtered);
-
-    // TODO: We refactor to have border dimensions inside of the service then pass that back in
-
-    console.log(`Get card editor face style: ${JSON.stringify(reordered)}`);
-    return reordered;
+    console.log(`Get card editor face style: ${JSON.stringify(final)}`);
+    return final;
   }
 
-  parseBorderWidth(value: any, fallback: number): number {
+  getBorderWidthStyle(style: Style | Omit<Style, 'styleId'>): Omit<Style, 'styleId'> {
+    let { borderTopWidth, borderRightWidth, borderBottomWidth, borderLeftWidth, borderWidth } = style;
+
+    // ASSUMPTION: All sides will always have a value or no sides have value at all
+    if (
+      (borderTopWidth === borderRightWidth &&
+        borderTopWidth === borderBottomWidth &&
+        borderTopWidth === borderLeftWidth) 
+        || 
+      (!borderTopWidth || 
+        !borderBottomWidth || 
+        !borderLeftWidth || 
+        !borderRightWidth
+      )
+    ) {
+      // All sides are equal or missing at least one, use shorthand
+      return { borderWidth };
+    } else {
+      // Sides are not equal, use individual sides
+      return {
+        borderTopWidth,
+        borderRightWidth,
+        borderBottomWidth,
+        borderLeftWidth
+      };
+    }
+  }
+
+  /*parseBorderWidth(value: any, fallback: number): number {
     let parsed = parseFloat(String(value).replace(/[^0-9.\-]+/g, ''));
     return isNaN(parsed) ? fallback : parsed;
-  }
+  }*/
 
   reorderBorderDimensions(filtered: Omit<Style, "styleId">): Omit<Style, "styleId"> {
     let reordered: Partial<Omit<Style, "styleId">> = {};
@@ -230,13 +253,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   // TODO: If style of card face is passed in, get the aspect ratio and set the card editor face style
   setCardEditorFaceStyle(style?: Style): void {
-    let placeholder: Style = this.cardEditorPreviewService.defaultCardEditorFaceStyle;
-
-    if (style) {
-      placeholder = style;
-    }
- 
-    this.updateCurrentCardEditorCardFaceDto(placeholder);
+    if (style) { this.updateCurrentCardEditorCardFaceDto(style); }
   }
 
   updateCurrentCardEditorCardFaceDto(currentCardFaceStyle: Style) {
@@ -251,16 +268,24 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((borderDimensions: BorderDimensions) => {
-      let face = this.cardEditorPreviewService.getCurrentCardFace();
-      if (face && face.style) {
-        face.style.borderWidth = `${borderDimensions.borderWidth}px`;
-        face.style.borderTopWidth = `${borderDimensions.borderTopWidth}px`;
-        face.style.borderBottomWidth = `${borderDimensions.borderBottomWidth}px`;
-        face.style.borderLeftWidth = `${borderDimensions.borderLeftWidth}px`;
-        face.style.borderRightWidth = `${borderDimensions.borderRightWidth}px`;
-      }
+      let face = this.cardEditorPreviewService.getCurrentCardFace().style;
 
-      this.setCardEditorFaceStyle(face.style);
+      if (!face || !borderDimensions)
+        return;
+        let {
+          top,
+          bottom,
+          left,
+          right
+        } = borderDimensions.borderRect;
+
+        face.borderWidth = `${borderDimensions.borderWidth}px`;
+        face.borderTopWidth = `${top}px`;
+        face.borderBottomWidth = `${bottom}px`;
+        face.borderLeftWidth = `${left}px`;
+        face.borderRightWidth = `${right}px`;
+
+      this.setCardEditorFaceStyle(face);
     })
   }
 
@@ -269,7 +294,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((width: number) => {
-      width = clamp(width, 0, this.cardEditorPreviewService.MAX_CARD_FACE_WIDTH);
+      width = clamp(width, MIN_CARD_FACE_WIDTH, MAX_CARD_FACE_WIDTH);
       
       let face = this.cardEditorPreviewService.getCurrentCardFace();
       if (face && face.style) {
@@ -285,7 +310,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((height: number) => {
-      height = clamp(height, 0, this.cardEditorPreviewService.MAX_CARD_FACE_HEIGHT);
+      height = clamp(height, MIN_CARD_FACE_HEIGHT, MAX_CARD_FACE_HEIGHT);
       
       let face = this.cardEditorPreviewService.getCurrentCardFace();
       if (face && face.style) {
@@ -348,8 +373,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         this.updateCardEditorCardFaceDto();
 
         this.cardEditorPreviewService.onFlipCurrentCardFace();
-
-        this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
         this.cardFaceElementsPerCardFace.getCurrentCardFaceElementsPerCardFace();
       });
   }
@@ -403,7 +426,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardEditorPreviewService.onCreateCard$.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-        this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
+        this.cardEditorControlsDesignCardFaceAttributesService.setCurrentCardFaceId();
     })
   }
 
