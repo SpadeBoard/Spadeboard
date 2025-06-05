@@ -1,11 +1,8 @@
 import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
-import { CardPositionPerRoomApiService } from '../../card-game-core/services/card-game-core/card-position-per-room-api.service';
-import { CardPositionPerRoom } from '../../card-game-core/models/card';
-import { DndBoardService } from '../../drag-and-drop/services/dnd-board.service';
-import { BehaviorSubject, interval, Observable, Subject, tap } from 'rxjs';
-import { GameRoomApiService } from './game-room-api.service';
-import { GameRoom } from '../models/game-room/game-room';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval, Observable, Subject, tap } from 'rxjs';
+import { GameRoom } from '../models/game-room/game-room';
+import { GameRoomApiService } from './game-room-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -28,14 +25,14 @@ export class GameRoomService {
   }
 
   getGameRoom$(): Observable<GameRoom | undefined> {
-  return this.gameRoomApiService.getGameRoom$(this.currentGameRoomId()).pipe(
-    tap((gameRoom: GameRoom | undefined) => {
-      if (gameRoom) {
-        this.autosaveInterval.set(gameRoom.autosaveInterval);
-      }
-    })
-  );
-}
+    return this.gameRoomApiService.getGameRoom$(this.currentGameRoomId()).pipe(
+      tap((gameRoom: GameRoom | undefined) => {
+        if (gameRoom) {
+          this.autosaveInterval.set(gameRoom.autosaveInterval);
+        }
+      })
+    );
+  }
 
   setCurrentGameRoomId(newCurrentGameRoomId: string) {
     this.currentGameRoomId.set(newCurrentGameRoomId);
