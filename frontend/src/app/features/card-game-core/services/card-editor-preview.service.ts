@@ -13,7 +13,7 @@ import { isCardEditorCardDto } from '../utils/card-game-core.utils';
 import { CardApiService } from './card-game-core/card-api.service';
 import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
-import { DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
+import { DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH, getBlankCardTemplate, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
 
 @Injectable({
   providedIn: 'root'
@@ -26,52 +26,8 @@ export class CardEditorPreviewService {
   
   private destroyRef: DestroyRef = inject(DestroyRef);
 
-  defaultCardEditorFaceStyle: Style = {
-    styleId: "0",
-    backgroundColor: DEFAULT_CARD_FACE_BACKGROUND_COLOR,
-    width: `${DEFAULT_CARD_FACE_WIDTH}px`,
-    height: `${DEFAULT_CARD_FACE_HEIGHT}px`,
-    minWidth: `${MIN_CARD_FACE_WIDTH}px`,
-    minHeight: `${MIN_CARD_FACE_HEIGHT}px`,
-    maxWidth: `${MAX_CARD_FACE_WIDTH}px`,
-    maxHeight: `${MAX_CARD_FACE_HEIGHT}px`,
-    display: 'block',
-    position: 'relative',
-    borderRadius: `${DEFAULT_CARD_FACE_BORDER_RADIUS}px`,
-    borderStyle: 'solid', // Set border left width, etc.
-    borderColor: DEFAULT_CARD_FACE_BORDER_COLOR,
-    borderWidth: `${DEFAULT_CARD_FACE_BORDER_WIDTH}px`,
-    fontSize: '14px'
-    /*overflow: hidden;*/
-  }
-
   // FIXME: Reset this everytime you open the card editor via the button on the side
-  cardEditorCardDto: CardEditorCardDto = {
-    card: {
-      cardId: "0",
-      currentCardFaceIndex: 0,
-      cardName: '',
-      isTemplate: false
-    },
-    ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
-    cardEditorCardFacesDto: [
-      {
-        cardFace: {
-          cardFaceId: "0",
-          style: {...this.defaultCardEditorFaceStyle}, //FIXED: What was happening is that due to them sharing the same reference to the same object, they were both being updated simultaneously. Because when you assign style to this.defaultCardEditorFaceStyle, you're not assigning by value, you're literally equating it to the object itself. AGH.  When you later update face.style (e.g., set borderRadius or backgroundColor), you are mutating that single object, so both card faces reflect the change.
-        },
-        cardFaceElementsPerCardFace: [
-        ]
-      },
-      {
-        cardFace: {
-          cardFaceId: "-1",
-          style: {...this.defaultCardEditorFaceStyle},
-        },
-        cardFaceElementsPerCardFace: []
-      }
-    ]
-  };
+  cardEditorCardDto: CardEditorCardDto = getBlankCardTemplate(DEFAULT_CARD_EDITOR_FACE_STYLE, '5811e387-1551-4090-9485-a3ebe30efb5a');
 
   currentCardEditorCardFaceDto: CardEditorCardFaceDto = {
     cardFace: {
@@ -117,32 +73,7 @@ export class CardEditorPreviewService {
 
   // NOTE: For when clicking on a blank card template
   setBlankCardTemplate() {
-    this.cardEditorCardDto = {
-      card: {
-        cardId: "0",
-        currentCardFaceIndex: 0,
-        cardName: '',
-        isTemplate: false
-      },
-      ownerId: '5811e387-1551-4090-9485-a3ebe30efb5a',
-      cardEditorCardFacesDto: [
-        {
-          cardFace: {
-            cardFaceId: "0",
-            style: {...this.defaultCardEditorFaceStyle},
-          },
-          cardFaceElementsPerCardFace: [
-          ]
-        },
-        {
-          cardFace: {
-            cardFaceId: "-1",
-            style: {...this.defaultCardEditorFaceStyle},
-          },
-          cardFaceElementsPerCardFace: []
-        }
-      ]
-    };
+    this.cardEditorCardDto = getBlankCardTemplate(DEFAULT_CARD_EDITOR_FACE_STYLE, '5811e387-1551-4090-9485-a3ebe30efb5a');
   }
 
   setCardEditorCardDtoByCardId(cardId: string) {
@@ -151,6 +82,7 @@ export class CardEditorPreviewService {
 
     if (parseFloat(cardId) <= 0) {
       this.setBlankCardTemplate() ;
+
       this.reloadCurrentCardEditorCardFaceDto();
       this.setOnSetCardEditorCardDtoByCardId();
       return;
@@ -179,6 +111,7 @@ export class CardEditorPreviewService {
   private handleCardEditorCardDto(cardEditorCardDto: CardEditorCardDto | undefined) {
     if (cardEditorCardDto) {
       this.cardEditorCardDto = cardEditorCardDto;
+
       this.reloadCurrentCardEditorCardFaceDto();
       this.setOnSetCardEditorCardDtoByCardId();
     }
@@ -243,7 +176,6 @@ export class CardEditorPreviewService {
   }
 
   constructor() {
-    // this.setBlankCardTemplate();
     this.setCurrentCardEditorCardFaceDto();
 
     effect(() => {
