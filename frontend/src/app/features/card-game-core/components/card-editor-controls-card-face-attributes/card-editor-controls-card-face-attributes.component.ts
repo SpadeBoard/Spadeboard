@@ -130,9 +130,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
     this.cardEditorControlsDesignCardFaceAttributesService.height = height;
     this.cardEditorControlsDesignCardFaceAttributesService.setHeight(height);
 
-    if (this.heightRef && this.heightRef.nativeElement && this.heightRef.nativeElement.value !== `${height}`) {
-      this.heightRef.nativeElement.value = `${height}`;
-    }
+    if (this.heightRef.nativeElement) this.heightRef.nativeElement.value = `${height}`;
   }
 
   set width(width: number) {
@@ -141,9 +139,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
     this.cardEditorControlsDesignCardFaceAttributesService.width = width;
     this.cardEditorControlsDesignCardFaceAttributesService.setWidth(width);
 
-    if (this.widthRef && this.widthRef.nativeElement && this.widthRef.nativeElement.value !== `${width}`) {
-      this.widthRef.nativeElement.value = `${width}`;
-    }
+    if (this.widthRef.nativeElement) this.widthRef.nativeElement.value = `${width}`;
   }
 
   get borderDimensions(): BorderDimensions {

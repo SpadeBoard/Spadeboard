@@ -91,11 +91,30 @@ export class CardEditorControlsDesignCardFaceAttributesService {
 
     this.cardFaceId = currentCardFace.cardFaceId;
     let currentCardFaceStyle: Style = currentCardFace.style;
+
+    this.width =  this.extractCardFaceWidth(currentCardFaceStyle.width) ?? DEFAULT_CARD_FACE_WIDTH;
+    this.height = this.extractCardFaceHeight(currentCardFaceStyle.height) ?? DEFAULT_CARD_FACE_HEIGHT;
     
     this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? DEFAULT_CARD_FACE_BACKGROUND_COLOR;
     this.borderRadius = this.extractBorderRadius(currentCardFaceStyle.borderRadius);
     this.borderDimensions = this.extractBorderDimensions(currentCardFaceStyle);
     this.borderColor = (currentCardFaceStyle.borderColor) ?? DEFAULT_CARD_FACE_BORDER_COLOR;
+  }
+
+  private extractCardFaceWidth(width?: string): number {
+    if (!width)
+      return DEFAULT_CARD_FACE_WIDTH;
+
+    let numeric: string = width.replace(/[^0-9.]/g, '');
+    return parseFloat(numeric);
+  }
+
+  private extractCardFaceHeight(height?: string): number {
+    if (!height)
+      return DEFAULT_CARD_FACE_HEIGHT
+
+    let numeric: string = height.replace(/[^0-9.]/g, '');
+    return parseFloat(numeric);
   }
 
   private extractBorderRadius(borderRadius?: string): number {
