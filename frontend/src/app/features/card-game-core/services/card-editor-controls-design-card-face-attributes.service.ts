@@ -1,10 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { BorderDimensions, Style } from '../../style/models/style';
-import { CardEditorPreviewService } from './card-editor-preview.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardFace } from '../models/card-face';
 import { DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
+import { CardEditorPreviewService } from './card-editor-preview.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +11,6 @@ import { DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEF
 export class CardEditorControlsDesignCardFaceAttributesService {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
   
-  // TODO: Use constants from the default style 
-  // Just get rid of the setters and getters, there's no point of having them
   cardFaceColor: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
   borderColor: string = DEFAULT_CARD_FACE_BORDER_COLOR;
 
