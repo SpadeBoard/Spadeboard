@@ -15,6 +15,8 @@ namespace Models.GameRooms
         public long Id { get => GameRoomId; set => GameRoomId = value; }
 
         public int AutosaveInterval {get; set;} = 300000;
+
+        public int DndBoardSize { get; set;} = 1000;
     }
 
     public class GameRoomDto
@@ -22,5 +24,7 @@ namespace Models.GameRooms
         public string GameRoomId { get; set; } = "0";
 
          public int AutosaveInterval {get; set;} = 300000;
+
+         public int DndBoardSize { get; set;} = 1000;
     }
 }
