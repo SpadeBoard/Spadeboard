@@ -13,46 +13,38 @@ export class CardEditorControlsElementAttributesComponent {
   readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);
 
   get height(): number {
-    // console.log(`Element attributes - Get Height`);
-    return this.cardEditorControlsDesignElementAttributesService.height;
+    return this.cardEditorControlsDesignElementAttributesService.dimensions.height;
   }
 
   get width(): number {
-    // console.log(`Element attributes - Get Width`);
-    return this.cardEditorControlsDesignElementAttributesService.width;
+    return this.cardEditorControlsDesignElementAttributesService.dimensions.width;
   }
 
   get x(): number {
-    // console.log(`Element attributes - Get X`);
-    return this.cardEditorControlsDesignElementAttributesService.x;
+    return this.cardEditorControlsDesignElementAttributesService.coordinates.x;
   }
 
   get y(): number {
-    // console.log(`Element attributes - Get Y`);
-    return this.cardEditorControlsDesignElementAttributesService.y;
+    return this.cardEditorControlsDesignElementAttributesService.coordinates.y;
   }
 
   set height(height: number) {
-    // console.log(`Element attributes - Set Height`);
-    this.cardEditorControlsDesignElementAttributesService.height = height;
+    this.cardEditorControlsDesignElementAttributesService.dimensions.height = height;
     this.cardEditorControlsDesignElementAttributesService.setHeight(height);
   }
 
   set width(width: number) {
-    // console.log(`Element attributes - Set Width`);
-    this.cardEditorControlsDesignElementAttributesService.width = width;
+    this.cardEditorControlsDesignElementAttributesService.dimensions.width = width;
     this.cardEditorControlsDesignElementAttributesService.setWidth(width);
   }
 
   set x(x: number) {
-    // console.log(`Element attributes - Set X`);
-    this.cardEditorControlsDesignElementAttributesService.x = x;
+    this.cardEditorControlsDesignElementAttributesService.coordinates.x = x;
     this.cardEditorControlsDesignElementAttributesService.setX(x);
   }
 
   set y(y: number) {
-    // console.log(`Element attributes - Set Y`);
-    this.cardEditorControlsDesignElementAttributesService.y = y;
+    this.cardEditorControlsDesignElementAttributesService.coordinates.y = y;
     this.cardEditorControlsDesignElementAttributesService.setY(y);
   }
 

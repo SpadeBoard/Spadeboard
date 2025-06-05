@@ -1,27 +1,24 @@
-import { AfterViewInit, Component, computed, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChild, ViewChildren } from '@angular/core';
-import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDragHandle, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
-import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from '../../models/card-face-element';
-import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
-import { getCardFaceElementImage, getCardFaceElementRt, isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { Style } from '../../../style/models/style';
-import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
-import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
-import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
+import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
-import { blobToDataURL, clamp, Coordinates, moveToBack, moveToFront } from '../../../../utils/utils';
-import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
-import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
-import { distinctUntilChanged, EMPTY, from, switchMap } from 'rxjs';
-import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
-import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
-import { filterAgainstNull } from '../../../style/utils/get-style';
+import { AfterViewInit, Component, computed, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChild, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { distinctUntilChanged, from, switchMap } from 'rxjs';
 import { FileMetadata } from '../../../../utils/models/file-metadata';
+import { blobToDataURL, clamp, Coordinates, Dimensions, Threshold } from '../../../../utils/utils';
+import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
+import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
+import { Style } from '../../../style/models/style';
+import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from '../../models/card-face-element';
+import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
+import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
+import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
 import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
-import { MAX_CURRENT_ELEMENTS_PER_CARD_FACE } from '../../utils/card-editor.constants';
+import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MAX_CURRENT_ELEMENTS_PER_CARD_FACE, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { getCardFaceElementImage, getCardFaceElementRt, isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
+import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
+import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
+import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -32,6 +29,7 @@ import { MAX_CURRENT_ELEMENTS_PER_CARD_FACE } from '../../utils/card-editor.cons
 })
 export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements AfterViewInit {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  
   private readonly cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
   private readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);
@@ -53,10 +51,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.mousePosition = {x: event.clientX, y: event.clientY};
   }
 
-  private dragOffset: Coordinates = {x: 0, y: 0};
-  private mousePosition: Coordinates = {x:0, y: 0};
+  private dragOffset: Coordinates = { x: 0, y: 0 };
+  private mousePosition: Coordinates = { x: 0, y: 0 };
 
-  currentEditedCardFaceElementId: string = "-1";
+  currentEditedCardFaceElementId: string = DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID;
 
   position: DndPosition = {
     dndPositionId: "0",
@@ -162,15 +160,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   resetCardFaceElementAttributes() {
     this.onDisableRte();
-    
-    this.currentEditedCardFaceElementId = ""; // Resets what's being selected
-    this.cardEditorControlsDesignElementAttributesService.setCurrentCardFaceElementId(this.currentEditedCardFaceElementId); 
+    this.currentEditedCardFaceElementId = DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID; // Resets what's being selected
 
-    this.cardEditorControlsDesignElementAttributesService.x = 0;
-    this.cardEditorControlsDesignElementAttributesService.y = 0;
-
-    this.cardEditorControlsDesignElementAttributesService.width =0;
-    this.cardEditorControlsDesignElementAttributesService.height =0;
+    this.cardEditorControlsDesignElementAttributesService.resetCardFaceElementAttributes();
   }
 
   private onDeleteCardFaceElementPerCardFace() {
@@ -476,8 +468,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   setElementAttributesPosition(position: DndPosition) {
-    this.cardEditorControlsDesignElementAttributesService.x = position.x;
-    this.cardEditorControlsDesignElementAttributesService.y = position.y;
+    this.cardEditorControlsDesignElementAttributesService.coordinates = {
+      x: position.x,
+      y: position.y
+    }
   }
 
   updateCurrentCardEditorCardFaceDto() {
@@ -545,7 +539,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
     if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-      this.setElementAttributesDndPosition(cardFaceElementPerCardFace.dndPosition);
+      this.setElementAttributesPosition(cardFaceElementPerCardFace.dndPosition);
       this.setElementAttributesDimensions(cardFaceElementPerCardFace.cardFaceElement.style);
     
       console.log(`After setting the other attributes - Card face element ID: ${cardFaceElementId}, Current edited card face element ID: ${this.currentEditedCardFaceElementId}`)
@@ -554,22 +548,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
   setCurrentCardFaceElementId(cardFaceElementId: string) {
     this.currentEditedCardFaceElementId = cardFaceElementId;
-    this.cardEditorControlsDesignElementAttributesService.setCurrentCardFaceElementId(this.currentEditedCardFaceElementId);
-  }
-
-  setElementAttributesDndPosition(dndPosition: DndPosition) {
-    this.cardEditorControlsDesignElementAttributesService.x = dndPosition.x;
-    this.cardEditorControlsDesignElementAttributesService.y = dndPosition.y;
+    
+    this.cardEditorControlsDesignElementAttributesService.currentCardFaceElementId = this.currentEditedCardFaceElementId;
   }
 
   setElementAttributesDimensions(style: Style) {
-    let dimensions: {
-      width: number,
-      height: number
-    } = { width: parseFloat(style.width as string), height: parseFloat(style.height as string) };
-
-    this.cardEditorControlsDesignElementAttributesService.width = dimensions.width;
-    this.cardEditorControlsDesignElementAttributesService.height = dimensions.height;
+    this.cardEditorControlsDesignElementAttributesService.dimensions =  { width: parseFloat(style.width as string), height: parseFloat(style.height as string) };
   }
 
   onFocusImage(cardFaceElementId: string) {
@@ -619,23 +603,27 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     })
   }
 
-  onResizableChange(dimensions: {
-    width: number;
-    height: number;
-  }) {
+  // TODO: Rework this, because cards have different max widths and heights
+  getResizeThreshold(): Threshold {
+    return {
+      min: MIN_CARD_FACE_WIDTH,
+      max: MAX_CARD_FACE_HEIGHT
+    }
+  }
+
+  onResizableChange(dimensions: Dimensions) {
     console.log(`On Dimensions change - Current edited card face element ID: ${this.currentEditedCardFaceElementId}, Image HTML Content Attributes: ${JSON.stringify(dimensions)}`);
 
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-    if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-      cardFaceElementPerCardFace.cardFaceElement.style.width = `${dimensions.width}`;
-      cardFaceElementPerCardFace.cardFaceElement.style.height = `${dimensions.height}`;
-    
-      console.log(`On Dimensions change - Current edited card face element ID: ${this.currentEditedCardFaceElementId}, Card face element style: ${JSON.stringify(filterAgainstNull(cardFaceElementPerCardFace.cardFaceElement.style))}`);
-    }
+
+    if (!cardFaceElementPerCardFace || !cardFaceElementPerCardFace.cardFaceElement.style)
+      throw new Error("No card face element associated with resizable change?");
+
+    cardFaceElementPerCardFace.cardFaceElement.style.width = `${dimensions.width}`;
+    cardFaceElementPerCardFace.cardFaceElement.style.height = `${dimensions.height}`;
 
     // NOTE: Setting the label
-    this.cardEditorControlsDesignElementAttributesService.width =dimensions.width;
-    this.cardEditorControlsDesignElementAttributesService.height =dimensions.height;
+    this.cardEditorControlsDesignElementAttributesService.dimensions = dimensions;
   }
 
   onSetWidth() {
@@ -649,7 +637,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
         cardFaceElementPerCardFace.cardFaceElement.style.width = `${width}`;
 
-        console.log(`On set width - Card face element width: ${cardFaceElementPerCardFace.cardFaceElement.style.width}`);
+        // console.log(`On set width - Card face element width: ${cardFaceElementPerCardFace.cardFaceElement.style.width}`);
       }
     })
   }
@@ -665,7 +653,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
           cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}`;
 
-          console.log(`On set height - Card face element height: ${cardFaceElementPerCardFace.cardFaceElement.style.height}`);
+          // console.log(`On set height - Card face element height: ${cardFaceElementPerCardFace.cardFaceElement.style.height}`);
         }
       })
   }
