@@ -7,6 +7,7 @@ import { CardEditorControlsDesignCardFaceAttributesService } from '../../service
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardFaceAttributesBorderWidthComponent } from '../card-face-attributes-border-width/card-face-attributes-border-width.component';
 import { ColorPickerComponent } from '../color-picker/color-picker.component';
+import { MAX_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 @Component({
   selector: 'app-card-editor-controls-card-face-attributes',
   imports: [ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
@@ -150,7 +151,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   set borderRadius(borderRadius: number) {
-    borderRadius = clamp(borderRadius, 0.01, this.cardEditorPreviewService.MAX_BORDER_RADIUS);
+    borderRadius = clamp(borderRadius, 0.01, MAX_BORDER_RADIUS);
     
     this.cardEditorControlsDesignCardFaceAttributesService.borderRadius = borderRadius;
     this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderRadiusChange(borderRadius);
@@ -161,15 +162,15 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   get maxWidth(): number {
-    return this.cardEditorPreviewService.MAX_CARD_FACE_WIDTH;
+    return MAX_CARD_FACE_WIDTH;
   }
 
   get maxHeight(): number {
-    return this.cardEditorPreviewService.MAX_CARD_FACE_HEIGHT;
+    return MAX_CARD_FACE_HEIGHT;
   }
 
   get maxBorderRadius(): number {
-    return this.cardEditorPreviewService.MAX_BORDER_RADIUS;
+    return MAX_BORDER_RADIUS;
   }
 
   get height(): number {
@@ -185,7 +186,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
   set height(height: number) {
     // console.log(`Element attributes - Set Height`);
     // https://stackoverflow.com/a/63300675
-    height = clamp(height, 0, this.cardEditorPreviewService.MAX_CARD_FACE_HEIGHT);
+    height = clamp(height, 0, MAX_CARD_FACE_HEIGHT);
 
     this.cardEditorControlsDesignCardFaceAttributesService.height = height;
     this.cardEditorControlsDesignCardFaceAttributesService.setHeight(height);
@@ -197,7 +198,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
 
   set width(width: number) {
     // console.log(`Element attributes - Set Width`);
-    width = clamp(width, 0, this.cardEditorPreviewService.MAX_CARD_FACE_WIDTH);
+    width = clamp(width, 0, MAX_CARD_FACE_WIDTH);
 
     this.cardEditorControlsDesignCardFaceAttributesService.width = width;
     this.cardEditorControlsDesignCardFaceAttributesService.setWidth(width);

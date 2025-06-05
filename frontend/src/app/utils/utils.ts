@@ -73,6 +73,13 @@ export type Dimensions = {
     height: number;
 }
 
+export type Rect = {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+}
+
 // https://www.geeksforgeeks.org/convex-hull-using-jarvis-algorithm-or-wrapping/
 // https://en.wikipedia.org/wiki/Graham_scan
 /*

@@ -21,6 +21,7 @@ import { filterAgainstNull } from '../../../style/utils/get-style';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileMetadata } from '../../../../utils/models/file-metadata';
 import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
+import { MAX_CURRENT_ELEMENTS_PER_CARD_FACE } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -224,7 +225,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         takeUntilDestroyed()
       )
       .subscribe((result: { type: string, dndPosition: DndPosition }) => {
-      if (this.currentCardFaceElementsPerCardFace.length >= this.cardEditorPreviewService.MAX_CURRENT_ELEMENTS_PER_CARD_FACE) {
+      if (this.currentCardFaceElementsPerCardFace.length >= MAX_CURRENT_ELEMENTS_PER_CARD_FACE) {
         console.error(`On create card face element per card face - Too many card face element per card face`);
         return;
       }

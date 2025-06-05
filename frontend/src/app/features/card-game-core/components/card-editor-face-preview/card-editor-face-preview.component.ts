@@ -13,6 +13,7 @@ import { CardEditorCardDto } from '../../models/card';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
+import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -99,7 +100,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   borderRadius: number = 2;
       
   constructor() {
-    this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
+    this.cardEditorControlsDesignCardFaceAttributesService.setCurrentCardFaceId();
   }
 
   ngOnInit() {
@@ -269,7 +270,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((width: number) => {
-      width = clamp(width, 0, this.cardEditorPreviewService.MAX_CARD_FACE_WIDTH);
+      width = clamp(width, 0, MAX_CARD_FACE_WIDTH);
       
       let face = this.cardEditorPreviewService.getCurrentCardFace();
       if (face && face.style) {
@@ -285,7 +286,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((height: number) => {
-      height = clamp(height, 0, this.cardEditorPreviewService.MAX_CARD_FACE_HEIGHT);
+      height = clamp(height, 0, MAX_CARD_FACE_HEIGHT);
       
       let face = this.cardEditorPreviewService.getCurrentCardFace();
       if (face && face.style) {
@@ -348,8 +349,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         this.updateCardEditorCardFaceDto();
 
         this.cardEditorPreviewService.onFlipCurrentCardFace();
-
-        this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
         this.cardFaceElementsPerCardFace.getCurrentCardFaceElementsPerCardFace();
       });
   }
@@ -403,7 +402,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardEditorPreviewService.onCreateCard$.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-        this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId = this.cardEditorPreviewService.getCurrentCardFace().cardFaceId;
+        this.cardEditorControlsDesignCardFaceAttributesService.setCurrentCardFaceId();
     })
   }
 
