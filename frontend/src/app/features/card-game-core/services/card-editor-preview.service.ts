@@ -13,7 +13,7 @@ import { isCardEditorCardDto } from '../utils/card-game-core.utils';
 import { CardApiService } from './card-game-core/card-api.service';
 import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
-import { DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
+import { DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
 
 @Injectable({
   providedIn: 'root'
@@ -31,9 +31,8 @@ export class CardEditorPreviewService {
     backgroundColor: DEFAULT_CARD_FACE_BACKGROUND_COLOR,
     width: `${DEFAULT_CARD_FACE_WIDTH}px`,
     height: `${DEFAULT_CARD_FACE_HEIGHT}px`,
-    // height: '80%',
-    minWidth: '25%',
-    minHeight: '25%',
+    minWidth: `${MIN_CARD_FACE_WIDTH}px`,
+    minHeight: `${MIN_CARD_FACE_HEIGHT}px`,
     maxWidth: `${MAX_CARD_FACE_WIDTH}px`,
     maxHeight: `${MAX_CARD_FACE_HEIGHT}px`,
     display: 'block',

@@ -6,11 +6,11 @@
         <table>
             <tr>
                 <td>W:</td>
-                <td><input id="width" type="number" placeholder="W" min="0" [attr.max]="maxWidth" [(ngModel)]="width" #widthInput></td>
+                <td><input id="width" type="number" placeholder="W" [attr.min]="minWidth" [attr.max]="maxWidth" [(ngModel)]="width" #widthInput></td>
             </tr>
             <tr>
                 <td>H:</td>
-                <td><input id="height"  type="number" placeholder="H" min="0" [attr.max]="maxHeight" [(ngModel)]="height" #heightInput></td>
+                <td><input id="height"  type="number" placeholder="H" [attr.min]="minHeight" [attr.max]="maxHeight" [(ngModel)]="height" #heightInput></td>
             </tr>
         </table>
     </div>
@@ -19,7 +19,7 @@
         <div class="number-input-container">
             <label for="border-radius-input">Border radius:</label>
             <input id="border-radius-input" type="number" 
-                [attr.min]="0.01" 
+                [attr.min]="minBorderRadius" 
                 [attr.max]="maxBorderRadius" 
                 [(ngModel)]="borderRadius"
                 #borderRadiusInput/>
