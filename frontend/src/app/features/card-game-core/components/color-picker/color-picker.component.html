@@ -1,9 +1,15 @@
 <div class ="color-picker-container">
     <div class="color-picker-separator">
-        <input id="color-picker-input" type="color" [(ngModel)]="colorValue" (ngModelChange)="onColorChange($event)" #colorPickerRef />
+        <input id="color-picker-input" type="color"
+            [(ngModel)]="hexcode"
+            (ngModelChange)="onColorChange($event)" />
         <span>{{colorPickerName()}}</span>
     </div>
     <div class="color-picker-separator">
-        <input id="color-value-name"  [attr.max-length]="7" [(ngModel)]="colorValue" (ngModelChange)="onColorChange($event)" #colorValueNameRef />
+        <input id="color-hex-input" 
+            [attr.max-length]="7" 
+            [(ngModel)]="hexInput" 
+            (ngModelChange)="onColorChange($event)"
+            #colorHexInput />
     </div>
 </div>

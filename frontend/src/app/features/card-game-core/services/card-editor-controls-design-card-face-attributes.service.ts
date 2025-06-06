@@ -12,8 +12,11 @@ import { Dimensions } from '../../../utils/utils';
 export class CardEditorControlsDesignCardFaceAttributesService {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
   
-  cardFaceColor: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
-  borderColor: string = DEFAULT_CARD_FACE_BORDER_COLOR;
+  cardFaceHexcode: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+  borderHexcode: string = DEFAULT_CARD_FACE_BORDER_COLOR;
+
+  cardFaceHexInput: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+  borderHexInput: string = DEFAULT_CARD_FACE_BORDER_COLOR;
 
   borderRadius: number = DEFAULT_CARD_FACE_BORDER_RADIUS;
 
@@ -65,8 +68,8 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     this.onBorderRadiusChange$$.next(borderRadius);
   }
 
-  setOnBorderColorChange(borderColor: string) {
-    this.onBorderColorChange$$.next(borderColor);
+  setOnBorderColorChange(borderHexcode: string) {
+    this.onBorderColorChange$$.next(borderHexcode);
   }
 
   setHeight(height: number) {
@@ -101,10 +104,14 @@ export class CardEditorControlsDesignCardFaceAttributesService {
       height: this.extractCardFaceHeight(currentCardFaceStyle.height) ?? DEFAULT_CARD_FACE_HEIGHT
     }
 
-    this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+    this.cardFaceHexcode = (currentCardFaceStyle.backgroundColor) ?? DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+    this.cardFaceHexInput = (this.cardFaceHexcode)
+
     this.borderRadius = this.extractBorderRadius(currentCardFaceStyle.borderRadius);
     this.borderDimensions = this.extractBorderDimensions(currentCardFaceStyle);
-    this.borderColor = (currentCardFaceStyle.borderColor) ?? DEFAULT_CARD_FACE_BORDER_COLOR;
+
+    this.borderHexcode = (currentCardFaceStyle.borderColor) ?? DEFAULT_CARD_FACE_BORDER_COLOR;
+    this.borderHexInput = (this.borderHexcode)
   }
 
   private extractCardFaceWidth(width?: string): number {

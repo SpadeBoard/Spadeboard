@@ -13,12 +13,13 @@ export class ColorPickerComponent {
   // https://www.angulararchitects.io/en/blog/component-communication-with-signals-inputs-two-way-bindings-and-content-view-queries/
 
   colorPickerName: InputSignal<string> = input<string>("");
-  colorValue: ModelSignal<string> = model<string>("");
 
-  @ViewChild('colorPickerRef') colorPickerInput!: ElementRef<HTMLInputElement>;
-  @ViewChild('colorValueNameRef') colorValueNameInput!: ElementRef<HTMLInputElement>;
+  hexcode: ModelSignal<string> = model<string>("");
+  hexInput: ModelSignal<string> = model<string>("");
 
-   private readonly onShortHexChange$$ = new Subject<string>();
+  @ViewChild('colorHexInput') hexInputRef!: ElementRef<HTMLInputElement>;
+
+  private readonly onShortHexChange$$ = new Subject<string>();
 
    constructor() {
     this.onShortHexChange();
@@ -26,6 +27,13 @@ export class ColorPickerComponent {
 
    isValidHexLength(length: number) {
     return length == 4 || length == 7;
+   }
+
+   setHexInput(hex: string) {
+    this.hexInput.set(hex);
+
+    // Forces the input to immediately update, not sure why it won't here
+    if (this.hexInputRef.nativeElement) this.hexInputRef.nativeElement.value = hex;
    }
 
   isValidHexCharacter(char: string): boolean {
@@ -68,7 +76,7 @@ export class ColorPickerComponent {
       )
       .subscribe((color: string) => {
         let hex: string = this.validateHex(color);
-        this.colorValue.set(this.convertShortHexToLongForm(hex));
+        this.hexcode.set(this.convertShortHexToLongForm(hex));
       })
   }
 
@@ -78,7 +86,7 @@ export class ColorPickerComponent {
 
   onColorChange(value: string) {
     // If it's greater than 7, then we get rid of the rest of it and validate it
-    value = this.clampColorValue(value);
+    value = this.clampHexInput(value);
 
     // We want to debounce this, if the user doesn't continue typing
     // We'll assume that they're done
@@ -90,13 +98,17 @@ export class ColorPickerComponent {
 
     // So now we actually validate the nature of the hex and actually set it
     if (!this.isShortHex(value.length) && this.isValidHexaCode(value))
-      this.colorValue.set(value);
+      this.hexcode.set(value);
   }
   
-  clampColorValue(value: string): string {
-    value = value.substring(0, 7);
-    this.colorValueNameInput.nativeElement.value = value;
-    
+  clampHexInput(value: string): string {
+    value = value.substring(0, 7); 
+    this.setHexInput(value);
+
+    // NOTE: This might look strange, but it's a null value and therefore
+    // The color just doesn't exist, that's how you set alpha to 0
+    if (value.length <= 0) this.hexcode.set(value);
+
     return value;
   }
 
@@ -117,10 +129,5 @@ export class ColorPickerComponent {
     else {
       throw new Error("Invalid hex code");
     }
-  }
-
-  clampColorInputs(validatedValue: string) {
-    this.colorPickerInput.nativeElement.value =validatedValue;
-    this.colorValueNameInput.nativeElement.value = validatedValue;
   }
 }

@@ -50,28 +50,44 @@ export class CardEditorControlsCardFaceAttributesComponent {
       });
   }
 
-  get cardFaceColor() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceColor;
+  get cardFaceHexcode() {
+    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceHexcode;
   }
 
-  set cardFaceColor(newColor: string) {
-    if (this.cardFaceColor !== newColor) {
-      this.cardEditorControlsDesignCardFaceAttributesService.cardFaceColor = newColor;
+  set cardFaceHexcode(hexcode: string) {
+    if (this.cardFaceHexcode !== hexcode) {
+      this.cardEditorControlsDesignCardFaceAttributesService.cardFaceHexcode = hexcode;
 
-      this.cardEditorControlsDesignCardFaceAttributesService.setOnFaceColorChange(this.cardFaceColor);
+      this.cardEditorControlsDesignCardFaceAttributesService.setOnFaceColorChange(this.cardFaceHexcode);
     }
   }
 
-  get borderColor() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.borderColor;
+   get cardFaceHexInput(): string {
+    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceHexInput;
   }
 
-  set borderColor(newColor: string) {
-    if (this.borderColor !== newColor) {
-      this.cardEditorControlsDesignCardFaceAttributesService.borderColor = newColor;
+  set cardFaceHexInput(hexcode: string) {
+    this.cardEditorControlsDesignCardFaceAttributesService.cardFaceHexInput = hexcode;
+  }
 
-      this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderColorChange(this.borderColor);
+  get borderHexcode() {
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderHexcode;
+  }
+
+  set borderHexcode(hexcode: string) {
+    if (this.borderHexcode !== hexcode) {
+      this.cardEditorControlsDesignCardFaceAttributesService.borderHexcode = hexcode;
+
+      this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderColorChange(this.borderHexcode);
     }
+  }
+
+  get borderHexInput(): string {
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderHexInput;
+  }
+
+  set borderHexInput(hexcode: string) {
+    this.cardEditorControlsDesignCardFaceAttributesService.borderHexInput = hexcode;
   }
 
   get borderRadius() {

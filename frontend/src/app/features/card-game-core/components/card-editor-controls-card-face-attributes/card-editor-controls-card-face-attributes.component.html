@@ -15,7 +15,7 @@
         </table>
     </div>
     <div class ="card-face-attributes-container">
-        <app-color-picker [colorPickerName]="'Face'" [(colorValue)]="cardFaceColor" />
+        <app-color-picker [colorPickerName]="'Face'" [(hexcode)]="cardFaceHexcode" [(hexInput)]="cardFaceHexInput"/>
         <div class="number-input-container">
             <label for="border-radius-input">Edge radius:</label>
             <input id="border-radius-input" type="number" 
@@ -24,7 +24,7 @@
                 [(ngModel)]="borderRadius"
                 #borderRadiusInput/>
         </div>
-        <app-color-picker [colorPickerName]="'Edge'" [(colorValue)]="borderColor" />
+        <app-color-picker [colorPickerName]="'Edge'" [(hexcode)]="borderHexcode" [(hexInput)]="borderHexInput"/>
         <app-card-face-attributes-border-width 
             [(borderDimensions)]="borderDimensions" 
             [areDimensionsEqual]="areDimensionsEqual()" />
