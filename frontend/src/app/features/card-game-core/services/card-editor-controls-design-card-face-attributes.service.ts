@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { BorderDimensions, Style } from '../../style/models/style';
 import { CardFace } from '../models/card-face';
@@ -28,7 +28,7 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     }
   }
 
-  cardFaceId: string = "";
+  cardFaceId: WritableSignal<string> = signal<string>("");
 
   private onSetWidth$$ = new Subject<number>();
   onSetWidth$: Observable<number> = this.onSetWidth$$.asObservable();
@@ -83,13 +83,13 @@ export class CardEditorControlsDesignCardFaceAttributesService {
 
   setCurrentCardFaceId() {
     let currentCardFace: CardFace = this.cardEditorPreviewService.getCurrentCardFace();
-    this.cardFaceId = currentCardFace.cardFaceId;
+    this.cardFaceId.set(currentCardFace.cardFaceId);
   }
 
   setCardFaceAttributes() {
     let currentCardFace: CardFace = this.cardEditorPreviewService.getCurrentCardFace();
 
-    this.cardFaceId = currentCardFace.cardFaceId;
+   this.cardFaceId.set(currentCardFace.cardFaceId)
     let currentCardFaceStyle: Style = currentCardFace.style;
 
     this.width =  this.extractCardFaceWidth(currentCardFaceStyle.width) ?? DEFAULT_CARD_FACE_WIDTH;

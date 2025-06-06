@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, inject, Signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { clamp } from '../../../../utils/utils';
@@ -23,6 +23,8 @@ export class CardEditorControlsCardFaceAttributesComponent {
   @ViewChild('heightInput') heightRef!: ElementRef<HTMLInputElement>;
   @ViewChild('borderRadiusInput') borderRadiusRef!: ElementRef<HTMLInputElement>;
 
+  id: Signal<string> = computed(() => this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId());
+
   constructor() {
     this.onSetCardEditorCardDtoByCardId();  
     this.postFlip();
@@ -46,10 +48,6 @@ export class CardEditorControlsCardFaceAttributesComponent {
       .subscribe(() => {
         this.cardEditorControlsDesignCardFaceAttributesService.setCardFaceAttributes();
       });
-  }
-
-  get cardFaceId() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId;
   }
 
   get cardFaceColor() {
@@ -86,9 +84,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
     this.cardEditorControlsDesignCardFaceAttributesService.borderRadius = borderRadius;
     this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderRadiusChange(borderRadius);
   
-     if (this.borderRadiusRef && this.borderRadiusRef.nativeElement && this.borderRadiusRef.nativeElement.value !== `${borderRadius}`) {
-      this.borderRadiusRef.nativeElement.value = `${borderRadius}`;
-    }
+    if (this.borderRadiusRef.nativeElement)  this.borderRadiusRef.nativeElement.value = `${borderRadius}`;
   }
 
   get minWidth(): number {
