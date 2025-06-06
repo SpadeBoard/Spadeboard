@@ -1,7 +1,7 @@
 import { Component, ElementRef, input, InputSignal, model, ModelSignal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { debounceTime, Subject } from 'rxjs';
+import { debounceTime, filter, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-color-picker',
@@ -18,10 +18,10 @@ export class ColorPickerComponent {
   @ViewChild('colorPickerRef') colorPickerInput!: ElementRef<HTMLInputElement>;
   @ViewChild('colorValueNameRef') colorValueNameInput!: ElementRef<HTMLInputElement>;
 
-   private readonly colorChange$$ = new Subject<string>();
+   private readonly onShortHexChange$$ = new Subject<string>();
 
    constructor() {
-    this.colorChange();
+    this.onShortHexChange();
    }
 
    isValidHexLength(length: number) {
@@ -59,38 +59,49 @@ export class ColorPickerComponent {
     return (this.isValidHexaCode(hex)) ? hex : "#FFFFFF";
   }
 
-  colorChange() {
-    this.colorChange$$
+  onShortHexChange() {
+    this.onShortHexChange$$
       .pipe(
         debounceTime(500),
+        filter((color: string) => this.isShortHex(color.length)),  // NOTE: Should be fine since it drops earlier values
         takeUntilDestroyed()
       )
       .subscribe((color: string) => {
         let hex: string = this.validateHex(color);
-
-        this.colorValue.set(hex);
-        this.clampColorInputs(hex);
+        this.colorValue.set(this.convertShortHexToLongForm(hex));
       })
+  }
+
+  isShortHex(length: number) {
+    return length === 4;
   }
 
   onColorChange(value: string) {
     // If it's greater than 7, then we get rid of the rest of it and validate it
     value = this.clampColorValue(value);
 
-   // The problem is the inputs don't update automatically
+    // We want to debounce this, if the user doesn't continue typing
+    // We'll assume that they're done
+    // Just always emit it because there'll be a filter for short hexes so it'll never pass through if it's already a long hex
+    /****************** SHORTFORM **********************/
+    this.onShortHexChange$$.next(value);
+
     if (!this.isValidHexLength(value.length))
       return;
+
+    // ***************************** LONGFORM *********************************** //
 
     // So now we actually validate the nature of the hex and actually set it
     let hex: string = this.validateHex(value);
 
-    this.colorValue.set(this.convertShortHexToLongForm(hex));
-    this.clampColorInputs(hex);
+    if (!this.isShortHex(hex.length))
+      this.colorValue.set(hex);
   }
   
   clampColorValue(value: string): string {
     value = value.substring(0, 7);
-    this.clampColorInputs(value);
+    this.colorValueNameInput.nativeElement.value = value;
+    
     return value;
   }
 
@@ -114,7 +125,7 @@ export class ColorPickerComponent {
   }
 
   clampColorInputs(validatedValue: string) {
-    this.colorPickerInput.nativeElement.value = this.convertShortHexToLongForm(validatedValue);
+    this.colorPickerInput.nativeElement.value =validatedValue;
     this.colorValueNameInput.nativeElement.value = validatedValue;
   }
 }
