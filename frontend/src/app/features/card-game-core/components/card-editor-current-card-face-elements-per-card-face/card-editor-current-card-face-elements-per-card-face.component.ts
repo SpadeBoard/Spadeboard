@@ -182,6 +182,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe(() => {
         this.getCurrentCardFaceElementsPerCardFace();
+        this.resetCardFaceElementAttributes();
       })
   }
 

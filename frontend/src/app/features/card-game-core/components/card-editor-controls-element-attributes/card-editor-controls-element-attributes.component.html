@@ -6,19 +6,19 @@
   <table>
     <tr>
         <td>W:</td>
-        <td><input id="width" type="number" placeholder="W" min="0" [ngModel]="dimensions.width" (ngModelChange)="onWidthChange($event)"></td>
+        <td><input id="width" type="number" placeholder="W" min="0" [ngModel]="dimensions.width" (ngModelChange)="onWidthChange($event)" #widthInput></td>
     </tr>
     <tr>
         <td>H:</td>
-        <td><input type="number" id="height" placeholder="H" min="0" [ngModel]="dimensions.height" (ngModelChange)="onHeightChange($event)"></td>
+        <td><input type="number" id="height" placeholder="H" min="0" [ngModel]="dimensions.height" (ngModelChange)="onHeightChange($event)" #heightInput></td>
     </tr>
     <tr>
         <td>X:</td>
-        <td><input type="number" id="x" placeholder="X" min="0" [ngModel]="coordinates.x" (ngModelChange)="onXChange($event)"></td>
+        <td><input type="number" id="x" placeholder="X" min="0" [ngModel]="coordinates.x" (ngModelChange)="onXChange($event)" #xInput></td>
     </tr>
     <tr>
         <td>Y:</td>
-        <td><input type="number" id="y" placeholder="Y" min="0" [ngModel]="coordinates.y" (ngModelChange)="onYChange($event)"></td>
+        <td><input type="number" id="y" placeholder="Y" min="0" [ngModel]="coordinates.y" (ngModelChange)="onYChange($event)" #yInput></td>
     </tr>
 </table>
 </div>

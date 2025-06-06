@@ -1,8 +1,8 @@
-import { Component, computed, inject, Signal } from '@angular/core';
+import { Component, computed, ElementRef, inject, Signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Dimensions } from 'ngx-image-cropper';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { debounceTime, Subject } from 'rxjs';
 import { clamp, Coordinates } from '../../../../utils/utils';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
@@ -38,6 +38,14 @@ export class CardEditorControlsElementAttributesComponent {
     y: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y
   }
 
+  // FIXME: This is a hacky fix
+  @ViewChild('widthInput') widthRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('heightInput') heightRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('xInput') xRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('yInput') yRef!: ElementRef<HTMLInputElement>;
+
+  private readonly DEBOUNCE_TIME = 500;
+
   constructor() {
     this.onSetWidth();
     this.onSetHeight();
@@ -58,10 +66,12 @@ export class CardEditorControlsElementAttributesComponent {
   setWidth(): void {
     this.width$$
       .pipe(
-        debounceTime(300),
+        debounceTime(this.DEBOUNCE_TIME),
         takeUntilDestroyed()
       )
       .subscribe((width: number) => {
+         if (isNaN(width)) width = MIN_CARD_FACE_WIDTH;
+
         width = clamp(width, MIN_CARD_FACE_WIDTH, MAX_CARD_FACE_HEIGHT);     
         this.cardEditorControlsDesignElementAttributesService.setWidth(width);
       });
@@ -70,10 +80,12 @@ export class CardEditorControlsElementAttributesComponent {
   setHeight(): void {
     this.height$$
       .pipe(
-        debounceTime(300),
+        debounceTime(this.DEBOUNCE_TIME),
         takeUntilDestroyed()
       )
       .subscribe((height: number) => {
+        if (isNaN(height)) height = MIN_CARD_FACE_WIDTH;
+
         height = clamp(height, MIN_CARD_FACE_WIDTH, MAX_CARD_FACE_HEIGHT);
         this.cardEditorControlsDesignElementAttributesService.setHeight(height);
       }
@@ -83,10 +95,12 @@ export class CardEditorControlsElementAttributesComponent {
   setX(): void {
     this.x$$
       .pipe(
-        debounceTime(300),
+        debounceTime(this.DEBOUNCE_TIME),
         takeUntilDestroyed()
       )
       .subscribe((x: number) => {
+        if (isNaN(x)) x = 0;
+
         x = clamp(x, 0, MAX_CARD_FACE_WIDTH);
         this.cardEditorControlsDesignElementAttributesService.setX(x);
       }
@@ -96,16 +110,17 @@ export class CardEditorControlsElementAttributesComponent {
   setY(): void {
     this.y$$
       .pipe(
-        debounceTime(300),
+        debounceTime(this.DEBOUNCE_TIME),
         takeUntilDestroyed()
       )
       .subscribe((y: number) => {
+        if (isNaN(y)) y = 0;
+
         y = clamp(y, 0, MAX_CARD_FACE_HEIGHT);
         this.cardEditorControlsDesignElementAttributesService.setY(y);
       }
     );
   }
-
 
 
 
@@ -125,6 +140,8 @@ export class CardEditorControlsElementAttributesComponent {
     this.y$$.next(y);
   }
 
+
+
   onSetWidth(): void {
     this.cardEditorControlsDesignElementAttributesService.onSetWidth$
       .pipe(
@@ -132,6 +149,8 @@ export class CardEditorControlsElementAttributesComponent {
       )
       .subscribe((width: number) => {
         this.dimensions.width = width;
+
+        if (this.widthRef.nativeElement) this.widthRef.nativeElement.value = `${width}`;
     })
   };
 
@@ -142,6 +161,8 @@ export class CardEditorControlsElementAttributesComponent {
       )
       .subscribe((height: number) => {
         this.dimensions.height = height;
+
+        if (this.heightRef.nativeElement) this.heightRef.nativeElement.value = `${height}`;
     })
   }
 
@@ -152,6 +173,8 @@ export class CardEditorControlsElementAttributesComponent {
       )
       .subscribe((x: number) => {
         this.coordinates.x = x;
+
+        if (this.xRef.nativeElement) this.xRef.nativeElement.value = `${x}`;
       })
   }
 
@@ -162,6 +185,8 @@ export class CardEditorControlsElementAttributesComponent {
       )
       .subscribe((y: number) => {
         this.coordinates.y= y;
+
+        if (this.yRef.nativeElement) this.yRef.nativeElement.value = `${y}`;
       })
   }
 
