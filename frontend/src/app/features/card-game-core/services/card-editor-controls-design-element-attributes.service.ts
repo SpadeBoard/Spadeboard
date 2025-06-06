@@ -1,16 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
+import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID } from '../utils/card-editor.constants';
+import { Coordinates } from '../../../utils/utils';
+import { Dimensions } from 'ngx-image-cropper';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardEditorControlsDesignElementAttributesService {
-  private onSetMaxHeight$$ = new Subject<number>();
-  onSetMaxHeight$: Observable<number> = this.onSetMaxHeight$$.asObservable();
-
-  private onSetMaxWidth$$ = new Subject<number>();
-  onSetMaxWidth$: Observable<number> = this.onSetMaxWidth$$.asObservable();
-
   private onSetWidth$$ = new Subject<number>();
   onSetWidth$: Observable<number> = this.onSetWidth$$.asObservable();
 
@@ -23,57 +20,14 @@ export class CardEditorControlsDesignElementAttributesService {
   private onSetX$$ = new Subject<number>();
   onSetX$: Observable<number> = this.onSetX$$.asObservable();
 
-  // currentCardFaceElementId: WritableSignal<number> = signal<number>(-1);
+  private onResetCardFaceAttributes$$ = new Subject<{coordinates: Coordinates, dimensions: Dimensions}>();
+  onResetCardFaceAttributes$: Observable<{coordinates: Coordinates, dimensions: Dimensions}> = this.onResetCardFaceAttributes$$.asObservable();
+
+  currentCardFaceElementId: WritableSignal<string> = signal<string>(DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID);
   // https://stackoverflow.com/questions/42504918/difference-between-ngmodel-and-ngmodel-for-binding-state-to-property
-  private currentCardFaceElementId: string = "";
-  
-  private _height: number = 0;
-  private _width: number = 0;
-  private _x: number = 0;
-  private _y: number = 0;
+
 
   constructor() { }
-
-  get height(): number {
-    return this._height;
-  }
-
-  get width(): number {
-    return this._width;
-  }
-
-  get x(): number {
-    return this._x;
-  }
-
-  get y(): number {
-    return this._y;
-  }
-
-  // NOTE: In the resizable component, use - distinctUntilChanged()
-  set height(height: number) {
-    this._height = height;
-  }
-
-  set width( width: number) {
-    this._width =  width;
-  }
-
-  set y(y: number) {
-    this._y = y;
-  }
-
-  set x( x: number) {
-    this._x =  x;
-  }
-
-  setCurrentCardFaceElementId(currentCardFaceElementId: string): void {
-    this.currentCardFaceElementId = currentCardFaceElementId;
-  }
-
-  getCurrentCardFaceElementId(): string {
-    return this.currentCardFaceElementId;
-  }
 
   setY(y: number) {
     this.onSetY$$.next(y);
@@ -83,19 +37,32 @@ export class CardEditorControlsDesignElementAttributesService {
     this.onSetX$$.next(x);
   }
 
-  setMaxHeight(maxHeight: number) {
-    this.onSetMaxHeight$$.next(maxHeight);
-  }
-
-  setMaxWidth(maxWidth: number) {
-    this.onSetMaxWidth$$.next(maxWidth);
-  }
-
   setHeight(height: number) {
     this.onSetHeight$$.next(height);
   }
 
   setWidth(width: number) {
     this.onSetWidth$$.next(width);
+  }
+
+  resetCardFaceElementAttributes() {
+    this.currentCardFaceElementId.set(DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID);
+
+    let coordinates: Coordinates = {
+      x: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X,
+      y: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y
+    }
+
+    let dimensions: Dimensions = {
+      height: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT,
+      width: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH
+    }
+
+    this.onResetCardFaceAttributes$$.next(
+      {
+        coordinates: coordinates,
+        dimensions: dimensions
+      }
+    )
   }
 }

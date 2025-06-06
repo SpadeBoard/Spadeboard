@@ -80,6 +80,11 @@ export type Rect = {
     right: number;
 }
 
+export type Threshold = {
+    min: number;
+    max: number;
+}
+
 // https://www.geeksforgeeks.org/convex-hull-using-jarvis-algorithm-or-wrapping/
 // https://en.wikipedia.org/wiki/Graham_scan
 /*

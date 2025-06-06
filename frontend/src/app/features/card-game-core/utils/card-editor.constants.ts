@@ -64,3 +64,9 @@ export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEdit
       ]
     };
 }
+
+export const DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID: string = "";
+export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X: number = 0;
+export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y: number = 0;
+export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH: number = 0;
+export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT: number = 0;
