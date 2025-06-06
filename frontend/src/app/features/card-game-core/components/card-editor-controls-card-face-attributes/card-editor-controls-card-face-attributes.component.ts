@@ -1,17 +1,17 @@
-import { Component, computed, ElementRef, inject, Signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { clamp } from '../../../../utils/utils';
 import { BorderDimensions } from '../../../style/models/style';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { CardFaceAttributesBorderRadiusComponent } from '../card-face-attributes-border-radius/card-face-attributes-border-radius.component';
 import { CardFaceAttributesBorderWidthComponent } from '../card-face-attributes-border-width/card-face-attributes-border-width.component';
-import { ColorPickerComponent } from '../color-picker/color-picker.component';
-import { MAX_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_BORDER_RADIUS, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { CardFaceAttributesDimensionsComponent } from '../card-face-attributes-dimensions/card-face-attributes-dimensions.component';
 import { CardFaceAttributesIdComponent } from '../card-face-attributes-id/card-face-attributes-id.component';
+import { ColorPickerComponent } from '../color-picker/color-picker.component';
 @Component({
   selector: 'app-card-editor-controls-card-face-attributes',
-  imports: [CardFaceAttributesIdComponent, ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
+  imports: [CardFaceAttributesIdComponent, CardFaceAttributesBorderRadiusComponent, CardFaceAttributesDimensionsComponent, ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
   templateUrl: './card-editor-controls-card-face-attributes.component.html',
   styleUrl: './card-editor-controls-card-face-attributes.component.css'
 })
@@ -19,11 +19,6 @@ export class CardEditorControlsCardFaceAttributesComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);
 
-  // Use to set the values properly in the inputs
-  @ViewChild('widthInput') widthRef!: ElementRef<HTMLInputElement>;
-  @ViewChild('heightInput') heightRef!: ElementRef<HTMLInputElement>;
-  @ViewChild('borderRadiusInput') borderRadiusRef!: ElementRef<HTMLInputElement>;
-  
   constructor() {
     this.onSetCardEditorCardDtoByCardId();  
     this.postFlip();
@@ -87,70 +82,6 @@ export class CardEditorControlsCardFaceAttributesComponent {
 
   set borderHexInput(hexcode: string) {
     this.cardEditorControlsDesignCardFaceAttributesService.borderHexInput = hexcode;
-  }
-
-  get borderRadius() {
-    return this.cardEditorControlsDesignCardFaceAttributesService.borderRadius;
-  }
-
-  set borderRadius(borderRadius: number) {
-    borderRadius = clamp(borderRadius, MIN_BORDER_RADIUS, MAX_BORDER_RADIUS);
-    
-    this.cardEditorControlsDesignCardFaceAttributesService.borderRadius = borderRadius;
-    this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderRadiusChange(borderRadius);
-  
-    if (this.borderRadiusRef.nativeElement)  this.borderRadiusRef.nativeElement.value = `${borderRadius}`;
-  }
-
-  get minWidth(): number {
-    return MIN_CARD_FACE_WIDTH;
-  }
-
-  get minHeight(): number {
-    return MIN_CARD_FACE_HEIGHT;
-  }
-
-  get maxWidth(): number {
-    return MAX_CARD_FACE_WIDTH;
-  }
-
-  get maxHeight(): number {
-    return MAX_CARD_FACE_HEIGHT;
-  }
-
-  get minBorderRadius(): number {
-    return MIN_BORDER_RADIUS;
-  }
-
-  get maxBorderRadius(): number {
-    return MAX_BORDER_RADIUS;
-  }
-
-  get height(): number {
-    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceDimensions.height;
-  }
-
-  get width(): number {
-    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceDimensions.width;
-  }
-
-  set height(height: number) {
-    // https://stackoverflow.com/a/63300675
-    height = clamp(height, MIN_CARD_FACE_HEIGHT, MAX_CARD_FACE_HEIGHT);
-
-    this.cardEditorControlsDesignCardFaceAttributesService.cardFaceDimensions.height = height;
-    this.cardEditorControlsDesignCardFaceAttributesService.setHeight(height);
-
-    if (this.heightRef.nativeElement) this.heightRef.nativeElement.value = `${height}`;
-  }
-
-  set width(width: number) {
-    width = clamp(width, MIN_CARD_FACE_WIDTH, MAX_CARD_FACE_WIDTH);
-
-    this.cardEditorControlsDesignCardFaceAttributesService.cardFaceDimensions.width = width;
-    this.cardEditorControlsDesignCardFaceAttributesService.setWidth(width);
-
-    if (this.widthRef.nativeElement) this.widthRef.nativeElement.value = `${width}`;
   }
 
   get borderDimensions(): BorderDimensions {

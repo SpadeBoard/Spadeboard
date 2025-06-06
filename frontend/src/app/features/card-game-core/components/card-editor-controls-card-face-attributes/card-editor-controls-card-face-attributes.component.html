@@ -1,27 +1,11 @@
 <div class="card-face-attributes-columns">
     <div class="card-face-dimensions-container">
         <app-card-face-attributes-id/>
-        <table>
-            <tr>
-                <td>W:</td>
-                <td><input id="width" type="number" placeholder="W" [attr.min]="minWidth" [attr.max]="maxWidth" [(ngModel)]="width" #widthInput></td>
-            </tr>
-            <tr>
-                <td>H:</td>
-                <td><input id="height"  type="number" placeholder="H" [attr.min]="minHeight" [attr.max]="maxHeight" [(ngModel)]="height" #heightInput></td>
-            </tr>
-        </table>
+        <app-card-face-attributes-dimensions/>
     </div>
     <div class ="card-face-attributes-container">
         <app-color-picker [colorPickerName]="'Face'" [(hexcode)]="cardFaceHexcode" [(hexInput)]="cardFaceHexInput"/>
-        <div class="number-input-container">
-            <label for="border-radius-input">Edge radius:</label>
-            <input id="border-radius-input" type="number" 
-                [attr.min]="minBorderRadius" 
-                [attr.max]="maxBorderRadius" 
-                [(ngModel)]="borderRadius"
-                #borderRadiusInput/>
-        </div>
+        <app-card-face-attributes-border-radius/>
         <app-color-picker [colorPickerName]="'Edge'" [(hexcode)]="borderHexcode" [(hexInput)]="borderHexInput"/>
         <app-card-face-attributes-border-width 
             [(borderDimensions)]="borderDimensions" 

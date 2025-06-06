@@ -1,6 +1,6 @@
 <div class ="border-width-container">
     <div class="border-width-separator">
-        <label for="border-width-input">Edge width: </label>
+        <label for="border-width-input">Edge width </label>
     </div>
     <div class="border-width-separator">
         @if (isMixed) {
@@ -8,21 +8,23 @@
         }
         @else {
             <input 
-                id="border-width-input" 
                 type="number" 
                 [attr.min]="minBorderDimensions" 
                 [attr.max]="maxBorderDimensions" 
                 [(ngModel)]="$any(borderWidthValue)" 
                 #borderWidthInput />
         }
-        <img src="/arrow-down.svg" class="dropdown-image"(click)="onDropdownActivation($event)"/>
+        <button class="dropdown-image"(click)="onDropdownActivation($event)">
+            <img src="/arrow-down.svg"/>
+        </button>
     </div>
 </div>
+
 @if (shouldDropDown) {
     <table class="border-width-mixed-table">
         <tr>
             <td>
-                <img src="/card-face-attributes_border-top-icon.svg"/>
+                <img class="border-width-icons"src="/card-face-attributes_border-top-icon.svg"/>
                 <input 
                     id="top-edge" 
                     type="number" 
@@ -33,7 +35,7 @@
                     #borderTopInput />
             </td>
             <td>
-                <img src="/card-face-attributes_border-bottom-icon.svg"/>
+                <img class="border-width-icons"src="/card-face-attributes_border-bottom-icon.svg"/>
                 <input 
                     id="bottom-edge"
                     type="number" 
@@ -46,7 +48,7 @@
         </tr>
         <tr>
             <td>
-                <img src="/card-face-attributes_border-left-icon.svg"/>
+                <img class="border-width-icons"src="/card-face-attributes_border-left-icon.svg"/>
                 <input 
                     type="number" 
                     id="left-edge" 
@@ -57,7 +59,7 @@
                     #borderLeftInput/>
             </td>
             <td>
-                <img src="/card-face-attributes_border-right-icon.svg"/>
+                <img class="border-width-icons"src="/card-face-attributes_border-right-icon.svg"/>
                 <input 
                     id="right-edge" 
                     type="number" 
