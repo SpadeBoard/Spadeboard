@@ -63,7 +63,7 @@ export class ColorPickerComponent {
     this.onShortHexChange$$
       .pipe(
         debounceTime(500),
-        filter((color: string) => this.isShortHex(color.length)),  // NOTE: Should be fine since it drops earlier values
+        filter((color: string) => this.isShortHex(color.length) && this.isValidHexaCode(color)),  // NOTE: Should be fine since it drops earlier values
         takeUntilDestroyed()
       )
       .subscribe((color: string) => {
@@ -86,16 +86,11 @@ export class ColorPickerComponent {
     /****************** SHORTFORM **********************/
     this.onShortHexChange$$.next(value);
 
-    if (!this.isValidHexLength(value.length))
-      return;
-
     // ***************************** LONGFORM *********************************** //
 
     // So now we actually validate the nature of the hex and actually set it
-    let hex: string = this.validateHex(value);
-
-    if (!this.isShortHex(hex.length))
-      this.colorValue.set(hex);
+    if (!this.isShortHex(value.length) && this.isValidHexaCode(value))
+      this.colorValue.set(value);
   }
   
   clampColorValue(value: string): string {
