@@ -44,7 +44,7 @@ export class CardEditorControlsElementAttributesComponent {
   @ViewChild('xInput') xRef!: ElementRef<HTMLInputElement>;
   @ViewChild('yInput') yRef!: ElementRef<HTMLInputElement>;
 
-  private readonly DEBOUNCE_TIME = 500;
+  private readonly DEBOUNCE_TIME = 300;
 
   constructor() {
     this.onSetWidth();
