@@ -14,15 +14,6 @@ body {
     font-family: 'Roboto', sans-serif;
 }
 
-.card-face-dimensions {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-bottom: 12px;
-    color: #666667;
-    display: block;
-    font-family: 'Roboto', sans-serif;
-}
-
 table {
     width: 100%;
     border-collapse: separate;

@@ -8,9 +8,10 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { CardFaceAttributesBorderWidthComponent } from '../card-face-attributes-border-width/card-face-attributes-border-width.component';
 import { ColorPickerComponent } from '../color-picker/color-picker.component';
 import { MAX_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_BORDER_RADIUS, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { CardFaceAttributesIdComponent } from '../card-face-attributes-id/card-face-attributes-id.component';
 @Component({
   selector: 'app-card-editor-controls-card-face-attributes',
-  imports: [ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
+  imports: [CardFaceAttributesIdComponent, ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
   templateUrl: './card-editor-controls-card-face-attributes.component.html',
   styleUrl: './card-editor-controls-card-face-attributes.component.css'
 })
@@ -22,9 +23,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
   @ViewChild('widthInput') widthRef!: ElementRef<HTMLInputElement>;
   @ViewChild('heightInput') heightRef!: ElementRef<HTMLInputElement>;
   @ViewChild('borderRadiusInput') borderRadiusRef!: ElementRef<HTMLInputElement>;
-
-  id: Signal<string> = computed(() => this.cardEditorControlsDesignCardFaceAttributesService.cardFaceId());
-
+  
   constructor() {
     this.onSetCardEditorCardDtoByCardId();  
     this.postFlip();
