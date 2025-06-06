@@ -9,7 +9,7 @@ export const MAX_CARD_FACE_HEIGHT: number = 800;
 export const MIN_BORDER_RADIUS: number = 0;
 export const MAX_BORDER_RADIUS: number = 100;
 export const MIN_BORDER_WIDTH: number = 0;
-export const MAX_BORDER_WIDTH: number = 200;
+export const MAX_BORDER_WIDTH: number = 100;
 
 export const DEFAULT_CARD_FACE_WIDTH: number = 351;
 export const DEFAULT_CARD_FACE_HEIGHT: number = 483;
