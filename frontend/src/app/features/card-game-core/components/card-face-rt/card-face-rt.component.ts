@@ -1,13 +1,11 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, effect, input, InputSignal, Signal } from '@angular/core';
+import { Component, computed, input, InputSignal, Signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
-import { bbCodeToHtml, decodeHtml } from '../../utils/rich-text-sanitizer.utils';
+import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-face-rt',
-  imports: [AngularEditorModule, FormsModule,
-      CommonModule],
+  imports: [AngularEditorModule, FormsModule],
   templateUrl: './card-face-rt.component.html',
   styleUrl: './card-face-rt.component.css'
 })
@@ -16,6 +14,7 @@ export class CardFaceRtComponent {
 
   // We grab the BBCode from the card face element
   content: InputSignal<string> = input<string>("");
+  contentComputed: Signal<string> = computed(() => this.content());
 
   cardFaceRtWidth: InputSignal<number> = input<number>(0.01);
   cardFaceRtWidthComputed: Signal<string> = computed(() => `${this.cardFaceRtWidth()}px`);
@@ -23,58 +22,38 @@ export class CardFaceRtComponent {
   cardFaceRtHeight: InputSignal<number> = input<number>(0.01);
   cardFaceRtHeightComputed: Signal<string> = computed(() => `${this.cardFaceRtHeight()}px`);
 
-  html: string = "";
+  // TODO: Potentially refactor
+  minWidth: InputSignal<number> = input<number>(MIN_CARD_FACE_WIDTH);
+  minHeight: InputSignal<number> = input<number>(MIN_CARD_FACE_HEIGHT);
 
-  maxWidth: InputSignal<string> = input<string>("100%");
-  maxHeight: InputSignal<string> = input<string>("100px");
+  minWidthComputed: Signal<string> = computed(() => `${this.minWidth()}px`);
+  minHeightComputed: Signal<string> = computed(() => `${this.minHeight()}px`);
 
-  // TODO: Effect in constructor, check to make sure its type is rte
+  maxWidth: InputSignal<number> = input<number>(MAX_CARD_FACE_WIDTH);
+  maxHeight: InputSignal<number> = input<number>(MAX_CARD_FACE_HEIGHT);
+
+  maxWidthComputed: Signal<string> = computed(() => `${this.maxWidth()}px`);
+  maxHeightComputed: Signal<string> = computed(() => `${this.maxHeight()}px`);
+
   constructor() {
-    effect(() => {
-      if (this.content() !== "") {
-        this.html = this.content();
-      }
-    });
   }
 
-  getAngularEditorConfig(): AngularEditorConfig {
+  get html(): string {
+    return this.contentComputed();
+  }
+
+  get config(): AngularEditorConfig {
     return {
-      // Properties from AngularEditorConfig
       editable: false,
       spellcheck: false,
       height: this.cardFaceRtHeightComputed(),
       width: this.cardFaceRtWidthComputed(),
-      minHeight: '20px',
-      minWidth: '50px',
-      maxHeight: this.maxHeight(),
+      minHeight: this.minHeightComputed(),
+      minWidth: this.minWidthComputed(),
+      maxHeight: this.maxHeightComputed(),
       enableToolbar: false,
       showToolbar: false,
       outline: true
     }
   };
-
-  // TODO: We have a card face element dto input
-
-  // TODO: Pass in card face element content to bbCodeToHtml
-  setHtmlContent(bbCode: string): void {
-    this.html = bbCodeToHtml(bbCode);
-  }
-
-  /*setHtml(cardFaceElementDto: CardFaceElementDto): void {
-    this.setHtmlContent(cardFaceElementDto.cardFaceElement.cardFaceElementContent);
-
-    if (cardFaceElementDto.cardFaceElement.style === undefined)
-      return;
-
-  }*/
-
-  getInnerHtml(): string | null {
-    return decodeHtml(this.html);
-  }
-
-  onResize() {
-    // TODO: Set the image width and height, call the element attributes service
-  }
-
-  // TODO: Create a style and grab the DndPosition
 }
