@@ -40,6 +40,7 @@
                     data-html2canvas-ignore="true" />
                 <app-resizable-wrapper
                     [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    [resizeThreshold]="getResizeThreshold()"
                     (resizableChange)="onResizableChange($event)" data-html2canvas-ignore="true" />
             }
         </div>

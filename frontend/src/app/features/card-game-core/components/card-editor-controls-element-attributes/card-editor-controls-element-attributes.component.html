@@ -1,24 +1,24 @@
 <app-card-editor-controls-element-layering-attributes/>
 <div class="container">
     <span class="element">
-        Element: {{ cardEditorControlsDesignElementAttributesService.getCurrentCardFaceElementId() }}
+        Element: {{ id() }}
     </span>
-    <table>
-        <tr>
-            <td>W:</td>
-            <td><input id="width" type="number" placeholder="W" min="0" [(ngModel)]="width"></td>
-        </tr>
-        <tr>
-            <td>H:</td>
-            <td><input type="number" id="height" placeholder="H" min="0" [(ngModel)]="height"></td>
-        </tr>
-         <tr>
-             <td>X:</td>
-            <td><input type="number" id="x" placeholder="X" min="0" [(ngModel)]="x"></td>
-        </tr>
-        <tr>
-            <td>Y:</td>
-            <td><input type="number" id="y" placeholder="Y" min="0" [(ngModel)]="y"></td>
-        </tr>
-    </table>
+  <table>
+    <tr>
+        <td>W:</td>
+        <td><input id="width" type="number" placeholder="W" min="0" [ngModel]="dimensions.width" (ngModelChange)="onWidthChange($event)" #widthInput></td>
+    </tr>
+    <tr>
+        <td>H:</td>
+        <td><input type="number" id="height" placeholder="H" min="0" [ngModel]="dimensions.height" (ngModelChange)="onHeightChange($event)" #heightInput></td>
+    </tr>
+    <tr>
+        <td>X:</td>
+        <td><input type="number" id="x" placeholder="X" min="0" [ngModel]="coordinates.x" (ngModelChange)="onXChange($event)" #xInput></td>
+    </tr>
+    <tr>
+        <td>Y:</td>
+        <td><input type="number" id="y" placeholder="Y" min="0" [ngModel]="coordinates.y" (ngModelChange)="onYChange($event)" #yInput></td>
+    </tr>
+</table>
 </div>
