@@ -4,6 +4,7 @@ import { BorderDimensions, Style } from '../../style/models/style';
 import { CardFace } from '../models/card-face';
 import { DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
 import { CardEditorPreviewService } from './card-editor-preview.service';
+import { Dimensions } from '../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -14,9 +15,12 @@ export class CardEditorControlsDesignCardFaceAttributesService {
   cardFaceColor: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
   borderColor: string = DEFAULT_CARD_FACE_BORDER_COLOR;
 
-  height: number = DEFAULT_CARD_FACE_HEIGHT;
-  width: number = DEFAULT_CARD_FACE_WIDTH;
   borderRadius: number = DEFAULT_CARD_FACE_BORDER_RADIUS;
+
+  cardFaceDimensions: Dimensions = {
+    width: DEFAULT_CARD_FACE_WIDTH,
+    height: DEFAULT_CARD_FACE_HEIGHT
+  }
 
   borderDimensions: BorderDimensions = {
     borderWidth: DEFAULT_CARD_FACE_BORDER_WIDTH,
@@ -92,9 +96,11 @@ export class CardEditorControlsDesignCardFaceAttributesService {
    this.cardFaceId.set(currentCardFace.cardFaceId)
     let currentCardFaceStyle: Style = currentCardFace.style;
 
-    this.width =  this.extractCardFaceWidth(currentCardFaceStyle.width) ?? DEFAULT_CARD_FACE_WIDTH;
-    this.height = this.extractCardFaceHeight(currentCardFaceStyle.height) ?? DEFAULT_CARD_FACE_HEIGHT;
-    
+    this.cardFaceDimensions = {
+      width: this.extractCardFaceWidth(currentCardFaceStyle.width) ?? DEFAULT_CARD_FACE_WIDTH,
+      height: this.extractCardFaceHeight(currentCardFaceStyle.height) ?? DEFAULT_CARD_FACE_HEIGHT
+    }
+
     this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? DEFAULT_CARD_FACE_BACKGROUND_COLOR;
     this.borderRadius = this.extractBorderRadius(currentCardFaceStyle.borderRadius);
     this.borderDimensions = this.extractBorderDimensions(currentCardFaceStyle);

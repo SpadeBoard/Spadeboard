@@ -112,18 +112,18 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   get height(): number {
-    return this.cardEditorControlsDesignCardFaceAttributesService.height;
+    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceDimensions.height;
   }
 
   get width(): number {
-    return this.cardEditorControlsDesignCardFaceAttributesService.width;
+    return this.cardEditorControlsDesignCardFaceAttributesService.cardFaceDimensions.width;
   }
 
   set height(height: number) {
     // https://stackoverflow.com/a/63300675
     height = clamp(height, MIN_CARD_FACE_HEIGHT, MAX_CARD_FACE_HEIGHT);
 
-    this.cardEditorControlsDesignCardFaceAttributesService.height = height;
+    this.cardEditorControlsDesignCardFaceAttributesService.cardFaceDimensions.height = height;
     this.cardEditorControlsDesignCardFaceAttributesService.setHeight(height);
 
     if (this.heightRef.nativeElement) this.heightRef.nativeElement.value = `${height}`;
@@ -132,7 +132,7 @@ export class CardEditorControlsCardFaceAttributesComponent {
   set width(width: number) {
     width = clamp(width, MIN_CARD_FACE_WIDTH, MAX_CARD_FACE_WIDTH);
 
-    this.cardEditorControlsDesignCardFaceAttributesService.width = width;
+    this.cardEditorControlsDesignCardFaceAttributesService.cardFaceDimensions.width = width;
     this.cardEditorControlsDesignCardFaceAttributesService.setWidth(width);
 
     if (this.widthRef.nativeElement) this.widthRef.nativeElement.value = `${width}`;
