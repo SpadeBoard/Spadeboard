@@ -1,12 +1,13 @@
 <app-card-face-attributes-id [title]="'Card face attributes: to modify the edge and face'"/>
 <div class="card-face-attributes-columns">
-    <div class="card-face-dimensions-container">
+    <div class="card-face-attributes-container">
         <app-card-face-attributes-dimensions/>
         <app-color-picker [(hexcode)]="cardFaceHexcode" [(hexInput)]="cardFaceHexInput"/>
     </div>
-    <div class ="card-face-attributes-container">
+    <div class ="card-edge-attributes-container">
+        <span id="edge-attributes-header" [title]="'Edge attributes'">Edge</span>
+        <app-color-picker [(hexcode)]="borderHexcode" [(hexInput)]="borderHexInput"/>
         <app-card-face-attributes-border-radius/>
-        <app-color-picker [colorPickerName]="'Edge'" [(hexcode)]="borderHexcode" [(hexInput)]="borderHexInput"/>
         <app-card-face-attributes-border-width 
             [areDimensionsEqual]="areDimensionsEqual()" />
     </div>
