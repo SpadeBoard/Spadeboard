@@ -15,14 +15,14 @@
             (contextmenu)="onCardRightClick($event, cpr.card.cardId)"
             #cardsPositionPerRoom
         >
-            <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" />
+            <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" [title]="cpr.card.cardName" />
 
             <!--WORKAROUND: Because the typical drag preview's set at 0,0, we'll make a custom one
             Then set it programmatically as to where the preview should be-->
             <div *cdkDragPreview class="cpr-cdk-drag-preview"
                 [attr.cpr-cdk-drag-preview-id]="cpr.cardPositionPerRoomId"
             >
-                <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" /> 
+                <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" [title]="cpr.card.cardName" /> 
             </div>
     </div>
     }
