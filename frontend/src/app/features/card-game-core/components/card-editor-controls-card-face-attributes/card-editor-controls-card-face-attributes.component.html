@@ -1,10 +1,10 @@
+<app-card-face-attributes-id [title]="'Card face attributes: to modify the edge and face'"/>
 <div class="card-face-attributes-columns">
     <div class="card-face-dimensions-container">
-        <app-card-face-attributes-id/>
         <app-card-face-attributes-dimensions/>
+        <app-color-picker [(hexcode)]="cardFaceHexcode" [(hexInput)]="cardFaceHexInput"/>
     </div>
     <div class ="card-face-attributes-container">
-        <app-color-picker [colorPickerName]="'Face'" [(hexcode)]="cardFaceHexcode" [(hexInput)]="cardFaceHexInput"/>
         <app-card-face-attributes-border-radius/>
         <app-color-picker [colorPickerName]="'Edge'" [(hexcode)]="borderHexcode" [(hexInput)]="borderHexInput"/>
         <app-card-face-attributes-border-width 
