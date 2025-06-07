@@ -1,8 +1,9 @@
-import { Component, effect, ElementRef, input, InputSignal, model, ModelSignal, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, input, InputSignal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { clamp } from '../../../../utils/utils';
 import { BorderDimensions } from '../../../style/models/style';
-import { DEFAULT_CARD_FACE_BORDER_WIDTH, MAX_BORDER_WIDTH, MIN_BORDER_WIDTH } from '../../utils/card-editor.constants';
+import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
+import { MAX_BORDER_WIDTH, MIN_BORDER_WIDTH } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-face-attributes-border-width',
@@ -18,47 +19,45 @@ export class CardFaceAttributesBorderWidthComponent {
   @ViewChild('borderLeftInput') borderLeftRef!: ElementRef<HTMLInputElement>;
   @ViewChild('borderRightInput') borderRightRef!: ElementRef<HTMLInputElement>;
 
-  borderDimensions: ModelSignal<BorderDimensions> = model<BorderDimensions>(
-    {
-      borderWidth: DEFAULT_CARD_FACE_BORDER_WIDTH,
-      borderRect: {
-        top: DEFAULT_CARD_FACE_BORDER_WIDTH,
-        bottom: DEFAULT_CARD_FACE_BORDER_WIDTH,
-        left: DEFAULT_CARD_FACE_BORDER_WIDTH,
-        right: DEFAULT_CARD_FACE_BORDER_WIDTH
-      }
-    }
-  )
-  
-  areDimensionsEqual: InputSignal<boolean> = input<boolean>(false);
-  
+  private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);
+
   isMixed: boolean = false;
 
   shouldDropDown: boolean = false;
 
   readonly minBorderDimensions: number = MIN_BORDER_WIDTH;
   readonly maxBorderDimensions: number = MAX_BORDER_WIDTH;
-
+  
+  areDimensionsEqual: InputSignal<boolean> = input<boolean>(false);
+  
   constructor() {
     effect(() => {
       this.isMixed = !this.areDimensionsEqual();
     });
   }
 
+  get borderDimensions(): BorderDimensions {
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions;
+  }
+
+  set borderDimensions(borderDimensions: BorderDimensions) {
+    this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions = borderDimensions;
+    this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderDimensionsChange(borderDimensions);
+  }
+
   set borderWidthValue(value: number) {
     value = clamp(value, MIN_BORDER_WIDTH, MAX_BORDER_WIDTH);
 
-    this.borderDimensions.set(
-      {
-        borderWidth: value,
-        borderRect: {
-          top: value,
-          bottom: value,
-          left: value,
-          right: value
-        }
+    this.borderDimensions =
+    {
+      borderWidth: value,
+      borderRect: {
+        top: value,
+        bottom: value,
+        left: value,
+        right: value
       }
-    )
+    }
 
     if (this.borderWidthRef.nativeElement) this.borderWidthRef.nativeElement.value = `${value}`;
     if (this.borderTopRef.nativeElement) this.borderTopRef.nativeElement.value = `${value}`;
@@ -68,32 +67,32 @@ export class CardFaceAttributesBorderWidthComponent {
   }
 
   get borderWidthValue() {
-    return this.borderDimensions().borderWidth;
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderWidth;
   }
 
   get borderTopWidthValue() {
-    return this.borderDimensions().borderRect.top;
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderRect.top;
   }
 
    get borderBottomWidthValue() {
-    return this.borderDimensions().borderRect.bottom;
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderRect.bottom;
   }
 
    get borderLeftWidthValue() {
-    return this.borderDimensions().borderRect.left;
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderRect.left;
   }
 
    get borderRightWidthValue() {
-    return this.borderDimensions().borderRect.right;
+    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions.borderRect.right;
   }
 
   set borderLeftWidthValue(value: number) {
     value = clamp(value, MIN_BORDER_WIDTH, MAX_BORDER_WIDTH);
 
-    this.borderDimensions.set({
-      ...this.borderDimensions(),
+    this.borderDimensions = ({
+      ...this.borderDimensions,
       borderRect: {
-        ...this.borderDimensions().borderRect,
+        ...this.borderDimensions.borderRect,
         left: value
       }
     });
@@ -104,10 +103,10 @@ export class CardFaceAttributesBorderWidthComponent {
   set borderRightWidthValue(value: number) {
     value = clamp(value, MIN_BORDER_WIDTH, MAX_BORDER_WIDTH);
 
-    this.borderDimensions.set({
-      ...this.borderDimensions(),
+    this.borderDimensions = ({
+      ...this.borderDimensions,
       borderRect: {
-        ...this.borderDimensions().borderRect,
+        ...this.borderDimensions.borderRect,
         right: value
       }
     });
@@ -118,10 +117,10 @@ export class CardFaceAttributesBorderWidthComponent {
   set borderTopWidthValue(value: number) {
     value = clamp(value, MIN_BORDER_WIDTH, MAX_BORDER_WIDTH);
 
-    this.borderDimensions.set({
-      ...this.borderDimensions(),
+    this.borderDimensions = ({
+      ...this.borderDimensions,
       borderRect: {
-        ...this.borderDimensions().borderRect,
+        ...this.borderDimensions.borderRect,
         top: value
       }
     });
@@ -132,10 +131,10 @@ export class CardFaceAttributesBorderWidthComponent {
   set borderBottomWidthValue(value: number) {
     value = clamp(value, MIN_BORDER_WIDTH, MAX_BORDER_WIDTH);
 
-    this.borderDimensions.set({
-      ...this.borderDimensions(),
+    this.borderDimensions = ({
+      ...this.borderDimensions,
       borderRect: {
-        ...this.borderDimensions().borderRect,
+        ...this.borderDimensions.borderRect,
         bottom: value
       }
     });
