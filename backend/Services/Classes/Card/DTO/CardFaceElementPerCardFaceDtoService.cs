@@ -13,12 +13,13 @@ namespace Services
         private readonly ICardFaceElementPerCardFaceService  _cardFaceElementPerCardFaceService;
         private readonly IMapper _mapper;
         private readonly DtoCrudService<CardFaceElementPerCardFace, CardFaceElementPerCardFaceDto> _dtoCrudService;
-
+        private readonly DtoNavCrudService<CardFaceElementPerCardFace, CardFaceElementPerCardFaceDto> _dtoNavCrudService;
         public CardFaceElementPerCardFaceDtoService(IMapper mapper, ICardFaceElementPerCardFaceService  cardFaceElementPerCardFaceService) 
         {
             _mapper = mapper;
             _cardFaceElementPerCardFaceService = cardFaceElementPerCardFaceService;
             _dtoCrudService = new(_mapper, _cardFaceElementPerCardFaceService);
+            _dtoNavCrudService = new(_mapper, _cardFaceElementPerCardFaceService);
         }
         public async Task<CardFaceElementPerCardFaceDto> CreateDtoAsync(CardFaceElementPerCardFaceDto cardFaceElementPerCardFaceDto)
         {
@@ -47,50 +48,27 @@ namespace Services
 
         public async Task<CardFaceElementPerCardFaceDto> CreateDtoNavAsync(CardFaceElementPerCardFaceDto cardFaceElementPerCardFaceDto)
         {
-            if (cardFaceElementPerCardFaceDto.CardFaceElement == null)
-                throw new ArgumentNullException(nameof(cardFaceElementPerCardFaceDto), "Card Face Element Per Card Face Dto - Create Dto Nav Async: Card face element is null");
-            
-            Console.WriteLine(cardFaceElementPerCardFaceDto.CardFaceElement.GetType().Name);
+            return await _dtoNavCrudService.CreateDtoNavAsync(cardFaceElementPerCardFaceDto);
+        }
 
-            CardFaceElementPerCardFace cardFaceElementPerCardFace = _mapper.Map<CardFaceElementPerCardFace>(cardFaceElementPerCardFaceDto);
-            cardFaceElementPerCardFace = await  _cardFaceElementPerCardFaceService.CreateNavAsync(cardFaceElementPerCardFace);
-            return  _mapper.Map<CardFaceElementPerCardFaceDto>(cardFaceElementPerCardFace);
+        public async Task<IEnumerable<CardFaceElementPerCardFaceDto>> GetAllDtoNavAsync()
+        {
+           return await _dtoNavCrudService.GetAllDtoNavAsync();
         }
         
         public async Task<CardFaceElementPerCardFaceDto?> GetDtoNavAsync(string id)
         {
-            long snowflakeId = DtoIdConversion.DtoStringToLong(id);
-            CardFaceElementPerCardFace? cardFaceElementPerCardFace = await  _cardFaceElementPerCardFaceService.GetNavAsync(snowflakeId);
-
-            if (cardFaceElementPerCardFace == null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<CardFaceElementPerCardFaceDto>(cardFaceElementPerCardFace);
+            return await _dtoNavCrudService.GetDtoNavAsync(id);
         }
 
         public async Task<bool> UpdateDtoNavAsync(string id, CardFaceElementPerCardFaceDto cardFaceElementPerCardFaceDto)
         {
-            if (! Exists(id)) {
-                return false;
-            }
-
-            CardFaceElementPerCardFace cardFaceElementPerCardFace = _mapper.Map<CardFaceElementPerCardFace>(cardFaceElementPerCardFaceDto);
-            bool updated = await  _cardFaceElementPerCardFaceService.UpdateNavAsync(cardFaceElementPerCardFace);
-
-            return updated;
+            return await _dtoNavCrudService.UpdateDtoNavAsync(id, cardFaceElementPerCardFaceDto);
         }
 
         public async Task<bool> DeleteDtoNavAsync(string id)
         {
-            if (! Exists(id)) {
-                return false;
-            }
-
-            bool deleted = await  _cardFaceElementPerCardFaceService.DeleteNavAsync(DtoIdConversion.DtoStringToLong(id));
-
-            return deleted;
+            return await _dtoNavCrudService.DeleteDtoNavAsync(id);
         }
 
          public async Task <bool> DeleteAllDtoNavByCardFaceAsync(CardFaceElementPerCardFaceDto[] cardFaceElementsPerCardFaceDto, CardFaceDto cardFaceDto)
@@ -165,17 +143,7 @@ namespace Services
 
          public bool Exists(string id)
         {
-            return _cardFaceElementPerCardFaceService.Exists(DtoIdConversion.DtoStringToLong(id));
-        }
-
-        public async Task<CardPerOwnerDto> CreateDtoNavAsync(CardPerOwnerDto cardPerOwnerDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> UpdateDtoNavAsync(string id, CardPerOwnerDto cardPerOwnerDto)
-        {
-           throw new NotImplementedException();
+            return _dtoCrudService.Exists(id);
         }
 
         public async Task<bool> UpdateAllDtoNavByCardFaceAsync(CardFaceElementPerCardFaceDto[] cardFaceElementsPerCardFaceDto, CardFaceDto cardFaceDto)

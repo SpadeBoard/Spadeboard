@@ -1,7 +1,7 @@
 table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 1rem;
+    border-spacing: 0 1rem;
 }
 
 td {
@@ -18,6 +18,6 @@ input[type=number] {
     font-weight: bold;
     font-family: "Kumbh Sans", sans-serif;
     font-size: medium;
-    padding: 5%;
+    padding: 10%;
     border-radius: 5px;
 }

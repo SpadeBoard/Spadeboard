@@ -131,33 +131,12 @@ namespace Services
             return results;
         }
 
-
-        public async Task<CardEditorCardFaceDto> CreateDtoNavAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<CardEditorCardFaceDto> GetDtoNavAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<IEnumerable<CardEditorCardFaceDto>> GetAllDtoAsync()
         {
             throw new NotImplementedException();
         }
 
         public async Task<bool> UpdateDtoAsync(string id, CardEditorCardFaceDto cardEditorCardFaceDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> UpdateDtoNavAsync(string id, CardEditorCardFaceDto cardEditorCardFaceDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> DeleteDtoNavAsync(string id)
         {
             throw new NotImplementedException();
         }

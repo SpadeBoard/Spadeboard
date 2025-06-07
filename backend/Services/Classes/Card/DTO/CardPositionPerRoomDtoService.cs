@@ -14,11 +14,14 @@ namespace Services
         private readonly IMapper _mapper;
         private readonly DtoCrudService<CardPositionPerRoom, CardPositionPerRoomDto> _dtoCrudService;
 
+        private readonly DtoNavCrudService<CardPositionPerRoom, CardPositionPerRoomDto> _dtoNavCrudService;
+
         public CardPositionPerRoomDtoService(ICardPositionPerRoomService cardPositionPerRoomService, IMapper mapper)
         {
             _mapper = mapper;
             _cardPositionPerRoomService = cardPositionPerRoomService;
              _dtoCrudService = new(_mapper, _cardPositionPerRoomService);
+             _dtoNavCrudService = new(_mapper, _cardPositionPerRoomService);
         }
 
         public bool Exists(string id)
@@ -51,36 +54,24 @@ namespace Services
              return await _dtoCrudService.DeleteDtoAsync(id);
         }
 
+         public async Task<IEnumerable<CardPositionPerRoomDto>> GetAllDtoNavAsync()
+        {
+            return  await _dtoNavCrudService.GetAllDtoNavAsync();
+        }
+
         public async Task<CardPositionPerRoomDto?> GetDtoNavAsync(string id)
         {
-            CardPositionPerRoom? cardPositionPerRoom = await _cardPositionPerRoomService.GetNavAsync(DtoIdConversion.DtoStringToLong(id));
-
-            if (cardPositionPerRoom == null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<CardPositionPerRoomDto>(cardPositionPerRoom);
+           return await _dtoNavCrudService.GetDtoNavAsync(id);
         }
 
         public async Task<CardPositionPerRoomDto> CreateDtoNavAsync(CardPositionPerRoomDto dto)
         {
-            CardPositionPerRoom cardPositionPerRoom = _mapper.Map<CardPositionPerRoom>(dto);
-            cardPositionPerRoom = await _cardPositionPerRoomService.CreateNavAsync(cardPositionPerRoom);
-            return  _mapper.Map<CardPositionPerRoomDto>(cardPositionPerRoom);
+           return await _dtoNavCrudService.CreateDtoNavAsync(dto);
         }
 
         public async Task<bool> UpdateDtoNavAsync(string id, CardPositionPerRoomDto dto)
         {
-            if (!Exists(id))
-            {
-                return false;
-            }
-
-            CardPositionPerRoom cardPositionPerRoom = _mapper.Map<CardPositionPerRoom>(dto);
-            bool updated = await _cardPositionPerRoomService.UpdateNavAsync(cardPositionPerRoom);
-
-            return updated;
+           return await _dtoNavCrudService.UpdateDtoNavAsync(id, dto);
         }
 
         public async Task<bool> UpdateAllDtoNavAsync(CardPositionPerRoomDto[] cardPositionPerRoomDtos)
@@ -90,13 +81,7 @@ namespace Services
 
         public async Task<bool> DeleteDtoNavAsync(string id)
         {
-            if (!Exists(id)) {
-                return false;
-            }
-
-            bool deleted = await _cardPositionPerRoomService.DeleteNavAsync(DtoIdConversion.DtoStringToLong(id));
-
-            return deleted;
+           return await _dtoNavCrudService.DeleteDtoNavAsync(id);
         }
 
         public async Task<IEnumerable<CardPositionPerRoomDto>> GetAllDtoNavByRoomIdAsync(string gameRoomId)

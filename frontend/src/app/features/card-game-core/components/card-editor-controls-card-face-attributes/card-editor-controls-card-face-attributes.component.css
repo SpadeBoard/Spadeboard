@@ -1,7 +1,7 @@
 .card-face-attributes-columns {
     display: grid;
     grid-template-columns: 1fr 1fr; 
-    grid-gap: 1.5rem;
+    grid-gap: 2.5rem;
     align-items: start; 
     border-left: 3px solid #666667;
     width: 50%;

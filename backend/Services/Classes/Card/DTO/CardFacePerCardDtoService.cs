@@ -1,17 +1,23 @@
 using AutoMapper;
-using Data;
-using Microsoft.EntityFrameworkCore;
 using Models.Bridge;
 using Models.Cards;
-using Models.DndItems;
 using Utils;
 
 namespace Services
 {
-    public class CardFacePerCardDtoService(IMapper mapper, ICardFacePerCardService cardFacePerCardService) : ICardFacePerCardDtoService
+    public class CardFacePerCardDtoService : ICardFacePerCardDtoService
     {
-        private readonly ICardFacePerCardService _cardFacePerCardService =cardFacePerCardService;
-        private readonly IMapper _mapper = mapper;
+        private readonly ICardFacePerCardService _cardFacePerCardService;
+        private readonly IMapper _mapper;
+
+        private readonly DtoCrudService<CardFacePerCard, CardFacePerCardDto> _dtoCrudService;
+
+         public CardFacePerCardDtoService(IMapper mapper, ICardFacePerCardService cardFacePerCardService)
+        {
+             _mapper = mapper;
+            _cardFacePerCardService = cardFacePerCardService;
+            _dtoCrudService = new(_mapper, _cardFacePerCardService);
+        }
 
         public async Task<IEnumerable<CardFacePerCardDto>> CreateAllDtoAsyncFromCardEditorCardDto(CardEditorCardDto cardEditorCardDto)
         {
@@ -47,20 +53,14 @@ namespace Services
             return _mapper.Map<IEnumerable<CardFaceDto>>(await _cardFacePerCardService.GetAllFacesByCardId(DtoIdConversion.DtoStringToLong(cardId)));
         }
 
-        public async Task<bool> UpdateDtoAsync(string id, CardFacePerCardDto cardPerOwnerDto)
+        public async Task<bool> UpdateDtoAsync(string id, CardFacePerCardDto dto)
         {
-            throw new NotImplementedException();
+            return await _dtoCrudService.UpdateDtoAsync(id, dto);
         }
 
         public async Task<bool> DeleteDtoAsync(string id)
         {
-           if (! Exists(id)) {
-                return false;
-            }
-
-            bool deleted = await  _cardFacePerCardService.DeleteAsync(DtoIdConversion.DtoStringToLong(id));
-
-            return deleted;
+          return await _dtoCrudService.DeleteDtoAsync(id);
         }
 
         public async Task<bool> DeleteDtoByCardAndCardFaceAsync(string cardId,string cardFaceId)
@@ -68,46 +68,24 @@ namespace Services
             return await _cardFacePerCardService.DeleteByCardAndCardFaceAsync(DtoIdConversion.DtoStringToLong(cardId), DtoIdConversion.DtoStringToLong(cardFaceId));
         }
 
-        public bool Exists(string id) {
-            return _cardFacePerCardService.Exists(DtoIdConversion.DtoStringToLong(id));
+        public bool Exists(string id) 
+        {
+            return _dtoCrudService.Exists(id);
         }
 
-        public async Task<CardFacePerCardDto> GetDtoAsync(string id)
+        public async Task<CardFacePerCardDto?> GetDtoAsync(string id)
         {
-            throw new NotImplementedException();
+            return await _dtoCrudService.GetDtoAsync(id);
         }
 
         public async Task<CardFacePerCardDto> CreateDtoAsync(CardFacePerCardDto cardFacePerCardDto)
         {
-            CardFacePerCard cardFacePerCard = _mapper.Map<CardFacePerCard>(cardFacePerCardDto);
-            cardFacePerCard = await _cardFacePerCardService.CreateAsync(cardFacePerCard);
-            return  _mapper.Map<CardFacePerCardDto>(cardFacePerCard);
+            return await _dtoCrudService.CreateDtoAsync(cardFacePerCardDto);
         }
 
         public async Task<IEnumerable<CardFacePerCardDto>> GetAllDtoAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public async Task<CardFacePerCardDto> CreateDtoNavAsync(CardFacePerCardDto cardPerOwnerDto)
-        {
-            throw new NotImplementedException();
-        }
-        
-        // TODO: Think about where you should implement this
-        public async Task<CardFacePerCardDto?> GetDtoNavAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> UpdateDtoNavAsync(string id, CardFacePerCardDto cardPerOwnerDto)
-        {
-           throw new NotImplementedException();
-        }
-
-        public async Task<bool> DeleteDtoNavAsync(string id)
-        {
-            throw new NotImplementedException();
+           return await _dtoCrudService.GetAllDtoAsync();
         }
     }
 }

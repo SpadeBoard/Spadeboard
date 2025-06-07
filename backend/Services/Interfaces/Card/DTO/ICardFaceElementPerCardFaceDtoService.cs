@@ -3,7 +3,7 @@ using Models.Bridge;
 
 namespace Services
 {
-    public interface ICardFaceElementPerCardFaceDtoService : ICrudDto<CardFaceElementPerCardFaceDto>
+    public interface ICardFaceElementPerCardFaceDtoService : ICrudDto<CardFaceElementPerCardFaceDto>, ICrudNavDto<CardFaceElementPerCardFaceDto>
     {
         public Task<IEnumerable<CardFaceElementPerCardFaceDto>> CreateAllNavDtoByCardFaceDtoIdAsync(CardFaceElementPerCardFaceDto[] cardFaceElementsPerCardFaceDtos, CardFaceDto cardFaceDto);
 

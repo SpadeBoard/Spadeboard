@@ -1,15 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Data;
-using Models.Cards;
 using Models.DndItems;
 using AutoMapper;
-using Utils;
 
 
 namespace Services
@@ -45,26 +35,6 @@ namespace Services
         public async Task<bool> DeleteDtoAsync(string id)
         {
             return await _dtoCrudService.DeleteDtoAsync(id);
-        }
-
-        public async Task<DndItemDto> CreateDtoNavAsync(DndItemDto dndItemDto)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public async Task<DndItemDto?> GetDtoNavAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> UpdateDtoNavAsync(string id, DndItemDto dndItemDto)
-        {
-           throw new NotImplementedException();
-        }
-
-        public async Task<bool> DeleteDtoNavAsync(string id)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<DndItemDto>> GetAllDtoAsync() 

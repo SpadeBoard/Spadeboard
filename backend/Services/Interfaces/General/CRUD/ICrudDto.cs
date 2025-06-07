@@ -9,7 +9,11 @@ namespace Services
         public Task<T> CreateDtoAsync(T dto);
         public Task<bool> UpdateDtoAsync(string id, T dto);
         public Task<bool> DeleteDtoAsync(string id);
+    }
 
+    public interface ICrudNavDto<T>
+    {
+        public Task<IEnumerable<T>> GetAllDtoNavAsync();
         public Task<T?> GetDtoNavAsync(string id);
         public Task<T> CreateDtoNavAsync(T dto);
         public Task<bool> UpdateDtoNavAsync(string id, T dto);

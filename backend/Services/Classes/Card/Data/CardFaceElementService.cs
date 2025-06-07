@@ -166,12 +166,22 @@ namespace Services
             return cardFaceElements;
         }
 
-        // FIXME: So this works with the other CardFaceElementDto function
+        // TODO: Make a DTO matching function, use the controller and cast it
+        public async Task<CardFaceElement?> GetImageNavAsync(long id)
+        {
+            CardFaceElementImage? cardFaceElementImage = await _context.CardFaceElement
+                .OfType<CardFaceElementImage>()
+                .Include(cardFaceElement => cardFaceElement.Style)
+                .Include(cardFaceElement => cardFaceElement.ImageFileMetadata)
+                .FirstOrDefaultAsync(cardFaceElement => cardFaceElement.CardFaceElementId == id);
+
+            return cardFaceElementImage;
+        }
+
         public async Task<CardFaceElement?> GetNavAsync(long id)
         {
             var cardFaceElement = await _context.CardFaceElement
                 .Include(cardFaceElement => cardFaceElement.Style)
-                .Include(cardFaceElement => (cardFaceElement as CardFaceElementImage).ImageFileMetadata) // TODO: Please refactor this
                 .FirstOrDefaultAsync(cardFaceElement => cardFaceElement.CardFaceElementId == id);
             
             return cardFaceElement;

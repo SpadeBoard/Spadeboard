@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Models.DndItems;
 using Models.Files;
 using Models.Styles;
 using Services;
@@ -27,7 +26,7 @@ namespace Models.Cards
     public class CardFaceElementImageDto : CardFaceElementDto
     {
         public string? ImageFileMetadataId { get; set; }
-        public FileMetadataDto? ImageFileMetadata { get; set; }
+        public virtual FileMetadataDto? ImageFileMetadata { get; set; }
     }
 
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "cardFaceElementType")]
@@ -59,6 +58,6 @@ namespace Models.Cards
     {
         public long? ImageFileMetadataId {get; set;}
         [ForeignKey("ImageFileMetadataId")]
-        public FileMetadata? ImageFileMetadata {get; set;}
+        public virtual FileMetadata? ImageFileMetadata {get; set;}
     }
 }
