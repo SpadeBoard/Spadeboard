@@ -41,6 +41,7 @@ input[type=number] {
     margin-top: 0.75rem;
     background-color: #BFBEBE;
     padding: 5%;
+    border-radius: 10px;
 }
 
 .border-width-icons {
