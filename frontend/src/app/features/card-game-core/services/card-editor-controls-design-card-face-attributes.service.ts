@@ -4,6 +4,7 @@ import { BorderDimensions, Style } from '../../style/models/style';
 import { CardFace } from '../models/card-face';
 import { DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
 import { CardEditorPreviewService } from './card-editor-preview.service';
+import { Dimensions } from '../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -11,12 +12,18 @@ import { CardEditorPreviewService } from './card-editor-preview.service';
 export class CardEditorControlsDesignCardFaceAttributesService {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
   
-  cardFaceColor: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
-  borderColor: string = DEFAULT_CARD_FACE_BORDER_COLOR;
+  cardFaceHexcode: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+  borderHexcode: string = DEFAULT_CARD_FACE_BORDER_COLOR;
 
-  height: number = DEFAULT_CARD_FACE_HEIGHT;
-  width: number = DEFAULT_CARD_FACE_WIDTH;
+  cardFaceHexInput: string = DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+  borderHexInput: string = DEFAULT_CARD_FACE_BORDER_COLOR;
+
   borderRadius: number = DEFAULT_CARD_FACE_BORDER_RADIUS;
+
+  cardFaceDimensions: Dimensions = {
+    width: DEFAULT_CARD_FACE_WIDTH,
+    height: DEFAULT_CARD_FACE_HEIGHT
+  }
 
   borderDimensions: BorderDimensions = {
     borderWidth: DEFAULT_CARD_FACE_BORDER_WIDTH,
@@ -61,8 +68,8 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     this.onBorderRadiusChange$$.next(borderRadius);
   }
 
-  setOnBorderColorChange(borderColor: string) {
-    this.onBorderColorChange$$.next(borderColor);
+  setOnBorderColorChange(borderHexcode: string) {
+    this.onBorderColorChange$$.next(borderHexcode);
   }
 
   setHeight(height: number) {
@@ -92,13 +99,19 @@ export class CardEditorControlsDesignCardFaceAttributesService {
    this.cardFaceId.set(currentCardFace.cardFaceId)
     let currentCardFaceStyle: Style = currentCardFace.style;
 
-    this.width =  this.extractCardFaceWidth(currentCardFaceStyle.width) ?? DEFAULT_CARD_FACE_WIDTH;
-    this.height = this.extractCardFaceHeight(currentCardFaceStyle.height) ?? DEFAULT_CARD_FACE_HEIGHT;
-    
-    this.cardFaceColor = (currentCardFaceStyle.backgroundColor) ?? DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+    this.cardFaceDimensions = {
+      width: this.extractCardFaceWidth(currentCardFaceStyle.width) ?? DEFAULT_CARD_FACE_WIDTH,
+      height: this.extractCardFaceHeight(currentCardFaceStyle.height) ?? DEFAULT_CARD_FACE_HEIGHT
+    }
+
+    this.cardFaceHexcode = (currentCardFaceStyle.backgroundColor) ?? DEFAULT_CARD_FACE_BACKGROUND_COLOR;
+    this.cardFaceHexInput = (this.cardFaceHexcode)
+
     this.borderRadius = this.extractBorderRadius(currentCardFaceStyle.borderRadius);
     this.borderDimensions = this.extractBorderDimensions(currentCardFaceStyle);
-    this.borderColor = (currentCardFaceStyle.borderColor) ?? DEFAULT_CARD_FACE_BORDER_COLOR;
+
+    this.borderHexcode = (currentCardFaceStyle.borderColor) ?? DEFAULT_CARD_FACE_BORDER_COLOR;
+    this.borderHexInput = (this.borderHexcode)
   }
 
   private extractCardFaceWidth(width?: string): number {

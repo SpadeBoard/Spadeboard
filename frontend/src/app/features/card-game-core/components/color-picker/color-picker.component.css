@@ -1,11 +1,8 @@
 .color-picker-container {
     background-color: #E6E6E6;
     color: #676767;
-    font-family: 'Roboto', sans-serif;
-    font-weight: 600;
-    font-size: 1rem;
     width: fit-content;
-    padding: 1%;
+    padding: 5%;
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
@@ -17,11 +14,17 @@
     align-items: center;
     padding: 1%;
     gap: 0.25rem;
-    padding-right: 0.25rem;
+    padding-right: 0.5rem;
 }
 
 .color-picker-separator:nth-child(1) {
     border-right: 1px solid #555555;
+}
+
+span {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: medium;
 }
 
 #color-picker-input {
@@ -31,10 +34,13 @@
     background: transparent;
 }
 
-#color-value-name {
-  background-color: #D1D1D1;
-  border: none;
-    font-family: 'Roboto', sans-serif;
-    font-weight: 600;
-    font-size: 1rem;
+#color-hex-input {
+    background-color: #D1D1D1;
+    border: none;
+    font-weight: bold;
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: large;
+    padding: 5%;
+    border-radius: 5px;
+    width: 100%;
 }

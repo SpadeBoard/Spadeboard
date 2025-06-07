@@ -1,0 +1,5 @@
+<div class="border-radius-input-container">
+    <label for="border-radius-input">Edge radius:</label>
+    <input id="border-radius-input" type="number" [attr.min]="minBorderRadius" [attr.max]="maxBorderRadius"
+        [(ngModel)]="borderRadius" #borderRadiusInput />
+</div>

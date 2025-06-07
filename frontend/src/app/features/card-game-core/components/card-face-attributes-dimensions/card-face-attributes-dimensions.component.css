@@ -1,0 +1,23 @@
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 1rem;
+}
+
+td {
+    vertical-align: middle;
+    font-weight: bold;
+    color: #666667;
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: x-large;
+}
+
+input[type=number] {
+    background-color: #D1D1D1;
+    border: none;
+    font-weight: bold;
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: medium;
+    padding: 5%;
+    border-radius: 5px;
+}
