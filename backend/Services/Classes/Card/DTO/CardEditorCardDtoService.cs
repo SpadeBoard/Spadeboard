@@ -1,15 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
 using Models.Bridge;
-using Newtonsoft.Json;
-using System.Linq;
 
 // https://stackoverflow.com/questions/59753218/how-to-use-dbcontext-in-separate-class-library-net-core
 // https://www.postgresql.org/docs/current/ddl-schemas.html#:~:text=Unlike%20databases%2C%20schemas%20are%20not,without%20interfering%20with%20each%20other.
@@ -141,6 +133,11 @@ namespace Services
             }
         }
 
+        public async Task<IEnumerable<CardEditorCardDto>> GetAllDtoAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<CardEditorCardDto?> GetDtoAsync(string id)
         {
             CardDto? card = await _cardDtoService.GetDtoAsync(id);
@@ -207,31 +204,6 @@ namespace Services
         }
 
         public bool Exists(string id) 
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<IEnumerable<CardEditorCardDto>> GetAllDtoAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<CardEditorCardDto> CreateDtoNavAsync(CardEditorCardDto cardEditorCardDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<CardEditorCardDto> GetDtoNavAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> UpdateDtoNavAsync(string id, CardEditorCardDto cardEditorCardDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> DeleteDtoNavAsync(string id)
         {
             throw new NotImplementedException();
         }

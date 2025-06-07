@@ -3,7 +3,7 @@ using Models.Cards;
 
 namespace Services
 {
-    public interface ICardPositionPerRoomDtoService : ICrudDto<CardPositionPerRoomDto>
+    public interface ICardPositionPerRoomDtoService : ICrudDto<CardPositionPerRoomDto>, ICrudNavDto<CardPositionPerRoomDto>
     {
         public Task<bool> UpdateAllDtoNavAsync(CardPositionPerRoomDto[] cardPositionPerRoomDtos);
 

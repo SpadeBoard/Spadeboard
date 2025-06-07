@@ -1,11 +1,5 @@
 using AutoMapper;
-using Data;
-using Microsoft.EntityFrameworkCore;
-using Models.Bridge;
 using Models.Cards;
-using Models.DndItems;
-using Utils;
-
 namespace Services
 {
     public class CardFaceElementDtoService : ICardFaceElementDtoService
@@ -15,11 +9,14 @@ namespace Services
 
         private readonly DtoCrudService<CardFaceElement, CardFaceElementDto> _dtoCrudService;
 
+        private readonly DtoNavCrudService<CardFaceElement, CardFaceElementDto> _dtoNavCrudService;
+
         public CardFaceElementDtoService(IMapper mapper, ICardFaceElementService cardFaceElementService)
         {
             _mapper = mapper;
             _cardFaceElementService = cardFaceElementService;
             _dtoCrudService = new DtoCrudService<CardFaceElement, CardFaceElementDto>(_mapper, _cardFaceElementService);
+             _dtoNavCrudService = new DtoNavCrudService<CardFaceElement, CardFaceElementDto>(_mapper, _cardFaceElementService);
         }
 
         public async Task<CardFaceElementDto> CreateDtoAsync(CardFaceElementDto cardFaceElementDto)
@@ -44,47 +41,32 @@ namespace Services
 
         public async Task<CardFaceElementDto> CreateDtoNavAsync(CardFaceElementDto cardFaceElementDto)
         {
-            CardFaceElement cardFaceElement = _mapper.Map<CardFaceElement>(cardFaceElementDto);
-            cardFaceElement = await _cardFaceElementService.CreateNavAsync(cardFaceElement);
-            return  _mapper.Map<CardFaceElementDto>(cardFaceElement);
+            return await _dtoNavCrudService.CreateDtoNavAsync(cardFaceElementDto);
         }
         
         public async Task<CardFaceElementDto?> GetDtoNavAsync(string id)
         {
-            CardFaceElement? cardFaceElement = await _cardFaceElementService.GetNavAsync(DtoIdConversion.DtoStringToLong(id));
-
-            if (cardFaceElement == null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<CardFaceElementDto>(cardFaceElement);
+             return await _dtoNavCrudService.GetDtoNavAsync(id);
         }
 
         public async Task<bool> UpdateDtoNavAsync(string id, CardFaceElementDto cardFaceElementDto)
         {
-            if (!Exists(id)) {
-                return false;
-            }
-
-            CardFaceElement cardFaceElement = _mapper.Map<CardFaceElement>(cardFaceElementDto);
-            bool updated = await _cardFaceElementService.UpdateNavAsync(cardFaceElement);
-
-            return updated;
+            return await _dtoNavCrudService.UpdateDtoNavAsync(id, cardFaceElementDto);
         }
 
         public async Task<bool> DeleteDtoNavAsync(string id)
         {
-           if (!Exists(id)) {
-                return false;
-            }
-
-            return await _cardFaceElementService.DeleteNavAsync(DtoIdConversion.DtoStringToLong(id));
+           return await _dtoNavCrudService.DeleteDtoNavAsync(id);
         }
 
         public bool Exists(string id)
         {
             return _dtoCrudService.Exists(id);
+        }
+
+        public async Task<IEnumerable<CardFaceElementDto>> GetAllDtoNavAsync() 
+        {
+            return  await _dtoNavCrudService.GetAllDtoNavAsync();
         }
 
         public async Task<IEnumerable<CardFaceElementDto>> GetAllDtoAsync() 

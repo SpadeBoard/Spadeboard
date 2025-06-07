@@ -51,27 +51,6 @@ namespace Services
            return await _dtoCrudService.DeleteDtoAsync(id);
         }
 
-        public async Task<CardPerOwnerDto> CreateDtoNavAsync(CardPerOwnerDto cardPerOwnerDto)
-        {
-            throw new NotImplementedException();
-        }
-        
-        // TODO: Think about where you should implement this
-        public async Task<CardPerOwnerDto?> GetDtoNavAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> UpdateDtoNavAsync(string id, CardPerOwnerDto cardPerOwnerDto)
-        {
-           throw new NotImplementedException();
-        }
-
-        public async Task<bool> DeleteDtoNavAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
-
          public bool Exists(string id)
         {
             return _dtoCrudService.Exists(id);

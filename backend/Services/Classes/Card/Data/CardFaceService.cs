@@ -140,6 +140,7 @@ namespace Services
         {
             var cardFace = await _context.CardFace
                 .Include(cardFace => cardFace.Style)
+                .Include(cardFace => cardFace.CardFaceThumbnailFileMetadata)
                 .FirstOrDefaultAsync(cardFace => cardFace.CardFaceId == cardFaceId);
 
             if (cardFace == null)
@@ -154,6 +155,7 @@ namespace Services
         {
             var cardFaces = await _context.CardFace
             .Include(cf => cf.Style)
+            .Include(cf => cf.CardFaceThumbnailFileMetadata)
             .ToListAsync();
 
             return cardFaces;

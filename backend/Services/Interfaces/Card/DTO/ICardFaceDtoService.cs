@@ -2,7 +2,7 @@ using Models.Cards;
 
 namespace Services
 {
-    public interface ICardFaceDtoService : ICrudDto<CardFaceDto>
+    public interface ICardFaceDtoService : ICrudDto<CardFaceDto>, ICrudNavDto<CardFaceDto>
     {
     }
 }
