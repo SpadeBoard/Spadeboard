@@ -1,7 +1,6 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { BorderDimensions } from '../../../style/models/style';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardFaceAttributesBorderRadiusComponent } from '../card-face-attributes-border-radius/card-face-attributes-border-radius.component';
@@ -82,14 +81,5 @@ export class CardEditorControlsCardFaceAttributesComponent {
 
   set borderHexInput(hexcode: string) {
     this.cardEditorControlsDesignCardFaceAttributesService.borderHexInput = hexcode;
-  }
-
-  get borderDimensions(): BorderDimensions {
-    return this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions;
-  }
-
-  set borderDimensions(newBorderDimensions: BorderDimensions) {
-    this.cardEditorControlsDesignCardFaceAttributesService.borderDimensions = newBorderDimensions;
-    this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderDimensionsChange(newBorderDimensions);
   }
 }
