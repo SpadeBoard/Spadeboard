@@ -1,20 +1,16 @@
-.container {
-    width: 20%;
-    height: 20%;
-    transform: scale(0.85);
+.card-face-element-attributes-container {
+    height: auto;
+    width: auto;
 }
 
-body {
-    font-family: 'Roboto', sans-serif;
-}
-
-.element {
-    font-size: 1.2em;
+.card-face-element {
+    font-size: large;
     font-weight: bold;
     margin-bottom: 12px;
     color: #666667;
     display: block;
-    font-family: 'Roboto', sans-serif;
+    font-family: "Kumbh Sans", sans-serif;
+    white-space: nowrap;
 }
 
 table {
@@ -38,4 +34,5 @@ input[type="number"] {
     border: 2px dotted #ccc;
     background-color: #d1d0d0;
     font-family: 'Roboto', sans-serif;
+    border-radius: 5px;
 }

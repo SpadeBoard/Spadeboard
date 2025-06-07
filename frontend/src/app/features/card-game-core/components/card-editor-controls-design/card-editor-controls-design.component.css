@@ -6,7 +6,5 @@
 
 .cec-design-attributes-row {
     display: flex;
-    flex-direction: row; 
-    gap: 5rem;
-    padding: 5%;           
+    padding-left: 5%;          
 }

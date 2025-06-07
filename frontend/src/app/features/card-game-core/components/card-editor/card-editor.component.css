@@ -28,7 +28,7 @@
     gap: 1rem;
     align-items: center;
     background-color: #fefffe;
-    width: fit-content;
+    width: max-content;
     /*align-content: center;*/
     /*justify-content: center;*/
 }
