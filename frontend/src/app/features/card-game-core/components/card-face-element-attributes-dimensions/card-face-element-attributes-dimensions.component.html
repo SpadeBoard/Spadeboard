@@ -1,0 +1,11 @@
+<table>
+    <tr>
+        <td>W:</td>
+        <td><input id="width" type="number" placeholder="W" min="0" [ngModel]="dimensions.width" (ngModelChange)="onWidthChange($event)" #widthInput></td>
+    </tr>
+    <tr>
+        <td>H:</td>
+        <td><input type="number" id="height" placeholder="H" min="0" [ngModel]="dimensions.height" (ngModelChange)="onHeightChange($event)" #heightInput></td>
+    </tr>
+    <tr>
+</table>
