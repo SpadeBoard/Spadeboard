@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH, MAX_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
-import { debounceTime, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { FormsModule } from '@angular/forms';
@@ -84,6 +84,7 @@ export class CardFaceElementAttributesDimensionsComponent {
   onSetWidth(): void {
       this.cardEditorControlsDesignElementAttributesService.onSetWidth$
         .pipe(
+          distinctUntilChanged(),
           takeUntilDestroyed()
         )
         .subscribe((width: number) => {
@@ -96,6 +97,7 @@ export class CardFaceElementAttributesDimensionsComponent {
     onSetHeight(): void {
       this.cardEditorControlsDesignElementAttributesService.onSetHeight$
         .pipe(
+          distinctUntilChanged(),
           takeUntilDestroyed()
         )
         .subscribe((height: number) => {

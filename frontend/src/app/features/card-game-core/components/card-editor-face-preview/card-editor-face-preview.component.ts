@@ -194,7 +194,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       ...borderWidthProps
     };
 
-    console.log(`Get card editor face style: ${JSON.stringify(final)}`);
+    // console.log(`Get card editor face style: ${JSON.stringify(final)}`);
     return final;
   }
 

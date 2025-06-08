@@ -1,5 +1,5 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
-import { debounceTime, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
 import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
@@ -80,6 +80,7 @@ export class CardFaceElementAttributesPositionComponent {
   onSetX(): void {
     this.cardEditorControlsDesignElementAttributesService.onSetX$
       .pipe(
+        distinctUntilChanged(),
         takeUntilDestroyed()
       )
       .subscribe((x: number) => {
@@ -92,6 +93,7 @@ export class CardFaceElementAttributesPositionComponent {
   onSetY(): void {
     this.cardEditorControlsDesignElementAttributesService.onSetY$
       .pipe(
+        distinctUntilChanged(),
         takeUntilDestroyed()
       )
       .subscribe((y: number) => {

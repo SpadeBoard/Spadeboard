@@ -1,14 +1,19 @@
-<div class="card-editor-face" [style]="getDropListStyle()" cdkDropList cdkDropListSortingDisabled="true" #cardEditorFace>
+<div class="card-editor-face" 
+    [style]="getDropListStyle()" 
+    cdkDropList 
+    cdkDropListSortingDisabled="true" 
+    #cardEditorFace>
     @if (currentCardFaceElementsPerCardFace.length > 0) {
         <!--CHECKME: Track by ID, but caveat is it cause issues in scenarios where you expect the DOM or child component to fully re-render or reset—such as when generating a thumbnail image-->
         <!--Which means there might need to be a potential refactor-->
         @for (currentCardFaceElementPerCardFace of currentCardFaceElementsPerCardFace; track currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId) {
-        <div class="dnd-wrapper" cdkDrag cdkDragBoundary=".card-editor-face" 
-            (cdkDragStarted)="onDragStarted($event, currentCardFaceElementPerCardFace)"
+        <div class="card-face-element-dnd-wrapper" 
+            cdkDrag 
+            cdkDragBoundary=".card-editor-face"
+            (mousedown)="onDragStartMouseDown($event)"
+            (cdkDragStarted)="onDragStarted($event)"
             (cdkDragMoved)="onDragMoved($event)"
             (cdkDragDropped)="onDragDropped($event)" 
-            (cdkDragEnded)="onDragEnded($event, currentCardFaceElementPerCardFace)"
-            [cdkDragData]="currentCardFaceElementPerCardFace"
             [style.left.px]="currentCardFaceElementPerCardFace.dndPosition.x"
             [style.top.px]="currentCardFaceElementPerCardFace.dndPosition.y"
             [style.z-index]="currentCardFaceElementPerCardFace.cardFaceElement.style?.zIndex ?? 'inherit'"
