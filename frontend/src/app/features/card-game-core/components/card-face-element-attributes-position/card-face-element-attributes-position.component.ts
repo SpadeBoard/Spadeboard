@@ -1,10 +1,10 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
-import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
-import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
-import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { debounceTime, Subject } from 'rxjs';
+import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
+import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
+import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-face-element-attributes-position',
@@ -39,6 +39,14 @@ export class CardFaceElementAttributesPositionComponent {
     this.setY();
   }
 
+  onXChange(x: number): void {
+    this.x$$.next(x);
+  }
+
+  onYChange(y: number): void {
+    this.y$$.next(y);
+  }
+
   setX(): void {
     this.x$$
       .pipe(
@@ -69,21 +77,19 @@ export class CardFaceElementAttributesPositionComponent {
       );
   }
 
-  onXChange(x: number): void {
-    this.x$$.next(x);
-  }
 
-  onYChange(y: number): void {
-    this.y$$.next(y);
-  }
+
 
   onSetX(): void {
     this.cardEditorControlsDesignElementAttributesService.onSetX$
       .pipe(
-        distinctUntilChanged(),
+        // distinctUntilChanged(),
         takeUntilDestroyed()
       )
       .subscribe((x: number) => {
+        if (this.coordinates.x === x)
+          throw new Error("Element attributes x is same as incoming X");
+
         this.coordinates.x = x;
 
         if (this.xRef.nativeElement) this.xRef.nativeElement.value = `${x}`;
@@ -93,10 +99,13 @@ export class CardFaceElementAttributesPositionComponent {
   onSetY(): void {
     this.cardEditorControlsDesignElementAttributesService.onSetY$
       .pipe(
-        distinctUntilChanged(),
+        // distinctUntilChanged(),
         takeUntilDestroyed()
       )
       .subscribe((y: number) => {
+        if (this.coordinates.y === y)
+          throw new Error("Element attributes y is same as incoming Y");
+
         this.coordinates.y = y;
 
         if (this.yRef.nativeElement) this.yRef.nativeElement.value = `${y}`;

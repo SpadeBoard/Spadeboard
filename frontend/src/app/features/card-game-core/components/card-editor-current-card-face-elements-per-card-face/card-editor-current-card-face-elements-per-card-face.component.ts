@@ -608,10 +608,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     if (!cardFaceElementPerCardFace || !cardFaceElementPerCardFace.cardFaceElement.style)
       throw new Error("No card face element associated with resizable change?");
 
-    cardFaceElementPerCardFace.cardFaceElement.style.width = `${dimensions.width}`;
-    cardFaceElementPerCardFace.cardFaceElement.style.height = `${dimensions.height}`;
-
-   this.setElementAttributesDimensions(dimensions);
+    this.setElementAttributesDimensions(dimensions);
   }
 
   onSetWidth() {
@@ -621,11 +618,15 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         takeUntilDestroyed()
       )
       .subscribe((width: number) => {
-      let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-      
-      if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
+        let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+
+        if (!cardFaceElementPerCardFace)
+          throw new Error("No card face element per card face to set width");
+
+        if (!cardFaceElementPerCardFace.cardFaceElement.style)
+          throw new Error("No card face element style to set width");
+
         cardFaceElementPerCardFace.cardFaceElement.style.width = `${width}px`;
-      }
     })
   }
 
@@ -637,10 +638,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe((height: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-        
-        if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-          cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}px`;
-        }
+
+        if (!cardFaceElementPerCardFace)
+          throw new Error("No card face element per card face to set height");
+
+        if (!cardFaceElementPerCardFace.cardFaceElement.style)
+          throw new Error("No card face element style to set height");
+
+        cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}px`;
       })
   }
 
