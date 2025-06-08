@@ -14,7 +14,7 @@ import { CardEditorControlsDesignImageService } from '../../services/card-editor
 import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
 import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MAX_CURRENT_ELEMENTS_PER_CARD_FACE, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MAX_CURRENT_ELEMENTS_PER_CARD_FACE, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { getCardFaceElementImage, getCardFaceElementRt, isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
@@ -43,23 +43,21 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChildren('cardFaceElement') cardFaceElements!: QueryList<ElementRef>;
 
-  borderRadius: InputSignal<number> = input<number>(2);
-  borderRadiusComputed: Signal<number> = computed(() => this.borderRadius());
+  cardFaceBorderRadius: InputSignal<number> = input<number>(DEFAULT_CARD_FACE_BORDER_RADIUS);
+  cardFaceBorderRadiusComputed: Signal<number> = computed(() => this.cardFaceBorderRadius());
 
   private dragOffset: Coordinates = { x: 0, y: 0 };
   private mousePosition: Coordinates = { x: 0, y: 0 };
 
   currentEditedCardFaceElementId: string = DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID;
 
-  currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [
+  currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [];
 
-  ];
-
-  getDropListStyle(): Omit<Style, 'styleId'> {
+  getCardFaceElementContainer(): Omit<Style, 'styleId'> {
     return {
       width: `100%`,
       height:  `100%`,
-      borderRadius: `${this.borderRadiusComputed()}px`
+      borderRadius: `${this.cardFaceBorderRadiusComputed()}px`
     }
   }
 
@@ -416,7 +414,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     console.log(`Drop point: ${JSON.stringify(event.dropPoint)}`)
     
     // Convert dropPoint to container-relative coordinates
-    // FIXME: Figure out how to handle with drag offset, problem is it's not taking into account of the mouse position
     let localDropPosition: Coordinates = this.getRelativeCoordinates(event.dropPoint);
 
     let localPosition: Coordinates = {
@@ -494,7 +491,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.cardEditorControlsDesignRteService.setOnDisableRte();
   }
 
-  // TODO: Call the other two in there and replace individual instances with this
   setElementAttributes(cardFaceElementId: string) {
     this.setCurrentCardFaceElementId(cardFaceElementId);
 

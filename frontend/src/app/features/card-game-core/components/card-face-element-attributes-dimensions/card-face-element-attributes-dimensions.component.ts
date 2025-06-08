@@ -90,9 +90,6 @@ export class CardFaceElementAttributesDimensionsComponent {
         takeUntilDestroyed()
       )
       .subscribe((width: number) => {
-        if (this.dimensions.width === width)
-          throw new Error("Element attributes width is same as incoming width");
-
         this.dimensions.width = width;
 
         if (this.widthRef.nativeElement) this.widthRef.nativeElement.value = `${width}`;
@@ -106,9 +103,6 @@ export class CardFaceElementAttributesDimensionsComponent {
         takeUntilDestroyed()
       )
       .subscribe((height: number) => {
-        if (this.dimensions.height === height)
-          throw new Error("Element attributes height is same as incoming height");
-
         this.dimensions.height = height;
 
         if (this.heightRef.nativeElement) this.heightRef.nativeElement.value = `${height}`;

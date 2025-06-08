@@ -87,9 +87,6 @@ export class CardFaceElementAttributesPositionComponent {
         takeUntilDestroyed()
       )
       .subscribe((x: number) => {
-        if (this.coordinates.x === x)
-          throw new Error("Element attributes x is same as incoming X");
-
         this.coordinates.x = x;
 
         if (this.xRef.nativeElement) this.xRef.nativeElement.value = `${x}`;
@@ -103,9 +100,6 @@ export class CardFaceElementAttributesPositionComponent {
         takeUntilDestroyed()
       )
       .subscribe((y: number) => {
-        if (this.coordinates.y === y)
-          throw new Error("Element attributes y is same as incoming Y");
-
         this.coordinates.y = y;
 
         if (this.yRef.nativeElement) this.yRef.nativeElement.value = `${y}`;
