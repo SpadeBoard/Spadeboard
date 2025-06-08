@@ -15,7 +15,7 @@ import { CardEditorControlsDesignRteService } from '../../services/card-editor-c
 import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MAX_CURRENT_ELEMENTS_PER_CARD_FACE, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
-import { getCardFaceElementImage, getCardFaceElementRt, isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
+import { getCardFaceElementImage, getCardFaceElementRt } from '../../utils/card-game-core.utils';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
@@ -421,12 +421,18 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       y: localDropPosition.y - this.dragOffset.y
     };
 
-    // FIXME: Sometimes it just doesn't update and I have no clue why, so this is here to try to force the rerender
     let clamped: Coordinates = this.clampDndPosition(this.currentEditedCardFaceElementId, localPosition);
 
     console.log(`Local drop position: ${JSON.stringify(localDropPosition)}, Local drag offset: ${JSON.stringify(this.dragOffset)}, Drag with offset: ${JSON.stringify(localPosition)}, Clamped: ${JSON.stringify(clamped)}`);
 
     this.setElementAttributesPosition(clamped);
+
+    // FIXED: Sometimes it just doesn't update and I have no clue why, so this is here to try to force the rerender
+    // and clamp the native element, force it to absolutely have a style
+    // because for some reason, the element just lacked left and right after dragging it out of bounds twice
+    let element: HTMLElement = event.item.element.nativeElement;
+    element.style.left = `${clamped.x}px`;
+    element.style.top = `${clamped.y}px`;
   }
 
   setElementAttributesPosition(position: Coordinates) {
