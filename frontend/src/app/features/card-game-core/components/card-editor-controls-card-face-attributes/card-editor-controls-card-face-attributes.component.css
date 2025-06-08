@@ -11,10 +11,10 @@
 .card-face-attributes-container {
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
+    gap: 1.25rem;
     padding-left: 10%;
     padding-top: 10%;
-    width: 125%;
+    width: 100%;
 }
 
 .card-edge-attributes-container {
