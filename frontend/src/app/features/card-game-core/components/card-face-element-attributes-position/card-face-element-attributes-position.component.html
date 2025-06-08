@@ -1,0 +1,12 @@
+<table>
+    <tr>
+        <td>X:</td>
+        <td><input type="number" id="x" placeholder="X" min="0" [ngModel]="coordinates.x"
+                (ngModelChange)="onXChange($event)" #xInput></td>
+    </tr>
+    <tr>
+        <td>Y:</td>
+        <td><input type="number" id="y" placeholder="Y" min="0" [ngModel]="coordinates.y"
+                (ngModelChange)="onYChange($event)" #yInput></td>
+    </tr>
+</table>
