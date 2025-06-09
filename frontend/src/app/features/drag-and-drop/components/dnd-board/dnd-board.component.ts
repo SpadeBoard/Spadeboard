@@ -182,6 +182,8 @@ export class DndBoardComponent implements AfterViewInit {
     // Only scroll if the camera actually moved
     let newCamera: Coordinates = this.dndBoardService.camera;
 
+    console.log(`Camera position on zoom: ${JSON.stringify(newCamera)}`);
+
     if (this.isCameraTranslationHighEnough(prevCamera, newCamera))
       // We need to scroll because the board's a scrollable container 
       this.scrollBasedOnCamera('auto');
@@ -230,9 +232,13 @@ export class DndBoardComponent implements AfterViewInit {
 
     // Even after scaling, a large zoom or a big movement vector could cause the camera to jump.
     // Ensure the camera never shifts more than this.dndBoardService.MAX_SHIFT units (AU) per event, keeps movement manageable and prevents sudden jumps.
-    d.x = clamp(d.x * SENSITIVITY, -this.dndBoardService.MAX_SHIFT, this.dndBoardService.MAX_SHIFT);
+    /*d.x = clamp(d.x * SENSITIVITY, -this.dndBoardService.MAX_SHIFT, this.dndBoardService.MAX_SHIFT);
     d.y = clamp(d.y * SENSITIVITY, -this.dndBoardService.MAX_SHIFT, this.dndBoardService.MAX_SHIFT);
+    */
 
+    d.x *= SENSITIVITY;
+    d.y *= SENSITIVITY;
+    
     return d;
   }
 
