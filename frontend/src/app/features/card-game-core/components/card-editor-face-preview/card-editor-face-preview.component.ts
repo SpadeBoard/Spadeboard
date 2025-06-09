@@ -13,7 +13,7 @@ import { CardEditorCardDto } from '../../models/card';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
-import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -97,7 +97,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   isDisplayContextMenu: boolean = false;
 
-  borderRadius: number = 2;
+  cardFaceBorderRadius: number = DEFAULT_CARD_FACE_BORDER_RADIUS;
       
   constructor() {
     this.cardEditorControlsDesignCardFaceAttributesService.setCurrentCardFaceId();
@@ -131,7 +131,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       let face = this.cardEditorPreviewService.getCurrentCardFace();
       if (face && face.style) {
         face.style.borderRadius = `${borderRadius}px`;
-        this.borderRadius = borderRadius;
+        this.cardFaceBorderRadius = borderRadius;
       }
 
       this.setCardEditorFaceStyle(face.style);
@@ -194,7 +194,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       ...borderWidthProps
     };
 
-    console.log(`Get card editor face style: ${JSON.stringify(final)}`);
+    // console.log(`Get card editor face style: ${JSON.stringify(final)}`);
     return final;
   }
 

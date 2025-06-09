@@ -5,8 +5,8 @@ import { Observable, Subject } from 'rxjs';
   providedIn: 'root'
 })
 export class CardEditorControlsDesignImageService {
-  private onEnableImageEdtor$$ = new Subject<void>();
-  onEnableImageEditor$: Observable<void> = this.onEnableImageEdtor$$.asObservable();
+  private onEnableImageEditor$$ = new Subject<void>();
+  onEnableImageEditor$: Observable<void> = this.onEnableImageEditor$$.asObservable();
 
   private onDisableImageEditor$$ = new Subject<string>();
   onDisableImageEditor$: Observable<string> = this.onDisableImageEditor$$.asObservable();
@@ -14,7 +14,7 @@ export class CardEditorControlsDesignImageService {
   constructor() { }
 
   setOnEnableImageEditor() {
-    this.onEnableImageEdtor$$.next();
+    this.onEnableImageEditor$$.next();
   }
 
   setOnDisableImageEditor(src: string) {

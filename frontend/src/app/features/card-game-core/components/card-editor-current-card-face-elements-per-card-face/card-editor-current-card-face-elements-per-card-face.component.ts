@@ -1,6 +1,6 @@
-import { CdkDrag, CdkDragDrop, CdkDragEnd, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, computed, DestroyRef, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, computed, DestroyRef, ElementRef, inject, input, InputSignal, QueryList, Signal, ViewChild, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, from, switchMap } from 'rxjs';
 import { FileMetadata } from '../../../../utils/models/file-metadata';
@@ -14,8 +14,8 @@ import { CardEditorControlsDesignImageService } from '../../services/card-editor
 import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
 import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MAX_CURRENT_ELEMENTS_PER_CARD_FACE, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
-import { getCardFaceElementImage, getCardFaceElementRt, isCardFaceElementPerCardFace } from '../../utils/card-game-core.utils';
+import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MAX_CURRENT_ELEMENTS_PER_CARD_FACE, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { getCardFaceElementImage, getCardFaceElementRt } from '../../utils/card-game-core.utils';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
@@ -43,34 +43,21 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChildren('cardFaceElement') cardFaceElements!: QueryList<ElementRef>;
 
-  borderRadius: InputSignal<number> = input<number>(2);
-  borderRadiusComputed: Signal<number> = computed(() => this.borderRadius());
-  
-  @HostListener('document:mousemove', ['$event'])
-  onMouseMove(event: MouseEvent) {
-    this.mousePosition = {x: event.clientX, y: event.clientY};
-  }
+  cardFaceBorderRadius: InputSignal<number> = input<number>(DEFAULT_CARD_FACE_BORDER_RADIUS);
+  cardFaceBorderRadiusComputed: Signal<number> = computed(() => this.cardFaceBorderRadius());
 
   private dragOffset: Coordinates = { x: 0, y: 0 };
   private mousePosition: Coordinates = { x: 0, y: 0 };
 
   currentEditedCardFaceElementId: string = DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID;
 
-  position: DndPosition = {
-    dndPositionId: "0",
-    x: 0,
-    y: 0
-  };
+  currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [];
 
-  currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [
-
-  ];
-
-  getDropListStyle(): Omit<Style, 'styleId'> {
+  getCardFaceElementContainer(): Omit<Style, 'styleId'> {
     return {
       width: `100%`,
       height:  `100%`,
-      borderRadius: `${this.borderRadiusComputed()}px`
+      borderRadius: `${this.cardFaceBorderRadiusComputed()}px`
     }
   }
 
@@ -233,7 +220,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         return;
       }
 
-      let dndPosition = this.getRelativeDropPosition({ x: result.dndPosition.x, y: result.dndPosition.y });
+      let dndPosition: Coordinates = this.getRelativeCoordinates({ x: result.dndPosition.x, y: result.dndPosition.y });
 
       // FIXED: Elements can share the same ID, so you can accidentally select double
       // So we'll just do Date.now which should return a large number and it should still be fine because it is parseable in the backend
@@ -247,7 +234,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
   
   // FXME: Card face element per card face and card face element should not share the same ID
-  createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: string, type: string, dndPosition: DndPosition) {
+  createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: string, type: string, dndPosition: Coordinates) {
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
       cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
       cardFaceElement: {
@@ -264,7 +251,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         isDroppable: false,
         isRotatable: false
       },
-      dndPosition: dndPosition,
+      dndPosition: 
+      {
+        dndPositionId: "0",
+        ...dndPosition
+      }
     }
 
     switch (type) {
@@ -287,7 +278,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
             isDroppable: false,
             isRotatable: false
           },
-          dndPosition: dndPosition
+          dndPosition:
+          {
+            dndPositionId: "0",
+            ...dndPosition
+          }
         }
         break;
       case 'Image':
@@ -309,7 +304,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
             isDroppable: false,
             isRotatable: false
           },
-          dndPosition: dndPosition
+         dndPosition:
+          {
+            dndPositionId: "0",
+            ...dndPosition
+          }
         }
         break;
       default:
@@ -322,165 +321,121 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.setElementAttributes(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId);
   }
 
-  // TODO: Change z-index of the elements
-  onDragStarted(event: CdkDragStart<any>, item: CardFaceElementPerCardFace) {
-    // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
-    this.setDragOffset(item);
+  onDragStartMouseDown(event: MouseEvent) {
+    this.mousePosition = { x: event.clientX, y: event.clientY };
   }
 
-  setDragOffset(item: CardFaceElementPerCardFace) {
+  onDragStarted(event: CdkDragStart<any>) {
+    // NOTE: We grab the data directly because what was passed in could be stale
+    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+
+    if (!cardFaceElementPerCardFace)
+      throw new Error("No currently edited card face element");
+
+    let {x, y} = cardFaceElementPerCardFace.dndPosition;
+
+    // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
+    this.setDragOffset({x, y});
+  }
+
+  // FIXED: The issue was that the mouse position wasin in viewport coordinates
+  // But the posiiton is relative to the container
+  // NOTE: It's possible to get a negative number
+  setDragOffset(position: Coordinates) {
+    let mouseRelativeToContainer: Coordinates = this.getRelativeCoordinates(this.mousePosition);
+
     this.dragOffset = {
-      x: item.dndPosition.x - this.mousePosition.x,
-      y: item.dndPosition.y - this.mousePosition.y
+      x: mouseRelativeToContainer.x - position.x,
+      y: mouseRelativeToContainer.y - position.y
     };
   }
 
-    private getRelativeDropPosition(dropPoint: {x: number, y: number}): DndPosition {
-      let containerRect = this.getCardFaceClientRect(); // Should return DOMRect
-      return {
-        dndPositionId: "0",
-        x: dropPoint.x - containerRect.left,
-        y: dropPoint.y - containerRect.top
-      };
-    }
+  private getRelativeCoordinates(absolute: Coordinates): Coordinates {
+    let containerRect = this.getCardFaceClientRect(); // Should return DOMRect
+    let {left, top, width, height} = containerRect;
+    return {
+      x: clamp(absolute.x - left, 0, width),
+      y: clamp(absolute.y - top, 0, height)
+    };
+  }
 
-    private clampDndPosition(cardFaceElementId: string, position: DndPosition): DndPosition {
+   private isOutOfBounds(cardFaceElementId: string, position: Coordinates): boolean {
       let container = this.getCardFaceClientRect();
 
       let { x, y } = position;
-      let { left, top, width, height} = container;
-
-      if (width < 0 || height < 0 || left < 0 || top < 0)
-        return position;
-
-      let scale: DndPosition = {
-        x: x - left, y: y - top,
-        dndPositionId: "0"
-      };
-  
-      // console.log(`Pointer position: ${pointerPosition.x}, ${pointerPosition.y}\nContainer width and height: ${container.width}, ${container.height}, Scale: ${scale.x}, ${scale.y}`);
-  
-      // CHECKME: Not sure if this is even necessary
-      // containerWidth - elementWidth, containerHeight - elementHeight
-  
-      /*if (elSize !== null) {
-        scale.x = Math.max(0, Math.min(scale.x, width - elSize.width));
-        scale.y = Math.max(0, Math.min(scale.y, height - elSize.height));
-
-      }*/
-      
-      scale.x = Math.max(0, Math.min(scale.x, width));
-      scale.y = Math.max(0, Math.min(scale.y, height));
-
-      return scale;
-    }
-
-    private isOutOfBounds(position: DndPosition): boolean {
-      let container = this.getCardFaceClientRect();
-
-      let { x, y } = position;
-      let { left, top, width, height} = container;
+      let { width, height} = container;
 
       console.log(`Is out of bounds: container - ${JSON.stringify(container)}, position - ${JSON.stringify(position)}`);
+    
+      let dimensions: Dimensions = this.getCardFaceElementDimensions(cardFaceElementId);
 
-      if (width < 0 || height < 0 || left < 0 || top < 0)
-        return false;
+      if (width < 0 || height < 0)
+        throw new Error("No container dimensions");
   
-      // Define boundary thresholds (adjust as needed)
       let isOutOfBounds: boolean = (
         x < 0 ||
         y < 0 ||
-        x > width ||
-        y > height
+        x + dimensions.width > width ||
+        y + dimensions.height > height
       );
 
       return isOutOfBounds;
     }
+
+  private clampDndPosition(cardFaceElementId: string, position: Coordinates): Coordinates {
+   let dimensions: Dimensions = this.getCardFaceElementDimensions(cardFaceElementId);
+
+    // TODO: Maybe should use data instead of grabbing from HTML
+    let container = this.getCardFaceClientRect(); // Should return { left, top, width, height }
+    
+    let { width, height } = container;
+    let { x, y } = position;
+
+     console.log(`Container dimensions: ${width}, ${height}, element dimensions: ${JSON.stringify(dimensions)}\nPosition: ${JSON.stringify(position)}`);
+
+    return {
+      x: clamp(x, 0, width - dimensions.width),
+      y: clamp(y, 0, height - dimensions.height)
+    };
+  }
   
   onDragMoved(event: CdkDragMove<any>): void {
     // Calculates relative position of pointer in container
     // FIXME: I think the fact that the pointer is at the cursor might be causing issues
-    /*let element = event.source.element.nativeElement;
-    let cardFaceElementId = element.getAttribute('card-face-element-id');
 
-    if (cardFaceElementId === null)
-      return;
-
-    this.position = this.getRelativeDropPosition({x: event.pointerPosition.x, y: event.pointerPosition.y});
-
-    // this.position = this.clampDndPosition(parseInt(cardFaceElementId), { dndPositionId: "0", x: event.pointerPosition.x, y: event.pointerPosition.y });
-    console.log(`On drag moved: ${JSON.stringify(this.position)}`);*/
-
-    this.position = {
-      dndPositionId: this.position.dndPositionId,
-      x: event.pointerPosition.x,
-      y: event.pointerPosition.y
-    }
+    // TODO: We snap to grid here
+    // Custom preview potentially?
 
     // console.log(`On drag moved: ${(JSON.stringify(event.pointerPosition))}`)
-  }
-
-  onDragEnded(event: CdkDragEnd, item: CardFaceElementPerCardFace) {
-    /*if (!isCardFaceElementPerCardFace(item))
-      return;
-   
-    // Offset from the element's original position
-   let relativePosition = event.source.getFreeDragPosition();
-    console.log('Relative position:', relativePosition);
-  
-    // Absolute position in the viewport
-    let rect = event.source.element.nativeElement.getBoundingClientRect();
-    console.log('Absolute position:', { left: rect.left, top: rect.top });
-  
-    item.dndPosition = this.position;
-    this. updateCurrentCardEditorCardFaceDto();*/
   }
   
 
   onDragDropped(event: CdkDragDrop<any>) {
-    if (!isCardFaceElementPerCardFace(event.item.data) && this.position === undefined)
-      return;
+    console.log(`Drop point: ${JSON.stringify(event.dropPoint)}`)
+    
+    // Convert dropPoint to container-relative coordinates
+    let localDropPosition: Coordinates = this.getRelativeCoordinates(event.dropPoint);
 
-    let localDropPosition = this.getRelativeDropPosition({
-      x: event.dropPoint.x, 
-      y: event.dropPoint.y});
+    let localPosition: Coordinates = {
+      x: localDropPosition.x - this.dragOffset.x,
+      y: localDropPosition.y - this.dragOffset.y
+    };
 
-    this.position = {
-      dndPositionId: this.position.dndPositionId,
-      x: localDropPosition.x,
-      y: localDropPosition.y,
-    }
+    let clamped: Coordinates = this.clampDndPosition(this.currentEditedCardFaceElementId, localPosition);
 
-    if (this.isOutOfBounds(this.position)) {
-      let draggedItem = event.item.data;
-      let cardFaceElementId = draggedItem.cardFaceElement.cardFaceElementId;
+    console.log(`Local drop position: ${JSON.stringify(localDropPosition)}, Local drag offset: ${JSON.stringify(this.dragOffset)}, Drag with offset: ${JSON.stringify(localPosition)}, Clamped: ${JSON.stringify(clamped)}`);
 
-      let clampedDndPosition = this.clampDndPosition(cardFaceElementId, this.position);
+    this.setElementAttributesPosition(clamped);
 
-      event.item.data.dndPosition = 
-      {
-        dndPositionId: event.item.data.dndPosition.dndPosiitonId,
-        x: clampedDndPosition.x,
-        y: clampedDndPosition.y
-      }
-
-      this.setElementAttributesPosition(event.item.data.dndPosition);
-      return;
-      // Only update position if within bounds
-      /*event.item.data.dndPosition = {
-        x: Math.max(0, Math.min(x, width)),
-        y: Math.max(0, Math.min(y, height))
-      };*/
-    }
-
-    event.item.data.dndPosition.x = this.position.x;
-    event.item.data.dndPosition.y = this.position.y;
-
-    this.updateCurrentCardEditorCardFaceDto();
-    this.setElementAttributesPosition(this.position);
+    // FIXED: Sometimes it just doesn't update and I have no clue why, so this is here to try to force the rerender
+    // and clamp the native element, force it to absolutely have a style
+    // because for some reason, the element just lacked left and right after dragging it out of bounds twice
+    let element: HTMLElement = event.item.element.nativeElement;
+    element.style.left = `${clamped.x}px`;
+    element.style.top = `${clamped.y}px`;
   }
 
-  setElementAttributesPosition(position: DndPosition) {
+  setElementAttributesPosition(position: Coordinates) {
    this.cardEditorControlsDesignElementAttributesService.setX(position.x);
    this.cardEditorControlsDesignElementAttributesService.setY(position.y);
   }
@@ -542,30 +497,20 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.cardEditorControlsDesignRteService.setOnDisableRte();
   }
 
-  // TODO: Call the other two in there and replace individual instances with this
   setElementAttributes(cardFaceElementId: string) {
     this.setCurrentCardFaceElementId(cardFaceElementId);
 
-    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-    if (!cardFaceElementPerCardFace || !cardFaceElementPerCardFace.cardFaceElement.style)
-      throw new Error("No card face element per card face or style associated");
+    let position: Coordinates = this.getCardFaceElementPerFacePosition(cardFaceElementId);
+    this.setElementAttributesPosition(position);
 
-    let style: Style = cardFaceElementPerCardFace.cardFaceElement.style;
-
-    this.setElementAttributesPosition(cardFaceElementPerCardFace.dndPosition);
-
-    let dimensions: Dimensions = {
-      width: this.parseNumeric(style.width as string),
-      height: this.parseNumeric(style.height as string)
-    };
-
+    let dimensions: Dimensions = this.getCardFaceElementDimensions(cardFaceElementId);
     this.setElementAttributesDimensions(dimensions);
   }
 
   parseNumeric(value: string | number): number {
     if (typeof value === 'number') return value;
     // Remove anything that's not a digit, decimal, or minus sign
-    let numeric = value.match(/-?\d+(\.\d+)?/);
+    let numeric: RegExpMatchArray | null = value.match(/-?\d+(\.\d+)?/);
     return numeric ? parseFloat(numeric[0]) : 0;
   }
 
@@ -591,22 +536,44 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     this.cardEditorControlsDesignImageService.setOnEnableImageEditor();
   }
 
-  getCardFaceElementDimensions(id: string): {width: number, height: number} {
-    let cardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(id);
+  getCardFaceElementPerFacePosition(cardFaceElementId: string): Coordinates {
+    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(cardFaceElementId);
+    
+     if (!cardFaceElementPerCardFace)
+      throw new Error("No card face element per card face");
 
-    if (cardFaceElementPerCardFace) {
-      let style: Style | undefined =  cardFaceElementPerCardFace.cardFaceElement.style;
-      
-      if (style) {
-        let dimensions: {
-          width: number,
-          height: number } = {width: parseFloat(style.width as string), height: parseFloat(style.height as string)};
-      
-        return dimensions;
-      }
+    let {dndPosition} = cardFaceElementPerCardFace;
+
+    let position: Coordinates = {
+      x: dndPosition.x,
+      y: dndPosition.y
     }
 
-    return {width: -1, height: -1};
+    return position;
+  }
+
+  getCardFaceElementDimensions(cardFaceElementId: string): Dimensions {
+    let cardFaceElementPerCardFace = this.getCurrentCardFaceElementPerCardFaceByElementId(cardFaceElementId);
+
+  if (!cardFaceElementPerCardFace)
+      throw new Error("No card face element per card face");
+
+    let style: Style | undefined = cardFaceElementPerCardFace.cardFaceElement.style;
+
+     if (!style)
+      throw new Error("No card face element style");
+
+    let {width, height} = style;
+
+    if (!width || !height)
+      throw new Error("No width or height associated with this style");
+
+    let dimensions: Dimensions = {
+      width: this.parseNumeric(width),
+      height: this.parseNumeric(height)
+    };
+
+    return dimensions;
   }
 
   onDisableImageEditor() {
@@ -643,10 +610,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     if (!cardFaceElementPerCardFace || !cardFaceElementPerCardFace.cardFaceElement.style)
       throw new Error("No card face element associated with resizable change?");
 
-    cardFaceElementPerCardFace.cardFaceElement.style.width = `${dimensions.width}`;
-    cardFaceElementPerCardFace.cardFaceElement.style.height = `${dimensions.height}`;
-
-   this.setElementAttributesDimensions(dimensions);
+    this.setElementAttributesDimensions(dimensions);
   }
 
   onSetWidth() {
@@ -656,11 +620,15 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         takeUntilDestroyed()
       )
       .subscribe((width: number) => {
-      let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-      
-      if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
+        let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+
+        if (!cardFaceElementPerCardFace)
+          throw new Error("No card face element per card face to set width");
+
+        if (!cardFaceElementPerCardFace.cardFaceElement.style)
+          throw new Error("No card face element style to set width");
+
         cardFaceElementPerCardFace.cardFaceElement.style.width = `${width}px`;
-      }
     })
   }
 
@@ -672,10 +640,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       )
       .subscribe((height: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-        
-        if (cardFaceElementPerCardFace && cardFaceElementPerCardFace.cardFaceElement.style) {
-          cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}px`;
-        }
+
+        if (!cardFaceElementPerCardFace)
+          throw new Error("No card face element per card face to set height");
+
+        if (!cardFaceElementPerCardFace.cardFaceElement.style)
+          throw new Error("No card face element style to set height");
+
+        cardFaceElementPerCardFace.cardFaceElement.style.height = `${height}px`;
       })
   }
 
@@ -688,9 +660,13 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       .subscribe((x: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
         
-        if (cardFaceElementPerCardFace) {
+       if (!cardFaceElementPerCardFace)
+          throw new Error("No card face element per card face to set X ");
+
+        if (cardFaceElementPerCardFace.dndPosition.x === x)
+          throw new Error("The new value is equal to the new value for X position");
+        
           cardFaceElementPerCardFace.dndPosition.x = x;
-        }
       })
   }
 
@@ -703,19 +679,23 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       .subscribe((y: number) => {
         let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
         
-        if (cardFaceElementPerCardFace) {
+        if (!cardFaceElementPerCardFace)
+          throw new Error("No card face element per card face to set Y");
+
+        if (cardFaceElementPerCardFace.dndPosition.y === y)
+          throw new Error("The new value is equal to the new value for Y position");
+        
           cardFaceElementPerCardFace.dndPosition.y = y;
-        }
       })
   }
 
   setCardFaceImageElementSrc(croppedImage: string): void {
-      // https://stackoverflow.com/questions/51019467/convert-blob-to-image-url-and-use-in-image-src-to-display-image
-      let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
-  
-      if (!cardFaceElementPerCardFace)
-        return;
-  
+    // https://stackoverflow.com/questions/51019467/convert-blob-to-image-url-and-use-in-image-src-to-display-image
+    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
+
+    if (!cardFaceElementPerCardFace)
+      return;
+
     from(blobToDataURL(croppedImage))
       .pipe(
         switchMap((base64Image) =>
@@ -747,14 +727,14 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
           if (cardFaceElementImage.imageFileMetadata === undefined)
             throw new Error("Set card face image element src: Image file metadata is undefined");
-          
+
           cardFaceElementImage.imageFileMetadata = cardFaceElementImageFileMetadata;
         },
         error: (err) => {
           console.error(err);
         }
       });
-    }
+  }
 
   // Is this even necessary? The CSS should be handling the stacking, but I guess the question is the drag and drop functionality?
   sortOrder() {
