@@ -222,7 +222,7 @@ export class CardPositionPerRoomComponent {
       let itemRenderScale: number = this.dndBoardService.getItemRenderScale();
       
       if (itemRenderScale !== 0) {
-        // this.screenPositionCache.clear(); // CHECKME: Do we actually want to clear the cache here and only if this check is valid?
+        this.screenPositionCache.clear(); // CHECKME: Do we actually want to clear the cache here and only if this check is valid?
         this.cardsPositionPerRoomScale = itemRenderScale;
       }
     })
