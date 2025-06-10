@@ -72,8 +72,13 @@ export class CardPositionPerRoomComponent {
     if (this.screenPositionCache.has(key)) {
       return this.screenPositionCache.get(key)!;
     }
+
+    let aU: Coordinates = {
+      x: cpr.dndPosition.x,
+      y: cpr.dndPosition.y
+    }
     
-    let pos: Coordinates = this.calculateScreenPosition(cpr.dndPosition);
+    let pos: Coordinates = this.calculateScreenPosition(aU);
     this.screenPositionCache.set(key, pos);
     return pos;
   }
@@ -196,8 +201,8 @@ export class CardPositionPerRoomComponent {
   }
 
   // NOTE: Assumes the dndPosition is in AU and set to the mouse AU coordinates
-  calculateScreenPosition(dndPositionAU: DndPosition): Coordinates {
-    return this.dndBoardService.aUToScreenCoordinates({x: dndPositionAU.x, y: dndPositionAU.y});
+  calculateScreenPosition(aU: Coordinates): Coordinates {
+    return this.dndBoardService.aUToScreenCoordinates(aU);
   }
 
   private onMouseMove(): void {
@@ -205,8 +210,8 @@ export class CardPositionPerRoomComponent {
       let mouseMoveLog = `Card position per room - On Mouse Move:
       Mouse Screen coordinates (clientX, clientY): (${result.mouseScreenX}, ${result.mouseScreenY})
       Mouse relative to board (mouseX, mouseY): (${result.mouseX}, ${result.mouseY})
-      Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.getMouseAUCoordinates())})
-      Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates()))})
+      Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.mouseAUCoordinates)})
+      Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
       Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
       Grid size AU: ${this.dndBoardService.getGridSizeAU()}
       Zoom Level: ${this.dndBoardService.zoom}`;
@@ -354,9 +359,9 @@ export class CardPositionPerRoomComponent {
       y: mouseAUCoordinates.y - dndPosition.y
     };
   }
-
+  
   // NOTE Don't ever set the positioning, preview's not absolutely positioned
-  setPreviewTransform(id: string, position: Coordinates, rotation: number) {
+  setPreviewTransform(id: string, translation: Coordinates,rotation: number) {
     let preview: HTMLElement | null = document.querySelector(
       `[cpr-cdk-drag-preview-id="${id}"]`
     ) as HTMLElement | null;
@@ -364,16 +369,29 @@ export class CardPositionPerRoomComponent {
     if (!preview)
       throw new Error("Preview doesn't exist, which means two things, we're passing the wrong id, or we're getting a nonexistent ID somehow");
 
-    preview.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) rotate(${rotation}deg)`;
+    preview.style.transform = `translate3d(${translation.x}px, ${translation.y}px, 0) rotate(${rotation}deg)`;
   }
 
   onDragStarted(event: CdkDragStart<any>, item: CardPositionPerRoom) {
+    // NOTE: By this point there should already be a cached position of the cpr
+    let position: Coordinates | undefined = this.screenPositionCache.get(item.cardPositionPerRoomId);
+
+    if (!position)
+      throw new Error("By this point there should already be a cached position of the cpr");
+
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
-    this.setDragOffset(this.dndBoardService.getMouseAUCoordinates(), item.dndPosition);
+    this.setDragOffset(this.dndBoardService.mouseAUCoordinates, item.dndPosition);
+
+    let offset: Coordinates = this.calculateScreenPosition(this.dragOffset);
+
+    let final: Coordinates = {
+      x: position.x - offset.x,
+      y: position.y - offset.y
+    };
 
     // NOTE: By this point there should already be a cached position of the cpr
     // ASSUMPTION: When you start dragging, the item shouldn't be culled
-    this.setPreviewTransform(item.cardPositionPerRoomId, this.screenPositionCache.get(item.cardPositionPerRoomId)!, item.dndRotation.degrees);
+    this.setPreviewTransform(item.cardPositionPerRoomId, final, item.dndRotation.degrees);
 
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
   }
@@ -388,7 +406,7 @@ export class CardPositionPerRoomComponent {
   onDragMoved(event: CdkDragMove, item: CardPositionPerRoom): void {
     // WORKAROUND: We'll programmatically set the custom preview's transform, we just need to make sure that we set it on drag start too
     // They all have IDs, it should be apossible to grab them
-    this.setPreviewTransform(item.cardPositionPerRoomId, this.getDragMovedOffset(this.dndBoardService.getMouseAUCoordinates(), this.dragOffset), item.dndRotation.degrees);
+    this.setPreviewTransform(item.cardPositionPerRoomId, this.getDragMovedOffset(this.dndBoardService.mouseAUCoordinates, this.dragOffset), item.dndRotation.degrees);
 
     // TODO: If snap to grid, then run snap to grid else do what we have currently
     let snapToGrid: boolean = true;
@@ -399,7 +417,7 @@ export class CardPositionPerRoomComponent {
     let snapToGrid: boolean = true;
 
     item.zIndex = this.dndBoardService.globalZIndexCounter++;
-    this.setCardPerRoomPosition(item, this.dndBoardService.getMouseAUCoordinates(), this.dragOffset);
+    this.setCardPerRoomPosition(item, this.dndBoardService.mouseAUCoordinates, this.dragOffset);
 
 
     // If it's overlapping another item
@@ -425,9 +443,14 @@ export class CardPositionPerRoomComponent {
       y: position.y
     };
 
+    let aU: Coordinates = {
+      x: cpr.dndPosition.x,
+      y: cpr.dndPosition.y
+    }
+
     // CHECKME: Do we want to actually set the screen position directly here?
     // It would make Angular spend less time calculating and the detection of its position will be faster
-    let onScreenPosition: Coordinates = this.calculateScreenPosition(cpr.dndPosition);
+    let onScreenPosition: Coordinates = this.calculateScreenPosition(aU);
     this.screenPositionCache.set(cpr.cardPositionPerRoomId, onScreenPosition);
   }
 

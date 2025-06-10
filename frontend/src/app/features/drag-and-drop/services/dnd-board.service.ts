@@ -85,19 +85,10 @@ export class DndBoardService {
 
   // AU
   // TODO: Make separate conversion functions for mouse position
-  private mouseAUCoordinates: Coordinates = {
+  mouseAUCoordinates: Coordinates = {
     x: 0,
     y: 0
   };
-
-  setMouseAUCoordinates(mouseAUCoordinates: Coordinates) {
-    this.mouseAUCoordinates = mouseAUCoordinates;
-  }
-
-  getMouseAUCoordinates(): Coordinates {
-    // console.log(`Get mouse AU coordinates: ${JSON.stringify(this.mouseAUCoordinates)}`);
-    return this.mouseAUCoordinates;
-  }
 
   getMouseScreenCoordinates(): Coordinates {
     return this.aUToScreenCoordinates(this.mouseAUCoordinates);
@@ -329,12 +320,10 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
     let camera: Coordinates = this.getCameraCoordinates(); // Or this.dndBoardService.getCameraCoordinates()
 
     // Mouse AU = camera AU + offset in AU
-    let mouseAUCoordinates: Coordinates = {
+    this.mouseAUCoordinates = {
       x: clamp(camera.x + offsetAU.x, 0, this.getGridSizeAU()),
       y: clamp(camera.y + offsetAU.y, 0, this.getGridSizeAU())
     }
-
-     this.setMouseAUCoordinates(mouseAUCoordinates);
   }
 
   setOnShowAllItems() {

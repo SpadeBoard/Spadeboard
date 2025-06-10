@@ -133,17 +133,13 @@ export class DndBoardComponent implements AfterViewInit {
   let mouseY: number = event.clientY - rect.top;
 
   this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, rect);
-  // this.setDndBoardMousePosition(mouseScreenX, mouseScreenY);
-  // 2. Convert to AU coordinates
-  // let mouseAUCoordinates = this.dndBoardService.screenToAUCoordinates(mouseScreenX, mouseScreenY);
-  
- //  let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
+
   this.dndBoardService.setOnMouseMove(mouseScreenX, mouseScreenY, mouseX, mouseY);
 
     /*this.mouseMoveLog = `On Mouse Move:
      Mouse Screen coordinates (clientX, clientY): (${mouseScreenX}, ${mouseScreenY})
       Mouse relative to board (mouseX, mouseY): (${mouseX}, ${mouseY})
-     Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates()))})
+     Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
      Grid size AU: ${this.dndBoardService.getGridSizeAU()}
      Grid size screen: (${this.gridWidthScreen}, ${this.gridHeightScreen})
      Zoom Level: ${this.dndBoardService.zoom}
