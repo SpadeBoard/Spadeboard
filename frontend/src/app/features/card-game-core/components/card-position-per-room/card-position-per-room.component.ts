@@ -13,7 +13,7 @@ import { GameRoomService } from '../../../game-room/services/game-room.service';
 import { CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
-import { CardPositionPerRoomApiService } from '../../services/card-game-core/card-position-per-room-api.service';
+import { CardPositionPerRoomApiService } from '../../services/card-game-core/api/card-position-per-room-api.service';
 import { CardComponent } from '../card/card.component';
 
 @Component({

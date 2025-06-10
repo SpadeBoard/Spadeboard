@@ -4,7 +4,7 @@ import { Card } from '../../models/card';
 
 import { CommonModule } from '@angular/common';
 import { CardFace } from '../../models/card-face';
-import { CardFaceApiService } from '../../services/card-game-core/card-face-api.service';
+import { CardFaceApiService } from '../../services/card-game-core/api/card-face-api.service';
 import { CardFaceComponent } from '../card-face/card-face.component';
 
 @Component({

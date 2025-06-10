@@ -7,7 +7,7 @@ import { CardFaceImageEditorComponent } from '../card-face-image-editor/card-fac
 import { CardFaceRteComponent } from '../card-face-rte/card-face-rte.component';
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { FormsModule } from '@angular/forms';
-import { CardApiService } from '../../services/card-game-core/card-api.service';
+import { CardApiService } from '../../services/card-game-core/api/card-api.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { CardEditorPreviewComponent } from '../card-editor-preview/card-editor-preview.component';
 import { CardEditorControlsDesignComponent } from '../card-editor-controls-design/card-editor-controls-design.component';
