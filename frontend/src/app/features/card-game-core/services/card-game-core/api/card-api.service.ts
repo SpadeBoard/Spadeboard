@@ -16,7 +16,6 @@ export class CardApiService {
 
   // TODO: Replace with actual API url from the config
   private apiUrl: string = `${environment.hostServerUrl}/api/Cards`;
-  private apiCompositeUrl: string = `${environment.hostServerUrl}/api/card_all_attributes`;
 
   // TODO: Function signatures for overloading
   
@@ -25,53 +24,6 @@ export class CardApiService {
   // NOTE: Pass in objects, not tuples, remember
   // FIXME: Pass in objects, not tuples, for all rxResource
   // https://medium.com/@davidepassafaro/angular-resource-and-rxresource-apis-what-you-need-to-know-aa1c178e43e9
-  
-  /**
-   * Key Components
-   * request: This is an optional function that returns an object containing signals or observables16. It defines the parameters that the loader function will use. When these signals change, it triggers a reload of the resource.
-   * loader: This is a required function that performs the actual data fetching16. It receives the values from the request function and returns an Observable. This is where you typically make HTTP requests or perform other asynchronous operations.
-   * 
-   * Return Value
-   * rxResource returns a ResourceRef object with the following properties and methods79:
-   * result$: An Observable that emits the current state of the resource.
-   * loading: A signal indicating whether the resource is currently loading.
-   * error: A signal containing any error that occurred during loading.
-   * data: A signal containing the loaded data.
-   * reload(): A method to manually trigger a reload of the resource.
-   * update(): A method to update the current data locally.
-   * set(): A method to set new data locally.
-   * 
-   * The first type argument specifies the return type of the loader function
-   * The second type argument  indicates that the loader function's parameters'
-   * 
-   */
-  // If we're getting just cards by itself, nothing should be passed in
-  // But if we're grabbing all attributes associated with all the cards, we want to have an owner ID
-  
-  // FIXME: Card composite must returns something different
-
-  /*
-  const cardsResource = this.cardApiService.getCards$(ownerId);
-
-  Internally:
-  request: () => [ownerId]
-  */
-
-  /*
-  [
-    [card_id, front_card_face_id, back_card_face_if, owner_id, is_flipped, dnd_item_id, is_draggable: true, is_droppable, dnd_position, dnd_drag_boundary, style_id],
-    [card_id, front_card_face_id, back_card_face_if, owner_id, is_flipped, dnd_item_id, is_draggable: true, is_droppable, dnd_position, dnd_drag_boundary, style_id]
-  ]
-  */
-
-  // TODO: Figure out where we should be returning partials?
-  // Partial<Omit<Class>>:
-  // If you apply Partial after Omit, all remaining properties (including those that were originally optional) will become optional.
-  
-  // Omit<Partial<Class>>:
-  // If you apply Omit after Partial, you'll make all properties optional first, and then remove the specified properties.
-
-  // TODO: Go into the owner function in backend, then use the service to grab all the cards associated with that owner ID then return those
   getCards$(ownerId?: string): Observable<Card[] | undefined> {
     if (ownerId !== undefined) {
       return this.http.get<Card[]>(`${this.apiUrl}/owner/${ownerId}`);
@@ -86,14 +38,6 @@ export class CardApiService {
     }
 
     return this.http.get<Card>(this.apiUrl);
-  }
-
-  getCardEditorCardDtoByCardId$(cardId: string): Observable<CardEditorCardDto | undefined> {
-    if (cardId === undefined) {
-      return of(undefined);
-    } 
-
-    return this.http.get<CardEditorCardDto>(`${this.apiUrl}/dto/${cardId}`);
   }
 
   // TODO: Rewrite the post, update, and delete functions for everything
@@ -112,35 +56,13 @@ export class CardApiService {
     return this.http.post<Card>(this.apiUrl, card);
   }
 
-  createCardEditorCardDto$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
-    if (cardEditorCardDto === undefined) {
-      return of(undefined);
-    } 
-
-    return this.http.post<CardEditorCardDto>(`${this.apiUrl}/dto`, cardEditorCardDto);
-  }
-
   // FIXME: Updating shouldn't be returning anything
-  updateCard$(cardEditorCardDto: CardEditorCardDto): Observable<Card | CardEditorCardDto | void | undefined> {
-    if (cardEditorCardDto.cardEditorCardFacesDto !== undefined ) {
-      // CHECKME: Do we need to update the owner ID too? But it's not gonna change
-      return this.http.put<CardEditorCardDto>(`${this.apiUrl}/dto/${cardEditorCardDto.card.cardId}`, cardEditorCardDto);
-    }
-    
-    return this.http.put<void>(`${this.apiUrl}/${cardEditorCardDto.card.cardId}`, cardEditorCardDto.card);
-  }
-
-  updateCardEditorCardDto$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
-    // CHECKME: Do we need to update the owner ID too? But it's not gonna change
-    return this.http.put<CardEditorCardDto>(`${this.apiUrl}/dto/${cardEditorCardDto.card.cardId}`, cardEditorCardDto);
+  updateCard$(card: Card): Observable<void | undefined> {
+    return this.http.put<void>(`${this.apiUrl}/${card.cardId}`, card);
   }
 
   deleteCard$(cardId: string): Observable<void | undefined> {
     return this.http.delete<void>(`${this.apiUrl}/${cardId}`);
-  }
-
-  deleteCardEditorCardDto$(cardId: string): Observable<void | undefined> {
-    return this.http.delete<void>(`${this.apiUrl}/dto/${cardId}`);
   }
 
   //https://www.allthingstypescript.dev/p/how-to-overload-functions-in-typescript

@@ -9,18 +9,18 @@ import { Style } from '../../style/models/style';
 import { CardEditorCardDto } from '../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardFaceElementImage, CardFaceElementPerCardFace } from '../models/card-face-element';
+import { DEFAULT_CARD_EDITOR_FACE_STYLE, getBlankCardTemplate } from '../utils/card-editor.constants';
 import { isCardEditorCardDto } from '../utils/card-game-core.utils';
-import { CardApiService } from './card-game-core/api/card-api.service';
+import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-card-dto-api.service';
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
-import { DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH, getBlankCardTemplate, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardEditorPreviewService {
   private readonly cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
-  private readonly cardApiService: CardApiService = inject(CardApiService);
+  private readonly cardEditorCardDtoApiService: CardEditorCardDtoApiService = inject(CardEditorCardDtoApiService);
   private readonly fileUploadApiService = inject(FileUploadApiService);
   private readonly cardFaceElementApiService: CardFaceElementApiService = inject(CardFaceElementApiService);
   
@@ -54,11 +54,14 @@ export class CardEditorPreviewService {
    private postFlip$$: Subject<void> = new Subject<void>();
   postFlip$: Observable<void> = this.postFlip$$.asObservable();
 
-  private onCreateCard$$: Subject<void> = new Subject<void>();
-  onCreateCard$: Observable<void> = this.onCreateCard$$.asObservable();
+  private onCreateCardEditorCardDto$$ = new Subject<CardEditorCardDto>();
+  onCreateCardEditorCardDto$: Observable<CardEditorCardDto> = this.onCreateCardEditorCardDto$$.asObservable();
 
-  private onUpdateCard$$: Subject<void> = new Subject<void>();
-  onUpdateCard$: Observable<void> = this.onUpdateCard$$.asObservable();
+  private onUpdateCardEditorCardDto$$ = new Subject<CardEditorCardDto>();
+  onUpdateCardEditorCardDto$: Observable<CardEditorCardDto> = this.onUpdateCardEditorCardDto$$.asObservable();
+
+  private onDeleteCardEditorCardDto$$: Subject<string> = new Subject<string>();
+  onDeleteCardEditorCardDto$: Observable<string> = this.onDeleteCardEditorCardDto$$.asObservable();
 
   private onDeleteCardFaceElementPerCardFace$$: Subject<void> = new Subject<void>();
   onDeleteCardFaceElementPerCardFace$: Observable<void> = this.onDeleteCardFaceElementPerCardFace$$.asObservable();
@@ -93,7 +96,7 @@ export class CardEditorPreviewService {
     /*if (this.cardEditorCardDto.card.cardId === cardId)
       return;*/
 
-    this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+    this.cardEditorCardDtoApiService.getCardEditorCardDtoByCardId$(cardId)
     .pipe(
       takeUntilDestroyed(this.destroyRef)
     )
@@ -101,7 +104,7 @@ export class CardEditorPreviewService {
   }
 
   getCardEditorCardDtoByCardId(cardId: string) {
-     this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+     this.cardEditorCardDtoApiService.getCardEditorCardDtoByCardId$(cardId)
      .pipe(
       takeUntilDestroyed(this.destroyRef)
     )
@@ -177,13 +180,6 @@ export class CardEditorPreviewService {
 
   constructor() {
     this.setCurrentCardEditorCardFaceDto();
-
-    effect(() => {
-      if (parseFloat(this.cardGameCoreService.cardEditorCardDto().card.cardId) !== undefined && parseFloat(this.cardGameCoreService.cardEditorCardDto().card.cardId) as number > 0) {
-        this.setCardEditorCardDto(this.cardGameCoreService.cardEditorCardDto());      
-        this.setCurrentCardEditorCardFaceDto();
-      }
-    });
   }
 
   isNewCardEditorCardDto(): boolean {
@@ -477,7 +473,7 @@ export class CardEditorPreviewService {
     if (!this.isNewCardEditorCardDto())
       throw new Error("Creating from a previous card and therefore should be duplicated");
 
-    this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)
+    this.cardEditorCardDtoApiService.createCardEditorCardDto$(this.cardEditorCardDto)
       .subscribe({
         next: (createResult: CardEditorCardDto | undefined) => {
           if (isCardEditorCardDto(createResult)) {
@@ -485,8 +481,7 @@ export class CardEditorPreviewService {
 
             this.reloadCurrentCardEditorCardFaceDto();
 
-            this.setOnCreateCard();
-            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);   
+            this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);   
             
             this.markOrphanedData();
           }
@@ -510,7 +505,7 @@ export class CardEditorPreviewService {
       this.duplicateCardFaceThumbnails$(this.cardEditorCardDto),
     ])
       .pipe(
-        switchMap(() => this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
+        switchMap(() => this.cardEditorCardDtoApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
@@ -520,8 +515,7 @@ export class CardEditorPreviewService {
 
             this.reloadCurrentCardEditorCardFaceDto();
 
-            this.setOnCreateCard();
-            this.cardGameCoreService.setOnCreateCardEditorCardDto(this.cardEditorCardDto);    // TODO: Remember to use file metadata file path instead of thumbnail image file path
+            this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);    // TODO: Remember to use file metadata file path instead of thumbnail image file path
 
             // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
             // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
@@ -548,7 +542,7 @@ export class CardEditorPreviewService {
           console.error('Delete error (ignored):', err);
           return of([]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
         }),
-        switchMap(() => this.cardApiService.updateCardEditorCardDto$(this.cardEditorCardDto)),
+        switchMap(() => this.cardEditorCardDtoApiService.updateCardEditorCardDto$(this.cardEditorCardDto)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
@@ -560,8 +554,7 @@ export class CardEditorPreviewService {
 
             this.reloadCurrentCardEditorCardFaceDto();
 
-            this.setOnUpdateCard();
-            this.cardGameCoreService.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // TODO: Remember to use file metadata file path instead of thumbnail image file path
+            this.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // TODO: Remember to use file metadata file path instead of thumbnail image file path
           
             this.markOrphanedData();
           }
@@ -578,20 +571,24 @@ export class CardEditorPreviewService {
       throw new Error("Can't delete card as it's being edited");
     }
 
-    this.cardApiService.deleteCardEditorCardDto$(cardId)
-    .subscribe(() => { this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);});
+    this.cardEditorCardDtoApiService.deleteCardEditorCardDtoByCardId$(cardId)
+    .subscribe(() => { this.setOnDeleteCardEditorCardDto(cardId);});
   }
 
   reloadCurrentCardEditorCardFaceDto() {
     this.currentCardEditorCardFaceDto = this.cardEditorCardDto.cardEditorCardFacesDto[this.getCurrentCardFaceIndex()];
   }
 
-  setOnCreateCard() {
-    this.onCreateCard$$.next();
+  setOnCreateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
+    this.onCreateCardEditorCardDto$$.next(cardEditorCardDto);
   }
 
-  setOnUpdateCard() {
-    this.onUpdateCard$$.next();
+  setOnUpdateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
+    this.onUpdateCardEditorCardDto$$.next(cardEditorCardDto);
+  }
+
+  setOnDeleteCardEditorCardDto(cardId: string) {
+    this.onDeleteCardEditorCardDto$$.next(cardId);
   }
 
   updateCurrentCardFaceStyle(currentCardFaceStyle: Style) {

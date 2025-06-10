@@ -14,6 +14,7 @@ import { CardApiService } from '../../services/card-game-core/api/card-api.servi
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { isCard } from '../../utils/card-game-core.utils';
 import { CardComponent } from '../card/card.component';
+import { CardEditorCardDtoApiService } from '../../services/card-game-core/api/card-editor-card-dto-api.service';
 
 @Component({
   selector: 'app-cards-collection',
@@ -30,9 +31,10 @@ export class CardsCollectionComponent {
   private mousePosition = { x: 0, y: 0 };
 
   cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
-  private cardApiService: CardApiService = inject(CardApiService);
-  private dndBoardService: DndBoardService = inject(DndBoardService);
-  private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly cardApiService: CardApiService = inject(CardApiService);
+  private readonly cardEditorCardDtoApiService: CardEditorCardDtoApiService = inject(CardEditorCardDtoApiService);
+  private readonly dndBoardService: DndBoardService = inject(DndBoardService);
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
   private destroyRef: DestroyRef = inject(DestroyRef);
 
@@ -136,7 +138,7 @@ export class CardsCollectionComponent {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-    this.cardGameCoreService.onCreateCardEditorCardDto$
+    this.cardEditorPreviewService.onCreateCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0) {
@@ -152,7 +154,7 @@ export class CardsCollectionComponent {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-    this.cardGameCoreService.onUpdateCardEditorCardDto$
+    this.cardEditorPreviewService.onUpdateCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0) {
@@ -166,7 +168,7 @@ export class CardsCollectionComponent {
   }
 
   private onDeleteCardEditorCardDto() {
-    this.cardGameCoreService.onDeleteCardEditorCardDto$
+    this.cardEditorPreviewService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardId: string) => {
         this.cards = this.cards.filter(c => c.cardId !== cardId);
@@ -187,7 +189,7 @@ export class CardsCollectionComponent {
 
   onDragDrop(event: CdkDragDrop<any[]>, item: any) {
     if (!event.isPointerOverContainer && isCard(item)) {
-      this.cardApiService.getCardEditorCardDtoByCardId$(item.cardId).subscribe((result: CardEditorCardDto | undefined) => {
+      this.cardEditorCardDtoApiService.getCardEditorCardDtoByCardId$(item.cardId).subscribe((result: CardEditorCardDto | undefined) => {
         if (result === undefined)
           return;
 
@@ -200,7 +202,7 @@ export class CardsCollectionComponent {
         // TODO: Just remove the file paths and use the file metadata
         // You'd want to duplicate card face thumbnails because it's potentially possible for a thumbnail for one card to be marked as orphan while it's still being used by something else
         this.replaceAllImageFilePaths$(cardEditorCardDto).pipe(
-          switchMap((value: any | undefined) => this.cardApiService.createCardEditorCardDto$(cardEditorCardDto)),
+          switchMap((value: any | undefined) => this.cardEditorCardDtoApiService.createCardEditorCardDto$(cardEditorCardDto)),
           takeUntilDestroyed(this.destroyRef)
         ).subscribe({
           next: (result: CardEditorCardDto | undefined) => {

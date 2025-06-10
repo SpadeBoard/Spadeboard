@@ -14,42 +14,10 @@ export class CardGameCoreService {
   private cardPositionPerRoom$$ = new Subject<CardPositionPerRoom>();
   cardPositionPerRoom$: Observable<CardPositionPerRoom> = this.cardPositionPerRoom$$.asObservable();
 
-  private onCreateCardEditorCardDto$$ = new Subject<CardEditorCardDto>();
-  onCreateCardEditorCardDto$: Observable<CardEditorCardDto> = this.onCreateCardEditorCardDto$$.asObservable();
-
-  private onUpdateCardEditorCardDto$$ = new Subject<CardEditorCardDto>();
-  onUpdateCardEditorCardDto$: Observable<CardEditorCardDto> = this.onUpdateCardEditorCardDto$$.asObservable();
-
-  private onDeleteCardEditorCardDto$$: Subject<string> = new Subject<string>();
-  onDeleteCardEditorCardDto$: Observable<string> = this.onDeleteCardEditorCardDto$$.asObservable();
-  
   userId: WritableSignal<string> = signal<string>('');
 
   isCardsCollectionMenuOpen: WritableSignal<boolean>=  signal<boolean>(false);
   isCardEditorOpen: WritableSignal<boolean>=  signal<boolean>(false);
-
-  cardEditorCardDto: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
-    card: {
-      cardId: "0",
-      currentCardFaceIndex: 0,
-      cardName: '',
-      isTemplate: false
-    },
-    ownerId: '',
-    cardEditorCardFacesDto: []
-  });
-
-  // NOTE: Use this with the card collection to load latest
-  createdCardEditorCardDtoForCardCollection: WritableSignal<CardEditorCardDto> = signal<CardEditorCardDto> ({
-    card: {
-      cardId: "0",
-      currentCardFaceIndex: 0,
-      cardName: '',
-      isTemplate: false
-    },
-    ownerId: '',
-    cardEditorCardFacesDto: []
-  });
 
   // https://medium.com/@dev.ashaysawarkar/communicating-between-sibling-components-in-angular-using-rxjs-subject-4e5382dcca34
   // Use subjects to communicate between siblings?
@@ -59,10 +27,6 @@ export class CardGameCoreService {
 
   setUserId(newUserId: string) {
     this.userId.set(newUserId);
-  }
-
-  setCardEditorCardDto(newCardEditorCardDto: CardEditorCardDto) {
-    this.cardEditorCardDto.set(newCardEditorCardDto);
   }
 
   setIsCardsCollectionMenuOpen(newIsCardsCollectionMenuOpen: boolean): void {
@@ -75,17 +39,5 @@ export class CardGameCoreService {
 
   createCardPositionPerRoom(cpr: CardPositionPerRoom ): void {
     this.cardPositionPerRoom$$.next(cpr);
-  }
-
-  setOnCreateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
-    this.onCreateCardEditorCardDto$$.next(cardEditorCardDto);
-  }
-
-  setOnUpdateCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
-    this.onUpdateCardEditorCardDto$$.next(cardEditorCardDto);
-  }
-
-  setOnDeleteCardEditorCardDto(cardId: string) {
-    this.onDeleteCardEditorCardDto$$.next(cardId);
   }
 }

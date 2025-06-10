@@ -19,6 +19,7 @@ import { getCardFaceElementImage, getCardFaceElementRt } from '../../utils/card-
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
+import { CardEditorCardDto } from '../../models/card';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -110,10 +111,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     this.postFlip();
 
-    this.onCreateCard();
+    this.onCreateCardEditorCardDto();
     this.onCreateCardFaceElementPerCardFace();
     this.onDeleteCardFaceElementPerCardFace();
-    this.onUpdateCard();
+    this.onUpdateCardEditorCardDto();
 
     this.onBringToFront();
     this.onSendToBack();
@@ -125,8 +126,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   ngAfterViewInit() {
   }
 
-  private onCreateCard() {
-    this.cardEditorPreviewService.onCreateCard$
+  private onCreateCardEditorCardDto() {
+    this.cardEditorPreviewService.onCreateCardEditorCardDto$
       .pipe(
         takeUntilDestroyed()
       )
@@ -136,8 +137,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       })
   }
 
-  private onUpdateCard() {
-    this.cardEditorPreviewService.onUpdateCard$
+  private onUpdateCardEditorCardDto() {
+    this.cardEditorPreviewService.onUpdateCardEditorCardDto$
       .pipe(
         takeUntilDestroyed()
       )
