@@ -224,6 +224,8 @@ export class CardPositionPerRoomComponent {
       if (itemRenderScale !== 0) {
         this.screenPositionCache.clear(); // CHECKME: Do we actually want to clear the cache here and only if this check is valid?
         this.cardsPositionPerRoomScale = itemRenderScale;
+        
+        this.setOnScreenCprs(); // Force to refresh the unculled cprs
       }
     })
   }
