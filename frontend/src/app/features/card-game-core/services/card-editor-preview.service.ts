@@ -10,8 +10,8 @@ import { CardEditorCardDto } from '../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardFaceElementImage, CardFaceElementPerCardFace } from '../models/card-face-element';
 import { isCardEditorCardDto } from '../utils/card-game-core.utils';
-import { CardApiService } from './card-game-core/card-api.service';
-import { CardFaceElementApiService } from './card-game-core/card-face-element-api.service';
+import { CardApiService } from './card-game-core/api/card-api.service';
+import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
 import { DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH, getBlankCardTemplate, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
 

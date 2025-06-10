@@ -10,7 +10,7 @@ import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { CardApiService } from '../../services/card-game-core/card-api.service';
+import { CardApiService } from '../../services/card-game-core/api/card-api.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { isCard } from '../../utils/card-game-core.utils';
 import { CardComponent } from '../card/card.component';

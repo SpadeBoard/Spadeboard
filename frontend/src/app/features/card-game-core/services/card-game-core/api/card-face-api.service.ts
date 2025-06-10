@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { CardFace } from '../../models/card-face';
+import { CardFace } from '../../../models/card-face';
 
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../../environments/environment';
+import { environment } from '../../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

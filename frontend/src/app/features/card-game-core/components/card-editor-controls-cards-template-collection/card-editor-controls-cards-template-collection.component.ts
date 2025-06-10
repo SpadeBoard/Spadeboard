@@ -2,7 +2,7 @@ import { Component, HostListener, inject } from '@angular/core';
 import { CardComponent } from '../card/card.component';
 import { Card, CardEditorCardDto } from '../../models/card';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { CardApiService } from '../../services/card-game-core/card-api.service';
+import { CardApiService } from '../../services/card-game-core/api/card-api.service';
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';

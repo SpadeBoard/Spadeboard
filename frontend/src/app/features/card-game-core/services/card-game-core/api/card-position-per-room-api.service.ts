@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../../../environments/environment';
+import { environment } from '../../../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CardPositionPerRoom } from '../../models/card';
+import { CardPositionPerRoom } from '../../../models/card';
 
 @Injectable({
   providedIn: 'root'

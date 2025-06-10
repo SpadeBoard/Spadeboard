@@ -3,8 +3,8 @@ import { inject, Injectable } from '@angular/core';
 
 
 import { Observable, of } from 'rxjs';
-import { environment } from '../../../../../environments/environment';
-import { Card, CardEditorCardDto } from '../../models/card';
+import { environment } from '../../../../../../environments/environment';
+import { Card, CardEditorCardDto } from '../../../models/card';
 
 @Injectable({
   providedIn: 'root'
