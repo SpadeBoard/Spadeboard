@@ -258,6 +258,21 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
     this.screenPxDimensions$$.next({x: screenPxX, y: screenPxY});
   }
 
+  // AU
+  calculateCameraPositionFromScroll(scroll: Coordinates): Coordinates {
+    return {
+      x: scroll.x / this.getScaledCellSize(),
+      y: scroll.y / this.getScaledCellSize()
+    }
+  }
+
+  calculateScrollPosiiton(): Coordinates {
+    return {
+      x: this.camera.x * this.getScaledCellSize(),
+      y: this.camera.y * this.getScaledCellSize()
+    }
+  }
+
   isPositionInCameraSpace(
     position: Coordinates,
     screen: Dimensions
