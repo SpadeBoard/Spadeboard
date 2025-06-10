@@ -452,6 +452,11 @@ export class CardPositionPerRoomComponent {
     // It would make Angular spend less time calculating and the detection of its position will be faster
     let onScreenPosition: Coordinates = this.calculateScreenPosition(aU);
     this.screenPositionCache.set(cpr.cardPositionPerRoomId, onScreenPosition);
+
+    // CHECKME: Problem is, with that approach my concern is
+    // In the edge case where you drag the item off screen, and the viewport scrolls, what then
+    // Wouldn't the position be wrong
+    // this.screenPositionCache.delete(cpr.cardPositionPerRoomId);
   }
 
   getCardPositionPerRoomOverlappingAttributes(item: CardPositionPerRoom): {

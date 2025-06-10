@@ -1,6 +1,7 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
+import { Dimensions } from '../../../../utils/utils';
 @Component({
   selector: 'app-dnd-board-layer',
   imports: [],
@@ -12,15 +13,13 @@ export class DndBoardLayerComponent {
 
   @ViewChild('camera') camera!: ElementRef<HTMLDivElement>;
 
-  viewportWidth!: number;
-  viewportHeight!: number;
-
-  viewportLeft!: number;
-  viewportTop!: number;
+  viewport!: Dimensions;
 
   ngOnInit() {
-    this.viewportWidth = window.innerWidth;
-    this.viewportHeight = window.innerHeight;
+    this.viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    }
 
     this.getViewportTransform();
 
@@ -38,7 +37,7 @@ export class DndBoardLayerComponent {
         Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
         Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
         Grid size AU: ${this.dndBoardService.getGridSizeAU()}
-        Viewport size: (${this.viewportWidth}, ${this.viewportHeight})
+        Viewport size: (${JSON.stringify(this.viewport)})
         Zoom Level: ${this.dndBoardService.zoom}`;
 
       // 3. Log everything
@@ -65,10 +64,7 @@ export class DndBoardLayerComponent {
   }
 
   private updateGridSize() {
-    let getViewportDimensions = this.dndBoardService.getViewportDimensions();
-
-    this.viewportWidth = getViewportDimensions.width;
-    this.viewportHeight = getViewportDimensions.height;
+    this.viewport = this.dndBoardService.getViewportDimensions();
 
     this.getViewportTransform();
     // console.log(`On update Card Position Per Room Grid Size: Viewport size: ${this.viewportWidth}, ${this.viewportHeight}, Zoom Level: ${this.dndBoardService.zoom}`);
