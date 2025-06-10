@@ -17,13 +17,11 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardsController(ICardEditorCardDtoService cardEditorCardDtoService, ICardDtoService cardDtoService, ICardPerOwnerDtoService cardPerOwnerDtoService) : ControllerBase
+    public class CardsController(ICardDtoService cardDtoService, ICardPerOwnerDtoService cardPerOwnerDtoService) : ControllerBase
     {
         private readonly ICardDtoService _cardDtoService = cardDtoService;
 
         private readonly ICardPerOwnerDtoService _cardPerOwnerDtoService = cardPerOwnerDtoService;
-        
-        private readonly ICardEditorCardDtoService _cardEditorCardDtoService = cardEditorCardDtoService;
         
         // GET: api/Cards
         [HttpGet]
@@ -51,20 +49,6 @@ namespace backend.Controllers
             }
 
             return card;
-        }
-
-        // FIXME: Pass in ID instead
-        [HttpGet("dto/{id}")]
-        public async Task<ActionResult<CardEditorCardDto>> GetCardEditorCardDto(string id)
-        {
-            var cardEditorCardDto = await _cardEditorCardDtoService.GetDtoAsync(id);
-
-            if (cardEditorCardDto == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(cardEditorCardDto);
         }
 
         [HttpGet("owner/{ownerId}")]
@@ -110,24 +94,6 @@ namespace backend.Controllers
             return NotFound();
         }
 
-        [HttpPut("dto/{id}")]
-        public async Task<IActionResult> PutCardEditorCardDto(string id, CardEditorCardDto cardEditorCardDto)
-        {
-            try
-            {
-                var updated = await _cardEditorCardDtoService.UpdateDtoAsync(id, cardEditorCardDto);         
-                return updated ? Ok(await _cardEditorCardDtoService.GetDtoAsync(id)) : BadRequest();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
-            }
-            catch (Exception ex) 
-            {
-                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
-            }
-        }
-
         // POST: api/Cards
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -137,49 +103,12 @@ namespace backend.Controllers
             return CreatedAtAction("GetCard", new { id = newCard.CardId }, newCard);
         }
 
-        // https://stackoverflow.com/a/70951248
-        // Function overriding
-
-        // https://stackoverflow.com/questions/53854416/error-action-has-more-than-one-parameter-bound-from-request-body
-
-        // https://learn.microsoft.com/en-us/aspnet/core/mvc/models/model-binding?view=aspnetcore-9.0
-        // https://learn.microsoft.com/en-us/aspnet/web-api/overview/data/using-web-api-with-entity-framework/part-5
-        [HttpPost("dto")]
-        public async Task<ActionResult<CardEditorCardDto>> PostCardEditorCardDto(CardEditorCardDto cardEditorCardDto)
-        {
-            try
-            {
-                Console.WriteLine(JsonSerializer.Serialize(cardEditorCardDto, new JsonSerializerOptions { WriteIndented = true }));
-
-                CardEditorCardDto newCardEditorCardDto = await _cardEditorCardDtoService.CreateDtoAsync(cardEditorCardDto);           
-                return CreatedAtAction("GetCardEditorCardDto", new { id = newCardEditorCardDto.Card.CardId }, newCardEditorCardDto);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
-            }
-        }
-
         // DELETE: api/Cards/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCard(string id)
         {
             var deleted = await _cardDtoService.DeleteDtoAsync(id);
             return deleted ? NoContent() : NotFound();
-        }
-
-        [HttpDelete("dto/{id}")]
-        public async Task<IActionResult> DeleteCardEditorCardDto(string id)
-        {
-            try
-            {
-                var deleted = await _cardEditorCardDtoService.DeleteDtoAsync(id);
-                return deleted ? NoContent() : NotFound();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while processing the request", error = ex.Message });
-            }
         }
     }
 }

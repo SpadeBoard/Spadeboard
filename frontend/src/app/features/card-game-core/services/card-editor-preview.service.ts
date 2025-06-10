@@ -9,18 +9,18 @@ import { Style } from '../../style/models/style';
 import { CardEditorCardDto } from '../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardFaceElementImage, CardFaceElementPerCardFace } from '../models/card-face-element';
+import { DEFAULT_CARD_EDITOR_FACE_STYLE, getBlankCardTemplate } from '../utils/card-editor.constants';
 import { isCardEditorCardDto } from '../utils/card-game-core.utils';
-import { CardApiService } from './card-game-core/api/card-api.service';
+import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-card-dto-api.service';
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
 import { CardGameCoreService } from './card-game-core/card-game-core.service';
-import { DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_CARD_FACE_BACKGROUND_COLOR, DEFAULT_CARD_FACE_BORDER_COLOR, DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_BORDER_WIDTH, DEFAULT_CARD_FACE_HEIGHT, DEFAULT_CARD_FACE_WIDTH, getBlankCardTemplate, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../utils/card-editor.constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardEditorPreviewService {
   private readonly cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
-  private readonly cardApiService: CardApiService = inject(CardApiService);
+  private readonly cardEditorCardDtoApiService: CardEditorCardDtoApiService = inject(CardEditorCardDtoApiService);
   private readonly fileUploadApiService = inject(FileUploadApiService);
   private readonly cardFaceElementApiService: CardFaceElementApiService = inject(CardFaceElementApiService);
   
@@ -93,7 +93,7 @@ export class CardEditorPreviewService {
     /*if (this.cardEditorCardDto.card.cardId === cardId)
       return;*/
 
-    this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+    this.cardEditorCardDtoApiService.getCardEditorCardDtoByCardId$(cardId)
     .pipe(
       takeUntilDestroyed(this.destroyRef)
     )
@@ -101,7 +101,7 @@ export class CardEditorPreviewService {
   }
 
   getCardEditorCardDtoByCardId(cardId: string) {
-     this.cardApiService.getCardEditorCardDtoByCardId$(cardId)
+     this.cardEditorCardDtoApiService.getCardEditorCardDtoByCardId$(cardId)
      .pipe(
       takeUntilDestroyed(this.destroyRef)
     )
@@ -477,7 +477,7 @@ export class CardEditorPreviewService {
     if (!this.isNewCardEditorCardDto())
       throw new Error("Creating from a previous card and therefore should be duplicated");
 
-    this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)
+    this.cardEditorCardDtoApiService.createCardEditorCardDto$(this.cardEditorCardDto)
       .subscribe({
         next: (createResult: CardEditorCardDto | undefined) => {
           if (isCardEditorCardDto(createResult)) {
@@ -510,7 +510,7 @@ export class CardEditorPreviewService {
       this.duplicateCardFaceThumbnails$(this.cardEditorCardDto),
     ])
       .pipe(
-        switchMap(() => this.cardApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
+        switchMap(() => this.cardEditorCardDtoApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
@@ -548,7 +548,7 @@ export class CardEditorPreviewService {
           console.error('Delete error (ignored):', err);
           return of([]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
         }),
-        switchMap(() => this.cardApiService.updateCardEditorCardDto$(this.cardEditorCardDto)),
+        switchMap(() => this.cardEditorCardDtoApiService.updateCardEditorCardDto$(this.cardEditorCardDto)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
@@ -578,7 +578,7 @@ export class CardEditorPreviewService {
       throw new Error("Can't delete card as it's being edited");
     }
 
-    this.cardApiService.deleteCardEditorCardDto$(cardId)
+    this.cardEditorCardDtoApiService.deleteCardEditorCardDtoByCardId$(cardId)
     .subscribe(() => { this.cardGameCoreService.setOnDeleteCardEditorCardDto(cardId);});
   }
 
