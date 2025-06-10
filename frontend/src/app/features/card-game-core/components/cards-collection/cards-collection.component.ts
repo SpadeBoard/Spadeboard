@@ -138,7 +138,7 @@ export class CardsCollectionComponent {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-    this.cardGameCoreService.onCreateCardEditorCardDto$
+    this.cardEditorPreviewService.onCreateCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0) {
@@ -154,7 +154,7 @@ export class CardsCollectionComponent {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-    this.cardGameCoreService.onUpdateCardEditorCardDto$
+    this.cardEditorPreviewService.onUpdateCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0) {
@@ -168,7 +168,7 @@ export class CardsCollectionComponent {
   }
 
   private onDeleteCardEditorCardDto() {
-    this.cardGameCoreService.onDeleteCardEditorCardDto$
+    this.cardEditorPreviewService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardId: string) => {
         this.cards = this.cards.filter(c => c.cardId !== cardId);

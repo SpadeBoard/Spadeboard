@@ -19,12 +19,12 @@ export class CardEditorCardOperationsButtonComponent {
 
   constructor() {
     this.setHasCreated();
-    this.onCreateCard();
+    this.onCreateCardEditorCardDto();
     this.onSetCardEditorCardDtoByCardId();
   }
 
-  private onCreateCard() {
-    this.cardEditorPreviewService.onCreateCard$
+  private onCreateCardEditorCardDto() {
+    this.cardEditorPreviewService.onCreateCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
      this.setHasCreated();

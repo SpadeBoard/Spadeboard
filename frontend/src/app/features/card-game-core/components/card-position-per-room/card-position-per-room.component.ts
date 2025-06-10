@@ -319,7 +319,7 @@ export class CardPositionPerRoomComponent {
       // ASSUMPTION:
       // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
       // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
-      this.cardGameCoreService.onUpdateCardEditorCardDto$
+      this.cardEditorPreviewService.onUpdateCardEditorCardDto$
         .pipe(takeUntilDestroyed())
         .subscribe((cardEditorCardDto: CardEditorCardDto) => {
         if (cardEditorCardDto) {
@@ -333,7 +333,7 @@ export class CardPositionPerRoomComponent {
     }
 
   private onDeleteCardEditorCardDto() {
-    this.cardGameCoreService.onDeleteCardEditorCardDto$
+    this.cardEditorPreviewService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe((cardId: string) => {
         this.unculledCprs = this.unculledCprs.filter(cpr => cpr.card.cardId !== cardId);

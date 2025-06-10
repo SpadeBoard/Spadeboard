@@ -119,7 +119,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.onSetHeight();
     this.onBorderDimensionsChange();
 
-    this.onCreateCard();
+    this.onCreateCardEditorCardDto();
   }
 
   setCardEditorFaceBorderRadius() {
@@ -422,8 +422,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       });
   }
 
-  onCreateCard() {
-    this.cardEditorPreviewService.onCreateCard$.pipe(
+  onCreateCardEditorCardDto() {
+    this.cardEditorPreviewService.onCreateCardEditorCardDto$.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
         this.cardEditorControlsDesignCardFaceAttributesService.setCurrentCardFaceId();
