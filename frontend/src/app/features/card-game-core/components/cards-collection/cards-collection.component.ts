@@ -208,8 +208,7 @@ export class CardsCollectionComponent {
           next: (result: CardEditorCardDto | undefined) => {
             if (result === undefined) return;
 
-            let mouseAUCoordinates = this.dndBoardService.getMouseAUCoordinates();
-            let dndPosition = mouseAUCoordinates;
+            let dndPosition: Coordinates = this.dndBoardService.mouseAUCoordinates;
 
             let cpr: CardPositionPerRoom = {
               cardPositionPerRoomId: "0",

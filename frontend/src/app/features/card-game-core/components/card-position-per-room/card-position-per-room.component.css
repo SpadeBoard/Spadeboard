@@ -6,7 +6,9 @@
 }
 
 .cpr-cdk-drag-preview {
-    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
     width: fit-content;
     height: fit-content;
+    top: auto !important;
+    left: auto !important;
 }

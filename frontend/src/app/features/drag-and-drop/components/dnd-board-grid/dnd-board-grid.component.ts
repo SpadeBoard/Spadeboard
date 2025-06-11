@@ -36,8 +36,8 @@ export class DndBoardGridComponent {
       let mouseMoveLog = `Grid - On Mouse Move:
       Mouse coordinates relative to viewport (clientX, clientY): (${result.mouseScreenX}, ${result.mouseScreenY})
       Mouse relative to board (mouseX, mouseY): (${result.mouseX}, ${result.mouseY})
-      Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.getMouseAUCoordinates())})
-      Mouse AU to Screen coordinates - relative to board: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.getMouseAUCoordinates()))})
+      Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.mouseAUCoordinates)})
+      Mouse AU to Screen coordinates - relative to board: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
       Viewport dimensions: (${JSON.stringify(this.dndBoardService.getViewportDimensions())})
       Grid size AU: ${this.dndBoardService.getGridSizeAU()}
       Grid size screen: (${this.gridWidthScreen}, ${this.gridHeightScreen})
