@@ -1,0 +1,3 @@
+img[src$=".svg"]:hover {
+    filter: invert(51%) sepia(55%) saturate(338%) hue-rotate(145deg) brightness(88%) contrast(90%);
+}
