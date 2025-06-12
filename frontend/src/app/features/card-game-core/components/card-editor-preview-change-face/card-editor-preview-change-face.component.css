@@ -5,3 +5,7 @@ img[src$=".svg"]:hover {
 img[src$=".svg"]:active {
     filter: invert(53%) sepia(50%) saturate(3029%) hue-rotate(333deg) brightness(105%) contrast(91%);
 }
+
+img[src$=".svg"].flipped {
+    transform: scaleX(-1);
+}
