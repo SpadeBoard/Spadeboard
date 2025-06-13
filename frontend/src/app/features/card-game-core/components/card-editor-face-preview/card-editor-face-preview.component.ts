@@ -141,7 +141,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   setCardEditorFaceBorderColor() {
     this.cardEditorControlsDesignCardFaceAttributesService.onBorderColorChange$
     .pipe(
-      distinctUntilChanged(),
+      // distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef))
     .subscribe((borderColor: string) => {
       let face = this.cardEditorPreviewService.getCurrentCardFace();
@@ -156,7 +156,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   setCardEditorFaceColor() {
     this.cardEditorControlsDesignCardFaceAttributesService.onFaceColorChange$
     .pipe(
-      distinctUntilChanged(),
+      // distinctUntilChanged(),
       takeUntilDestroyed(this.destroyRef))
     .subscribe((color: string) => {
       // So can someone explain to me how assigning by reference works in TS, is this actually mutating the original value

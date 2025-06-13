@@ -48,11 +48,11 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   set cardFaceHexcode(hexcode: string) {
-    if (this.cardFaceHexcode !== hexcode) {
+    // if (this.cardFaceHexcode !== hexcode) {
       this.cardEditorControlsDesignCardFaceAttributesService.cardFaceHexcode = hexcode;
 
       this.cardEditorControlsDesignCardFaceAttributesService.setOnFaceColorChange(this.cardFaceHexcode);
-    }
+    // }
   }
 
    get cardFaceHexInput(): string {
@@ -68,11 +68,11 @@ export class CardEditorControlsCardFaceAttributesComponent {
   }
 
   set borderHexcode(hexcode: string) {
-    if (this.borderHexcode !== hexcode) {
+    //if (this.borderHexcode !== hexcode) {
       this.cardEditorControlsDesignCardFaceAttributesService.borderHexcode = hexcode;
 
       this.cardEditorControlsDesignCardFaceAttributesService.setOnBorderColorChange(this.borderHexcode);
-    }
+    // }
   }
 
   get borderHexInput(): string {
