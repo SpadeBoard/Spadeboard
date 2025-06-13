@@ -1,4 +1,1 @@
-<!--TODO: Modify this so that the inside of the component for the card, it actually switches between multicard faces-->
-<div>
-    <app-card-face [cardFaceInput]="currentCardFace" [cardFaceScale]="cardScaleComputed()" #cardFace/>
-</div>
+<app-card-face [cardFaceImageSrc]="getCurrentCardFaceImageSrc()" [cardFaceScale]="cardScaleComputed()" #cardFace/>
