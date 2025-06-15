@@ -3,10 +3,12 @@ import { Component, computed, effect, inject, input, InputSignal, model, ModelSi
 import { Card } from '../../models/card';
 
 import { CommonModule } from '@angular/common';
+import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { CardFace } from '../../models/card-face';
 import { CardFaceApiService } from '../../services/card-game-core/api/card-face-api.service';
+import { DEFAULT_CARD_FACE_DIMENSIONS, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
+import { CardFaceImage } from '../../utils/card-face.utils';
 import { CardFaceComponent } from '../card-face/card-face.component';
-import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 
 @Component({
   selector: 'app-card',
@@ -34,7 +36,7 @@ export class CardComponent {
   });
 
   // TODO: Figure out the alternate text for images
-  cardFaceImageSrcs: Map<number, string> = new Map<number, string>();
+  cardFaceImages: Map<number, CardFaceImage> = new Map<number, CardFaceImage>();
 
   cardScale: InputSignal<number> =  input<number>(1);
   cardScaleComputed: Signal<number>  = computed(() => this.cardScale());
@@ -48,14 +50,14 @@ export class CardComponent {
     });
   }
 
-  getCurrentCardFaceImageSrc(): string {
+  getCurrentCardFaceImage(): CardFaceImage {
     let currentCardFaceIndex: number = this.card().currentCardFaceIndex;
-    
-    if (!this.cardFaceImageSrcs.has(currentCardFaceIndex)) {
-      return "";
+
+    if (!this.cardFaceImages.has(currentCardFaceIndex)) {
+      return getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS);
     }
 
-    return this.cardFaceImageSrcs.get(currentCardFaceIndex)!;
+    return this.cardFaceImages.get(currentCardFaceIndex)!;
   }
 
   // TODO: Rework this, use cardApiService to get the card face IDs, then use a switch map, pass it into the next then assign the cardFaces
@@ -72,11 +74,18 @@ export class CardComponent {
         this.getCardFaceImageSrc(cardFace).then((image: HTMLImageElement | undefined) => {
           if (!image) {
             console.warn(`No image associated with ${cardFace.cardFaceId}`);
-            this.cardFaceImageSrcs.set(idx, "");
+            this.cardFaceImages.set(idx, getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS));
             return;
           }
 
-          this.cardFaceImageSrcs.set(idx, image.src);
+          this.cardFaceImages.set(idx, {
+            src: image.src,
+            alt: image.alt,
+            dimensions: {
+              width: image.width,
+              height: image.height
+            }
+          });
         })
       })
     });
@@ -142,8 +151,11 @@ export class CardComponent {
     // Image not loading on flipped card, problem is it's being destroyed as the card's being flipped, so it's not present in the DOM to be taken images of
     // TODO: Actually call the revoke source somehow
     // This is literally just a workaround and not gonna work
-    this.cardFaceImageSrcs.forEach((value: string, key: number) => {
-      if (value && value !== '') this.onRevokeSrc(value);
+    this.cardFaceImages.forEach((value: CardFaceImage, key: number) => {
+      if (!value || !value.src)
+        throw new Error("Card face image doesn't have a url");
+      
+      if (value.src !== '' && value.src !== DEFAULT_CARD_FACE_PLACEHOLDER_SRC) this.onRevokeSrc(value.src);
     })
   }
 }
