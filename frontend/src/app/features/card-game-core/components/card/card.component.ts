@@ -127,8 +127,12 @@ export class CardComponent {
   }
 
   onRevokeSrc(url: string) {
-    if (!url.startsWith('blob:'))
-      throw new Error("Should be a blob we're revoking")
+    console.log(`Url to revoke: ${url}`);
+
+    if (!url.startsWith('blob:')) {
+      console.warn("Should be a blob we're revoking");
+      return;
+    }
 
     URL.revokeObjectURL(url);
     // console.log('Blob URL revoked after image loaded');
@@ -139,7 +143,7 @@ export class CardComponent {
     // TODO: Actually call the revoke source somehow
     // This is literally just a workaround and not gonna work
     this.cardFaceImageSrcs.forEach((value: string, key: number) => {
-      this.onRevokeSrc(value);
+      if (value && value !== '') this.onRevokeSrc(value);
     })
   }
 }
