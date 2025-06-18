@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Component, effect, ElementRef, HostListener, inject, QueryList, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { mergeMap } from 'rxjs';
-import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
+import { clamp, Coordinates, Dimensions, getScaledItemRenderDimensions } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -15,6 +15,8 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
 import { CardPositionPerRoomApiService } from '../../services/card-game-core/api/card-position-per-room-api.service';
 import { CardComponent } from '../card/card.component';
+import { DEFAULT_CARD_FACE_DIMENSIONS, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
+import { CardFaceImage } from '../../utils/card-face.utils';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -32,6 +34,8 @@ export class CardPositionPerRoomComponent {
   private gameRoomService: GameRoomService = inject(GameRoomService);
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
    
+  readonly cardDragPreviewPlaceholder: CardFaceImage = getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS);
+
   private el = inject(ElementRef);
 
   cprs: CardPositionPerRoom[] = [];
@@ -690,5 +694,9 @@ getCardPositionPerRoomRectById(cardPositionPerRoomId: string): DOMRect | null {
 
       this.dndBoardService.showAllItems(coordinates);
     })
+  }
+
+  getCardDragPreviewPlaceholderDimensions(): Dimensions {
+    return getScaledItemRenderDimensions(this.cardDragPreviewPlaceholder.dimensions, this.cardsPositionPerRoomScale);
   }
 }

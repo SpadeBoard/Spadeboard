@@ -22,7 +22,16 @@
             <div *cdkDragPreview class="cpr-cdk-drag-preview"
                 [attr.cpr-cdk-drag-preview-id]="cpr.cardPositionPerRoomId"
             >
-                <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" [title]="cpr.card.cardName" /> 
+                @defer {
+                    <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" [title]="cpr.card.cardName" /> 
+                }
+                @placeholder {
+                    <img
+                        [src]="cardDragPreviewPlaceholder.src" 
+                        [alt]="cardDragPreviewPlaceholder.alt" 
+                        [style.width.px]="getCardDragPreviewPlaceholderDimensions().width" 
+                        [style.height.px]="getCardDragPreviewPlaceholderDimensions().height"/>
+                }
             </div>
     </div>
     }
