@@ -5,7 +5,7 @@ import { Card } from '../../models/card';
 import { CommonModule } from '@angular/common';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { CardFace } from '../../models/card-face';
-import { CardFaceApiService } from '../../services/card-game-core/api/card-face-api.service';
+import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
 import { DEFAULT_CARD_FACE_DIMENSIONS, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
 import { CardFaceImage } from '../../utils/card-face.utils';
 import { CardFaceComponent } from '../card-face/card-face.component';
@@ -21,7 +21,7 @@ import { CardFaceComponent } from '../card-face/card-face.component';
   // animations: [cardFlipAnimation]
 })
 export class CardComponent {
-  private readonly cardFaceApiService: CardFaceApiService = inject(CardFaceApiService);
+  private readonly cardFacePerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
   private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
   // https://medium.com/@chandrashekharsingh25/angular-signals-explained-with-practical-examples-e45de6d00925
   // Might need computed signals then
@@ -62,7 +62,7 @@ export class CardComponent {
 
   // TODO: Rework this, use cardApiService to get the card face IDs, then use a switch map, pass it into the next then assign the cardFaces
   private loadCardFaces(card: Card): void {
-    this.cardFaceApiService.getCardFacesPerCard$(card.cardId).subscribe((result: CardFace[] | undefined) => {
+    this.cardFacePerCardApiService.getCardFacesPerCard$(card.cardId).subscribe((result: CardFace[] | undefined) => {
       if (!result)
         return;
 
