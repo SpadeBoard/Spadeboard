@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Data;
 using Models.Cards;
 using Services;
 
@@ -13,11 +6,9 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CardFacesController(ICardFaceDtoService cardFaceDtoService, ICardFacePerCardDtoService cardFacePerCardDtoService) : ControllerBase
+    public class CardFacesController(ICardFaceDtoService cardFaceDtoService) : ControllerBase
     {
         private readonly ICardFaceDtoService _cardFaceDtoService = cardFaceDtoService;
-
-        private readonly ICardFacePerCardDtoService _cardFacePerCardDtoService = cardFacePerCardDtoService;
 
         // GET: api/CardFaces
         [HttpGet]
@@ -58,12 +49,6 @@ namespace backend.Controllers
             }
 
             return cardFace;
-        }
-
-        [HttpGet("card-face-per-card/{id}")]
-        public async Task<ActionResult<IEnumerable<CardFaceDto>>> GetCardFacesPerCard(string id)
-        {
-            return (await _cardFacePerCardDtoService.GetAllFacesDtoByCardId(id)).ToList();
         }
 
         // PUT: api/CardFaces/5

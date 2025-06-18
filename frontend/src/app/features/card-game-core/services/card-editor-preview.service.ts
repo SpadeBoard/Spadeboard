@@ -459,8 +459,11 @@ export class CardEditorPreviewService {
   }
 
   markOrphanedData() {
-    if (this.orphanedFileMetadata.length <= 0)
-      throw new Error("No files to orphan");
+    if (this.orphanedFileMetadata.length <= 0) {
+      console.warn('No files to orphan.');
+      return;
+    }
+
 
     this.orphanFileMetadata(this.orphanedFileMetadata);
   }
