@@ -32,8 +32,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   shouldSnapToGrid: boolean = false;
 
-  @HostListener('document:keydown', ['$event'])
-  handleCtrlDown(event: KeyboardEvent) {
+  @HostListener('document:keyup', ['$event'])
+  handleCtrlUp(event: KeyboardEvent) {
     if (event.key === 'Control') {
       this.shouldSnapToGrid = !this.shouldSnapToGrid;
     }
