@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragPreview, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { Component, effect, ElementRef, HostListener, inject, QueryList, ViewChildren } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { mergeMap } from 'rxjs';
 import { clamp, Coordinates, Dimensions, getScaledItemRenderDimensions } from '../../../../utils/utils';
@@ -40,14 +40,15 @@ export class CardPositionPerRoomComponent {
 
   cprs: CardPositionPerRoom[] = [];
 
+  shouldSnapToGrid: InputSignal<boolean> = input(false);
+  shouldSnapToGridComputed: Signal<boolean> = computed(() => this.shouldSnapToGrid());
+
   @ViewChildren('cardsPositionPerRoom') cardsPositionPerRoomRef!: QueryList<ElementRef<HTMLDivElement>>;
 
   // NOTE: For rendering only
   unculledCprs: CardPositionPerRoom[] = [];
  private overlappedCprs: Map<string, CardPositionPerRoom[]> = new Map();
 
-  private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
-  
   // TODO: Refactor the bloody architecture
   cardsPositionPerRoomScale: number = 1;
   
@@ -413,7 +414,9 @@ export class CardPositionPerRoomComponent {
     this.setPreviewTransform(item.cardPositionPerRoomId, this.getDragMovedOffset(this.dndBoardService.mouseAUCoordinates, this.dragOffset), item.dndRotation.degrees);
 
     // TODO: If snap to grid, then run snap to grid else do what we have currently
-    let snapToGrid: boolean = true;
+    if (this.shouldSnapToGridComputed()) {
+
+    }
   }
 
   onDragDrop(event: CdkDragDrop<any[]>, item: CardPositionPerRoom) {
@@ -455,6 +458,11 @@ export class CardPositionPerRoomComponent {
     // CHECKME: Do we want to actually set the screen position directly here?
     // It would make Angular spend less time calculating and the detection of its position will be faster
     let onScreenPosition: Coordinates = this.calculateScreenPosition(aU);
+
+    if (this.shouldSnapToGridComputed()) {
+     onScreenPosition = this.snapToGrid(this.dndBoardService.getScaledDndBoardSizeScreen(), onScreenPosition); 
+    }
+
     this.screenPositionCache.set(cpr.cardPositionPerRoomId, onScreenPosition);
 
     // CHECKME: Problem is, with that approach my concern is
@@ -610,8 +618,8 @@ export class CardPositionPerRoomComponent {
     return element ? element.nativeElement.getBoundingClientRect() : null;
   }
 
-  private snapToGrid(gridSize: number, userPointerPosition: Point): Coordinates {
-    return snapToGridNearestVertex(gridSize, userPointerPosition);
+  private snapToGrid(gridSize: number, coordinates: Coordinates): Coordinates {
+    return snapToGridNearestVertex(gridSize, coordinates);
   }
 
   // https://stackoverflow.com/a/69324787
