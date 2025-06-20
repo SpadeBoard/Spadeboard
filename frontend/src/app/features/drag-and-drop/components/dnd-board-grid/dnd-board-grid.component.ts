@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, input, InputSignal, Signal } from '@angular/core';
 import { DndBoardService } from '../../services/dnd-board.service';
+import { Dimensions } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-dnd-board-grid',
@@ -10,9 +11,15 @@ import { DndBoardService } from '../../services/dnd-board.service';
 export class DndBoardGridComponent {
   private dndBoardService: DndBoardService= inject(DndBoardService);
 
-  gridWidthScreen: number = 0;
-  gridHeightScreen: number = 0;
+  gridDimensions: Dimensions = {
+    width: 0,
+    height: 0
+  }
+
   cellSizeScreen: number = 0;
+
+  shouldSnapToGrid: InputSignal<boolean> = input(false);
+  shouldSnapToGridComputed: Signal<boolean> = computed(() => this.shouldSnapToGrid());
 
   constructor() {
     this.updateGridSize();
@@ -40,7 +47,7 @@ export class DndBoardGridComponent {
       Mouse AU to Screen coordinates - relative to board: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
       Viewport dimensions: (${JSON.stringify(this.dndBoardService.getViewportDimensions())})
       Grid size AU: ${this.dndBoardService.getGridSizeAU()}
-      Grid size screen: (${this.gridWidthScreen}, ${this.gridHeightScreen})
+      Grid size screen: (${JSON.stringify(this.gridDimensions)})
       Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
       Zoom Level: ${this.dndBoardService.zoom}
       Cell size screen: ${this.cellSizeScreen}`;
@@ -54,9 +61,18 @@ export class DndBoardGridComponent {
     // Dynamically update the background-size of the grid
     this.cellSizeScreen = this.dndBoardService.getScaledCellSize(); // Base cell size (50px) scaled by zoom
     
-    this.gridWidthScreen = this.dndBoardService.getScaledDndBoardSizeScreen();
-    this.gridHeightScreen = this.dndBoardService.getScaledDndBoardSizeScreen();
+    this.gridDimensions = {
+      width: this.dndBoardService.getScaledDndBoardSizeScreen(),
+      height: this.dndBoardService.getScaledDndBoardSizeScreen()
+    }
 
     // console.log(`On update Grid Size: Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}, Cell Size: ${this.cellSizeScreen}`);
+  }
+
+  getGridCellOutline(): string {
+    let color: string = this.shouldSnapToGridComputed() ? '#4D8A98' : 'rgb(203 213 225)';
+
+    return `linear-gradient(to right, ${color} 1px, transparent 1px),
+      linear-gradient(to bottom, ${color} 1px, transparent 1px)`;
   }
 }

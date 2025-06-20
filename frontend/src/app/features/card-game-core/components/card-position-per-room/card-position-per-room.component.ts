@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragPreview, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { Component, effect, ElementRef, HostListener, inject, QueryList, ViewChildren } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { mergeMap } from 'rxjs';
 import { clamp, Coordinates, Dimensions, getScaledItemRenderDimensions } from '../../../../utils/utils';
@@ -40,14 +40,15 @@ export class CardPositionPerRoomComponent {
 
   cprs: CardPositionPerRoom[] = [];
 
+  shouldSnapToGrid: InputSignal<boolean> = input(false);
+  shouldSnapToGridComputed: Signal<boolean> = computed(() => this.shouldSnapToGrid());
+
   @ViewChildren('cardsPositionPerRoom') cardsPositionPerRoomRef!: QueryList<ElementRef<HTMLDivElement>>;
 
   // NOTE: For rendering only
   unculledCprs: CardPositionPerRoom[] = [];
  private overlappedCprs: Map<string, CardPositionPerRoom[]> = new Map();
 
-  private snapToGridPosition: {x: number, y: number} = {x: 0, y: 0};
-  
   // TODO: Refactor the bloody architecture
   cardsPositionPerRoomScale: number = 1;
   
@@ -373,6 +374,9 @@ export class CardPositionPerRoomComponent {
     if (!preview)
       throw new Error("Preview doesn't exist, which means two things, we're passing the wrong id, or we're getting a nonexistent ID somehow");
 
+    // TODO: If snap to grid, then run snap to grid else do what we have currently
+    translation = this.snapToGrid(translation); 
+
     preview.style.transform = `translate3d(${translation.x}px, ${translation.y}px, 0) rotate(${rotation}deg)`;
   }
 
@@ -411,15 +415,9 @@ export class CardPositionPerRoomComponent {
     // WORKAROUND: We'll programmatically set the custom preview's transform, we just need to make sure that we set it on drag start too
     // They all have IDs, it should be apossible to grab them
     this.setPreviewTransform(item.cardPositionPerRoomId, this.getDragMovedOffset(this.dndBoardService.mouseAUCoordinates, this.dragOffset), item.dndRotation.degrees);
-
-    // TODO: If snap to grid, then run snap to grid else do what we have currently
-    let snapToGrid: boolean = true;
   }
 
   onDragDrop(event: CdkDragDrop<any[]>, item: CardPositionPerRoom) {
-    // TODO: If snap to grid, then run snap to grid else do what we have currently
-    let snapToGrid: boolean = true;
-
     item.zIndex = this.dndBoardService.globalZIndexCounter++;
     this.setCardPerRoomPosition(item, this.dndBoardService.mouseAUCoordinates, this.dragOffset);
 
@@ -455,7 +453,8 @@ export class CardPositionPerRoomComponent {
     // CHECKME: Do we want to actually set the screen position directly here?
     // It would make Angular spend less time calculating and the detection of its position will be faster
     let onScreenPosition: Coordinates = this.calculateScreenPosition(aU);
-    this.screenPositionCache.set(cpr.cardPositionPerRoomId, onScreenPosition);
+
+    this.screenPositionCache.set(cpr.cardPositionPerRoomId, this.snapToGrid(onScreenPosition));
 
     // CHECKME: Problem is, with that approach my concern is
     // In the edge case where you drag the item off screen, and the viewport scrolls, what then
@@ -610,8 +609,12 @@ export class CardPositionPerRoomComponent {
     return element ? element.nativeElement.getBoundingClientRect() : null;
   }
 
-  private snapToGrid(gridSize: number, userPointerPosition: Point): Coordinates {
-    return snapToGridNearestVertex(gridSize, userPointerPosition);
+  private snapToGrid(coordinates: Coordinates): Coordinates {
+    if (this.shouldSnapToGridComputed()) {
+      return snapToGridNearestVertex(this.dndBoardService.getScaledCellSize(), coordinates); 
+    }
+
+    return coordinates;
   }
 
   // https://stackoverflow.com/a/69324787

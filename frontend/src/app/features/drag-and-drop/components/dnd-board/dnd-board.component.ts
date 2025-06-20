@@ -32,6 +32,15 @@ export class DndBoardComponent implements AfterViewInit {
   // 1. If drags on top of something that is droppable
   // 2. Then appear menu to determine whether to add to it
 
+  shouldSnapToGrid: boolean = false;
+
+  @HostListener('document:keyup', ['$event'])
+  handleCtrlUp(event: KeyboardEvent) {
+    if (event.key === 'Control') {
+      this.shouldSnapToGrid = !this.shouldSnapToGrid;
+    }
+  }
+
   // TODO: Populate this
   private dndBoardService: DndBoardService= inject(DndBoardService);
 
