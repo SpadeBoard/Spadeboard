@@ -20,6 +20,7 @@ import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-d
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 import { snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
+import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../utils/card-editor-face-preview.constants';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -407,7 +408,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     if (this.shouldSnapToGridComputed()) {
       // TODO: Pass in the grid size as a part of the parent
-      localPosition = this.snapToGrid(10, localPosition);
+      localPosition = this.snapToGrid(DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE, localPosition);
     }
 
     let clamped: Coordinates = this.clampDndPosition(this.currentEditedCardFaceElementId, localPosition);
