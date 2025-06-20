@@ -1,5 +1,5 @@
 <div #dndBoard class ="dnd-board" (scroll)="onScroll($event)" cdkDropList cdkDropListSortingDisabled="true">
-    <app-dnd-board-grid/>
+    <app-dnd-board-grid [shouldSnapToGrid]="shouldSnapToGrid"/>
     <app-dnd-board-layer>
         <app-card-position-per-room [shouldSnapToGrid]="shouldSnapToGrid"/>
         <!-- TODO: Insert zones/decks here-->
