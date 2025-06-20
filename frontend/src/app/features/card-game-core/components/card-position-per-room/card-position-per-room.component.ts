@@ -375,9 +375,7 @@ export class CardPositionPerRoomComponent {
       throw new Error("Preview doesn't exist, which means two things, we're passing the wrong id, or we're getting a nonexistent ID somehow");
 
     // TODO: If snap to grid, then run snap to grid else do what we have currently
-    if (this.shouldSnapToGridComputed()) {
-      translation = this.snapToGrid(this.dndBoardService.getScaledDndBoardSizeScreen(), translation); 
-    }
+    translation = this.snapToGrid(translation); 
 
     preview.style.transform = `translate3d(${translation.x}px, ${translation.y}px, 0) rotate(${rotation}deg)`;
   }
@@ -420,9 +418,6 @@ export class CardPositionPerRoomComponent {
   }
 
   onDragDrop(event: CdkDragDrop<any[]>, item: CardPositionPerRoom) {
-    // TODO: If snap to grid, then run snap to grid else do what we have currently
-    let snapToGrid: boolean = true;
-
     item.zIndex = this.dndBoardService.globalZIndexCounter++;
     this.setCardPerRoomPosition(item, this.dndBoardService.mouseAUCoordinates, this.dragOffset);
 
@@ -459,11 +454,7 @@ export class CardPositionPerRoomComponent {
     // It would make Angular spend less time calculating and the detection of its position will be faster
     let onScreenPosition: Coordinates = this.calculateScreenPosition(aU);
 
-    if (this.shouldSnapToGridComputed()) {
-     onScreenPosition = this.snapToGrid(this.dndBoardService.getScaledDndBoardSizeScreen(), onScreenPosition); 
-    }
-
-    this.screenPositionCache.set(cpr.cardPositionPerRoomId, onScreenPosition);
+    this.screenPositionCache.set(cpr.cardPositionPerRoomId, this.snapToGrid(onScreenPosition));
 
     // CHECKME: Problem is, with that approach my concern is
     // In the edge case where you drag the item off screen, and the viewport scrolls, what then
@@ -618,8 +609,12 @@ export class CardPositionPerRoomComponent {
     return element ? element.nativeElement.getBoundingClientRect() : null;
   }
 
-  private snapToGrid(gridSize: number, coordinates: Coordinates): Coordinates {
-    return snapToGridNearestVertex(gridSize, coordinates);
+  private snapToGrid(coordinates: Coordinates): Coordinates {
+    if (this.shouldSnapToGridComputed()) {
+      return snapToGridNearestVertex(this.dndBoardService.getScaledCellSize(), coordinates); 
+    }
+
+    return coordinates;
   }
 
   // https://stackoverflow.com/a/69324787
