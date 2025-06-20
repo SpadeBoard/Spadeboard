@@ -374,6 +374,11 @@ export class CardPositionPerRoomComponent {
     if (!preview)
       throw new Error("Preview doesn't exist, which means two things, we're passing the wrong id, or we're getting a nonexistent ID somehow");
 
+    // TODO: If snap to grid, then run snap to grid else do what we have currently
+    if (this.shouldSnapToGridComputed()) {
+      translation = this.snapToGrid(this.dndBoardService.getScaledDndBoardSizeScreen(), translation); 
+    }
+
     preview.style.transform = `translate3d(${translation.x}px, ${translation.y}px, 0) rotate(${rotation}deg)`;
   }
 
@@ -412,11 +417,6 @@ export class CardPositionPerRoomComponent {
     // WORKAROUND: We'll programmatically set the custom preview's transform, we just need to make sure that we set it on drag start too
     // They all have IDs, it should be apossible to grab them
     this.setPreviewTransform(item.cardPositionPerRoomId, this.getDragMovedOffset(this.dndBoardService.mouseAUCoordinates, this.dragOffset), item.dndRotation.degrees);
-
-    // TODO: If snap to grid, then run snap to grid else do what we have currently
-    if (this.shouldSnapToGridComputed()) {
-
-    }
   }
 
   onDragDrop(event: CdkDragDrop<any[]>, item: CardPositionPerRoom) {
