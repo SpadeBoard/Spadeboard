@@ -19,6 +19,7 @@ import { getCardFaceElementImage, getCardFaceElementRt } from '../../utils/card-
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
+import { snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -378,6 +379,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       y: clamp(y, 0, height - dimensions.height)
     };
   }
+
+  private snapToGrid(gridSize: number, coordinates: Coordinates): Coordinates {
+    return snapToGridNearestVertex(gridSize, coordinates);
+  }
   
   onDragMoved(event: CdkDragMove<any>): void {
     // Calculates relative position of pointer in container
@@ -388,7 +393,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     // console.log(`On drag moved: ${(JSON.stringify(event.pointerPosition))}`)
   }
-  
 
   onDragDropped(event: CdkDragDrop<any>) {
     console.log(`Drop point: ${JSON.stringify(event.dropPoint)}`)
@@ -400,6 +404,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       x: localDropPosition.x - this.dragOffset.x,
       y: localDropPosition.y - this.dragOffset.y
     };
+
+    if (this.shouldSnapToGridComputed()) {
+      // TODO: Pass in the grid size as a part of the parent
+      localPosition = this.snapToGrid(10, localPosition);
+    }
 
     let clamped: Coordinates = this.clampDndPosition(this.currentEditedCardFaceElementId, localPosition);
 
