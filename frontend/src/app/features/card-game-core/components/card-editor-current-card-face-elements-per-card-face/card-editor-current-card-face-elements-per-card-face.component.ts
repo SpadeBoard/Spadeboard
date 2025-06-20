@@ -19,7 +19,6 @@ import { getCardFaceElementImage, getCardFaceElementRt } from '../../utils/card-
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
-import { CardEditorCardDto } from '../../models/card';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -53,6 +52,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   currentEditedCardFaceElementId: string = DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID;
 
   currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [];
+
+  shouldSnapToGrid: InputSignal<boolean> = input(false);
+  shouldSnapToGridComputed: Signal<boolean> = computed(() => this.shouldSnapToGrid());
 
   getCardFaceElementContainer(): Omit<Style, 'styleId'> {
     return {
@@ -359,29 +361,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       y: clamp(absolute.y - top, 0, height)
     };
   }
-
-   private isOutOfBounds(cardFaceElementId: string, position: Coordinates): boolean {
-      let container = this.getCardFaceClientRect();
-
-      let { x, y } = position;
-      let { width, height} = container;
-
-      console.log(`Is out of bounds: container - ${JSON.stringify(container)}, position - ${JSON.stringify(position)}`);
-    
-      let dimensions: Dimensions = this.getCardFaceElementDimensions(cardFaceElementId);
-
-      if (width < 0 || height < 0)
-        throw new Error("No container dimensions");
-  
-      let isOutOfBounds: boolean = (
-        x < 0 ||
-        y < 0 ||
-        x + dimensions.width > width ||
-        y + dimensions.height > height
-      );
-
-      return isOutOfBounds;
-    }
 
   private clampDndPosition(cardFaceElementId: string, position: Coordinates): Coordinates {
    let dimensions: Dimensions = this.getCardFaceElementDimensions(cardFaceElementId);
