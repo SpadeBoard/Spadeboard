@@ -382,16 +382,16 @@ export class CardPositionPerRoomComponent {
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
     this.setDragOffset(this.dndBoardService.mouseAUCoordinates, item.dndPosition);
 
-    let offset: Coordinates = this.calculateScreenPosition(this.dragOffset);
+    /*let offset: Coordinates = this.calculateScreenPosition(this.dragOffset);
 
     let final: Coordinates = {
       x: position.x - offset.x,
       y: position.y - offset.y
-    };
+    };*/
 
     // NOTE: By this point there should already be a cached position of the cpr
     // ASSUMPTION: When you start dragging, the item shouldn't be culled
-    this.setPreviewTransform(item.cardPositionPerRoomId, final, item.dndRotation.degrees);
+    this.setPreviewTransform(item.cardPositionPerRoomId, position, item.dndRotation.degrees);
 
     let attributes = this.getCardPositionPerRoomOverlappingAttributes(item);
   }
