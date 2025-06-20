@@ -1,5 +1,6 @@
 <div #cardEditorFace [ngStyle]="getCardEditorFaceStyle()" (contextmenu)="onCardEditorFaceRightClick($event)">
-    <app-card-editor-current-card-face-elements-per-card-face [cardFaceBorderRadius]="cardFaceBorderRadius" #cardFaceElementsPerCardFace/>
+    <app-card-editor-face-preview-grid [shouldSnapToGrid]="shouldSnapToGrid" data-html2canvas-ignore="true"/>
+    <app-card-editor-current-card-face-elements-per-card-face [cardFaceBorderRadius]="cardFaceBorderRadius" [shouldSnapToGrid]="shouldSnapToGrid" #cardFaceElementsPerCardFace/>
 </div>
 @if (isDisplayContextMenu) {
 <app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"

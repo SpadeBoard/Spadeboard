@@ -602,21 +602,16 @@ export class CardPositionPerRoomComponent {
   );
 }
 
-getCardPositionPerRoomRectById(cardPositionPerRoomId: string): DOMRect | null {
-  let element: ElementRef<HTMLDivElement> | undefined = this.cardsPositionPerRoomRef.find(ref =>
-    ref.nativeElement.getAttribute('card-position-per-room-id') === cardPositionPerRoomId
-  );
-  
-  return element ? element.nativeElement.getBoundingClientRect() : null;
-}
+  getCardPositionPerRoomRectById(cardPositionPerRoomId: string): DOMRect | null {
+    let element: ElementRef<HTMLDivElement> | undefined = this.cardsPositionPerRoomRef.find(ref =>
+      ref.nativeElement.getAttribute('card-position-per-room-id') === cardPositionPerRoomId
+    );
 
-  snapToGrid(gridSize: number, userPointerPosition: Point)
-  {
-    let { offsetX, offsetY } = snapToGridNearestVertex(gridSize, userPointerPosition.x, userPointerPosition.y);
+    return element ? element.nativeElement.getBoundingClientRect() : null;
+  }
 
-    // console.log(`Offset snapToGrid: ${JSON.stringify({offsetX, offsetY})}`);
-
-    return { x: offsetX, y: offsetY };
+  private snapToGrid(gridSize: number, userPointerPosition: Point): Coordinates {
+    return snapToGridNearestVertex(gridSize, userPointerPosition);
   }
 
   // https://stackoverflow.com/a/69324787

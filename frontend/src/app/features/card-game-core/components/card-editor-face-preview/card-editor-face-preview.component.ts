@@ -14,10 +14,11 @@ import { CardEditorControlsDesignCardFaceAttributesService } from '../../service
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
 import { DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 
 @Component({
   selector: 'app-card-editor-face-preview',
-  imports: [DragDropModule, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule, ActionContextMenuComponent],
+  imports: [DragDropModule, CardEditorFacePreviewGridComponent, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule, ActionContextMenuComponent],
   templateUrl: './card-editor-face-preview.component.html',
   styleUrl: './card-editor-face-preview.component.css'
 })
@@ -29,6 +30,15 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChild("cardFaceElementsPerCardFace") cardFaceElementsPerCardFace!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
 
+  shouldSnapToGrid: boolean = false;
+
+  @HostListener('document:keydown', ['$event'])
+  handleCtrlDown(event: KeyboardEvent) {
+    if (event.key === 'Control') {
+      this.shouldSnapToGrid = !this.shouldSnapToGrid;
+    }
+  }
+  
   private contextMenuPosition: Coordinates = {
     x: 0,
     y: 0

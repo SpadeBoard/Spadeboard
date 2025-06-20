@@ -19,7 +19,8 @@ import { getCardFaceElementImage, getCardFaceElementRt } from '../../utils/card-
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
-import { CardEditorCardDto } from '../../models/card';
+import { snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
+import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../utils/card-editor-face-preview.constants';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -53,6 +54,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   currentEditedCardFaceElementId: string = DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID;
 
   currentCardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [];
+
+  shouldSnapToGrid: InputSignal<boolean> = input(false);
+  shouldSnapToGridComputed: Signal<boolean> = computed(() => this.shouldSnapToGrid());
 
   getCardFaceElementContainer(): Omit<Style, 'styleId'> {
     return {
@@ -360,29 +364,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     };
   }
 
-   private isOutOfBounds(cardFaceElementId: string, position: Coordinates): boolean {
-      let container = this.getCardFaceClientRect();
-
-      let { x, y } = position;
-      let { width, height} = container;
-
-      console.log(`Is out of bounds: container - ${JSON.stringify(container)}, position - ${JSON.stringify(position)}`);
-    
-      let dimensions: Dimensions = this.getCardFaceElementDimensions(cardFaceElementId);
-
-      if (width < 0 || height < 0)
-        throw new Error("No container dimensions");
-  
-      let isOutOfBounds: boolean = (
-        x < 0 ||
-        y < 0 ||
-        x + dimensions.width > width ||
-        y + dimensions.height > height
-      );
-
-      return isOutOfBounds;
-    }
-
   private clampDndPosition(cardFaceElementId: string, position: Coordinates): Coordinates {
    let dimensions: Dimensions = this.getCardFaceElementDimensions(cardFaceElementId);
 
@@ -399,6 +380,10 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       y: clamp(y, 0, height - dimensions.height)
     };
   }
+
+  private snapToGrid(gridSize: number, coordinates: Coordinates): Coordinates {
+    return snapToGridNearestVertex(gridSize, coordinates);
+  }
   
   onDragMoved(event: CdkDragMove<any>): void {
     // Calculates relative position of pointer in container
@@ -409,7 +394,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
 
     // console.log(`On drag moved: ${(JSON.stringify(event.pointerPosition))}`)
   }
-  
 
   onDragDropped(event: CdkDragDrop<any>) {
     console.log(`Drop point: ${JSON.stringify(event.dropPoint)}`)
@@ -421,6 +405,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
       x: localDropPosition.x - this.dragOffset.x,
       y: localDropPosition.y - this.dragOffset.y
     };
+
+    if (this.shouldSnapToGridComputed()) {
+      // TODO: Pass in the grid size as a part of the parent
+      localPosition = this.snapToGrid(DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE, localPosition);
+    }
 
     let clamped: Coordinates = this.clampDndPosition(this.currentEditedCardFaceElementId, localPosition);
 
