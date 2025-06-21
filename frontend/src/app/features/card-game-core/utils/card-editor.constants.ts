@@ -1,5 +1,6 @@
 import { Style } from "../../style/models/style";
 import { CardEditorCardDto } from "../models/card";
+import { CardFaceImage } from "./card-face.utils";
 
 export const MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
 export const MIN_CARD_FACE_WIDTH: number = 20;
@@ -70,3 +71,14 @@ export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X: number = 0;
 export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y: number = 0;
 export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH: number = 0;
 export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT: number = 0;
+
+export function getDefaultCardFaceElementImage(): CardFaceImage {
+  return  {
+    src: 'https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg',
+    alt: 'Placeholder square image',
+    dimensions: {
+      width: 100,
+      height: 100
+    }
+  };
+}

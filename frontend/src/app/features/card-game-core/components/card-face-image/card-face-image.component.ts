@@ -1,7 +1,9 @@
 import { Component, DestroyRef, effect, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { EMPTY, Observable, Subscriber, switchMap } from 'rxjs';
+import { Observable, of, Subscriber, switchMap } from 'rxjs';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
+import { CardFaceImage } from '../../utils/card-face.utils';
+import { getDefaultCardFaceElementImage } from '../../utils/card-editor.constants';
 
 @Component({
   selector: 'app-card-face-image',
@@ -18,30 +20,12 @@ export class CardFaceImageComponent {
   cardFaceImageWidth: InputSignal<number> = input<number>(100);
   cardFaceImageHeight: InputSignal<number> = input<number>(100);
 
-  imageHtmlContent: {
-    src: string;
-    alt: string;
-    width: number;
-    height: number;
-} = {
-    src: '',
-    alt: '',
-    width: 0,
-    height: 0
-  };
+  // TODO: Have this be a function to assign
+  imageHtmlContent: CardFaceImage = getDefaultCardFaceElementImage();
  
   private previousImageUrl: string = "";
   
   private destroyRef: DestroyRef = inject(DestroyRef);
-
-  setInitialImage() {
-    this.imageHtmlContent = {
-      src: 'https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg',
-      alt: 'Placeholder square image',
-      width: 100,
-      height: 100
-    };
-  }
 
   setImageSrc(url: string) {
     this.previousImageUrl = url; // For the comparison above, we don't want to reset the image constantly based on effect, make sure the new url's actually different
@@ -56,7 +40,10 @@ export class CardFaceImageComponent {
     {
       this.getImageFromStorage$(this.imageHtmlContent.src)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((image: HTMLImageElement) =>{
+        .subscribe((image: HTMLImageElement | undefined) =>{
+          if (!image)
+            return;
+
         this.imageHtmlContent.src = image.src;
         this.imageHtmlContent.alt = image.alt;
       })
@@ -64,20 +51,18 @@ export class CardFaceImageComponent {
   }
 
   constructor() {
-    this.setInitialImage();
-
     effect(() => {
       if (this.cardFaceImageSrc() !== '' && this.cardFaceImageSrc() !== undefined && this.cardFaceImageSrc() !== this.previousImageUrl) {
         this.setImageSrc(this.cardFaceImageSrc() as string);
       }
 
       if (this.cardFaceImageWidth() > 0) {
-        this.imageHtmlContent.width = this.cardFaceImageWidth();
+        this.imageHtmlContent.dimensions.width = this.cardFaceImageWidth();
         // console.log(`Card face image width change: ${this.imageHtmlContent.width}`);
       }
 
       if (this.cardFaceImageHeight() > 0) {
-        this.imageHtmlContent.height = this.cardFaceImageHeight();
+        this.imageHtmlContent.dimensions.height = this.cardFaceImageHeight();
         // console.log(`Card face image height change: ${this.imageHtmlContent.height}`);
       }
     });
@@ -94,33 +79,32 @@ export class CardFaceImageComponent {
     return match ? match[1] : null;
   }
   
-  getImageFromStorage$(url: string): Observable<HTMLImageElement> {
-    let guid = this.extractGuid(url);
+  getImageFromStorage$(url: string): Observable<HTMLImageElement | undefined> {
+    let guid: string | null = this.extractGuid(url);
 
-    if (!guid)
-      return EMPTY;
-    
+    if (!guid) return of(undefined);
+
     return this.fileUploadApiService.getFile$(guid, 'card-face-element-image').pipe(
-        switchMap((blob: Blob | undefined) => {
-          if (blob === undefined)
-            return EMPTY;
+      switchMap((blob: Blob | undefined) => {
+        if (!blob) return of(undefined);
 
-          return new Observable<HTMLImageElement>((observer: Subscriber<HTMLImageElement>) => {
-            let img = new Image();
-            let objectUrl: string = URL.createObjectURL(blob);
-            img.src = objectUrl;
-    
-            img.onload = () => {
-              observer.next(img);
-              observer.complete();
-              // URL.revokeObjectURL(objectUrl); // Use the objectUrl, not img.src
-            };
+        return new Observable<HTMLImageElement>((observer: Subscriber<HTMLImageElement>) => {
+          let img = new Image();
+          let objectUrl: string = URL.createObjectURL(blob);
+          img.src = objectUrl;
 
-            img.onerror = (err) => observer.error(err);
-          }
-        )
-    }));
+          img.onload = () => {
+            observer.next(img);
+            observer.complete();
+            // URL.revokeObjectURL(objectUrl); // Optionally revoke here
+          };
+
+          img.onerror = (err) => observer.error(err);
+        });
+      })
+    );
   }
+
 
   onOpenImageEditor(event: Event) {
     this.showImageEditor.emit(); // no payload

@@ -220,3 +220,17 @@ export function getMidpoint(a: Coordinates, b: Coordinates): Coordinates {
         y: a.y + b.y /2
     }
 }
+
+export type JSONPrimitive = string | number | boolean | null;
+export type JSONValue = JSONPrimitive | JSONValue[] | { [key: string]: JSONValue };
+
+// TODO: Probably shouldn't have any
+export function exportCustomTypeFile(data: any | JSONValue, filename: string, extension: string) {
+  let fileContent: string = JSON.stringify(data, null, 2); // or custom serialization
+ let blob: Blob = new Blob([fileContent], { type: 'application/octet-stream' });
+  let a: HTMLAnchorElement = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${filename}.${extension}`; // custom extension
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
