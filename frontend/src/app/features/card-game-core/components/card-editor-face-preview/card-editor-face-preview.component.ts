@@ -4,7 +4,7 @@ import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject,
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import html2canvas from 'html2canvas';
 import { distinctUntilChanged, from, map, Observable, switchMap } from 'rxjs';
-import { clamp, Coordinates, getMidpoint } from '../../../../utils/utils';
+import { clamp, Coordinates, exportCustomTypeFile, getMidpoint } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { BorderDimensions, Style } from '../../../style/models/style';
@@ -49,18 +49,15 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         id: 0,
         name: 'Export Card (.sbd)',
         action: (cardEditorCardDto: CardEditorCardDto) => {
-          if (!cardEditorCardDto) return;
-          
-          // TODO: Update the card editor card DTO to make sure it has the latest version
-          // Convert the JSON into binary?
+          if (!cardEditorCardDto)
+            throw new Error("No card editor card dto to be found");
 
-          // https://runninghill.co.za/blog/downloading-objects-as-json-files-in-angular
-          // Create a download function
+          if (cardEditorCardDto.card.cardId === "0")
+            throw new Error("Can't export a card that hasn't been made yet.");
 
-          // Have a flag to determine when it's done creating the file and then change the name of the action
-          // Use that flag to determine what to do?
+          exportCustomTypeFile(cardEditorCardDto, `${cardEditorCardDto.card.cardId}`, 'sbd');
         },
-        disabled: true
+        disabled: false
       },
        {
         id: 1,
@@ -496,11 +493,14 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     return {
       position: 'fixed',
       left: `${this.contextMenuPosition.x}px`,
-      top: `${this.contextMenuPosition.y}px`
+      top: `${this.contextMenuPosition.y}px`,
+      zIndex: 10
     }
   }
 
   handleActionContextMenuItemClick(item: ActionContextMenuItem) {
-
+    if (item.id === 0) {
+      this.actionContextMenuItems[0].action(this.cardEditorPreviewService.cardEditorCardDto);
+    }
   }
 }
