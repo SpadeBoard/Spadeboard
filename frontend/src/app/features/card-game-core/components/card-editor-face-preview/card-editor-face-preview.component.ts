@@ -15,6 +15,8 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
 import { DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
+import { FileAuthenticationPerExportedCardApiService } from '../../services/card-game-core/api/file-authentication-per-exported-card-api.service';
+import { FileAuthenticationPerExportedCard } from '../../models/file-authentication-per-exported-card';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -25,6 +27,7 @@ import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-
 export class CardEditorFacePreviewComponent implements AfterViewInit {
   private readonly cardEditorPreviewService: CardEditorPreviewService  = inject(CardEditorPreviewService);
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService );
+  private readonly fileAuthenticationPerExportedCardApiService: FileAuthenticationPerExportedCardApiService = inject(FileAuthenticationPerExportedCardApiService);
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
   
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
@@ -55,7 +58,21 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
           if (cardEditorCardDto.card.cardId === "0")
             throw new Error("Can't export a card that hasn't been made yet.");
 
-          exportCustomTypeFile(cardEditorCardDto, `${cardEditorCardDto.card.cardId}`, 'sbd');
+          let fileAuthenticationPerExportedCard: FileAuthenticationPerExportedCard = {
+            fileAuthenticationPerExportedCardId: "0",
+            cardId: cardEditorCardDto.card.cardId,
+            cardEditorCardDto,
+            fileHash: "",
+            digitalSignature: ""
+          }
+
+          // TODO: Figure out the digital signature
+          this.fileAuthenticationPerExportedCardApiService.createFileAuthenticationPerExportedCard$(fileAuthenticationPerExportedCard).subscribe((fileAuthenticationPerExportedCard: FileAuthenticationPerExportedCard | undefined) =>{
+            if (!fileAuthenticationPerExportedCard)
+              throw new Error("File authentication per exported card wasn't created");
+            
+            exportCustomTypeFile(cardEditorCardDto, `${cardEditorCardDto.card.cardId}`, 'sbd');
+          })
         },
         disabled: false
       },

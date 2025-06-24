@@ -80,6 +80,9 @@ builder.Services.AddScoped<IFileMetadataService, FileMetadataService>();
 builder.Services.AddScoped<IFileMetadataDtoService, FileMetadataDtoService>();
 builder.Services.AddHostedService<FileCleanupService>();
 
+builder.Services.AddScoped<IFileAuthenticationPerExportedCardService, FileAuthenticationPerExportedCardService>();
+builder.Services.AddScoped<IFileAuthenticationPerExportedCardDtoService, FileAuthenticationPerExportedCardDtoService>();
+
 builder.Services.AddControllers().AddJsonOptions(options =>{
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); 
     // options.JsonSerializerOptions.AllowOutOfOrderMetadataProperties = true; // https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism By default, the $type discriminator must be placed at the start of the JSON object, grouped together with other metadata properties like $id and $ref. - TODO: only in .NET9, so let's upgrade

@@ -1,18 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Data;
 using Models.Cards;
-using System.Configuration;
-using Microsoft.Build.Exceptions;
 using Services;
 using Models.Bridge;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System.Text.Json;
+
 namespace backend.Controllers
 {
     [Route("api/[controller]")]

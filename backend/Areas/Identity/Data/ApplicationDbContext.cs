@@ -209,4 +209,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<OwnersPerRoom> OwnersPerRoom {get; set;} = default!;
 
     public DbSet<Tag> Tag {get; set;} =default!;
+
+    public DbSet<FileAuthenticationPerExportedCard> FileAuthenticationPerExportedCardDto {get;set;} = default!;
 }
