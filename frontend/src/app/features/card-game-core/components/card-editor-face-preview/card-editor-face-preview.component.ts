@@ -55,6 +55,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         id: 0,
         name: 'Import Card (.sbd)',
         action: (cardEditorCardDto: CardEditorCardDto) => {
+          // CHECKME: You should be able to import cards that have already been deleted and elements that have been already deleted
           if (!cardEditorCardDto)
             throw new Error("No card editor card dto to be found");
 
@@ -64,6 +65,13 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
           this.fileAuthenticationPerExportedCardApiService.isValidImport$(cardEditorCardDto).subscribe((isValidImport: boolean) => {
             if (!isValidImport)
               throw new Error("Invalid import, either card ID or file hash doesn't match");
+
+            this.cardEditorPreviewService.duplicateCard$(cardEditorCardDto).subscribe((result: CardEditorCardDto | undefined) => {
+              if (!result)
+                throw new Error("Invalid import, can't duplicate card");
+
+              this.cardEditorPreviewService.setOnCreateCardEditorCardDto(cardEditorCardDto);
+            });
           });
           
           // TODO: Make the preview service create card, duplicate cards and update cards into pure functions

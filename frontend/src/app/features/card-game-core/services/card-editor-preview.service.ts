@@ -495,6 +495,8 @@ export class CardEditorPreviewService {
     );
   }
 
+  // NOTE: Order should go pending, orphaned, and finally, attached
+  // Even if you don't orphan it, it's assumed that it's pending, until you have attached it
   modifyCardPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
     this.updateCardEditorCardDtoPostApiOperation(cardEditorCardDto);
 
