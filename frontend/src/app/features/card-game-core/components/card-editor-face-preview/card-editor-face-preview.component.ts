@@ -460,10 +460,22 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         }
 
         if (this.cardEditorPreviewService.isNewCardEditorCardDto()) {
-          this.cardEditorPreviewService.createCard();
+          this.cardEditorPreviewService.createCard$(this.cardEditorPreviewService.cardEditorCardDto)
+          .pipe(
+            takeUntilDestroyed(this.destroyRef)
+          )
+          .subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
+            this.cardEditorPreviewService.createCardPostApiOperation(cardEditorCardDto);
+          });
         }
         else {
-          this.cardEditorPreviewService.duplicateCard();
+          this.cardEditorPreviewService.duplicateCard$(this.cardEditorPreviewService.cardEditorCardDto)
+          .pipe(
+            takeUntilDestroyed(this.destroyRef)
+          )
+          .subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
+            this.cardEditorPreviewService.duplicateCardPostApiOperation(cardEditorCardDto);
+          });
         }
       });
   }
