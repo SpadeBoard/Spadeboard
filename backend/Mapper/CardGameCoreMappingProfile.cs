@@ -217,6 +217,14 @@ namespace Mapper
                 .ForMember(dest => dest.TagId, 
                            opt => opt.MapFrom(src => long.Parse(src.TagId)))
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+
+            CreateMap<FileAuthenticationPerExportedCard, FileAuthenticationPerExportedCardDto>();
+
+            CreateMap<FileAuthenticationPerExportedCardDto, FileAuthenticationPerExportedCard>()
+                .ForMember(dest => dest.FileAuthenticationPerExportedCardId,
+                    opt => opt.MapFrom(src => long.Parse(src.FileAuthenticationPerExportedCardId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
 }

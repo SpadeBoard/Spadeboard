@@ -226,7 +226,7 @@ export type JSONValue = JSONPrimitive | JSONValue[] | { [key: string]: JSONValue
 
 // TODO: Probably shouldn't have any
 export function exportCustomTypeFile(data: any | JSONValue, filename: string, extension: string) {
-  let fileContent: string = JSON.stringify(data, null, 2); // or custom serialization
+  let fileContent: string = JSON.stringify(data); // NOTE: Pretty printing screws up with the hash so no
  let blob: Blob = new Blob([fileContent], { type: 'application/octet-stream' });
   let a: HTMLAnchorElement = document.createElement('a');
   a.href = URL.createObjectURL(blob);
