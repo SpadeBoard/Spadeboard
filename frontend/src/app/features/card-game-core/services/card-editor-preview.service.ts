@@ -479,15 +479,7 @@ export class CardEditorPreviewService {
     this.cardEditorCardDtoApiService.createCardEditorCardDto$(this.cardEditorCardDto)
       .subscribe({
         next: (createResult: CardEditorCardDto | undefined) => {
-          if (isCardEditorCardDto(createResult)) {
-            this.cardEditorCardDto = createResult;
-
-            this.reloadCurrentCardEditorCardFaceDto();
-
-            this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);   
-            
-            this.markOrphanedData();
-          }
+          this.modifyCardPostApiOperation(createResult);
         },
         error: (err) => {
           console.error('Something went wrong:', err);
@@ -513,23 +505,37 @@ export class CardEditorPreviewService {
       )
       .subscribe({
         next: (createResult: CardEditorCardDto | undefined) => {
-          if (isCardEditorCardDto(createResult)) {
-            this.cardEditorCardDto = createResult;
-
-            this.reloadCurrentCardEditorCardFaceDto();
-
-            this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);    // TODO: Remember to use file metadata file path instead of thumbnail image file path
-
-            // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
-            // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
-            this.orphanedFileMetadata = [];
-            this.cardFaceElementsPerCardFaceDelete = [];
-          }
+         this.duplicateCardPostApiOperation(createResult);
         },
         error: (err) => {
           console.error('Something went wrong:', err);
         }
       });
+  }
+
+  modifyCardPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
+    this.updateCardEditorCardDtoPostApiOperation(cardEditorCardDto);
+
+    if (cardEditorCardDto)
+      this.markOrphanedData();
+  }
+
+  duplicateCardPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
+    this.updateCardEditorCardDtoPostApiOperation(cardEditorCardDto);
+
+    // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
+    // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
+    this.orphanedFileMetadata = [];
+    this.cardFaceElementsPerCardFaceDelete = [];
+  }
+
+  updateCardEditorCardDtoPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
+    if (!isCardEditorCardDto(cardEditorCardDto))
+      throw new Error("Post API operation: not a card editor card dto")
+
+    this.cardEditorCardDto = cardEditorCardDto;
+    this.reloadCurrentCardEditorCardFaceDto();
+    this.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // NOTE: Remember to use file metadata file path instead of thumbnail image file path
   }
 
   updateCard(): void {
@@ -550,17 +556,7 @@ export class CardEditorPreviewService {
       )
       .subscribe({
         next: (updateResult: CardEditorCardDto | undefined) => {
-          if (isCardEditorCardDto(updateResult)) {
-            console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
-
-            this.cardEditorCardDto = updateResult;
-
-            this.reloadCurrentCardEditorCardFaceDto();
-
-            this.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // TODO: Remember to use file metadata file path instead of thumbnail image file path
-          
-            this.markOrphanedData();
-          }
+          this.modifyCardPostApiOperation(updateResult);
         },
         error: (err) => {
           console.error('Something went wrong:', err);
