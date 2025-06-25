@@ -17,6 +17,7 @@ import { DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WI
 import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 import { FileAuthenticationPerExportedCardApiService } from '../../services/card-game-core/api/file-authentication-per-exported-card-api.service';
 import { FileAuthenticationPerExportedCard } from '../../models/file-authentication-per-exported-card';
+import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -32,6 +33,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
   @ViewChild("cardFaceElementsPerCardFace") cardFaceElementsPerCardFace!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
+  @ViewChild('importedCardFileInput') importedCardFileInput!: ElementRef<HTMLInputElement>;
 
   shouldSnapToGrid: boolean = false;
 
@@ -50,17 +52,26 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   // TODO: Have action context menu items be groupable
   actionContextMenuItems: ActionContextMenuItem[] = [
       {
-        id: 2,
+        id: 0,
         name: 'Import Card (.sbd)',
-        action: () => {
-          console.log(`Import card as an sbd`);
+        action: (cardEditorCardDto: CardEditorCardDto) => {
+          if (!cardEditorCardDto)
+            throw new Error("No card editor card dto to be found");
+
+          if (cardEditorCardDto.card.cardId === "0")
+            throw new Error("Can't import export a card that hasn't been made yet.");
+
+          this.fileAuthenticationPerExportedCardApiService.isValidImport$(cardEditorCardDto).subscribe((isValidImport: boolean) => {
+            if (!isValidImport)
+              throw new Error("Invalid import, either card ID or file hash doesn't match");
+          });
           
           // TODO: Make the preview service create card, duplicate cards and update cards into pure functions
         },
         disabled: false
       },
       {
-        id: 0,
+        id: 1,
         name: 'Export Card (.sbd)',
         action: (cardEditorCardDto: CardEditorCardDto) => {
           if (!cardEditorCardDto)
@@ -88,7 +99,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         disabled: false
       },
        {
-        id: 1,
+        id: 2,
         name: 'Export (Atlas)',
         action: () => {
           // TODO: Grab all the file metadata's paths for the thumbnail images
@@ -527,8 +538,40 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   handleActionContextMenuItemClick(item: ActionContextMenuItem) {
-    if (item.id === 0) {
-      this.actionContextMenuItems[0].action(this.cardEditorPreviewService.cardEditorCardDto);
+    switch(item.id) {
+      case 0:
+        this.importedCardFileInput.nativeElement.value = '';
+        this.importedCardFileInput.nativeElement.click();
+        break;
+      case 1:
+        this.actionContextMenuItems[1].action(this.cardEditorPreviewService.cardEditorCardDto);
+        break;
+    }
+  }
+
+  // TODO: Modify authentication method to make sure this would work with other instances
+  onImportedCardFileSelected(event: Event) {
+    let input: HTMLInputElement = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      let selectedFile: File = input.files[0];
+      let fileReader: FileReader = new FileReader();
+
+      fileReader.onload = (event: ProgressEvent<FileReader>) => {
+        try {
+          let json: string = JSON.parse(event.target?.result as string); // Parse file content as JSON
+          if (!isCardEditorCardDto(json)) {
+            throw new Error("Didn't upload a card editor card dto");
+          }
+         
+          let cardEditorCardDto: CardEditorCardDto = json;
+          this.actionContextMenuItems[0].action(cardEditorCardDto);
+        } catch (e: any) {
+          // Handle parse or validation errors
+          console.error(e);
+        }
+      };
+
+      fileReader.readAsText(selectedFile); // Actually read the file[8][2]
     }
   }
 }

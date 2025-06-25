@@ -6,3 +6,6 @@
 <app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
     (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
 }
+
+<!-- NOTE: Hidden file input for importing card-->
+<input type="file" accept=".sbd" #importedCardFileInput style="display: none" (change)="onImportedCardFileSelected($event)" />
