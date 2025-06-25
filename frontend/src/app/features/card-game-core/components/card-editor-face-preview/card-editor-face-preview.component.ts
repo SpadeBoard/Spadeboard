@@ -47,7 +47,18 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     y: 0
   };
 
+  // TODO: Have action context menu items be groupable
   actionContextMenuItems: ActionContextMenuItem[] = [
+      {
+        id: 2,
+        name: 'Import Card (.sbd)',
+        action: () => {
+          console.log(`Import card as an sbd`);
+          
+          // TODO: Make the preview service create card, duplicate cards and update cards into pure functions
+        },
+        disabled: false
+      },
       {
         id: 0,
         name: 'Export Card (.sbd)',
@@ -78,7 +89,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       },
        {
         id: 1,
-        name: 'Export Card (Atlas)',
+        name: 'Export (Atlas)',
         action: () => {
           // TODO: Grab all the file metadata's paths for the thumbnail images
           // Create the images, somehow put them into an atlas?
