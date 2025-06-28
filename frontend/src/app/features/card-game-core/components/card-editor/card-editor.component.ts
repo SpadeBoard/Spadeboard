@@ -1,18 +1,17 @@
-import { AfterViewInit, Component, inject, input, Type, ViewChild, WritableSignal, Injector, ChangeDetectorRef, InputSignal, Signal, effect } from '@angular/core';
+import { Component, inject, Type } from '@angular/core';
 
+import { CommonModule, NgComponentOutlet } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { AngularEditorModule } from '@kolkov/angular-editor';
 import { Image } from '../../../style/models/image';
 import { Style } from '../../../style/models/style';
-import { CommonModule, NgComponentOutlet } from '@angular/common';
-import { CardFaceImageEditorComponent } from '../card-face-image-editor/card-face-image-editor.component';
-import { CardFaceRteComponent } from '../card-face-rte/card-face-rte.component';
-import { AngularEditorModule } from '@kolkov/angular-editor';
-import { FormsModule } from '@angular/forms';
-import { CardApiService } from '../../services/card-game-core/api/card-api.service';
-import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
-import { CardEditorPreviewComponent } from '../card-editor-preview/card-editor-preview.component';
-import { CardEditorControlsDesignComponent } from '../card-editor-controls-design/card-editor-controls-design.component';
 import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
 import { CardEditorCloseComponent } from '../card-editor-close/card-editor-close.component';
+import { CardEditorControlsDesignComponent } from '../card-editor-controls-design/card-editor-controls-design.component';
+import { CardEditorPreviewComponent } from '../card-editor-preview/card-editor-preview.component';
+import { CardFaceImageEditorComponent } from '../card-face-image-editor/card-face-image-editor.component';
+import { CardFaceRteComponent } from '../card-face-rte/card-face-rte.component';
+import { CardEditorInfoComponent } from '../card-editor-info/card-editor-info.component';
 
 // TODO: Resizable card face, have arrows for dragging, make sure there's a max width/height for that card face
 @Component({
@@ -21,28 +20,23 @@ import { CardEditorCloseComponent } from '../card-editor-close/card-editor-close
     AngularEditorModule, FormsModule,
     CommonModule, NgComponentOutlet,
     CardEditorPreviewComponent, CardEditorControlsDesignComponent,
-    CardEditorCloseComponent
+    CardEditorCloseComponent, CardEditorInfoComponent
   ], // TODO: Remove CdkDrag
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.css'
 })
-export class CardEditorComponent implements AfterViewInit {
+export class CardEditorComponent{
   // https://www.youtube.com/watch?v=5JcMras7aaA
-  private readonly cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
-  private readonly cardApiService: CardApiService = inject(CardApiService);
 
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
-
+  
   constructor() {
     this.onEnableImageEditor();
     this.onDisableImageEditor();
   }
 
-  ngAfterViewInit(): void {
-
-  }
-
   isCurrentPopupMenuOpen: boolean = false;
+
   // TODO: Fix this, this should be for the card face image editor? Why is popup menu opening card face image?
   popupMenuInputs = {
     // TODO: Pass in the potential card face elements as well as front card face and back card face

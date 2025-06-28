@@ -1,4 +1,4 @@
-import { DestroyRef, effect, inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, forkJoin, from, iif, map, Observable, of, Subject, switchMap, tap, throwError } from 'rxjs';
 import { FileMetadata, FileMetadataStatus } from '../../../utils/models/file-metadata';
@@ -13,13 +13,11 @@ import { DEFAULT_CARD_EDITOR_FACE_STYLE, getBlankCardTemplate } from '../utils/c
 import { isCardEditorCardDto } from '../utils/card-game-core.utils';
 import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-card-dto-api.service';
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
-import { CardGameCoreService } from './card-game-core/card-game-core.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardEditorPreviewService {
-  private readonly cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
   private readonly cardEditorCardDtoApiService: CardEditorCardDtoApiService = inject(CardEditorCardDtoApiService);
   private readonly fileUploadApiService = inject(FileUploadApiService);
   private readonly cardFaceElementApiService: CardFaceElementApiService = inject(CardFaceElementApiService);
