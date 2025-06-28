@@ -1,6 +1,6 @@
 using AutoMapper;
 using Models.Bridge;
-using Services;
+using Models.Cards;
 
 namespace Services
 {
@@ -44,6 +44,11 @@ namespace Services
         public bool Exists(string id)
         {
             return _dtoCrudService.Exists(id);
+        }
+
+        public async Task<bool> IsValidImportDto(CardEditorCardDto cardEditorCardDto)
+        {
+            return await  _fileAuthenticationPerExportedCardService.IsValidImport(cardEditorCardDto);
         }
     }
 }

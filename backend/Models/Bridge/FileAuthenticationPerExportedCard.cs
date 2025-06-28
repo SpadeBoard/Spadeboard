@@ -5,6 +5,9 @@ using Models.Cards;
 
 namespace Models.Bridge
 {
+    // TODO: Need to know when to actually delete these
+    // Probably only when the user's account is deleted
+    // And check after several years, or something like that
     [Table("FileAuthenticationPerExportedCard")]
     public class FileAuthenticationPerExportedCard: ICrudId
     {

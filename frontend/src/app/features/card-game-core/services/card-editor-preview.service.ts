@@ -1,6 +1,6 @@
 import { DestroyRef, effect, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, forkJoin, from, iif, map, Observable, of, Subject, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, forkJoin, from, iif, map, Observable, of, Subject, switchMap, tap, throwError } from 'rxjs';
 import { FileMetadata, FileMetadataStatus } from '../../../utils/models/file-metadata';
 import { FileMetadataApiService } from '../../../utils/services/file-metadata-api.service';
 import { FileUploadApiService } from '../../../utils/services/file-upload-api.service';
@@ -469,67 +469,65 @@ export class CardEditorPreviewService {
   }
 
   // TODO: Create a function to get all text content, convert them to BB Code then save them
-  createCard(): void {
-    // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
-    // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
-
-    if (!this.isNewCardEditorCardDto())
-      throw new Error("Creating from a previous card and therefore should be duplicated");
-
-    this.cardEditorCardDtoApiService.createCardEditorCardDto$(this.cardEditorCardDto)
-      .subscribe({
-        next: (createResult: CardEditorCardDto | undefined) => {
-          if (isCardEditorCardDto(createResult)) {
-            this.cardEditorCardDto = createResult;
-
-            this.reloadCurrentCardEditorCardFaceDto();
-
-            this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);   
-            
-            this.markOrphanedData();
-          }
-        },
-        error: (err) => {
-          console.error('Something went wrong:', err);
-        }
-      });
+  // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
+  // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
+  createCard$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
+    return this.cardEditorCardDtoApiService.createCardEditorCardDto$(cardEditorCardDto).pipe(
+      catchError(err => {
+        console.error('Something went wrong:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  duplicateCard(): void {
-    // https://stackoverflow.com/questions/51860068/rxjs-6-conditionally-pipe-an-observable
-    // https://www.learnrxjs.io/learn-rxjs/operators/conditional/iif
+  duplicateCard$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
+    return forkJoin([
+      this.duplicateCardFaceElementImages$(cardEditorCardDto),
+      this.duplicateCardFaceThumbnails$(cardEditorCardDto),
+    ]).pipe(
+      switchMap(() =>
+        this.cardEditorCardDtoApiService.createCardEditorCardDto$(cardEditorCardDto)
+      ),
+      catchError((err: unknown) => {
+        console.error('Something went wrong:', err);
+        return throwError(() => err);
+      })
+    );
+  }
 
-    // Conditionally returns one observable or another, and you can then chain your API cal
-    if (this.isNewCardEditorCardDto())
-      throw new Error("Card is new and therefore should not be duplicated");
+  // NOTE: Order should go pending, orphaned, and finally, attached
+  // Even if you don't orphan it, it's assumed that it's pending, until you have attached it
+  modifyCardPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
+    this.updateCardEditorCardDtoPostApiOperation(cardEditorCardDto);
 
-    forkJoin([
-      this.duplicateCardFaceElementImages$(this.cardEditorCardDto),
-      this.duplicateCardFaceThumbnails$(this.cardEditorCardDto),
-    ])
-      .pipe(
-        switchMap(() => this.cardEditorCardDtoApiService.createCardEditorCardDto$(this.cardEditorCardDto)),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: (createResult: CardEditorCardDto | undefined) => {
-          if (isCardEditorCardDto(createResult)) {
-            this.cardEditorCardDto = createResult;
+    if (cardEditorCardDto)
+      this.markOrphanedData();
+  }
 
-            this.reloadCurrentCardEditorCardFaceDto();
+  createCardPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
+    this.modifyCardPostApiOperation(cardEditorCardDto);
 
-            this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);    // TODO: Remember to use file metadata file path instead of thumbnail image file path
+    this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);  
+  }
 
-            // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
-            // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
-            this.orphanedFileMetadata = [];
-            this.cardFaceElementsPerCardFaceDelete = [];
-          }
-        },
-        error: (err) => {
-          console.error('Something went wrong:', err);
-        }
-      });
+  duplicateCardPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
+    this.updateCardEditorCardDtoPostApiOperation(cardEditorCardDto);
+
+    this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);  
+
+    // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
+    // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
+    this.orphanedFileMetadata = [];
+    this.cardFaceElementsPerCardFaceDelete = [];
+  }
+
+  updateCardEditorCardDtoPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
+    if (!isCardEditorCardDto(cardEditorCardDto))
+      throw new Error("Post API operation: not a card editor card dto")
+
+    this.cardEditorCardDto = cardEditorCardDto;
+    this.reloadCurrentCardEditorCardFaceDto();
+    this.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // NOTE: Remember to use file metadata file path instead of thumbnail image file path
   }
 
   updateCard(): void {
@@ -550,17 +548,8 @@ export class CardEditorPreviewService {
       )
       .subscribe({
         next: (updateResult: CardEditorCardDto | undefined) => {
-          if (isCardEditorCardDto(updateResult)) {
-            console.log(`Update card - result: ${JSON.stringify(updateResult)}`);
-
-            this.cardEditorCardDto = updateResult;
-
-            this.reloadCurrentCardEditorCardFaceDto();
-
-            this.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);   // TODO: Remember to use file metadata file path instead of thumbnail image file path
-          
-            this.markOrphanedData();
-          }
+          this.modifyCardPostApiOperation(updateResult);
+          this.setOnUpdateCardEditorCardDto(this.cardEditorCardDto);
         },
         error: (err) => {
           console.error('Something went wrong:', err);

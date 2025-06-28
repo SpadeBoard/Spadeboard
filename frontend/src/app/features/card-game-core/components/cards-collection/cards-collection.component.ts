@@ -179,14 +179,6 @@ export class CardsCollectionComponent {
     this.mousePosition = event.pointerPosition;
   }
 
-  replaceAllImageFilePaths$(cardEditorCardDto: CardEditorCardDto): Observable<any> {
-    return forkJoin([
-      this.cardEditorPreviewService.duplicateCardFaceElementImages$(cardEditorCardDto),
-      this.cardEditorPreviewService.duplicateCardFaceThumbnails$(cardEditorCardDto)]).pipe(
-        takeUntilDestroyed(this.destroyRef)
-      );
-  }
-
   onDragDrop(event: CdkDragDrop<any[]>, item: any) {
     if (!event.isPointerOverContainer && isCard(item)) {
       this.cardEditorCardDtoApiService.getCardEditorCardDtoByCardId$(item.cardId).subscribe((result: CardEditorCardDto | undefined) => {
@@ -199,20 +191,17 @@ export class CardsCollectionComponent {
         let cardEditorCardDto: CardEditorCardDto = result;
         cardEditorCardDto.ownerId = '';
 
-        // TODO: Just remove the file paths and use the file metadata
-        // You'd want to duplicate card face thumbnails because it's potentially possible for a thumbnail for one card to be marked as orphan while it's still being used by something else
-        this.replaceAllImageFilePaths$(cardEditorCardDto).pipe(
-          switchMap((value: any | undefined) => this.cardEditorCardDtoApiService.createCardEditorCardDto$(cardEditorCardDto)),
+        this.cardEditorPreviewService.duplicateCard$(cardEditorCardDto).pipe(
           takeUntilDestroyed(this.destroyRef)
-        ).subscribe({
-          next: (result: CardEditorCardDto | undefined) => {
-            if (result === undefined) return;
+        )
+        .subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
+          if (!cardEditorCardDto) return;
 
             let dndPosition: Coordinates = this.dndBoardService.mouseAUCoordinates;
 
             let cpr: CardPositionPerRoom = {
               cardPositionPerRoomId: "0",
-              card: result.card as Card,
+              card: cardEditorCardDto.card as Card,
               dndItem: {
                 dndItemId: "0",
                 isDraggable: false,
@@ -239,10 +228,6 @@ export class CardsCollectionComponent {
             this.createCardPositionPerRoom(cpr);
 
             console.log('All image file paths replaced!');
-          },
-          error: (err) => {
-            console.error('Error replacing image file paths:', err);
-          }
         });
       })
 

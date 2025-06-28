@@ -210,5 +210,5 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Tag> Tag {get; set;} =default!;
 
-    public DbSet<FileAuthenticationPerExportedCard> FileAuthenticationPerExportedCardDto {get;set;} = default!;
+    public DbSet<FileAuthenticationPerExportedCard> FileAuthenticationPerExportedCard {get;set;} = default!;
 }
