@@ -1,13 +1,16 @@
-import { AfterViewChecked, AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, ViewChild } from '@angular/core';
-import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
-import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { CommonModule } from '@angular/common';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EmbeddedExternalIframeComponent } from '../../../../utils/components/embedded-external-iframe/embedded-external-iframe.component';
+import { SPADEBOARD_WIKI_CARD_EDITOR_URL } from '../../../../utils/wiki.constants';
+import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
+import { CardEditorInfoService } from '../../../card-game-core/services/card-editor-info.service';
+import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
 import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/dnd-board.component';
 import { GameRoomService } from '../../services/game-room.service';
-import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
 import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-game-room',
@@ -15,13 +18,19 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     CardEditorComponent, CommonModule,
     DragDropModule, CardsCollectionComponent,
     DndBoardComponent, GameRoomNavComponent,
+    EmbeddedExternalIframeComponent
   ],
   templateUrl: './game-room.component.html',
   styleUrl: './game-room.component.css'
 })
-export class GameRoomComponent implements AfterViewChecked{
+export class GameRoomComponent {
   // TODO: ViewChild being cardMenu, then grab its width and height and pass that into card
   // https://stackoverflow.com/a/41095677
+
+   private readonly cardEditorInfoService: CardEditorInfoService = inject(CardEditorInfoService);
+    
+  isWikiOpen: boolean = false;
+  wikiWebsiteUrl: string = SPADEBOARD_WIKI_CARD_EDITOR_URL;
 
   @ViewChild('dndBoard') dndBoard!: ElementRef;
   private gameRoomService: GameRoomService = inject(GameRoomService);
@@ -35,6 +44,8 @@ export class GameRoomComponent implements AfterViewChecked{
     this.activateGameRoomService();
     
     this.cardGameCoreService.setUserId(this.ownerId);
+
+    this.onInfoUrlChange();
   }
 
   activateGameRoomService() {
@@ -48,8 +59,15 @@ export class GameRoomComponent implements AfterViewChecked{
     });
   }
 
-  ngAfterViewChecked(): void {
+   onInfoUrlChange() {
+    this.cardEditorInfoService.onInfoUrlChange$.subscribe((src: string) => {
+      this.wikiWebsiteUrl = src;
+      this.isWikiOpen = true;
+    })
+  }
 
+  onCloseInfo() {
+    this.isWikiOpen = false;
   }
 
   /*
