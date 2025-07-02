@@ -5,7 +5,7 @@ import { CardEditorControlsDesignCardFaceAttributesService } from '../../service
   selector: 'app-card-face-attributes-id',
   imports: [],
   templateUrl: './card-face-attributes-id.component.html',
-  styleUrl: './card-face-attributes-id.component.css'
+  styleUrl: './card-face-attributes-id.component.scss'
 })
 export class CardFaceAttributesIdComponent {
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);

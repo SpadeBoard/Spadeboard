@@ -25,7 +25,7 @@ import { CardFaceImage } from '../../utils/card-face.utils';
     CardComponent, ActionContextMenuComponent, CommonModule
   ],
   templateUrl: './card-position-per-room.component.html',
-  styleUrl: './card-position-per-room.component.css'
+  styleUrl: './card-position-per-room.component.scss'
 })
 export class CardPositionPerRoomComponent {
   private cardPositionPerRoomApiService = inject(CardPositionPerRoomApiService);

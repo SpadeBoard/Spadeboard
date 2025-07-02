@@ -8,7 +8,7 @@ import { MAX_CURRENT_ELEMENTS_PER_CARD_FACE } from '../../utils/card-editor.cons
   selector: 'app-card-editor-controls-card-face-elements-list',
   imports: [CdkDrag, DragDropModule],
   templateUrl: './card-editor-controls-card-face-elements-list.component.html',
-  styleUrl: './card-editor-controls-card-face-elements-list.component.css'
+  styleUrl: './card-editor-controls-card-face-elements-list.component.scss'
 })
 export class CardEditorControlsCardFaceElementsListComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);

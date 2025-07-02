@@ -17,7 +17,7 @@ import { DndResizableContainerComponent } from '../../../drag-and-drop/component
     DndContentDirective, DndResizableContainerComponent
   ],
   templateUrl: './deck.component.html',
-  styleUrl: './deck.component.css',
+  styleUrl: './deck.component.scss',
   animations: [shuffleAnimation] // TODO: Use shuffleAnimation when you're shuffling, probably have a button to handle that
 })
 export class DeckComponent {

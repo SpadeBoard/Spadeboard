@@ -6,7 +6,7 @@ import { Dimensions } from '../../../../utils/utils';
   selector: 'app-dnd-board-grid',
   imports: [],
   templateUrl: './dnd-board-grid.component.html',
-  styleUrl: './dnd-board-grid.component.css'
+  styleUrl: './dnd-board-grid.component.scss'
 })
 export class DndBoardGridComponent {
   private dndBoardService: DndBoardService= inject(DndBoardService);

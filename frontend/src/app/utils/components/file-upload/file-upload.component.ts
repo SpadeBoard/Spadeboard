@@ -5,7 +5,7 @@ import { Component, inject, ResourceRef } from '@angular/core';
   selector: 'app-file-upload',
   imports: [],
   templateUrl: './file-upload.component.html',
-  styleUrl: './file-upload.component.css'
+  styleUrl: './file-upload.component.scss'
 })
 export class FileUploadComponent {
   // FIXME: Fix the environment paths

@@ -5,7 +5,7 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
   selector: 'app-card-editor-preview-change-face',
   imports: [],
   templateUrl: './card-editor-preview-change-face.component.html',
-  styleUrl: './card-editor-preview-change-face.component.css'
+  styleUrl: './card-editor-preview-change-face.component.scss'
 })
 export class CardEditorPreviewChangeFaceComponent {
     private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);

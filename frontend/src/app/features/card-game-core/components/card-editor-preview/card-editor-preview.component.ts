@@ -3,12 +3,17 @@ import { CardEditorFacePreviewComponent } from '../card-editor-face-preview/card
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { CardEditorCardOperationsButtonComponent } from '../card-editor-card-operations-button/card-editor-card-operations-button.component';
 import { CardEditorPreviewChangeFaceComponent } from '../card-editor-preview-change-face/card-editor-preview-change-face.component';
+import { CardEditorPreviewTagsComponent } from '../card-editor-preview-tags/card-editor-preview-tags.component';
 
 @Component({
   selector: 'app-card-editor-preview',
-  imports: [CardEditorCardOperationsButtonComponent, CardEditorPreviewChangeFaceComponent, CardEditorFacePreviewComponent],
+  imports: [
+    CardEditorCardOperationsButtonComponent, 
+    CardEditorPreviewChangeFaceComponent, 
+    CardEditorFacePreviewComponent,
+    CardEditorPreviewTagsComponent],
   templateUrl: './card-editor-preview.component.html',
-  styleUrl: './card-editor-preview.component.css'
+  styleUrl: './card-editor-preview.component.scss'
 })
 export class CardEditorPreviewComponent {
   private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);

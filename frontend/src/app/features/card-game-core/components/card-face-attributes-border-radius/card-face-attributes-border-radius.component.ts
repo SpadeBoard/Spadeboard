@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-card-face-attributes-border-radius',
   imports: [FormsModule],
   templateUrl: './card-face-attributes-border-radius.component.html',
-  styleUrl: './card-face-attributes-border-radius.component.css'
+  styleUrl: './card-face-attributes-border-radius.component.scss'
 })
 export class CardFaceAttributesBorderRadiusComponent {
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);

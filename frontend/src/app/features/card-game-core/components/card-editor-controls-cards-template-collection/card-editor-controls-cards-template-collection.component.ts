@@ -14,7 +14,7 @@ import { CardComponent } from '../card/card.component';
   selector: 'app-card-editor-controls-cards-template-collection',
   imports: [CardComponent, CardDeleteButtonComponent, CommonModule, ActionContextMenuComponent],
   templateUrl: './card-editor-controls-cards-template-collection.component.html',
-  styleUrl: './card-editor-controls-cards-template-collection.component.css'
+  styleUrl: './card-editor-controls-cards-template-collection.component.scss'
 })
 export class CardEditorControlsCardsTemplateCollectionComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);

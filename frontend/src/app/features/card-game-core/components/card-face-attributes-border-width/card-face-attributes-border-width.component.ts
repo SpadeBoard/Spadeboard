@@ -9,7 +9,7 @@ import { MAX_BORDER_WIDTH, MIN_BORDER_WIDTH } from '../../utils/card-editor.cons
   selector: 'app-card-face-attributes-border-width',
   imports: [FormsModule],
   templateUrl: './card-face-attributes-border-width.component.html',
-  styleUrl: './card-face-attributes-border-width.component.css'
+  styleUrl: './card-face-attributes-border-width.component.scss'
 })
 export class CardFaceAttributesBorderWidthComponent {
   // Use to set the values properly in the inputs, for some reason ngModel can't sync these properly

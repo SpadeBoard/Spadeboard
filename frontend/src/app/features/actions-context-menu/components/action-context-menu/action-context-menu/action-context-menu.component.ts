@@ -5,7 +5,7 @@ import { ActionContextMenuItem } from '../../../models/action-context-menu-item'
   selector: 'app-action-context-menu',
   imports: [],
   templateUrl: './action-context-menu.component.html',
-  styleUrl: './action-context-menu.component.css'
+  styleUrl: './action-context-menu.component.scss'
 })
 export class ActionContextMenuComponent {
   // TODO: Loop through these items

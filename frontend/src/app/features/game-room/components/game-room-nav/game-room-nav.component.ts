@@ -6,7 +6,7 @@ import { GameRoomService } from '../../services/game-room.service';
   selector: 'app-game-room-nav',
   imports: [],
   templateUrl: './game-room-nav.component.html',
-  styleUrl: './game-room-nav.component.css'
+  styleUrl: './game-room-nav.component.scss'
 })
 export class GameRoomNavComponent {
   isCardsCollectionMenuOpen: boolean = false;

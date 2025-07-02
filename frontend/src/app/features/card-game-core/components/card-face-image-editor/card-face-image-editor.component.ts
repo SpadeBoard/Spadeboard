@@ -13,7 +13,7 @@ import { CardEditorControlsDesignImageService } from '../../services/card-editor
     ImageCropperComponent
   ],
   templateUrl: './card-face-image-editor.component.html',
-  styleUrl: './card-face-image-editor.component.css'
+  styleUrl: './card-face-image-editor.component.scss'
 })
 export class CardFaceImageEditorComponent {
   private cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);

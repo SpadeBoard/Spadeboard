@@ -27,7 +27,7 @@ import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../utils/card-edi
   imports: [CdkDrag, DragDropModule, CardFaceImageComponent, 
     CommonModule, CardFaceRtComponent, ResizableWrapperComponent, CardEditorElementDeleteButtonComponent],
   templateUrl: './card-editor-current-card-face-elements-per-card-face.component.html',
-  styleUrl: './card-editor-current-card-face-elements-per-card-face.component.css'
+  styleUrl: './card-editor-current-card-face-elements-per-card-face.component.scss'
 })
 export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements AfterViewInit {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);

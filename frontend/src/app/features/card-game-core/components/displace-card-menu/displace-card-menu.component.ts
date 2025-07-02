@@ -12,7 +12,7 @@ import { CardComponent } from '../card/card.component';
   selector: 'app-displace-card-menu',
   imports: [CardComponent],
   templateUrl: './displace-card-menu.component.html',
-  styleUrl: './displace-card-menu.component.css'
+  styleUrl: './displace-card-menu.component.scss'
 })
 export class DisplaceCardMenuComponent {
   // TODO: Pass in the decks via the constructor, get the current deck ID

@@ -6,7 +6,7 @@ import { CardEditorInfoService } from '../../services/card-editor-info.service';
   selector: 'app-card-editor-info',
   imports: [],
   templateUrl: './card-editor-info.component.html',
-  styleUrl: './card-editor-info.component.css'
+  styleUrl: './card-editor-info.component.scss'
 })
 export class CardEditorInfoComponent {
   private readonly cardEditorInfoService: CardEditorInfoService = inject(CardEditorInfoService);

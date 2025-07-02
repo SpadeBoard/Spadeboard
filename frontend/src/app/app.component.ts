@@ -6,7 +6,7 @@ import { SpadeboardHeaderNavComponent } from './features/game-room/components/sp
   selector: 'app-root',
   imports: [RouterOutlet, SpadeboardHeaderNavComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.scss'
 })
 export class AppComponent {
   title = 'frontend';

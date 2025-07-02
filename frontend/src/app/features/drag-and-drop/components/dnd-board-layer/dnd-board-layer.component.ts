@@ -6,7 +6,7 @@ import { Dimensions } from '../../../../utils/utils';
   selector: 'app-dnd-board-layer',
   imports: [],
   templateUrl: './dnd-board-layer.component.html',
-  styleUrl: './dnd-board-layer.component.css'
+  styleUrl: './dnd-board-layer.component.scss'
 })
 export class DndBoardLayerComponent {
   private dndBoardService: DndBoardService = inject(DndBoardService);

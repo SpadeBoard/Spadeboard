@@ -9,7 +9,7 @@ import { CardEditorControlsElementLayeringAttributesService } from '../../servic
   selector: 'app-card-editor-controls-element-layering-attributes',
   imports: [],
   templateUrl: './card-editor-controls-element-layering-attributes.component.html',
-  styleUrl: './card-editor-controls-element-layering-attributes.component.css'
+  styleUrl: './card-editor-controls-element-layering-attributes.component.scss'
 })
 export class CardEditorControlsElementLayeringAttributesComponent {
   private readonly cardEditorControlsElementLayeringAttributesService: CardEditorControlsElementLayeringAttributesService = inject(CardEditorControlsElementLayeringAttributesService);

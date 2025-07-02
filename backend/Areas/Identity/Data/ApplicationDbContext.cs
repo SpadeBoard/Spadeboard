@@ -141,7 +141,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasData(new Tag
             {
                 TagId = 1,
-                TagName="#template"
+                TagName="Template"
             }
         );
 

@@ -23,7 +23,7 @@ import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
   selector: 'app-card-editor-face-preview',
   imports: [DragDropModule, CardEditorFacePreviewGridComponent, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule, ActionContextMenuComponent],
   templateUrl: './card-editor-face-preview.component.html',
-  styleUrl: './card-editor-face-preview.component.css'
+  styleUrl: './card-editor-face-preview.component.scss'
 })
 export class CardEditorFacePreviewComponent implements AfterViewInit {
   private readonly cardEditorPreviewService: CardEditorPreviewService  = inject(CardEditorPreviewService);

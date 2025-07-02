@@ -9,7 +9,7 @@ import { CardEditorControlsCardFaceAttributesComponent } from '../card-editor-co
   selector: 'app-card-editor-controls-design',
   imports: [CardEditorControlsDesignCardsTemplateContainerComponent, CardEditorControlsCardFaceElementsListComponent, CardFaceRteComponent, CardEditorControlsElementAttributesComponent, CardEditorControlsCardFaceAttributesComponent],
   templateUrl: './card-editor-controls-design.component.html',
-  styleUrl: './card-editor-controls-design.component.css'
+  styleUrl: './card-editor-controls-design.component.scss'
 })
 export class CardEditorControlsDesignComponent {
 }

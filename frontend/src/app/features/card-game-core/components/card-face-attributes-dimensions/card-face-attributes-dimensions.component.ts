@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-card-face-attributes-dimensions',
   imports: [FormsModule],
   templateUrl: './card-face-attributes-dimensions.component.html',
-  styleUrl: './card-face-attributes-dimensions.component.css'
+  styleUrl: './card-face-attributes-dimensions.component.scss'
 })
 export class CardFaceAttributesDimensionsComponent {
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);

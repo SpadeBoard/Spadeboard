@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-card-editor-controls',
   imports: [],
   templateUrl: './card-editor-controls.component.html',
-  styleUrl: './card-editor-controls.component.css'
+  styleUrl: './card-editor-controls.component.scss'
 })
 export class CardEditorControlsComponent {
 

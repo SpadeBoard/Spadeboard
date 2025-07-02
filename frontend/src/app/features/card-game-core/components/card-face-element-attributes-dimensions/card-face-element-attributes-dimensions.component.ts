@@ -10,7 +10,7 @@ import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT, DEFAULT_CARD_FACE_ELEMENT_A
   selector: 'app-card-face-element-attributes-dimensions',
   imports: [FormsModule],
   templateUrl: './card-face-element-attributes-dimensions.component.html',
-  styleUrl: './card-face-element-attributes-dimensions.component.css'
+  styleUrl: './card-face-element-attributes-dimensions.component.scss'
 })
 export class CardFaceElementAttributesDimensionsComponent {
   private readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);

@@ -10,7 +10,7 @@ import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIB
   selector: 'app-card-face-element-attributes-position',
   imports: [FormsModule],
   templateUrl: './card-face-element-attributes-position.component.html',
-  styleUrl: './card-face-element-attributes-position.component.css'
+  styleUrl: './card-face-element-attributes-position.component.scss'
 })
 export class CardFaceElementAttributesPositionComponent {
   private readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);

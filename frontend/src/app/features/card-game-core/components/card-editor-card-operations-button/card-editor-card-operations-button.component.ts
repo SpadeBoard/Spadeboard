@@ -7,7 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   selector: 'app-card-editor-card-operations-button',
   imports: [],
   templateUrl: './card-editor-card-operations-button.component.html',
-  styleUrl: './card-editor-card-operations-button.component.css'
+  styleUrl: './card-editor-card-operations-button.component.scss'
 })
 export class CardEditorCardOperationsButtonComponent {
   private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);

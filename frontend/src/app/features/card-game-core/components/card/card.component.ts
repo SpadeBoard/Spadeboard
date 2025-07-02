@@ -17,7 +17,7 @@ import { CardFaceComponent } from '../card-face/card-face.component';
     CommonModule
   ],
   templateUrl: './card.component.html',
-  styleUrl: './card.component.css',
+  styleUrl: './card.component.scss',
   // animations: [cardFlipAnimation]
 })
 export class CardComponent {

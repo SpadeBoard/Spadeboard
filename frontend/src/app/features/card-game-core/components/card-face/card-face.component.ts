@@ -13,7 +13,7 @@ import { getScaledItemRenderDimensions } from '../../../../utils/utils';
   selector: 'app-card-face',
   imports: [CommonModule],
   templateUrl: './card-face.component.html',
-  styleUrl: './card-face.component.css'
+  styleUrl: './card-face.component.scss'
 })
 export class CardFaceComponent {
   cardFaceImage: InputSignal<CardFaceImage> = input<CardFaceImage>(getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS));

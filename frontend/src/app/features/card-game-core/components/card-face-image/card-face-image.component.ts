@@ -9,7 +9,7 @@ import { getDefaultCardFaceElementImage } from '../../utils/card-editor.constant
   selector: 'app-card-face-image',
   imports: [],
   templateUrl: './card-face-image.component.html',
-  styleUrl: './card-face-image.component.css'
+  styleUrl: './card-face-image.component.scss'
 })
 export class CardFaceImageComponent {
   // TODO: Make sure that it's always passing in the data url and not a blob

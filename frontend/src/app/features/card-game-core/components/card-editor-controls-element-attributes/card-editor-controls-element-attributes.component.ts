@@ -9,7 +9,7 @@ import { CardFaceElementAttributesPositionComponent } from '../card-face-element
   selector: 'app-card-editor-controls-element-attributes',
   imports: [CardFaceElementAttributesDimensionsComponent, CardFaceElementAttributesPositionComponent, CardEditorControlsElementLayeringAttributesComponent],
   templateUrl: './card-editor-controls-element-attributes.component.html',
-  styleUrl: './card-editor-controls-element-attributes.component.css'
+  styleUrl: './card-editor-controls-element-attributes.component.scss'
 })
 export class CardEditorControlsElementAttributesComponent {
   private readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);

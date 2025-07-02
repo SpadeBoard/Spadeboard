@@ -5,7 +5,7 @@ import { CardEditorControlsCardsTemplateCollectionComponent } from '../card-edit
   selector: 'app-card-editor-controls-design-cards-template-container',
   imports: [CardEditorControlsCardsTemplateCollectionComponent],
   templateUrl: './card-editor-controls-design-cards-template-container.component.html',
-  styleUrl: './card-editor-controls-design-cards-template-container.component.css'
+  styleUrl: './card-editor-controls-design-cards-template-container.component.scss'
 })
 export class CardEditorControlsDesignCardsTemplateContainerComponent {
    isMenuOpen = false;

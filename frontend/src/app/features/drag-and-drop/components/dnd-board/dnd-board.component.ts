@@ -23,7 +23,7 @@ app-dnd-board (root)          ↑
   imports: [ CdkDropList, CardPositionPerRoomComponent, DndBoardGridComponent, DndBoardLayerComponent
   ],
   templateUrl: './dnd-board.component.html',
-  styleUrl: './dnd-board.component.css'
+  styleUrl: './dnd-board.component.scss'
 })
 export class DndBoardComponent implements AfterViewInit {
   @ViewChild('grid') grid!: ElementRef<HTMLDivElement>;

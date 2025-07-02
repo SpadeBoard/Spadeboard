@@ -8,7 +8,7 @@ import { Style } from '../../../style/models/style';
     DndContentDirective
   ],
   templateUrl: './dnd-resizable-container.component.html',
-  styleUrl: './dnd-resizable-container.component.css'
+  styleUrl: './dnd-resizable-container.component.scss'
 })
 export class DndResizableContainerComponent {
   style = input<Style>({

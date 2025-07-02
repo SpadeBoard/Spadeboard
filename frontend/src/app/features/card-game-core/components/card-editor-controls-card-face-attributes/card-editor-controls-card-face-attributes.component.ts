@@ -12,7 +12,7 @@ import { ColorPickerComponent } from '../color-picker/color-picker.component';
   selector: 'app-card-editor-controls-card-face-attributes',
   imports: [CardFaceAttributesIdComponent, CardFaceAttributesBorderRadiusComponent, CardFaceAttributesDimensionsComponent, ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
   templateUrl: './card-editor-controls-card-face-attributes.component.html',
-  styleUrl: './card-editor-controls-card-face-attributes.component.css'
+  styleUrl: './card-editor-controls-card-face-attributes.component.scss'
 })
 export class CardEditorControlsCardFaceAttributesComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);

@@ -23,7 +23,7 @@ import { CardEditorCardDtoApiService } from '../../services/card-game-core/api/c
     CdkDrag, DragDropModule, ActionContextMenuComponent
   ],
   templateUrl: './cards-collection.component.html',
-  styleUrl: './cards-collection.component.css'
+  styleUrl: './cards-collection.component.scss'
 })
 export class CardsCollectionComponent {
   private userId: string = "5811e387-1551-4090-9485-a3ebe30efb5a";

@@ -21,7 +21,7 @@ import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
     EmbeddedExternalIframeComponent
   ],
   templateUrl: './game-room.component.html',
-  styleUrl: './game-room.component.css'
+  styleUrl: './game-room.component.scss'
 })
 export class GameRoomComponent {
   // TODO: ViewChild being cardMenu, then grab its width and height and pass that into card
