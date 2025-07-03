@@ -4,7 +4,7 @@ import { inject, Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
-import { Card, CardEditorCardDto } from '../../../models/card';
+import { Card } from '../../../models/card';
 
 @Injectable({
   providedIn: 'root'
@@ -40,9 +40,6 @@ export class CardApiService {
     return this.http.get<Card>(this.apiUrl);
   }
 
-  // TODO: Rewrite the post, update, and delete functions for everything
-  // Because it's considered generally unsafe to use rxResource with them
-  // Problem is they might be necessary since/if we're using signals
   // https://stackoverflow.com/questions/47654517/property-next-does-not-exist-on-type-observableany
   /*
   For POST, UPDATE and DELETE requests, canceling might lead to unintended side effects, such as incomplete data submissions or updates. However, if you need similar functionality for these types of requests, you can use the effect() method to safely manage the operations.

@@ -117,6 +117,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasIndex(a => new {a.OwnerId, a.GameRoomId})
             .IsUnique();
 
+        builder.Entity<TagsPerCard>()
+            .HasIndex(a => new {a.TagId, a.CardId})
+            .IsUnique();
+
+        builder.Entity<Tag>()
+            .HasIndex(a => new {a.TagName})
+            .IsUnique();
+
         /*****************************************************************/
         builder.Entity<CardFace>()
             .HasOne(cp => cp.Style)
@@ -211,4 +219,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Tag> Tag {get; set;} =default!;
 
     public DbSet<FileAuthenticationPerExportedCard> FileAuthenticationPerExportedCard {get;set;} = default!;
+
+    public DbSet<TagsPerCard> TagsPerCard { get; set; } = default!;
 }

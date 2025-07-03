@@ -13,9 +13,8 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GameRoomsController(ApplicationDbContext context, IGameRoomDtoService gameRoomDtoService) : ControllerBase
+    public class GameRoomsController(IGameRoomDtoService gameRoomDtoService) : ControllerBase
     {
-        private readonly ApplicationDbContext _context = context;
         private readonly IGameRoomDtoService _gameRoomDtoService = gameRoomDtoService;
 
         // GET: api/GameRooms

@@ -62,7 +62,8 @@ export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEdit
           },
           cardFaceElementsPerCardFace: []
         }
-      ]
+      ],
+      tagNames: []
     };
 }
 

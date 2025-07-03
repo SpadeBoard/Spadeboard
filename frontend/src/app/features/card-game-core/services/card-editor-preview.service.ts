@@ -13,6 +13,8 @@ import { DEFAULT_CARD_EDITOR_FACE_STYLE, getBlankCardTemplate } from '../utils/c
 import { isCardEditorCardDto } from '../utils/card-game-core.utils';
 import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-card-dto-api.service';
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
+import { Tag } from '../../tagging-system/models/tag';
+import { normalize } from 'path';
 
 @Injectable({
   providedIn: 'root'
@@ -583,5 +585,20 @@ export class CardEditorPreviewService {
 
   updateCurrentCardFaceStyle(currentCardFaceStyle: Style) {
     this.currentCardEditorCardFaceDto.cardFace.style = currentCardFaceStyle;
+  }
+
+  isCardTemplate(cardEditorCardDto: CardEditorCardDto): boolean {
+    return cardEditorCardDto.tagNames
+      .some(tag => tag.localeCompare('Template', undefined, { sensitivity: 'accent' }) === 0);
+  }
+
+  addTag(tag: Tag, cardEditorCardDto: CardEditorCardDto) {
+    cardEditorCardDto.tagNames.push(tag.tagName);
+  }
+
+  deleteTag(tag: Tag, cardEditorCardDto: CardEditorCardDto) {
+    cardEditorCardDto.tagNames.filter((t: string) => t !== tag.tagName);
+
+    // TODO: Add that removed tag as a tag to be removed
   }
 }

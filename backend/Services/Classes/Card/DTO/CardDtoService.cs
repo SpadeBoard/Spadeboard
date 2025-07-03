@@ -1,9 +1,5 @@
 using AutoMapper;
-using Data;
-using Microsoft.EntityFrameworkCore;
-using Models.Bridge;
 using Models.Cards;
-using Utils;
 
 namespace Services
 {

@@ -17,7 +17,9 @@ namespace Models.Cards
     {
         public CardDto Card { get; set; }
 
-        public CardEditorCardFaceDto[] CardEditorCardFacesDto {get; set;}
+        public CardEditorCardFaceDto[] CardEditorCardFacesDto { get; set; } = [];
+
+        public string[] TagNames { get; set; } = [];
 
         public string? OwnerId { get;set;}
     }
