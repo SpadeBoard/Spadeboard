@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { Observable, of } from 'rxjs';
@@ -37,6 +37,12 @@ export class TagApiService {
 
   deleteTag$(id: string): Observable<void | undefined> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  deleteByTagNamesAndCardId$(cardId: string, tagNames: string[]): Observable<void | undefined> {
+    let params: HttpParams = new HttpParams();
+    tagNames.forEach(tag => params = params.append('tagNames', tag));
+    return this.http.delete<void>(`${this.apiUrl}/tag-names/${cardId}`, { params });
   }
 
   getTagNames$(): Observable<string[] | undefined> {

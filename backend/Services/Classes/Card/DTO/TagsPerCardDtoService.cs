@@ -51,6 +51,19 @@ namespace Services
             return await _tagsPerCardService.GetTagNamesByCardIdAsync(DtoIdConversion.DtoStringToLong(cardId));
         }
 
+        public async Task<TagsPerCardDto> CreateByTagNameAndCardIdDtoAsync(string tagName, string cardId) {
+            return _mapper.Map<TagsPerCardDto>(await _tagsPerCardService.CreateByTagNameAndCardIdAsync(tagName, DtoIdConversion.DtoStringToLong(cardId)));
+        }
+
+         public async Task<IEnumerable<TagsPerCardDto>> CreateByTagNamesAndCardIdDtoAsync(string[] tagNames, string cardId) {
+            return _mapper.Map<IEnumerable<TagsPerCardDto>>(await _tagsPerCardService.CreateByTagNamesAndCardIdAsync(tagNames, DtoIdConversion.DtoStringToLong(cardId)));
+        }
+
+         public async Task<bool> DeleteByTagNamesAndCardIdDtoAsync(string[] tagNames, string cardId)
+        {
+            return await  _tagsPerCardService.DeleteByTagNamesAndCardIdAsync(tagNames, DtoIdConversion.DtoStringToLong(cardId));
+        }
+
         public async Task<bool> DeleteByTagNameAndCardIdDtoAsync(string tagName, string cardId)
         {
             return await  _tagsPerCardService.DeleteByTagNameAndCardIdAsync(tagName, DtoIdConversion.DtoStringToLong(cardId));

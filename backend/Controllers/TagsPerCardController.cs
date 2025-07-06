@@ -84,5 +84,12 @@ namespace backend.Controllers
             bool deleted = await _tagsPerCardDtoService.DeleteByTagNameAndCardIdDtoAsync(tagName, cardId);
             return deleted ? NoContent() : NotFound();
         }
+
+        [HttpDelete("tag-names/{cardId}")]
+        public async Task<IActionResult> DeleteByTagNamesAndCardId([FromQuery] string[] tagNames, string cardId)
+        {
+            bool deleted = await _tagsPerCardDtoService.DeleteByTagNamesAndCardIdDtoAsync(tagNames, cardId);
+            return deleted ? NoContent() : NotFound();
+        }
     }
 }

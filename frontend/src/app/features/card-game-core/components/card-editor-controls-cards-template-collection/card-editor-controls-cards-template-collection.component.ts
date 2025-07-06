@@ -69,6 +69,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   getCardTemplates() {
     this.cardApiService.getCards$('5811e387-1551-4090-9485-a3ebe30efb5a').subscribe((cards: Card[] | undefined) => {
       if (cards) {
+        // TODO: Make a backend function to check and see whether a card is a template in TagesPerCard
         this.cards = cards.filter(card => card.isTemplate === true);
       }
     })
@@ -85,7 +86,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     this.cardEditorPreviewService.onCreateCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
-      if (cardEditorCardDto && cardEditorCardDto.card.isTemplate) {
+      if (cardEditorCardDto && this.cardEditorPreviewService.isCardTemplate(cardEditorCardDto)) {
         this.cards.push(cardEditorCardDto.card);
       }
     });
@@ -98,7 +99,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     this.cardEditorPreviewService.onUpdateCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
-      if (cardEditorCardDto && cardEditorCardDto.card.isTemplate) {
+      if (cardEditorCardDto && this.cardEditorPreviewService.isCardTemplate(cardEditorCardDto)) {
         let index = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
 
         if (index !== -1) {

@@ -15,6 +15,9 @@ namespace Services
             return await _crudService.CreateAsync(item);
         }
 
+        // TODO: Potentially work on figure out how to actually update tags
+        // Because of the fact we're creating new records, the tags will always reload out of original order from when we made it
+
         public async Task<bool> DeleteAsync(long id)
         {
             return await _crudService.DeleteAsync(id);
@@ -53,6 +56,21 @@ namespace Services
                 .ToListAsync();
         }
 
+
+        public async Task<TagsPerCard?> GetByTagNameAndCardIdAsync(string tagName, long cardId)
+        {
+            return await _context.TagsPerCard
+                .FirstOrDefaultAsync(tpc => tpc.Card.CardId == cardId && tpc.Tag.TagName == tagName);
+        }
+
+        public async Task<bool> DeleteByTagNamesAndCardIdAsync(string[] tagNames, long cardId) {
+            foreach (string tagName in tagNames) {
+                await DeleteByTagNameAndCardIdAsync(tagName, cardId);
+            }
+
+            return true;
+        }
+
         public async Task<bool> DeleteByTagNameAndCardIdAsync(string tagName, long cardId) {
             TagsPerCard? tpc = await _context.TagsPerCard.FirstOrDefaultAsync(t => t.Tag.TagName == tagName && t.Card.CardId == cardId);
 
@@ -61,6 +79,17 @@ namespace Services
             
             _context.TagsPerCard.Remove(tpc);
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<IEnumerable<TagsPerCard>> CreateByTagNamesAndCardIdAsync(string[] tagNames, long cardId)
+        {
+            List<TagsPerCard> tpcs = [];
+
+            foreach (string tagName in tagNames) {
+                tpcs.Add(await CreateByTagNameAndCardIdAsync(tagName, cardId));
+            }
+
+            return tpcs;
         }
 
         public async Task<TagsPerCard> CreateByTagNameAndCardIdAsync(string tagName, long cardId) {
@@ -78,7 +107,14 @@ namespace Services
                 tag = await _tagService.CreateAsync(tag);
             }
 
-            TagsPerCard tpc = new()
+            // NOTE: This is for updating the tags, if the tag already exists then don't add it else there'll be a thrown error
+            /*******************************************************/
+            TagsPerCard? tpc = await GetByTagNameAndCardIdAsync(tagName, cardId);
+
+            if (tpc != null) return tpc;
+            /*******************************************************/
+
+            tpc = new()
             {
                 TagsPerCardId = 0,
                 TagId = tag.TagId,

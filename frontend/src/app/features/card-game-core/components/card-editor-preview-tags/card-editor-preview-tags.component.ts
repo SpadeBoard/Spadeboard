@@ -24,7 +24,37 @@ export class CardEditorPreviewTagsComponent {
     placeholder: 'Insert tag, ex. Template',
     blacklist: [], // TODO: Replace blacklist with custom one, potentially set by admin?
     callbacks: {
-      click: (e) => { console.log(`On tag callback click: ${e.detail}`); }
+      add: (e: CustomEvent<Tagify.AddEventData<TagData>>) => {
+        console.log(`On tag added: ${JSON.stringify(e.detail.data)}`);
+
+        if (!e.detail.data)
+          throw new Error("No TagData to add");
+
+        this.onCreateTag(e.detail.data);
+      },
+      click: (e: CustomEvent<Tagify.ClickEventData<TagData>>) => { 
+        console.log(`On tag callback click: ${JSON.stringify(e.detail.tag)}`); 
+      },
+      remove: (e: CustomEvent<Tagify.RemoveEventData<TagData>>) => { 
+        console.log(`On tag removed: ${JSON.stringify(e.detail.data)}`); 
+        
+        if (!e.detail.data)
+          throw new Error("No TagData to remove");
+
+        this.onDeleteTag(e.detail.data);
+      },
+      "edit:updated": (e: CustomEvent<Tagify.EditUpdatedEventData<TagData>>) => {
+        console.log(`On edit updated: ${JSON.stringify(e.detail.tag)}`); 
+
+        if (!e.detail.data)
+          throw new Error("No TagData to update");
+
+        let index: number = this.tags.findIndex(tag => tag['id']=== e.detail.tag!['id']);
+        if (index === -1)
+          throw new Error("Could not find tag index for updated tag");
+
+        this.onUpdateTag(index, e.detail.data);
+      },
     }
   };
   
@@ -38,6 +68,8 @@ export class CardEditorPreviewTagsComponent {
   disabledComputed: Signal<boolean> = computed(() => this.disabled());
 
   constructor() {
+    this.populateTags();
+    
     this.onSetCardEditorCardDtoByCardId();
     this.refreshWhitelist();
   }
@@ -48,22 +80,18 @@ export class CardEditorPreviewTagsComponent {
         takeUntilDestroyed()
       )
       .subscribe(() => {
-        this.tagApiService.getTagNamesByCardId$(this.cardEditorPreviewService.cardEditorCardDto.card.cardId).subscribe((tagNames: string[] | undefined) => {
-          if (!tagNames)
-            return;
-
-          tagNames.map((tagName: string) => {
-            let tagData: TagData = { value: tagName };
-            this.tags.push(tagData);
-          });
-        });
+       this.populateTags();
       });
     }
+
+  private populateTags(): void {
+    this.tags = this.cardEditorPreviewService.cardEditorCardDto.tagNames.map(
+      (tagName: string, idx: number) => ({ id: String(idx), value: tagName })
+    );
+  }
   
   onAdd(tagify: {tags: TagData[], added: TagData}) {
     console.log('Added a tag', tagify);  
-
-    this.onCreateTag(tagify.added);
   }
 
   onCreateTag(tagData: TagData) {
@@ -77,7 +105,7 @@ export class CardEditorPreviewTagsComponent {
     .pipe(
       switchMap((existingTag: Tag | undefined) => {
         if (existingTag) {
-          this.cardEditorPreviewService.addTag(existingTag, this.cardEditorPreviewService.cardEditorCardDto);
+          this.cardEditorPreviewService.addTag(existingTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
           console.log('Tag already exists');
           
           return EMPTY; 
@@ -103,9 +131,60 @@ export class CardEditorPreviewTagsComponent {
       }
 
       console.log('Tag has been created.');
-      this.cardEditorPreviewService.addTag(createdTag, this.cardEditorPreviewService.cardEditorCardDto);
+      this.cardEditorPreviewService.addTag(createdTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
       this.refreshWhitelist();
     });
+  }
+
+  onUpdateTag(idx: number, tagData: TagData) {
+    let tag: Tag = {
+      tagId: "0",
+      tagName: tagData.value
+    }
+
+    // TODO: This should be its own utility function, to be usable with imports
+    this.tagApiService.getTagByTagName$(tag.tagName)
+    .pipe(
+      switchMap((existingTag: Tag | undefined) => {
+        if (existingTag) {
+          this.cardEditorPreviewService.updateTag(idx, existingTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
+          console.log('Tag already exists');
+          
+          return EMPTY; 
+        } 
+        else {
+          return this.tagApiService.createTag$(tag);
+        }
+      }),
+      catchError(err => {
+        if (err.status === 404) {
+          return this.tagApiService.createTag$(tag);
+        } 
+        else {
+          console.error('Error fetching tag:', err);
+          return EMPTY;
+        }
+      })
+    )
+    .subscribe((createdTag: Tag | undefined) => {
+      if (!createdTag) {
+        console.warn('Tag could not be created.');
+        return;
+      }
+
+      console.log('Tag has been created.');
+      this.cardEditorPreviewService.updateTag(idx, createdTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
+      this.refreshWhitelist();
+    });
+  }
+
+  onDeleteTag(tagData: TagData): void {
+    let tag: Tag = {
+      tagId: "0",
+      tagName: tagData.value
+    }
+
+    this.cardEditorPreviewService.deleteTag(tag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
   }
 
   private refreshWhitelist(): void {
@@ -120,5 +199,6 @@ export class CardEditorPreviewTagsComponent {
   onRemove(tags: TagData[]) {
     console.log('Removed a tag', tags);
     // TODO: How to figure out the tag we just removed, modify the card editor card dto
+    // Filter out the tagsToDelete items where the cardEditorCardDto.tagNames have those tags
   }
 }

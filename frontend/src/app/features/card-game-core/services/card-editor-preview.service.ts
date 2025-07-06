@@ -6,6 +6,7 @@ import { FileMetadataApiService } from '../../../utils/services/file-metadata-ap
 import { FileUploadApiService } from '../../../utils/services/file-upload-api.service';
 import { DndPosition } from '../../drag-and-drop/models/dnd-types';
 import { Style } from '../../style/models/style';
+import { Tag } from '../../tagging-system/models/tag';
 import { CardEditorCardDto } from '../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../models/card-face';
 import { CardFaceElementImage, CardFaceElementPerCardFace } from '../models/card-face-element';
@@ -13,8 +14,7 @@ import { DEFAULT_CARD_EDITOR_FACE_STYLE, getBlankCardTemplate } from '../utils/c
 import { isCardEditorCardDto } from '../utils/card-game-core.utils';
 import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-card-dto-api.service';
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
-import { Tag } from '../../tagging-system/models/tag';
-import { normalize } from 'path';
+import { TagsPerCardApiService } from './card-game-core/api/tags-per-card-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +23,8 @@ export class CardEditorPreviewService {
   private readonly cardEditorCardDtoApiService: CardEditorCardDtoApiService = inject(CardEditorCardDtoApiService);
   private readonly fileUploadApiService = inject(FileUploadApiService);
   private readonly cardFaceElementApiService: CardFaceElementApiService = inject(CardFaceElementApiService);
-  
+  private readonly tagsPerCardApiService: TagsPerCardApiService = inject(TagsPerCardApiService);
+
   private destroyRef: DestroyRef = inject(DestroyRef);
 
   // FIXME: Reset this everytime you open the card editor via the button on the side
@@ -41,12 +42,11 @@ export class CardEditorPreviewService {
 
   cardFaceImages: FormData[] = [];
 
-  private orphanedFileMetadata: FileMetadata[] = [
+  private orphanedFileMetadata: FileMetadata[] = [];
 
-  ];
-  private cardFaceElementsPerCardFaceDelete: string[] = [
+  private cardFaceElementsPerCardFaceDelete: string[] = [];
 
-  ];
+  tagNamesToDelete: string[] = [];
 
   private onFlip$$: Subject<void> = new Subject<void>();
   onFlip$: Observable<void> = this.onFlip$$.asObservable();
@@ -159,7 +159,6 @@ export class CardEditorPreviewService {
     return /^\d{17,20}$/.test(cardFaceElementPerCardFaceId);
   }
 
-  // / TODO: Only delete the backend on update card or template, keep track of IDs to delete
   private deleteSavedCardFaceElementsPerCardFace$(): Observable<any[]> {
     console.log(`Delete saved card face elements per card face: ${this.cardFaceElementsPerCardFaceDelete}`);
     if (this.cardFaceElementsPerCardFaceDelete.length <= 0) {
@@ -176,6 +175,15 @@ export class CardEditorPreviewService {
   
     // Return a single observable that completes when all deletes are done
     return forkJoin(deleteObservables);
+  }
+
+  private deleteTagsPerCard$(tagNamesToDelete: string[], cardId: string): Observable<any> {
+    console.log(`Delete saved card face elements per card face: ${this.cardFaceElementsPerCardFaceDelete}`);
+    if (tagNamesToDelete.length <= 0) {
+      return of(undefined);
+    }
+    
+    return this.tagsPerCardApiService.deleteByTagNamesAndCardId$(tagNamesToDelete, cardId);
   }
 
   constructor() {
@@ -209,6 +217,10 @@ export class CardEditorPreviewService {
 
   getCurrentCardFace(): CardFace {
     return this.currentCardEditorCardFaceDto.cardFace;
+  }
+
+  getCardTagNames(): string[] {
+    return this.cardEditorCardDto.tagNames;
   }
 
   setOnFlip() {
@@ -515,10 +527,15 @@ export class CardEditorPreviewService {
 
     this.setOnCreateCardEditorCardDto(this.cardEditorCardDto);  
 
+    this.clearItemsToBeDeleted();
+  }
+
+  private clearItemsToBeDeleted(): void {
     // Because we're making a duplicate, you don't want to store the card face elements to delete, only do it for saving
     // We also want to set the to be oprhaned metadata to be nothing, since we're starting with a newly duplicated card
     this.orphanedFileMetadata = [];
     this.cardFaceElementsPerCardFaceDelete = [];
+    this.tagNamesToDelete = [];
   }
 
   updateCardEditorCardDtoPostApiOperation(cardEditorCardDto: CardEditorCardDto | undefined): void {
@@ -531,17 +548,20 @@ export class CardEditorPreviewService {
   }
 
   updateCard(): void {
-    let shouldDelete: boolean = this.cardFaceElementsPerCardFaceDelete.length > 0;
+    let shouldDelete: boolean = this.cardFaceElementsPerCardFaceDelete.length > 0 || this.tagNamesToDelete.length > 0;
 
     iif(
       () => shouldDelete,
-      this.deleteSavedCardFaceElementsPerCardFace$(),
-      of(undefined)
+      forkJoin([
+        this.deleteSavedCardFaceElementsPerCardFace$(),
+        this.deleteTagsPerCard$(this.tagNamesToDelete, this.cardEditorCardDto.card.cardId)
+      ]),
+      of([undefined, undefined])
     )
       .pipe(
         catchError(err => {
           console.error('Delete error (ignored):', err);
-          return of([]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
+          return of([undefined, undefined]); // NOTE: Ignores this because you can't delete what doesn't exist and it should continue either way
         }),
         switchMap(() => this.cardEditorCardDtoApiService.updateCardEditorCardDto$(this.cardEditorCardDto)),
         takeUntilDestroyed(this.destroyRef)
@@ -557,6 +577,7 @@ export class CardEditorPreviewService {
       });
   }
 
+  // NOTE: Only use when you're not editing the card
   deleteCard(cardId: string)
   {
     if (this.cardEditorCardDto.card.cardId === cardId) {
@@ -592,13 +613,37 @@ export class CardEditorPreviewService {
       .some(tag => tag.localeCompare('Template', undefined, { sensitivity: 'accent' }) === 0);
   }
 
-  addTag(tag: Tag, cardEditorCardDto: CardEditorCardDto) {
+  addTag(tag: Tag, cardEditorCardDto: CardEditorCardDto, tagNamesToDelete?: string[]): void {
+    if (cardEditorCardDto.tagNames.includes(tag.tagName))
+      throw new Error("Already has tag name included");
+
     cardEditorCardDto.tagNames.push(tag.tagName);
+
+    if (!tagNamesToDelete)
+      return;
+
+    tagNamesToDelete = tagNamesToDelete.filter((t: string) => t !== tag.tagName);
+
+     if (tagNamesToDelete.includes(tag.tagName))
+      throw new Error(`Tag names to delete should not include: ${tag.tagName} after filtering`);
   }
 
-  deleteTag(tag: Tag, cardEditorCardDto: CardEditorCardDto) {
-    cardEditorCardDto.tagNames.filter((t: string) => t !== tag.tagName);
+  // ASSUMPTION: When you add/remove to the template, it keeps the exact order in the array of the cardEditorCardDto
+  updateTag(idx: number, tag: Tag, cardEditorCardDto: CardEditorCardDto, tagNamesToDelete?: string[]): void {
+    if (idx < 0 || idx > cardEditorCardDto.tagNames.length - 1)
+      throw new Error("Index cannot be less than 0 or more than the tags' length");
 
-    // TODO: Add that removed tag as a tag to be removed
+    if (tagNamesToDelete) tagNamesToDelete.push(cardEditorCardDto.tagNames[idx]);
+    
+    cardEditorCardDto.tagNames[idx] = tag.tagName;
+  }
+
+  deleteTag(tag: Tag, cardEditorCardDto: CardEditorCardDto, tagNamesToDelete?: string[]): void {
+    cardEditorCardDto.tagNames = cardEditorCardDto.tagNames.filter((t: string) => t !== tag.tagName);
+
+    if (cardEditorCardDto.tagNames.includes(tag.tagName))
+      throw new Error(`Tag names should not include: ${tag.tagName} after filtering`);
+  
+    if (tagNamesToDelete) tagNamesToDelete.push(tag.tagName);
   }
 }
