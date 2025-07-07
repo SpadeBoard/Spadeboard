@@ -6,7 +6,7 @@ import { ActionContextMenuComponent } from '../../../actions-context-menu/compon
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { Card, CardEditorCardDto } from '../../models/card';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { CardApiService } from '../../services/card-game-core/api/card-api.service';
+import { TagsPerCardApiService } from '../../services/card-game-core/api/tags-per-card-api.service';
 import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';
 import { CardComponent } from '../card/card.component';
 
@@ -18,14 +18,13 @@ import { CardComponent } from '../card/card.component';
 })
 export class CardEditorControlsCardsTemplateCollectionComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
-  private readonly cardApiService: CardApiService = inject(CardApiService);
+  private readonly tagsPerCardApiService: TagsPerCardApiService = inject(TagsPerCardApiService);;
 
   cards: Card[] = [];
 
   new: Card =  {
       cardId: "0",
       cardName: 'New',
-      isTemplate: true,
       currentCardFaceIndex: 0
     }
 
@@ -67,12 +66,11 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   }
 
   getCardTemplates() {
-    this.cardApiService.getCards$('5811e387-1551-4090-9485-a3ebe30efb5a').subscribe((cards: Card[] | undefined) => {
-      if (cards) {
-        // TODO: Make a backend function to check and see whether a card is a template in TagesPerCard
-        this.cards = cards.filter(card => card.isTemplate === true);
-      }
-    })
+    this.tagsPerCardApiService.getCardTemplatesByOwnerId$('5811e387-1551-4090-9485-a3ebe30efb5a').subscribe((cards: Card[] | undefined) => {
+      console.log(`Get card templates by owner ID: ${JSON.stringify(cards)}`);
+      
+      if (cards) this.cards = cards;
+    });
   }
 
   onClickCard(event: Event, cardId: string) {
@@ -86,9 +84,12 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     this.cardEditorPreviewService.onCreateCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
-      if (cardEditorCardDto && this.cardEditorPreviewService.isCardTemplate(cardEditorCardDto)) {
-        this.cards.push(cardEditorCardDto.card);
-      }
+        if (!cardEditorCardDto)
+          throw new Error("No card editor card DTO to create");
+
+        console.log(`onCreateCardEditorCardDto tag names: ${JSON.stringify(cardEditorCardDto.tagNames)}`);
+
+        this.addCardTemplate(cardEditorCardDto);
     });
   }
 
@@ -99,14 +100,24 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     this.cardEditorPreviewService.onUpdateCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
-      if (cardEditorCardDto && this.cardEditorPreviewService.isCardTemplate(cardEditorCardDto)) {
-        let index = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
+        if (!cardEditorCardDto)
+          throw new Error("No card editor card DTO to update");
 
+        console.log(`onUpdateCardEditorCardDto tag names: ${JSON.stringify(cardEditorCardDto.tagNames)}`);
+        
+        let index: number = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
         if (index !== -1) {
+          if (!this.cardEditorPreviewService.isCardTemplate(cardEditorCardDto)) {
+            this.removeCardTemplate(cardEditorCardDto.card.cardId);
+            return;
+          }
+
           this.cards[index] = cardEditorCardDto.card;
+          return;
         }
-      }
-    });
+        
+        this.addCardTemplate(cardEditorCardDto);
+      });
   }
 
   // TODO: Too much duplication between cards-collection and here, make a service for cards collection and then use these functions to populate here
@@ -114,8 +125,20 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     this.cardEditorPreviewService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe((cardId: string) => {
-        this.cards = this.cards.filter(c => c.cardId !== cardId);
+        this.removeCardTemplate(cardId);
       });
+  }
+
+  private addCardTemplate(cardEditorCardDto: CardEditorCardDto): boolean {
+    if (this.cardEditorPreviewService.isCardTemplate(cardEditorCardDto)) {
+      this.cards.push(cardEditorCardDto.card);
+    }
+
+    return this.cards.includes(cardEditorCardDto.card);
+  }
+
+  private removeCardTemplate(cardId: string): void {
+    this.cards = this.cards.filter(c => c.cardId !== cardId);
   }
 
   onCardRightClick(event: MouseEvent, cardId: string): void {

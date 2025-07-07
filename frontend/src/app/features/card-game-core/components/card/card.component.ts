@@ -31,8 +31,7 @@ export class CardComponent {
   card: ModelSignal<Card> =model<Card >({
     cardId: "0",
     currentCardFaceIndex: 0,
-    cardName: '',
-    isTemplate: false
+    cardName: ''
   });
 
   // TODO: Figure out the alternate text for images

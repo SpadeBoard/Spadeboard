@@ -17,12 +17,8 @@ export class CardApiService {
   // TODO: Replace with actual API url from the config
   private apiUrl: string = `${environment.hostServerUrl}/api/Cards`;
 
-  // TODO: Function signatures for overloading
-  
   constructor() { }
 
-  // NOTE: Pass in objects, not tuples, remember
-  // FIXME: Pass in objects, not tuples, for all rxResource
   // https://medium.com/@davidepassafaro/angular-resource-and-rxresource-apis-what-you-need-to-know-aa1c178e43e9
   getCards$(ownerId?: string): Observable<Card[] | undefined> {
     if (ownerId !== undefined) {

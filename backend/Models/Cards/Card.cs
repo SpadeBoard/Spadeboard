@@ -36,8 +36,6 @@ namespace Models.Cards
 
         public string? CardName {get;set;} = "";
 
-        public bool? IsTemplate {get; set;} = false;
-
         public int? CurrentCardFaceIndex { get; set;} = 0;
     }
 
@@ -46,8 +44,6 @@ namespace Models.Cards
         public string CardId { get; set; } = "0";
 
         public string? CardName {get;set;} = "";
-
-        public bool? IsTemplate {get; set;} = false;
 
         public int? CurrentCardFaceIndex { get; set;} = 0;
     }

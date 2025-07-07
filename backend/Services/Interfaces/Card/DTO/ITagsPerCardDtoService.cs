@@ -1,4 +1,5 @@
 using Models.Bridge;
+using Models.Cards;
 
 namespace Services
 {
@@ -9,5 +10,8 @@ namespace Services
         public Task<IEnumerable<TagsPerCardDto>> CreateByTagNamesAndCardIdDtoAsync(string[] tagNames, string cardId);
         public Task<bool> DeleteByTagNameAndCardIdDtoAsync(string tagName, string cardId);
         public Task<bool> DeleteByTagNamesAndCardIdDtoAsync(string[] tagNames, string cardId);
+
+        public Task<bool> IsCardTemplateDtoAsync(string cardId);
+        public Task<IEnumerable<CardDto>> GetCardTemplatesByOwnerIdDtoAsync(string ownerId);
     }
 }

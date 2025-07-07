@@ -1,6 +1,7 @@
 using AutoMapper;
 using Models.Bridge;
 using Utils;
+using Models.Cards;
 
 namespace Services
 {
@@ -59,14 +60,24 @@ namespace Services
             return _mapper.Map<IEnumerable<TagsPerCardDto>>(await _tagsPerCardService.CreateByTagNamesAndCardIdAsync(tagNames, DtoIdConversion.DtoStringToLong(cardId)));
         }
 
-         public async Task<bool> DeleteByTagNamesAndCardIdDtoAsync(string[] tagNames, string cardId)
+        public async Task<bool> DeleteByTagNamesAndCardIdDtoAsync(string[] tagNames, string cardId)
         {
-            return await  _tagsPerCardService.DeleteByTagNamesAndCardIdAsync(tagNames, DtoIdConversion.DtoStringToLong(cardId));
+            return await _tagsPerCardService.DeleteByTagNamesAndCardIdAsync(tagNames, DtoIdConversion.DtoStringToLong(cardId));
         }
 
         public async Task<bool> DeleteByTagNameAndCardIdDtoAsync(string tagName, string cardId)
         {
-            return await  _tagsPerCardService.DeleteByTagNameAndCardIdAsync(tagName, DtoIdConversion.DtoStringToLong(cardId));
+            return await _tagsPerCardService.DeleteByTagNameAndCardIdAsync(tagName, DtoIdConversion.DtoStringToLong(cardId));
+        }
+
+        public async Task<bool> IsCardTemplateDtoAsync(string cardId)
+        {
+            return await _tagsPerCardService.IsCardTemplateAsync(DtoIdConversion.DtoStringToLong(cardId));
+        }
+
+        public async Task<IEnumerable<CardDto>> GetCardTemplatesByOwnerIdDtoAsync(string ownerId)
+        {
+            return _mapper.Map<IEnumerable<CardDto>>(await _tagsPerCardService.GetCardTemplatesByOwnerIdAsync(ownerId));
         }
     }
 }

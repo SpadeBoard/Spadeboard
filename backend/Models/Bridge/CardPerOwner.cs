@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Models.Cards;
 using Services;
 
@@ -19,7 +18,7 @@ namespace Models.Bridge
 
         public long CardId { get; set; }
         [ForeignKey("CardId")]
-        public Card? Card { get; set; }
+        public virtual Card? Card { get; set; }
 
         public string OwnerId {get; set;}
         [ForeignKey("OwnerId")]

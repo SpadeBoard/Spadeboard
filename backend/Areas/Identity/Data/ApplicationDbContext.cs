@@ -71,8 +71,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<CardPerOwner>()
             .HasOne(cpo => cpo.Card)
-            .WithOne()
-            .HasForeignKey<CardPerOwner>(cpo => cpo.CardId)
+            .WithMany()
+            .HasForeignKey(cpo => cpo.CardId)
             .IsRequired();
 
         builder.Entity<CardPerOwner>()
@@ -119,6 +119,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<TagsPerCard>()
             .HasIndex(a => new {a.TagId, a.CardId})
+            .IsUnique();
+
+          builder.Entity<CardPerOwner>()
+            .HasIndex(a => new {a.CardId, a.OwnerId})
             .IsUnique();
 
         builder.Entity<Tag>()

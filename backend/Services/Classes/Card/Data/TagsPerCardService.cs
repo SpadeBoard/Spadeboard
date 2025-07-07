@@ -2,14 +2,18 @@ using Data;
 using Models.Bridge;
 using Microsoft.EntityFrameworkCore;
 using Models.Tags;
+using Models.Cards;
+using System.Linq;
 
 namespace Services
 {
-    public class TagsPerCardService(ApplicationDbContext context, ITagService tagService): ITagsPerCardService
+    public class TagsPerCardService(ApplicationDbContext context, ITagService tagService, ICardPerOwnerService cardPerOwnerService): ITagsPerCardService
     {
         private readonly ApplicationDbContext _context = context;
         private readonly CrudService<TagsPerCard> _crudService = new(context, tpc => tpc.TagsPerCardId);
         private readonly ITagService _tagService = tagService;
+        private readonly ICardPerOwnerService _cardPerOwnerService = cardPerOwnerService;
+
         public async Task<TagsPerCard> CreateAsync(TagsPerCard item)
         {
             return await _crudService.CreateAsync(item);
@@ -51,11 +55,17 @@ namespace Services
         public async Task<IEnumerable<String>> GetTagNamesByCardIdAsync(long cardId)
         {
             return await _context.TagsPerCard
-                .Where(tpc => tpc.Card.CardId == cardId)
-                .Select(tpc => tpc.Tag.TagName)
+                .Where(tpc => tpc.CardId == cardId)
+                .Select(tpc => tpc.Tag!.TagName)
                 .ToListAsync();
         }
 
+        public async Task<bool> IsCardTemplateAsync(long cardId) {
+            TagsPerCard? tpc = await _context.TagsPerCard
+                .FirstOrDefaultAsync(tpc => EF.Functions.ILike(tpc.Tag.TagName, "template") && tpc.Card.CardId == cardId);
+
+            return tpc != null;
+        }
 
         public async Task<TagsPerCard?> GetByTagNameAndCardIdAsync(string tagName, long cardId)
         {
@@ -122,6 +132,23 @@ namespace Services
             };
 
             return await CreateAsync(tpc);
+        }
+
+        public async Task<IEnumerable<Card>> GetCardTemplatesByOwnerIdAsync(string ownerId) {
+           var cards = (await _cardPerOwnerService.GetCardsByOwnerIdAsync(ownerId)).ToList();
+
+            // https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.todictionary?view=net-9.0
+            // https://learn.microsoft.com/en-us/dotnet/api/system.data.entity.queryableextensions.todictionaryasync?view=entity-framework-6.2.0
+            var potentialCardTemplates = await Task.WhenAll(
+                cards.Select(async card => new { 
+                    Card = card, 
+                    IsTemplate = await IsCardTemplateAsync(card.CardId) 
+                })
+            );
+
+            return potentialCardTemplates
+                .Where(x => x.IsTemplate)
+                .Select(x => x.Card);
         }
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Models.Bridge;
+using Models.Cards;
 using Services;
 
 namespace backend.Controllers
@@ -11,7 +12,7 @@ namespace backend.Controllers
         private readonly ITagsPerCardDtoService _tagsPerCardDtoService = tagsPerCardDtoService;
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TagsPerCardDto>>> GetTag()
+        public async Task<ActionResult<IEnumerable<TagsPerCardDto>>> GetTagsPerCard()
         {
              var items = await _tagsPerCardDtoService .GetAllDtoAsync();
 
@@ -24,7 +25,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<TagsPerCardDto>> GetTag(string id)
+        public async Task<ActionResult<TagsPerCardDto>> GetTagsPerCard(string id)
         {
             var item = await _tagsPerCardDtoService.GetDtoAsync(id);
 
@@ -90,6 +91,19 @@ namespace backend.Controllers
         {
             bool deleted = await _tagsPerCardDtoService.DeleteByTagNamesAndCardIdDtoAsync(tagNames, cardId);
             return deleted ? NoContent() : NotFound();
+        }
+
+        [HttpGet("owner/{ownerId}")]
+        public async Task<ActionResult<IEnumerable<CardDto>>> GetCardTemplatesByOwnerId(string ownerId)
+        {
+            List<CardDto>? items = (await _tagsPerCardDtoService.GetCardTemplatesByOwnerIdDtoAsync(ownerId)).ToList();
+
+            if (items== null)
+            {
+                return NotFound();
+            }
+
+            return Ok(items);
         }
     }
 }

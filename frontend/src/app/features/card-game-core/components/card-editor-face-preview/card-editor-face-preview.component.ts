@@ -506,7 +506,15 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
           throw new Error("Card face thumbnail file path was never updated");
         }
 
-        this.cardEditorPreviewService.updateCard();
+        this.cardEditorPreviewService.updateCard$(this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.cardFaceElementsPerCardFaceToDeleteIds, this.cardEditorPreviewService.tagNamesToDelete)
+          .subscribe({
+            next: (cardEditorCardDto: CardEditorCardDto | undefined) => {
+              if (cardEditorCardDto) this.cardEditorPreviewService.updateCardPostApiOperation(cardEditorCardDto);
+            },
+            error: (err) => {
+              console.error('Something went wrong:', err);
+            }
+          });
       });
   }
 

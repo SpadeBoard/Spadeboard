@@ -198,7 +198,5 @@ export class CardEditorPreviewTagsComponent {
   
   onRemove(tags: TagData[]) {
     console.log('Removed a tag', tags);
-    // TODO: How to figure out the tag we just removed, modify the card editor card dto
-    // Filter out the tagsToDelete items where the cardEditorCardDto.tagNames have those tags
   }
 }

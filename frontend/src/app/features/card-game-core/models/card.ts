@@ -7,7 +7,6 @@ import { CardEditorCardFaceDto } from "./card-face";
 export interface Card {
     cardId: string;
     cardName: string;
-    isTemplate: boolean;
     currentCardFaceIndex: number;
 }
 
