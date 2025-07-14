@@ -44,12 +44,24 @@ export class CardEditorPreviewTagsComponent {
         this.onDeleteTag(e.detail.data);
       },
       "edit:updated": (e: CustomEvent<Tagify.EditUpdatedEventData<TagData>>) => {
-        console.log(`On edit updated: ${JSON.stringify(e.detail.tag)}`); 
-
+        console.log(`On edit updated:\nAll tags: ${JSON.stringify(this.tags)}\nUpdated tag: ${JSON.stringify(e.detail.tag)}`); 
+        
+        
         if (!e.detail.data)
           throw new Error("No TagData to update");
 
-        let index: number = this.tags.findIndex(tag => tag['id']=== e.detail.tag!['id']);
+        // Have to cast it, otherwise Typescript complains
+        const tagElement = e.detail.tag as HTMLElement & { __tagifyTagData?: any };
+        const tagData = tagElement.__tagifyTagData;
+
+        const originalValue: string = tagData?.__originalData?.value;
+        const originalId : string= tagData?.__originalData?.__tagId;
+
+        console.log('Original value:', originalValue);
+        console.log('Original tagId:', originalId);
+
+        // ASSUMPTION: Tags already exist and have id property, otherwise it will look like default TagData
+        let index: number = this.tags.findIndex(tag => tag.value === originalValue);
         if (index === -1)
           throw new Error("Could not find tag index for updated tag");
 
@@ -85,8 +97,10 @@ export class CardEditorPreviewTagsComponent {
     }
 
   private populateTags(): void {
+    console.log(`Populate tags: ${JSON.stringify(this.cardEditorPreviewService.cardEditorCardDto.tagNames, null, 2)}`);
+
     this.tags = this.cardEditorPreviewService.cardEditorCardDto.tagNames.map(
-      (tagName: string, idx: number) => ({ id: String(idx), value: tagName })
+      (tagName: string) => ({ value: tagName })
     );
   }
   
@@ -106,7 +120,7 @@ export class CardEditorPreviewTagsComponent {
       switchMap((existingTag: Tag | undefined) => {
         if (existingTag) {
           this.cardEditorPreviewService.addTag(existingTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
-          console.log('Tag already exists');
+          console.log(`Tag already exists: ${JSON.stringify(existingTag, null, 2)}`);
           
           return EMPTY; 
         } 
@@ -119,7 +133,7 @@ export class CardEditorPreviewTagsComponent {
           return this.tagApiService.createTag$(tag);
         } 
         else {
-          console.error('Error fetching tag:', err);
+          console.warn('Error fetching tag:', err);
           return EMPTY;
         }
       })
@@ -130,7 +144,7 @@ export class CardEditorPreviewTagsComponent {
         return;
       }
 
-      console.log('Tag has been created.');
+      console.log(`Tag has been created: ${JSON.stringify(createdTag, null, 2)}`);
       this.cardEditorPreviewService.addTag(createdTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
       this.refreshWhitelist();
     });
@@ -148,7 +162,7 @@ export class CardEditorPreviewTagsComponent {
       switchMap((existingTag: Tag | undefined) => {
         if (existingTag) {
           this.cardEditorPreviewService.updateTag(idx, existingTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
-          console.log('Tag already exists');
+          console.log(`Tag already exists: ${JSON.stringify(existingTag, null, 2)}`);
           
           return EMPTY; 
         } 
@@ -161,7 +175,7 @@ export class CardEditorPreviewTagsComponent {
           return this.tagApiService.createTag$(tag);
         } 
         else {
-          console.error('Error fetching tag:', err);
+          console.warn('Error fetching tag:', err);
           return EMPTY;
         }
       })
@@ -172,7 +186,7 @@ export class CardEditorPreviewTagsComponent {
         return;
       }
 
-      console.log('Tag has been created.');
+      console.log(`Tag has been created: ${JSON.stringify(createdTag, null, 2)}`);
       this.cardEditorPreviewService.updateTag(idx, createdTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
       this.refreshWhitelist();
     });
