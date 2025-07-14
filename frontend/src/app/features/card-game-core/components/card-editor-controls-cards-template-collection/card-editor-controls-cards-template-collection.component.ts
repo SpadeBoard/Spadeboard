@@ -56,6 +56,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
 
   constructor() {
     this.getCardTemplates();
+    
     this.onCreateCardEditorCardDto();
     this.onUpdateCardEditorCardDto();
     this.onDeleteCardEditorCardDto();

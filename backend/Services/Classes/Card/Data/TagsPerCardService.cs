@@ -59,6 +59,16 @@ namespace Services
                 .Select(tpc => tpc.Tag!.TagName)
                 .ToListAsync();
         }
+        
+        // TODO: Make this inside of the corresponding DTO
+        public async Task<IEnumerable<long>> GetTemplateCardIdsAsync()
+        {
+            return await _context.TagsPerCard
+                .Where(tpc => EF.Functions.ILike(tpc.Tag.TagName, "template"))
+                .Select(tpc => tpc.Card!.CardId)
+                .Distinct()
+                .ToListAsync();
+        }
 
         public async Task<bool> IsCardTemplateAsync(long cardId) {
             TagsPerCard? tpc = await _context.TagsPerCard
@@ -134,21 +144,21 @@ namespace Services
             return await CreateAsync(tpc);
         }
 
+        // TODO: Make a function: GetCardTemplatesByOwnerIdAsync(string ownerId)
+        // Would query just like GetCardsByOwnerIdAsync(), but also filter for each having .ILike("template") like we do in IsCardTemplateAsync
+
         public async Task<IEnumerable<Card>> GetCardTemplatesByOwnerIdAsync(string ownerId) {
-           var cards = (await _cardPerOwnerService.GetCardsByOwnerIdAsync(ownerId)).ToList();
+           List<Card>? cards = (await _cardPerOwnerService.GetCardsByOwnerIdAsync(ownerId)).ToList();
 
             // https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.todictionary?view=net-9.0
             // https://learn.microsoft.com/en-us/dotnet/api/system.data.entity.queryableextensions.todictionaryasync?view=entity-framework-6.2.0
-            var potentialCardTemplates = await Task.WhenAll(
-                cards.Select(async card => new { 
-                    Card = card, 
-                    IsTemplate = await IsCardTemplateAsync(card.CardId) 
-                })
-            );
+            IEnumerable<long>? cardTemplateIds = await GetTemplateCardIdsAsync();
 
-            return potentialCardTemplates
-                .Where(x => x.IsTemplate)
-                .Select(x => x.Card);
+            //https://chatgpt.com/share/68752a61-4bb8-800c-bd2e-88b4002c6aa0
+            //https://chatgpt.com/share/68752a61-4bb8-800c-bd2e-88b4002c6aa0
+
+            // https://www.nilebits.com/blog/2024/06/multiple-dbcontexts-in-a-single-query/
+            return cards.Where(c => cardTemplateIds.Contains(c.CardId));
         }
     }
 }

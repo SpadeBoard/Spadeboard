@@ -13,6 +13,8 @@ namespace Services
         public Task<TagsPerCard> CreateByTagNameAndCardIdAsync(string tagName, long cardId);
         public Task<IEnumerable<TagsPerCard>> CreateByTagNamesAndCardIdAsync(string[] tagNames, long cardId);
 
+        public Task<IEnumerable<long>> GetTemplateCardIdsAsync();
+
         public Task<bool> IsCardTemplateAsync(long cardId);
         public Task<IEnumerable<Card>> GetCardTemplatesByOwnerIdAsync(string ownerId);
     }
