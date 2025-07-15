@@ -10,6 +10,7 @@ import { GameRoomService } from '../../services/game-room.service';
 })
 export class GameRoomNavComponent {
   isCardsCollectionMenuOpen: boolean = false;
+  isGameRoomNavHovered: boolean = false;
 
   private gameRoomService: GameRoomService = inject(GameRoomService);
   private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
@@ -25,5 +26,13 @@ export class GameRoomNavComponent {
 
   onSaveGameRoom(event: Event): void {
     this.gameRoomService.onSave();
+  }
+
+  onGameRoomNavMouseEnter(event: Event): void {
+    this.isGameRoomNavHovered = true;
+  }
+
+   onGameRoomNavMouseLeave(event: Event): void {
+    this.isGameRoomNavHovered = false;
   }
 }

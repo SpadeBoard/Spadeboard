@@ -2,7 +2,7 @@
     <button (click)="onSaveGameRoom($event)" class="game-room-save-button"><img src="/save-game-room-icon.svg" class="game-room-save-img"/></button>
 </nav>
 <!-- TODO: Refactor raw svgs into angular components -->
-<nav class="game-room-nav">
+<nav class="game-room-nav" (mouseenter)="onGameRoomNavMouseEnter($event)" (mouseleave)='onGameRoomNavMouseLeave($event)'>
     <button disabled class="game-room-nav-button">
         <!-- Settings icon (/game-room-nav_game-settings-icon.svg) -->
         <svg width="32" height="31" viewBox="0 0 32 31" fill="none" xmlns="http://www.w3.org/2000/svg" class="game-room-nav-svg">
@@ -17,7 +17,9 @@
             <path fill-rule="evenodd" clip-rule="evenodd" d="M18.6118 10.2295V28.1454L30.0612 24.4974V6.58154L18.6118 10.2295Z" fill="#FFFCFA" stroke="#173552" stroke-width="0.4" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M13.52 8.30139C13.749 8.46093 14.1801 8.62516 14.7816 8.76464C15.6487 8.96513 16.662 9.06623 17.4815 9.05386V29.9288C16.6858 29.9885 15.6128 29.91 14.7366 29.707C13.9708 29.53 13.54 29.3005 13.5208 29.1004H13.52V8.30139Z" fill="#173552" stroke="#173552" stroke-width="0.4" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" class="game-room-nav-svg-fill-change"/>
         </svg>
-        Game Settings
+        @if (isGameRoomNavHovered) {
+            Game Settings
+        }
     </button>
     <button (click)="onCardEditor($event)" class="game-room-nav-button">
         <!-- Card editor icon (/game-room-nav_card-editor-icon.svg) -->
@@ -26,7 +28,9 @@
             <path fill-rule="evenodd" clip-rule="evenodd" d="M33.2714 7.30544C33.3758 6.916 33.3212 6.50087 33.1195 6.15144C32.9177 5.80229 32.5856 5.54733 32.1961 5.44298C29.6151 4.7514 24.2955 3.326 21.7144 2.63442C21.325 2.53007 20.9099 2.58483 20.5606 2.7863C20.2112 2.98806 19.9564 3.32029 19.852 3.70973C18.8579 7.4198 16.2543 17.1365 15.2602 20.8465C15.1559 21.236 15.2104 21.6511 15.4122 22.0006C15.6139 22.3497 15.946 22.6047 16.3355 22.709C18.9165 23.4006 24.2362 24.826 26.8172 25.5176C27.2066 25.6219 27.6217 25.5672 27.971 25.3657C28.3204 25.1639 28.5753 24.8317 28.6796 24.4423C29.6737 20.7322 32.2773 11.0155 33.2714 7.30544Z" fill="#173552" class="game-room-nav-svg-fill-change"/>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M21.0744 24.6715C21.1788 25.0612 21.1243 25.4762 20.9226 25.8255C20.7207 26.1748 20.3887 26.4295 19.9991 26.5339C17.032 27.329 10.3544 29.1182 7.38736 29.9132C6.99773 30.0176 6.58285 29.9631 6.23361 29.7614C5.88438 29.5597 5.62929 29.2276 5.52487 28.8379C4.4492 24.8235 1.46909 13.7016 0.393424 9.68716C0.289003 9.29745 0.343876 8.88232 0.545481 8.53304C0.747087 8.18377 1.07911 7.92908 1.46874 7.82468C4.4358 7.02966 11.1134 5.2404 14.0805 4.44538C14.4701 4.34098 14.885 4.39554 15.2345 4.59713C15.5837 4.79881 15.8385 5.13097 15.9429 5.52068C17.0186 9.53511 19.9987 20.657 21.0744 24.6715Z" fill="#FFFCFA" stroke="#173552" stroke-width="0.7" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Card Editor
+        @if (isGameRoomNavHovered) {
+            Card Editor
+        }
     </button>
     <button (click)="onCardsCollection($event)" class="game-room-nav-button">
         <!-- Card collection icon (/game-room-nav_card-collection-icon.svg") -->
@@ -40,7 +44,9 @@
             <path d="M24.8365 6.35304C24.8011 6.3459 24.7656 6.34131 24.7306 6.33854C24.8129 6.23425 24.8733 6.10924 24.9013 5.97C24.9964 5.4966 24.6902 5.03576 24.2169 4.94032C23.7435 4.84488 23.2827 5.15107 23.1873 5.62439C23.1594 5.76239 23.1658 5.89871 23.2006 6.02576C23.1791 6.01971 23.1576 6.01407 23.1357 6.00967C22.6623 5.91465 22.2015 6.22083 22.1061 6.69374C22.0107 7.16705 22.3169 7.6279 22.7902 7.72334C23.0439 7.7745 23.2767 7.72583 23.4685 7.58232L23.2251 7.86247L22.6771 8.48417L24.3018 8.81176L24.0375 8.02627L23.9137 7.65793C24.0355 7.86169 24.2398 8.01563 24.4911 8.0663C24.9644 8.16173 25.4252 7.85555 25.5207 7.38223C25.6156 6.90924 25.3094 6.4484 24.8365 6.35304Z" fill="#173552" class="game-room-nav-svg-fill-change"/>
             <path d="M30.8413 10.3249C30.2976 10.0407 29.8621 10.4274 29.8621 10.4274C29.8621 10.4274 29.9313 9.8492 29.3874 9.56488C28.844 9.28077 28.2457 9.62774 28.0225 10.0548C27.6483 10.7704 28.6759 12.6965 28.6759 12.6965C28.6759 12.6965 30.8437 12.4413 31.2179 11.7255C31.4412 11.2983 31.3849 10.6091 30.8413 10.3249Z" fill="#173552"/>
         </svg>
-        Card Collection
+        @if (isGameRoomNavHovered) {
+            Card Collection
+        }
     </button>
 </nav>
     
