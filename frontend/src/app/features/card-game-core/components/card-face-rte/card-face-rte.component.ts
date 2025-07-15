@@ -1,11 +1,14 @@
+import { HttpClient, HttpClientModule, HttpEvent, HttpRequest } from '@angular/common/http';
 import { Component, computed, effect, inject, input, InputSignal, Signal } from '@angular/core';
-import { AngularEditorModule, AngularEditorConfig, UploadResponse } from '@kolkov/angular-editor';
-import { Style } from '../../../style/models/style';
-import { HttpClientModule, HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
-import { Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { RTE_HTML_CONTENT } from '../../../../shared/tokens';
+import { AngularEditorConfig, AngularEditorModule, UploadResponse } from '@kolkov/angular-editor';
+import { Observable } from 'rxjs';
 import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
+import {NgDompurifySanitizer} from '@taiga-ui/dompurify';
+import {SecurityContext} from '@angular/core';
+
+//https://chatgpt.com/share/6876a274-c9a0-800c-9689-87fe5a17b19f
+// https://angular.dev/api/platform-browser/DomSanitizer
 
 @Component({
   selector: 'app-card-face-rte',
@@ -33,9 +36,11 @@ handleError @ core.mjs:6673
 Show 1 more frame
 Show less
   */
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-   private cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
+  private cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
+
+  private readonly dompurifySanitizer: NgDompurifySanitizer = inject(NgDompurifySanitizer);
 
   htmlContent: string = '';
   isEditable: boolean = false;
@@ -106,7 +111,7 @@ upload:: This is the name of the function.
       enableToolbar: true,
       showToolbar: true,
       placeholder: (this.isEditable) ? 'Enter text here...' : '',
-      sanitize: true,
+      sanitize: false, // NOTE: use DOMPurify & onvert to BBCode to sanitise it
       fonts: [
         { class: 'arial', name: 'Arial' },
         { class: 'times-new-roman', name: 'Times New Roman' },
@@ -158,6 +163,7 @@ upload:: This is the name of the function.
     // Your logic here
     console.log('Editor content changed:', updatedHtml);
 
+    updatedHtml = this.dompurifySanitizer.sanitize(SecurityContext.HTML, updatedHtml);
     this.cardEditorControlsDesignRteService.setOnRteTextChange(updatedHtml);
   }
 }
