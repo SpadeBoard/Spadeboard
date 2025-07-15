@@ -17,7 +17,9 @@ namespace Models.Cards
     {
         public CardDto Card { get; set; }
 
-        public CardEditorCardFaceDto[] CardEditorCardFacesDto {get; set;}
+        public CardEditorCardFaceDto[] CardEditorCardFacesDto { get; set; } = [];
+
+        public string[] TagNames { get; set; } = [];
 
         public string? OwnerId { get;set;}
     }
@@ -34,8 +36,6 @@ namespace Models.Cards
 
         public string? CardName {get;set;} = "";
 
-        public bool? IsTemplate {get; set;} = false;
-
         public int? CurrentCardFaceIndex { get; set;} = 0;
     }
 
@@ -44,8 +44,6 @@ namespace Models.Cards
         public string CardId { get; set; } = "0";
 
         public string? CardName {get;set;} = "";
-
-        public bool? IsTemplate {get; set;} = false;
 
         public int? CurrentCardFaceIndex { get; set;} = 0;
     }

@@ -11,7 +11,7 @@ import { DndDragBoundary } from '../../models/dnd-types';
     CdkDropList
   ],
   templateUrl: './dnd-wrapper.component.html',
-  styleUrl: './dnd-wrapper.component.css'
+  styleUrl: './dnd-wrapper.component.scss'
 })
 
 // TODO: Figure out how to use DndStyle

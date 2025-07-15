@@ -13,7 +13,7 @@ import { CardEditorControlsDesignRteService } from '../../services/card-editor-c
     AngularEditorModule, FormsModule, HttpClientModule  //, HttpClient, HttpRequest
   ],
   templateUrl: './card-face-rte.component.html',
-  styleUrl: './card-face-rte.component.css'
+  styleUrl: './card-face-rte.component.scss'
 })
 export class CardFaceRteComponent {
   /*

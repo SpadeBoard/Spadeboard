@@ -17,7 +17,7 @@ import { CardFaceComponent } from '../card-face/card-face.component';
     CommonModule
   ],
   templateUrl: './card.component.html',
-  styleUrl: './card.component.css',
+  styleUrl: './card.component.scss',
   // animations: [cardFlipAnimation]
 })
 export class CardComponent {
@@ -31,8 +31,7 @@ export class CardComponent {
   card: ModelSignal<Card> =model<Card >({
     cardId: "0",
     currentCardFaceIndex: 0,
-    cardName: '',
-    isTemplate: false
+    cardName: ''
   });
 
   // TODO: Figure out the alternate text for images

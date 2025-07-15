@@ -1,0 +1,11 @@
+<tagify id="card-editor-preview-tags" 
+    [title]="'Tags'"
+    [(ngModel)]="tags"
+    inputClass="form-control"
+    [settings]="settings" 
+    [whitelist]="whitelist$$"
+    [readonly]="readonlyComputed()"
+    [disabled]="disabledComputed()"
+    (add)="onAdd($event)"
+    (remove)="onRemove($event)">
+</tagify>

@@ -7,7 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   selector: 'app-card-editor-card-operations-button',
   imports: [],
   templateUrl: './card-editor-card-operations-button.component.html',
-  styleUrl: './card-editor-card-operations-button.component.css'
+  styleUrl: './card-editor-card-operations-button.component.scss'
 })
 export class CardEditorCardOperationsButtonComponent {
   private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
@@ -36,18 +36,11 @@ export class CardEditorCardOperationsButtonComponent {
   }
 
   onCardCreate(event: Event): void {
-    // NOTE: This is because depending on whether we start from a fresh card or not, it's going to have that isTemplate's value
-    this.cardEditorPreviewService.cardEditorCardDto.card.isTemplate = false;
     this.handleCardCreate.emit();
   }
 
   onCardSave(event: Event): void {
     this.handleCardSave.emit();
-  }
-
-  onSaveTemplate(event: Event) {
-    this.cardEditorPreviewService.cardEditorCardDto.card.isTemplate = true;
-    this.handleCardCreate.emit();
   }
 
   private onSetCardEditorCardDtoByCardId() {

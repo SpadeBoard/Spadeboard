@@ -1,14 +1,12 @@
 import { DndItem } from "../../drag-and-drop/models/dnd-item";
 import { DndPosition, DndRotation } from "../../drag-and-drop/models/dnd-types";
 import { GameRoom } from "../../game-room/models/game-room/game-room";
-import { Style } from "../../style/models/style";
-import { CardFace, CardEditorCardFaceDto } from "./card-face";
+import { CardEditorCardFaceDto } from "./card-face";
 
 // TODO: Instead of having DndItem itself, have the card extends the item
 export interface Card {
     cardId: string;
     cardName: string;
-    isTemplate: boolean;
     currentCardFaceIndex: number;
 }
 
@@ -18,6 +16,7 @@ export interface Card {
 export interface CardEditorCardDto {
     card: Card;
     cardEditorCardFacesDto: Array<CardEditorCardFaceDto>;
+    tagNames: Array<string>;
     ownerId?: string;
 }
 

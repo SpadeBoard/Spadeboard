@@ -23,7 +23,7 @@ import { CardEditorInfoComponent } from '../card-editor-info/card-editor-info.co
     CardEditorCloseComponent, CardEditorInfoComponent
   ], // TODO: Remove CdkDrag
   templateUrl: './card-editor.component.html',
-  styleUrl: './card-editor.component.css'
+  styleUrl: './card-editor.component.scss'
 })
 export class CardEditorComponent{
   // https://www.youtube.com/watch?v=5JcMras7aaA

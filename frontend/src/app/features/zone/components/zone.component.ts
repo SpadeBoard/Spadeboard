@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-zone',
   imports: [],
   templateUrl: './zone.component.html',
-  styleUrl: './zone.component.css'
+  styleUrl: './zone.component.scss'
 })
 export class ZoneComponent {
 

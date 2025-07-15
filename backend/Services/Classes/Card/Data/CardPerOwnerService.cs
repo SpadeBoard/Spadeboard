@@ -14,13 +14,14 @@ namespace Services
         // TODO: Modify the cards controller to use this
         public async Task<IEnumerable<Card>> GetCardsByOwnerIdAsync(string ownerId)
         {
-            return await _context.CardPerOwner
+            var cards = await _context.CardPerOwner
                 .Where(cpo => cpo.OwnerId == ownerId)
                 .Include(cpo => cpo.Card)
                 .Select(cpo => cpo.Card)
-                .Where(card => card != null)
-                .Select(card => card!)
-                .ToListAsync();
+                .OfType<Card>()
+                .ToListAsync(); 
+
+            return cards;
         }
 
         // TODO: Probably fix this considering you can have multiple cards with multiple owners, might actually need a surrogate key instead of composite

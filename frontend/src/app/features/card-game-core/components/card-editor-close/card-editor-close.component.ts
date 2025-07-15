@@ -5,7 +5,7 @@ import { CardGameCoreService } from '../../services/card-game-core/card-game-cor
   selector: 'app-card-editor-close',
   imports: [],
   templateUrl: './card-editor-close.component.html',
-  styleUrl: './card-editor-close.component.css'
+  styleUrl: './card-editor-close.component.scss'
 })
 export class CardEditorCloseComponent {
   private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);

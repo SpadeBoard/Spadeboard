@@ -7,7 +7,7 @@ import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CA
   selector: 'app-card-face-rt',
   imports: [AngularEditorModule, FormsModule],
   templateUrl: './card-face-rt.component.html',
-  styleUrl: './card-face-rt.component.css'
+  styleUrl: './card-face-rt.component.scss'
 })
 export class CardFaceRtComponent {
   // https://dev.to/christiankohler/how-to-use-resizeobserver-with-angular-9l5

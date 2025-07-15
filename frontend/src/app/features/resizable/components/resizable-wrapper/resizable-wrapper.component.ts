@@ -6,7 +6,7 @@ import { clamp, Dimensions, Threshold } from '../../../../utils/utils';
   selector: 'app-resizable-wrapper',
   imports: [],
   templateUrl: './resizable-wrapper.component.html',
-  styleUrl: './resizable-wrapper.component.css'
+  styleUrl: './resizable-wrapper.component.scss'
 })
 export class ResizableWrapperComponent {
   dimensions: InputSignal<Dimensions> = input<Dimensions>({

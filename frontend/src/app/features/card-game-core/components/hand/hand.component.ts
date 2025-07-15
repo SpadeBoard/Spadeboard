@@ -9,7 +9,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
   selector: 'app-hand',
   imports: [],
   templateUrl: './hand.component.html',
-  styleUrl: './hand.component.css'
+  styleUrl: './hand.component.scss'
 })
 export class HandComponent {
   // TODO: Fix all of this, this is placeholder, limit the amount of cards allowed in a hand

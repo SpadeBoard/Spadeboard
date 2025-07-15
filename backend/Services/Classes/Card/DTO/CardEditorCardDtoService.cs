@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
 using Models.Bridge;
+using Models.Tags;
+using System.Linq;
 
 // https://stackoverflow.com/questions/59753218/how-to-use-dbcontext-in-separate-class-library-net-core
 // https://www.postgresql.org/docs/current/ddl-schemas.html#:~:text=Unlike%20databases%2C%20schemas%20are%20not,without%20interfering%20with%20each%20other.
@@ -11,13 +13,15 @@ using Models.Bridge;
 
 namespace Services
 {
-    public class CardEditorCardDtoService(ApplicationDbContext context, ICardFacePerCardDtoService cardFacePerCardDtoService, ICardDtoService cardDtoService, ICardEditorCardFaceDtoService cardEditorCardFaceDtoService, ICardPerOwnerDtoService cardPerOwnerDtoService, ICardPositionPerRoomDtoService cardPositionPerRoomDtoService) : ICardEditorCardDtoService
+    public class CardEditorCardDtoService(ApplicationDbContext context, ICardFacePerCardDtoService cardFacePerCardDtoService, ICardDtoService cardDtoService, ICardEditorCardFaceDtoService cardEditorCardFaceDtoService, ICardPerOwnerDtoService cardPerOwnerDtoService, ICardPositionPerRoomDtoService cardPositionPerRoomDtoService, ITagsPerCardDtoService tagsPerCardDtoService, ITagDtoService tagDtoService) : ICardEditorCardDtoService
     {
         private readonly ICardDtoService _cardDtoService = cardDtoService;
         private readonly ICardFacePerCardDtoService _cardFacePerCardDtoService = cardFacePerCardDtoService;
         private readonly ICardPerOwnerDtoService _cardPerOwnerDtoService = cardPerOwnerDtoService;
         private readonly ICardEditorCardFaceDtoService _cardEditorCardFaceDtoService = cardEditorCardFaceDtoService;
         private readonly ICardPositionPerRoomDtoService _cardPositionPerRoomDtoService = cardPositionPerRoomDtoService;
+        private readonly ITagsPerCardDtoService _tagsPerCardDtoService = tagsPerCardDtoService;
+        private readonly ITagDtoService _tagDtoService = tagDtoService;
         private readonly ApplicationDbContext _context = context;
 
         // ASSUMPTION: You can create a card for yourself, can't create a card for a room
@@ -26,22 +30,26 @@ namespace Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                if (dto.CardEditorCardFacesDto != null) {
+                if (dto.CardEditorCardFacesDto != null)
+                {
                     dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.CreateAllDtoAsync(dto.CardEditorCardFacesDto)).ToArray();
                 }
 
-                dto.Card = await  _cardDtoService.CreateDtoAsync(dto.Card);
+                dto.Card = await _cardDtoService.CreateDtoAsync(dto.Card);
 
-                // TODO: Refactor this function and the other similar ones
                 if (!String.IsNullOrEmpty(dto.OwnerId))
                 {
-                    CardPerOwnerDto cpo = new(){
+                    CardPerOwnerDto cpo = new()
+                    {
                         CardId = dto.Card.CardId,
                         OwnerId = dto.OwnerId
                     };
 
                     await _cardPerOwnerDtoService.CreateDtoAsync(cpo);
                 }
+
+                // ASSUMPTION: The tags are already created
+                dto.TagNames = await CreateAndResolveTagNamesAsync(dto.TagNames, dto.Card.CardId);
 
                 await _cardFacePerCardDtoService.CreateAllDtoAsyncFromCardEditorCardDto(dto);
                 await transaction.CommitAsync();
@@ -53,6 +61,26 @@ namespace Services
                 throw;
             }
         }
+
+        public async Task<string[]> CreateAndResolveTagNamesAsync(string[] tagNames, string cardId)
+        {
+            if (tagNames == null || tagNames.Length == 0)
+                return Array.Empty<string>();
+
+            // Create the tag-per-card links
+            List<TagsPerCardDto> tpcs = (await _tagsPerCardDtoService.CreateByTagNamesAndCardIdDtoAsync(tagNames, cardId)).ToList();
+
+            List<TagDto> tags = new();
+            foreach (TagsPerCardDto tpc in tpcs)
+            {
+                TagDto? tag = await _tagDtoService.GetDtoAsync(tpc.TagId);
+                if (tag != null)
+                    tags.Add(tag);
+            }
+
+            return tags.Select(tag => tag.TagName).ToArray();
+        }
+
 
         public async Task<bool> DeleteDtoAsync(string id)
         {
@@ -89,7 +117,15 @@ namespace Services
                     if (!deleted) {
                         throw new Exception("Didn't delete record in Card Per Owner");
                     }
-                } 
+                }
+
+                if (dto.TagNames.Length > 0) {
+                    deleted = await _tagsPerCardDtoService.DeleteByTagNamesAndCardIdDtoAsync(dto.TagNames, dto.Card.CardId);
+
+                     if (!deleted) {
+                        throw new Exception("Didn't delete all records in Tags Per Card");
+                    }
+                }
 
                 // NOTE: We're assuming there's only one card one position one dnd item 
                 CardPositionPerRoomDto? cpr = await _cardPositionPerRoomDtoService.GetDtoByCardIdAsync(dto.Card.CardId);
@@ -158,6 +194,8 @@ namespace Services
             if (cpo != null) 
                 dto.OwnerId = cpo.OwnerId;
 
+            dto.TagNames = (await _tagsPerCardDtoService.GetTagNamesByCardIdDtoAsync(dto.Card.CardId)).ToArray();
+
             // FIXME: Grab the styling for the card face elements as well as card faces
             return dto;
         }
@@ -180,6 +218,9 @@ namespace Services
 
                 updated = await _cardDtoService.UpdateDtoAsync(dto.Card.CardId, dto.Card);
 
+                // ASSUMPTION: The tags that are already exist will be returned instead, no duplicate tags to throw errors on
+                dto.TagNames = await CreateAndResolveTagNamesAsync(dto.TagNames, dto.Card.CardId);
+            
                 await transaction.CommitAsync();
                 return updated;
             }

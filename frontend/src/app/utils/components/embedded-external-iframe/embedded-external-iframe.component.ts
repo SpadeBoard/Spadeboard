@@ -5,7 +5,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
   selector: 'app-embedded-external-iframe',
   imports: [],
   templateUrl: './embedded-external-iframe.component.html',
-  styleUrl: './embedded-external-iframe.component.css'
+  styleUrl: './embedded-external-iframe.component.scss'
 })
 export class EmbeddedExternalIframeComponent {
   private readonly domSanitizer: DomSanitizer = inject(DomSanitizer);

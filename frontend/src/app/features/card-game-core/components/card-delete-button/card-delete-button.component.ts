@@ -5,7 +5,7 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
   selector: 'app-card-delete-button',
   imports: [],
   templateUrl: './card-delete-button.component.html',
-  styleUrl: './card-delete-button.component.css'
+  styleUrl: './card-delete-button.component.scss'
 })
 export class CardDeleteButtonComponent {
   cardId: InputSignal<string> = input<string>("-1");

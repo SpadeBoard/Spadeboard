@@ -42,8 +42,7 @@ export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEdit
       card: {
         cardId: "0",
         currentCardFaceIndex: 0,
-        cardName: '',
-        isTemplate: false
+        cardName: ''
       },
       ownerId: newOwnerId,
       cardEditorCardFacesDto: [
@@ -62,7 +61,8 @@ export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEdit
           },
           cardFaceElementsPerCardFace: []
         }
-      ]
+      ],
+      tagNames: []
     };
 }
 

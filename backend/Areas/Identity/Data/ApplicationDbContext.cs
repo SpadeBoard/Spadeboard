@@ -71,8 +71,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<CardPerOwner>()
             .HasOne(cpo => cpo.Card)
-            .WithOne()
-            .HasForeignKey<CardPerOwner>(cpo => cpo.CardId)
+            .WithMany()
+            .HasForeignKey(cpo => cpo.CardId)
             .IsRequired();
 
         builder.Entity<CardPerOwner>()
@@ -117,6 +117,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasIndex(a => new {a.OwnerId, a.GameRoomId})
             .IsUnique();
 
+        builder.Entity<TagsPerCard>()
+            .HasIndex(a => new {a.TagId, a.CardId})
+            .IsUnique();
+
+          builder.Entity<CardPerOwner>()
+            .HasIndex(a => new {a.CardId, a.OwnerId})
+            .IsUnique();
+
+        builder.Entity<Tag>()
+            .HasIndex(a => new {a.TagName})
+            .IsUnique();
+
         /*****************************************************************/
         builder.Entity<CardFace>()
             .HasOne(cp => cp.Style)
@@ -141,7 +153,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasData(new Tag
             {
                 TagId = 1,
-                TagName="#template"
+                TagName="Template"
             }
         );
 
@@ -211,4 +223,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Tag> Tag {get; set;} =default!;
 
     public DbSet<FileAuthenticationPerExportedCard> FileAuthenticationPerExportedCard {get;set;} = default!;
+
+    public DbSet<TagsPerCard> TagsPerCard { get; set; } = default!;
 }

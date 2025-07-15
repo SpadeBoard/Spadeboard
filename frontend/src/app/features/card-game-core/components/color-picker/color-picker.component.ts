@@ -7,7 +7,7 @@ import { debounceTime, filter, Subject } from 'rxjs';
   selector: 'app-color-picker',
   imports: [FormsModule],
   templateUrl: './color-picker.component.html',
-  styleUrl: './color-picker.component.css'
+  styleUrl: './color-picker.component.scss'
 })
 export class ColorPickerComponent {
   // https://www.angulararchitects.io/en/blog/component-communication-with-signals-inputs-two-way-bindings-and-content-view-queries/

@@ -23,7 +23,7 @@ import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
   selector: 'app-card-editor-face-preview',
   imports: [DragDropModule, CardEditorFacePreviewGridComponent, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule, ActionContextMenuComponent],
   templateUrl: './card-editor-face-preview.component.html',
-  styleUrl: './card-editor-face-preview.component.css'
+  styleUrl: './card-editor-face-preview.component.scss'
 })
 export class CardEditorFacePreviewComponent implements AfterViewInit {
   private readonly cardEditorPreviewService: CardEditorPreviewService  = inject(CardEditorPreviewService);
@@ -506,7 +506,15 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
           throw new Error("Card face thumbnail file path was never updated");
         }
 
-        this.cardEditorPreviewService.updateCard();
+        this.cardEditorPreviewService.updateCard$(this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.cardFaceElementsPerCardFaceToDeleteIds, this.cardEditorPreviewService.tagNamesToDelete)
+          .subscribe({
+            next: (cardEditorCardDto: CardEditorCardDto | undefined) => {
+              if (cardEditorCardDto) this.cardEditorPreviewService.updateCardPostApiOperation(cardEditorCardDto);
+            },
+            error: (err) => {
+              console.error('Something went wrong:', err);
+            }
+          });
       });
   }
 
