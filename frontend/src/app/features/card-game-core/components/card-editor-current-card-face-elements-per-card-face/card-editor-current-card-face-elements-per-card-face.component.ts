@@ -21,6 +21,7 @@ import { CardFaceImageComponent } from '../card-face-image/card-face-image.compo
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 import { snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../utils/card-editor-face-preview.constants';
+import { htmlParsers, parse } from '../../utils/rich-text-sanitizer.utils';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -478,7 +479,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         if (cardFaceElementRt === undefined)
           throw new Error("Card face element rich text is undefined");
 
-        (cardFaceElementRt.cardFaceElementContent as string) = text;
+        // TODO: The BBCode conversion here
+        (cardFaceElementRt.cardFaceElementContent as string) = parse(text, htmlParsers);
+        console.log(`BBCode Card Face Element Rich Text: ${cardFaceElementRt.cardFaceElementContent}`);
     })
   }
 

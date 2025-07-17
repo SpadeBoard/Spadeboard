@@ -5,19 +5,8 @@
 // https://github.com/thoughtsunificator/bbcode-parser
 // https://bbcode-parser-template.unificator.me/module-template-Template.html
 // https://github.com/thoughtsunificator/bbcode-parser-template-demo
-/*import { Parser, BBElement, BBDocument, Conversion } from '@thoughtsunificator/bbcode-parser';
-import { Code, Template } from '@thoughtsunificator/bbcode-parser-template'*/
-import { Style } from '../../style/models/style';
-import { DndPosition } from '../../drag-and-drop/models/dnd-types';
-
-// TODO: Make a class that extends Node, then use that to pass in first argument for template
 
 // https://stackoverflow.com/questions/69269283/how-to-get-document-object-in-angular-component
-
-// CHECKME: What about the positioning
-export function htmlToBBCode(html: string): string {
-    return parse(html, htmlParsers);
-}
 
 // https://github.com/genert/bbcode
 // https://github.com/genert/bbcode/blob/master/src/Parser/BBCodeParser.php
@@ -29,66 +18,264 @@ export interface parser {
 
 // FIXME: The YouTube embedding width and height and is gonna differ depending on the Angular Editor
 // TODO: Font size - https://www.bbcode.org/changing-the-font-size-with-bbcode.php
+
+
+// https://medium.com/@onlinemsr/javascript-string-format-the-best-3-ways-to-do-it-c6a12b4b94ed
+
+export const RICH_TEXT_SANITIZER_DEFAULT_BBCODE_PATTERN: string = `\\[element\\]content\\[\\/element\\]`;
+
+export const RICH_TEXT_SANITIZER_STYLABLE_BBCODE_PATTERN: string = `\\[elementstyle\\]content\\[\\/element\\]`;
+export const RICH_TEXT_SANITIZER_STYLABLE_HTML_PATTERN: string = `\\<elementstyle\\>content\\<\\/element\\>`;
+
+export const RICH_TEXT_SANITIZER_ATTRIBUTE_HTML_PATTERN: string = `attribute\\s*=\\s*"value"`;
+
+export const NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN: string = '(.*?)';
+export const DIGIT_REGEX_PATTERN: string = '(\\d+)';
+
+export const BORDER_STYLE_REGEX_PATTERN: string = '\\s*((dotted|dashed|solid|double|groove|ridge|inset|outset|none|hidden)(\\s+(dotted|dashed|solid|double|groove|ridge|inset|outset|none|hidden)){0,3})\\s*';
+
+export const POSITION_REGEX_PATTERN: string = '\\s*(-?\\d+(?:\\.\\d+)?(?:px|em|rem|%)|auto|inherit|initial|unset|revert|revert-layer)(?:\\s+(-?\\d+(?:\\.\\d+)?(?:px|em|rem|%)|auto|inherit|initial|unset|revert|revert-layer))wd\\s';
+
+/*
+-?\d+(\.\d+)?(px|em|rem|%)        # a single value
+(?:\s+-?\d+(\.\d+)?(px|em|rem|%)){0,3}   # up to three more, each preceded by space
+
+Original regex treated whitespace as a possible value, not as a separator, which results in counting spaces between -0px tokens as separate “values” and miscounts overall numbers. 
+*/
+
+export const DIMENSION_REGEX_PATTERN: string = '(-?\\d+)(px|em|rem|%)|auto|inherit|initial';
+
+// TODO: Make a color name too?
+export const HEX_REGEX_PATTERN: string = '#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})';
+export const RGBA_REGEX_PATTERN: string = 'rgba?\\(\\s*(?:\\d+%?|\\d*\\.\\d+%?)\\s*,\\s*(?:\\d+%?|\\d*\\.\\d+%?)\\s*,\\s*(?:\\d+%?|\\d*\\.\\d+%?)(?:\\s*,\\s*(?:\\d+|\\d*\\.\\d+))?\\s*\\)';
+export const HSLA_REGEX_PATTERN: string = 'hsla?\\(\\s*(?:\\d+|\\d*\\.\\d+)\\s*,\\s*(?:\\d+%|\\d*\\.\\d+%)\\s*,\\s*(?:\\d+%|\\d*\\.\\d+%)(?:\\s*,\\s*(?:\\d+|\\d*\\.\\d+))?\\s*\\)';
+
+// https://stackoverflow.com/a/9655186
+// NOTE: Make sure when passing in for it, set the flag to i, it should already be case insensitive by default
+// Instead have the words range from 7 - 21 letters, make it easier?
+export const CSS_COLOR_NAMES_REGEX_PATTERN: string = '(AliceBlue|AntiqueWhite|Aqua|Aquamarine|Azure|Beige|Bisque|Black|BlanchedAlmond|Blue|BlueViolet|Brown|BurlyWood|CadetBlue|Chartreuse|Chocolate|Coral|CornflowerBlue|Cornsilk|Crimson|Cyan|DarkBlue|DarkCyan|DarkGoldenRod|DarkGray|DarkGrey|DarkGreen)';
+
+
+export const CSS_COLOR_VALUE_REGEX_PATTERN: string = `(\\${HEX_REGEX_PATTERN}|${RGBA_REGEX_PATTERN}|${HSLA_REGEX_PATTERN})`;
+
+export const format = (template: string, replacements: Map<RegExp | string, string>): string => {
+  replacements.forEach((value: string, key: string | RegExp) => {
+    template = template.replace(key, value);
+  });
+
+  console.log(`Formatted replaced placeholder: ${template}`);
+
+  return template;
+}
+
+export function getPattern(regExp: RegExp | string, flags: string = 'gis'): RegExp {
+  return new RegExp(regExp, flags);
+}
+
+export function getReplacement(template: string, replacements: Map<RegExp | string, string>): string {
+  return format(template, replacements);
+}
+
+export function getDefaultBBCodePattern(element: string, content: string = NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN, template: string = RICH_TEXT_SANITIZER_DEFAULT_BBCODE_PATTERN): RegExp {
+  return getPattern(format(template, new Map([
+    [/element/g, element],
+    [/content/g, content]
+  ])));
+}
+
+export function getStylablePattern(element: string, markup: number = 0, style: string = NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN, content: string = NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN, template: string = ``): RegExp {
+  let replacements: Map<RegExp | string, string> = new Map([
+    [/element/g, element],
+    [/style/g, style],
+    [/content/g, content]
+  ]);
+
+  if (template != "") {
+    return getPattern(format(template, replacements));
+  }
+
+  switch (markup) {
+    case 1:
+       return getPattern(format(RICH_TEXT_SANITIZER_STYLABLE_HTML_PATTERN, replacements));
+    default:
+      return getPattern(format(RICH_TEXT_SANITIZER_STYLABLE_BBCODE_PATTERN, replacements));
+  }
+}
+
+export function getStylableReplacement(element: string, markup: number = 0, style: string = '$1', content: string ='$2', template: string = ``): string {
+  let replacements: Map<RegExp | string, string> = new Map([
+    [/\$\{element\}/g, element],
+    [/\$\{style\}/g, style],
+    [/\$\{content\}/g, content]
+  ]);
+  
+  if (template != "") {
+    return getReplacement(template, replacements);
+  }
+
+  switch (markup) {
+    case 1: // HTML
+       return getReplacement(`<${'${element}'}${'${style}'}>${'${content}'}</${'${element}'}>`, replacements);
+    default: // BBCode
+      return getReplacement(`[${'${element}'}${'${style}'}]${'${content}'}[/${'${element}'}]`, replacements);
+  }
+}
+
+// TODO: Do we want to keep these, refer to getStylableReplacement
+export function getStylableBBCodeReplacement(element: string, style: string, content: string, template: string = `[${'${element}'}${'${style}'}]${'${content}'}[/${'${element}'}]`): string {
+  return getReplacement(template, new Map([
+    [/\$\{element\}/g, element],
+    [/\$\{style\}/g, style],
+    [/\$\{content\}/g, content]
+  ]));
+}
+
+export function getStylableBBCodePattern(element: string, style: string = NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN, content: string = NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN, template: string = RICH_TEXT_SANITIZER_STYLABLE_BBCODE_PATTERN): RegExp {
+  return getPattern(format(template, new Map([
+    [/element/g, element],
+    [/style/g, style],
+    [/content/g, content]
+  ])));
+}
+
+export function getDefaultBBCodeReplacement(element: string, content: string, template: string = `[${'${element}'}]${'${content}'}[/${'${element}'}]`): string {
+  return getReplacement(template, new Map([
+    [/\$\{element\}/g, element],
+    [/\$\{content\}/g, content]
+  ]));
+}
+
+export function getStylableHTMLPattern(element: string, style: string = NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN, content: string = NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN, template: string = RICH_TEXT_SANITIZER_STYLABLE_HTML_PATTERN): RegExp {
+  return getPattern(format(template, new Map([
+    [/element/g, element],
+    [/style/g, style],
+    [/content/g, content]
+  ])));
+}
+
+export function getCSSHTMLPattern(property: string, content: string): RegExp {
+  return new RegExp(`(?:${property}:\\s*${content})(?:;|")`, 'gis');
+  // return new RegExp(`(?:^${property}: ${content};?)|(?:.+${property}: ${content};)`, 'gis');
+}
+
+export function getAttributeHTMLPattern(attribute: string, value: string = NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN, template: string = RICH_TEXT_SANITIZER_ATTRIBUTE_HTML_PATTERN): RegExp {
+  return getPattern(format(template, new Map([
+    [/attribute/g, attribute],
+    [/value/g, value]
+  ])));
+}
+
+export function getCSSHTMLReplacement(property: string, value: string): string {
+  return `${property}: ${value};`
+}
+
+export function getAttributeHTMLReplacement(attribute: string, value: string): string {
+  return `${attribute}="${value}"`;
+}
+
+// TODO: Do we want to keep these, refer to getStylableReplacement
+export function getStylableHTMLReplacement(element: string, style: string, content: string, template: string = `<${'${element}'}${'${style}'}>${'${content}'}</${'${element}'}>`): string {
+  return getReplacement(template, new Map([
+    [/\$\{element\}/g, element],
+    [/\$\{style\}/g, style],
+    [/\$\{content\}/g, content]
+  ]));
+}
+
+
+// NOTE: Anything that's a property should go before an element
 export const bbCodeParsers: Record<string, parser> = {
+  border: {
+    pattern: getDefaultBBCodePattern('border'),
+    replace: getCSSHTMLReplacement('border', '$1')
+  },
+  borderwidth: {
+    pattern: getDefaultBBCodePattern('border-width'),
+    replace: getCSSHTMLReplacement('border-width', '$1')
+  },
+  borderstyle: {
+    pattern: getDefaultBBCodePattern('border-style', BORDER_STYLE_REGEX_PATTERN),
+    replace: getCSSHTMLReplacement('border-style', '$1')
+  },
+  bordercolor: {
+    pattern: getDefaultBBCodePattern('border-color', CSS_COLOR_VALUE_REGEX_PATTERN),
+    replace: getCSSHTMLReplacement('border-color', '$1')
+  },
+  attrcolor: {
+    pattern: getDefaultBBCodePattern('attrcolor', CSS_COLOR_VALUE_REGEX_PATTERN),
+    replace: getAttributeHTMLReplacement('color', "$1")
+  },
+  size: {
+    pattern: getDefaultBBCodePattern('size', DIGIT_REGEX_PATTERN),
+    replace: getAttributeHTMLReplacement('size', "$1")
+  },
+  margin: {
+    pattern: getDefaultBBCodePattern('margin', POSITION_REGEX_PATTERN),
+    replace: getCSSHTMLReplacement('margin', '$1')
+  },
+  padding: {
+    pattern: getDefaultBBCodePattern('padding', POSITION_REGEX_PATTERN),
+    replace: getCSSHTMLReplacement('padding', '$1')
+  },
   h1: {
-    pattern: /\[h1\](.*?)\[\/h1\]/s,
-    replace: '<h1>$1</h1>',
-    // content: '$1'
+    pattern:getStylablePattern('h1'),
+    replace: getStylableReplacement('h1', 1)
   },
   h2: {
-    pattern: /\[h2\](.*?)\[\/h2\]/s,
-    replace: '<h2>$1</h2>',
-    // content: '$1'
+    pattern:getStylablePattern('h2'),
+    replace: getStylableReplacement('h2', 1)
   },
   h3: {
-    pattern: /\[h3\](.*?)\[\/h3\]/s,
-    replace: '<h3>$1</h3>',
-    // content: '$1'
+    pattern:getStylablePattern('h3'),
+    replace: getStylableReplacement('h3', 1)
   },
   h4: {
-    pattern: /\[h4\](.*?)\[\/h4\]/s,
-    replace: '<h4>$1</h4>',
-    // content: '$1'
+    pattern:getStylablePattern('h4'),
+    replace: getStylableReplacement('h4', 1)
   },
   h5: {
-    pattern: /\[h5\](.*?)\[\/h5\]/s,
-    replace: '<h5>$1</h5>',
-    // content: '$1'
+    pattern:getStylablePattern('h5'),
+    replace: getStylableReplacement('h5', 1)
   },
   h6: {
-    pattern: /\[h6\](.*?)\[\/h6\]/s,
-    replace: '<h6>$1</h6>',
-    // content: '$1'
+    pattern:getStylablePattern('h6'),
+    replace: getStylableReplacement('h6', 1)
   },
   bold: {
-    pattern: /\[b\](.*?)\[\/b\]/s,
-    replace: '<b>$1</b>',
-    // content: '$1'
+    pattern:getStylablePattern('b'),
+    replace: getStylableReplacement('b', 1)
+  },
+  strong: {
+    pattern:getStylablePattern('strong'),
+    replace: getStylableReplacement('strong', 1)
   },
   italic: {
-    pattern: /\[i\](.*?)\[\/i\]/s,
-    replace: '<i>$1</i>',
-    // content: '$1'
+    pattern:getStylablePattern('i'),
+    replace: getStylableReplacement('i', 1)
+  },
+  em: {
+    pattern:getStylablePattern('em'),
+    replace: getStylableReplacement('em', 1)
   },
   underline: {
-    pattern: /\[u\](.*?)\[\/u\]/s,
-    replace: '<u>$1</u>',
-    // content: '$1'
+    pattern:getStylablePattern('u'),
+    replace: getStylableReplacement('u', 1)
+  },
+  del: {
+    pattern:getStylablePattern('del'),
+    replace: getStylableReplacement('del', 1)
   },
   strikethrough: {
-    pattern: /\[s\](.*?)\[\/s\]/s,
-    replace: '<s>$1</s>',
-    // content: '$1'
+    pattern:getStylablePattern('s'),
+    replace: getStylableReplacement('strike', 1)
   },
   quote: {
-    pattern: /\[quote\](.*?)\[\/quote\]/s,
-    replace: '<blockquote>$1</blockquote>',
-    // content: '$1'
+    pattern:getStylablePattern('quote'),
+    replace: getStylableReplacement('blockquote',1)
   },
   link: {
     pattern: /\[url\](.*?)\[\/url\]/s,
     replace: '<a href=\'$1\'>$1</a>',
-    // content: '$1'
   },
   namedlink: {
     pattern: /\[url=(.*?)\](.*?)\[\/url\]/s,
@@ -97,211 +284,225 @@ export const bbCodeParsers: Record<string, parser> = {
   },
   image: {
     pattern: /\[img\](.*?)\[\/img\]/s,
+    /*
+    pattern: getPattern(/\[imgstyle\]content\[\/img\]/)
+    */
     replace: '<img src=\'$1\'>',
-    // content: '$1'
   },
   orderedlistnumerical: {
     pattern: /\[list=1\](.*?)\[\/list\]/s,
     replace: '<ol>$1</ol>',
-    // content: '$1'
   },
   orderedlistalpha: {
     pattern: /\[list=a\](.*?)\[\/list\]/s,
     replace: '<ol type=a>$1</ol>',
-    // content: '$1'
   },
   unorderedlist: {
-    pattern: /\[list\](.*?)\[\/list\]/s,
-    replace: '<ul>$1</ul>',
-    // content: '$1'
+    pattern: getStylablePattern('ul'),
+    replace: getStylableReplacement('ul', 1)
   },
   listitem: {
     pattern: /\[\*\](.*)/,
     replace: '<li>$1</li>',
-    // content: '$1'
   },
   code: {
-    pattern: /\[code\](.*?)\[\/code\]/s,
-    replace: '<code>$1</code>',
-    // content: '$1'
+    pattern: getStylablePattern('code'),
+    replace: getStylableReplacement('code',1)
   },
   youtube: {
     pattern: /\[youtube\](.*?)\[\/youtube\]/s,
     replace: '<iframe width=560 height=315 src=//www.youtube-nocookie.com/embed/$1 frameborder=0 allowfullscreen></iframe>',
-    // content: '$1'
   },
   sub: {
-    pattern: /\[sub\](.*?)\[\/sub\]/s,
-    replace: '<sub>$1</sub>',
-    // content: '$1'
+    pattern: getStylablePattern('sub'),
+    replace: getStylableReplacement('sub', 1)
   },
   sup: {
-    pattern: /\[sup\](.*?)\[\/sup\]/s,
-    replace: '<sup>$1</sup>',
-    // content: '$1'
+    pattern: getStylablePattern('sup'),
+    replace: getStylableReplacement('sup', 1)
   },
   small: {
-    pattern: /\[small\](.*?)\[\/small\]/s,
-    replace: '<small>$1</small>',
-    // content: '$1'
+    pattern: getStylablePattern('small'),
+    replace: getStylableReplacement('small', 1)
+  },
+  /*style: {
+    pattern: getStylablePattern('style'),
+    replace: getStylableHTMLReplacement('style', '$1', '$2')
+  },*/
+  p: {
+    pattern: getStylablePattern('p'),
+    replace: getStylableReplacement('p', 1)
+  },
+  span: {
+    pattern: getStylablePattern('span'),
+    replace: getStylableReplacement('span', 1)
   },
   table: {
-    pattern: /\[table\](.*?)\[\/table\]/s,
-    replace: '<table>$1</table>',
-    // content: '$1'
+    pattern: getStylablePattern('table'),
+    replace: getStylableReplacement('table', 1)
   },
   tablerow: {
-    pattern: /\[tr\](.*?)\[\/tr\]/s,
-    replace: '<tr>$1</tr>',
-    // content: '$1'
+    pattern: getStylablePattern('tr'),
+    replace: getStylableReplacement('tr', 1)
   },
   tabledata: {
-    pattern: /\[td\](.*?)\[\/td\]/s,
-    replace: '<td>$1</td>',
-    // content: '$1'
+    pattern: getStylablePattern('td'),
+    replace: getStylableReplacement('td',  1)
   }
 };
 
 export const htmlParsers: Record<string, parser> = {
+  size: {
+    pattern: getAttributeHTMLPattern('size', DIGIT_REGEX_PATTERN),
+    replace: getDefaultBBCodeReplacement('size', '$1')
+  },
+  border: {
+    pattern: getCSSHTMLPattern('border', NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN),
+    replace: getDefaultBBCodeReplacement('border', '$1')
+  },
+  borderwidth: {
+    pattern: getCSSHTMLPattern('border-width', NON_GREEDY_CAPTURING_GROUP_REGEX_PATTERN),
+    replace: getDefaultBBCodeReplacement('border-width', '$1')
+  },
+  borderstyle: {
+    pattern: getCSSHTMLPattern('border-style', BORDER_STYLE_REGEX_PATTERN), 
+    replace: getDefaultBBCodeReplacement('border-style', '$1')
+  },
+  bordercolor: {
+    pattern: getCSSHTMLPattern('border-color', CSS_COLOR_VALUE_REGEX_PATTERN),
+    replace: getDefaultBBCodeReplacement('border-color', '$1')
+  },
+  attrcolor: {
+    pattern: getAttributeHTMLPattern('color',  CSS_COLOR_VALUE_REGEX_PATTERN),
+    replace: getDefaultBBCodeReplacement('attrcolor', '$1')
+  },
+  margin: {
+    pattern: getCSSHTMLPattern('margin', POSITION_REGEX_PATTERN),
+    replace: getDefaultBBCodeReplacement('margin', '$1')
+  },
+  padding: {
+    pattern: getCSSHTMLPattern('padding', POSITION_REGEX_PATTERN),
+    replace: getDefaultBBCodeReplacement('padding', '$1')
+  },
   h1: {
-    pattern: /<h1>(.*?)<\/h1>/s,
-    replace: '[h1]$1[/h1]',
-    // content: '$1'
+    pattern: getStylablePattern('h1', 1),
+    replace: getStylableReplacement('h1')
   },
   h2: {
-    pattern: /<h2>(.*?)<\/h2>/s,
-    replace: '[h2]$1[/h2]',
-    // content: '$1'
+    pattern: getStylablePattern('h2', 1),
+    replace: getStylableReplacement('h2')
   },
   h3: {
-    pattern: /<h3>(.*?)<\/h3>/s,
-    replace: '[h3]$1[/h3]',
-    // content: '$1'
+    pattern: getStylablePattern('h3', 1),
+    replace: getStylableReplacement('h3')
   },
   h4: {
-    pattern: /<h4>(.*?)<\/h4>/s,
-    replace: '[h4]$1[/h4]',
-    // content: '$1'
+    pattern: getStylablePattern('h4', 1),
+    replace: getStylableReplacement('h4')
   },
   h5: {
-    pattern: /<h5>(.*?)<\/h5>/s,
-    replace: '[h5]$1[/h5]',
-    // content: '$1'
+    pattern: getStylablePattern('h5', 1),
+    replace: getStylableReplacement('h5')
   },
   h6: {
-    pattern: /<h6>(.*?)<\/h6>/s,
-    replace: '[h6]$1[/h6]',
-    // content: '$1'
+    pattern: getStylablePattern('h6', 1),
+    replace: getStylableReplacement('h6')
   },
   bold: {
-    pattern: /<b>(.*?)<\/b>/s,
-    replace: '[b]$1[/b]',
-    // content: '$1'
+    pattern: getStylablePattern('b', 1),
+    replace: getStylableReplacement('b')
   },
   strong: {
-    pattern: /<strong>(.*?)<\/strong>/s,
-    replace: '[b]$1[/b]',
-    // content: '$1'
+    pattern: getStylablePattern('strong', 1),
+    replace: getStylableReplacement('strong')
   },
   italic: {
-    pattern: /<i>(.*?)<\/i>/s,
-    replace: '[i]$1[/i]',
-    // content: '$1'
+    pattern: getStylablePattern('i', 1),
+    replace: getStylableReplacement('i')
   },
   em: {
-    pattern: /<em>(.*?)<\/em>/s,
-    replace: '[i]$1[/i]',
-    // content: '$1'
+    pattern: getStylablePattern('em', 1),
+    replace: getStylableReplacement('em')
   },
   underline: {
-    pattern: /<u>(.*?)<\/u>/s,
-    replace: '[u]$1[/u]',
-    // content: '$1'
+    pattern: getStylablePattern('u', 1),
+    replace: getStylableReplacement('u')
   },
   strikethrough: {
-    pattern: /<s>(.*?)<\/s>/s,
-    replace: '[s]$1[/s]',
-    // content: '$1'
+    pattern: getStylablePattern('strike', 1),
+    replace: getStylableReplacement('s')
   },
   del: {
-    pattern: /<del>(.*?)<\/del>/s,
-    replace: '[s]$1[/s]',
-    // content: '$1'
+    pattern: getStylablePattern('del', 1),
+    replace: getStylableReplacement('del')
   },
   code: {
-    pattern: /<code>(.*?)<\/code>/s,
-    replace: '[code]$1[/code]',
-    // content: '$1'
+    pattern: getStylablePattern('code', 1),
+    replace: getStylableReplacement('code')
   },
   orderedlistnumerical: {
     pattern: /<ol>(.*?)<\/ol>/s,
     replace: '[list=1]$1[/list]',
-    // content: '$1'
   },
   unorderedlist: {
-    pattern: /<ul>(.*?)<\/ul>/s,
-    replace: '[list]$1[/list]',
-    // content: '$1'
+    pattern: getStylablePattern('ul', 1),
+    replace: getStylableReplacement('ul')
   },
   listitem: {
     pattern: /<li>(.*?)<\/li>/s,
     replace: '[*]$1',
-    // content: '$1'
   },
   link: {
     pattern: /<a href=\(.*?\)\>(.*?)<\/a>/s,
     replace: '[url=$1]$2[/url]',
-    // content: '$1'
   },
   quote: {
-    pattern: /<blockquote>(.*?)<\/blockquote>/s,
-    replace: '[quote]$1[/quote]',
-    // content: '$1'
+    pattern: getStylablePattern('blockquote', 1),
+    replace: getStylableReplacement('quote')
   },
   image: {
     pattern: /<img src=\(.*?\)\>/s,
     replace: '[img]$1[/img]',
-    // content: '$1'
   },
   youtube: {
     pattern: /<iframe width="560" height="315" src="\/\/www\.youtube\.com\/embed\/(.*?)" frameborder="0" allowfullscreen><\/iframe>/s,
     replace: '[youtube]$1[/youtube]',
-    // content: '$1'
   },
   linebreak: {
     pattern: /<br\s*\/?>/,
     replace: '/\r\n/',
-    // content: '$1'
   },
   sub: {
-    pattern: /<sub>(.*?)<\/sub>/s,
-    replace: '[sub]$1[/sub]',
-    // content: '$1'
+    pattern: getStylablePattern('sub', 1),
+    replace: getStylableReplacement('sub')
   },
   sup: {
-    pattern: /<sup>(.*?)<\/sup>/s,
-    replace: '[sup]$1[/sup]',
-    // content: '$1'
+    pattern: getStylablePattern('sup', 1),
+    replace: getStylableReplacement('sup')
   },
   small: {
-    pattern: /<small>(.*?)<\/small>/s,
-    replace: '[small]$1[/small]',
-    // content: '$1'
+    pattern: getStylablePattern('small', 1),
+    replace: getStylableReplacement('small')
+  },
+  /*style: {
+    pattern: getStylableHTMLPattern('style'),
+    replace: getStylableReplacement('style', '$1', '$2')
+  },*/
+  p: {
+    pattern: getStylablePattern('p', 1),
+    replace: getStylableReplacement('p')
   },
   table: {
-    pattern: /<table>(.*?)<\/table>/s,
-    replace: '[table]$1[/table]',
-    // content: '$1'
+    pattern: getStylablePattern('table', 1),
+    replace: getStylableReplacement('table')
   },
   tablerow: {
-    pattern: /<tr>(.*?)<\/tr>/s,
-    replace: '[tr]$1[/tr]',
-    // content: '$1'
+    pattern: getStylablePattern('tr', 1),
+    replace: getStylableReplacement('tr')
   },
   tabledata: {
-    pattern: /<td>(.*?)<\/td>/s,
-    replace: '[td]$1[/td]',
-    // content: '$1'
+    pattern: getStylablePattern('td', 1),
+    replace: getStylableReplacement('td')
   }
 };
 
@@ -324,112 +525,3 @@ export function searchAndReplace(pattern: RegExp, replace: string, source: strin
 
   return source;
 }
-
-export function bbCodeParser(html: string): bbCode {
-  let bbCode: bbCode = {
-    // tag: '',
-    attrs: {
-      style: {
-        styleId: "0"
-      },
-      dndPosition: {
-        x: 0,
-        y: 0,
-        dndPositionId: "0"
-      }
-    },
-    content: []
-  };
-
-  return bbCode;
-}
-
-// CHECKME: What about the positioning
-export function bbCodeToHtml(bbCode: string): string {
-  return parse(bbCode, bbCodeParsers);
-}
-
-export interface html {
-  content: string,
-  attrs: {
-    style: Style,
-    dndPosition: DndPosition
-  }
-}
-
-// ASSUMPTION: Is a JSON object of the BBCode, but BBCode itself should already be a string, will be wrapped up in a span or div
-// Take in original card face element content pass in for the content here and then pass in the card face element style and dnd position
-export interface bbCode {
-    // tag: string,
-    attrs: {
-        style: Style,
-        dndPosition: DndPosition
-    }
-    content: (string | bbCode)[]
-}
-
-export function decodeHtml(input: string) : string | null {
-  return new DOMParser().parseFromString(input, "text/html").documentElement.textContent;
-}
-
-// https://en.wikipedia.org/wiki/BBCode
-// TODO: Create a BBCode interface
-/* 
-Style object,
-DndPosition object
-*/
-/*
-[
-  {
-    tag: span,
-    attrs: {
-      style: font-weight: bold;
-    },
-    content: [
-      ANGULAR
-    ]
-  },
-  \n,
-  {
-    tag: span,
-    attrs: {
-      style: font-style: italic;
-    },
-    content: [
-      ANGULAR
-    ]
-  }
-]
-
-[b]ANGU[i]L[/i]AR[/b][i]ANGULAR[/i]
-[
-  {
-    tag: span,
-    attrs: {
-      style: font-weight: bold;
-    },
-    content: [
-      ANGU,
-      {
-        tag: span,
-        attrs: {
-          style: font-style: italic;
-        },
-        content: [
-          L
-        ]
-      },
-      AR
-    ]
-  },
-  {
-    tag: span,
-    attrs: {
-      style: font-style: italic;
-    },
-    content: [
-      ANGULAR
-    ]
-  }
-]
-*/
