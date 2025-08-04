@@ -2,7 +2,6 @@ import { Component, computed, input, InputSignal, Signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
 import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
-import { bbCodeParsers, parse } from '../../utils/rich-text-sanitizer.utils';
 
 @Component({
   selector: 'app-card-face-rt',
@@ -15,12 +14,7 @@ export class CardFaceRtComponent {
 
   // We grab the BBCode from the card face element
   content: InputSignal<string> = input<string>("");
-  contentComputed: Signal<string> = computed(() => {
-    // TODO: Eventually just make this one line again and return parse(this.content(), bbCodeParsers)
-    let parsed: string = parse(this.content(), bbCodeParsers);
-    console.log(`Rich text computed - HTML: ${parsed}`);
-    return parsed;
-});
+  contentComputed: Signal<string> = computed(() => this.content());
 
   cardFaceRtWidth: InputSignal<number> = input<number>(0.01);
   cardFaceRtWidthComputed: Signal<string> = computed(() => `${this.cardFaceRtWidth()}px`);

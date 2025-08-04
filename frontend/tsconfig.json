@@ -17,7 +17,7 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",
-    "lib": ["ES5", "ES2015", "ES6", "DOM", "DOM.Iterable"],
+    "lib": ["ES5", "ES2022", "ES6", "DOM", "DOM.Iterable"],
     "types": ["node"]
   },
   "angularCompilerOptions": {

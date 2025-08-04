@@ -147,7 +147,6 @@ export class DndWrapperComponent {
 
   getStyle(): Omit<Style, 'styleId'> {
     return {
-      styleId: "0",
       position: 'absolute', // KEEP THE ARROWS ABSOLUTE SO THEY CAN ALWAYS BE AT CORNER
       width: `${this._parentWidth}px`,
       height: `${this._parentHeight}px`

@@ -26,7 +26,7 @@ export class DeckComponent {
     containeeIds: [], // CHECKME: When opening displace menu, make sure that you actually grab the card containee ids then render the cards in there if needed
     maxChildren: 52, // CHECKME: Set max children, then unset max children, does it stiill work
 
-    dndItemId: -1,
+    dndItemId: "-1",
     isDraggable: false,
     isDroppable: false,
     dndPosition: {
@@ -39,7 +39,8 @@ export class DeckComponent {
       height: '',
       width: '',
       margin: '50'
-    }
+    },
+    isRotatable: false
   });
 
   deckChange = output<Deck>();
@@ -48,12 +49,14 @@ export class DeckComponent {
     {
       id: 0,
       name: "Shuffle",
-      action: this.onShuffle
+      action: this.onShuffle,
+      disabled: false
     },
     {
       id: 1,
       name: "Displace card",
-      action: this.onDisplaceCard
+      action: this.onDisplaceCard,
+      disabled: false
     }
   ];
 
