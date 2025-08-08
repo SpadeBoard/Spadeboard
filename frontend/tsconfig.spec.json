@@ -7,7 +7,7 @@
     "types": [
       "jasmine"
     ],
-    "lib": ["ES5", "ES2015", "ES6", "DOM", "DOM.Iterable"],
+    "lib": ["ES5", "ES2022", "ES6", "DOM", "DOM.Iterable"],
   },
   "include": [
     "src/**/*.spec.ts",

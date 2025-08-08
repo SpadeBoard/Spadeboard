@@ -1,11 +1,15 @@
+import { HttpClient, HttpClientModule, HttpEvent, HttpRequest } from '@angular/common/http';
 import { Component, computed, effect, inject, input, InputSignal, Signal } from '@angular/core';
-import { AngularEditorModule, AngularEditorConfig, UploadResponse } from '@kolkov/angular-editor';
-import { Style } from '../../../style/models/style';
-import { HttpClientModule, HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
-import { Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { RTE_HTML_CONTENT } from '../../../../shared/tokens';
+import { AngularEditorConfig, AngularEditorModule, UploadResponse } from '@kolkov/angular-editor';
+import { Observable } from 'rxjs';
 import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
+import {NgDompurifySanitizer, SANITIZE_STYLE, SanitizeStyle} from '@taiga-ui/dompurify';
+import {SecurityContext} from '@angular/core';
+import { sanitizeStyle } from '../../utils/rich-text-sanitizer.utils';
+
+//https://chatgpt.com/share/6876a274-c9a0-800c-9689-87fe5a17b19f
+// https://angular.dev/api/platform-browser/DomSanitizer
 
 @Component({
   selector: 'app-card-face-rte',
@@ -13,7 +17,13 @@ import { CardEditorControlsDesignRteService } from '../../services/card-editor-c
     AngularEditorModule, FormsModule, HttpClientModule  //, HttpClient, HttpRequest
   ],
   templateUrl: './card-face-rte.component.html',
-  styleUrl: './card-face-rte.component.scss'
+  styleUrl: './card-face-rte.component.scss',
+  providers: [
+    {
+      provide: SANITIZE_STYLE,
+      useValue: sanitizeStyle
+    }
+  ]
 })
 export class CardFaceRteComponent {
   /*
@@ -33,9 +43,12 @@ handleError @ core.mjs:6673
 Show 1 more frame
 Show less
   */
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-   private cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
+  private cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
+
+  private readonly dompurifySanitizer: NgDompurifySanitizer = inject(NgDompurifySanitizer);
+  private readonly sanitizeStyle: SanitizeStyle = inject(SANITIZE_STYLE);
 
   htmlContent: string = '';
   isEditable: boolean = false;
@@ -106,7 +119,7 @@ upload:: This is the name of the function.
       enableToolbar: true,
       showToolbar: true,
       placeholder: (this.isEditable) ? 'Enter text here...' : '',
-      sanitize: true,
+      sanitize: false, // NOTE: use DOMPurify & onvert to BBCode to sanitise it
       fonts: [
         { class: 'arial', name: 'Arial' },
         { class: 'times-new-roman', name: 'Times New Roman' },
@@ -158,6 +171,16 @@ upload:: This is the name of the function.
     // Your logic here
     console.log('Editor content changed:', updatedHtml);
 
+    // NOTE: We want to sanitize the style too because we're saving it to the database
+    updatedHtml = this.sanitizeStyle(updatedHtml);
+
+    console.log(`Sanitised style: ${updatedHtml}`);
+
+    // https://medium.com/angular-in-depth/warning-sanitizing-html-stripped-some-content-and-how-to-deal-with-it-properly-10ff77012d5a
+    updatedHtml = this.dompurifySanitizer.sanitize(SecurityContext.HTML, updatedHtml);
+    
+    console.log(`Sanitised HTML: ${updatedHtml}`);
+    
     this.cardEditorControlsDesignRteService.setOnRteTextChange(updatedHtml);
   }
 }

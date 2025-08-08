@@ -6,6 +6,7 @@ import { distinctUntilChanged, from, switchMap } from 'rxjs';
 import { FileMetadata } from '../../../../utils/models/file-metadata';
 import { blobToDataURL, clamp, Coordinates, Dimensions, Threshold } from '../../../../utils/utils';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
+import { snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
 import { Style } from '../../../style/models/style';
 import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from '../../models/card-face-element';
@@ -14,13 +15,12 @@ import { CardEditorControlsDesignImageService } from '../../services/card-editor
 import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
 import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../utils/card-editor-face-preview.constants';
 import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MAX_CURRENT_ELEMENTS_PER_CARD_FACE, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { getCardFaceElementImage, getCardFaceElementRt } from '../../utils/card-game-core.utils';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
-import { snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
-import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../utils/card-editor-face-preview.constants';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
@@ -478,7 +478,8 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
         if (cardFaceElementRt === undefined)
           throw new Error("Card face element rich text is undefined");
 
-        (cardFaceElementRt.cardFaceElementContent as string) = text;
+        cardFaceElementRt.cardFaceElementContent = text;
+        console.log(`BBCode Card Face Element Rich Text: ${cardFaceElementRt.cardFaceElementContent}`);
     })
   }
 
@@ -593,7 +594,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
   }
 
   onResizableChange(dimensions: Dimensions) {
-    console.log(`On Dimensions change - Current edited card face element ID: ${this.currentEditedCardFaceElementId}, Image HTML Content Attributes: ${JSON.stringify(dimensions)}`);
+    // console.log(`On Dimensions change - Current edited card face element ID: ${this.currentEditedCardFaceElementId}, Image HTML Content Attributes: ${JSON.stringify(dimensions)}`);
 
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = this.getCurrentCardFaceElementPerCardFaceByElementId(this.currentEditedCardFaceElementId);
 

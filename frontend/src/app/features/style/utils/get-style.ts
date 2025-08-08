@@ -707,9 +707,11 @@ export function getStyle(model: any): Style {
 }
 
 export function filterAgainstNull(style: Omit<Style, 'styleId'>): Omit<Style, 'styleId'> {
-    let filtered = Object.entries(style)
+    let filtered: {
+        [key: string]: string;
+    } = Object.entries(style)
         .filter(([key, value]) => value !== null && value !== undefined && value !== '')
-        .reduce((acc, [key, value]) => {
+        .reduce((acc: { [key: string]: string }, [key, value]) => {
             acc[key] = value;
             return acc;
         }, {} as { [key: string]: string });
