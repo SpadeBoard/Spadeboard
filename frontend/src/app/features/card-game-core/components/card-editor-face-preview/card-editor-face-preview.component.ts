@@ -55,10 +55,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         id: 0,
         name: 'Import Card (.sbd)',
         action: (cardEditorCardDto: CardEditorCardDto) => {
-          if (!window.confirm('The currently opened card will be overridden in the editor. Are you sure you want to continue importing a new card?')) {
-            return;
-          }
-
           // CHECKME: You should be able to import cards that have already been deleted and elements that have been already deleted
           if (!cardEditorCardDto)
             throw new Error("No card editor card dto to be found");
@@ -76,7 +72,10 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
               this.cardEditorPreviewService.setOnCreateCardEditorCardDto(cardEditorCardDto);
 
-              this.cardEditorPreviewService.setCardEditorCardDtoByCardId(cardEditorCardDto.card.cardId);
+              // TODO: Make a flag that can automatically just open the card in the editor
+              if (window.confirm('Open imported card in editor? The currently opened card will be overridden in the editor..')) {
+                this.cardEditorPreviewService.setCardEditorCardDtoByCardId(cardEditorCardDto.card.cardId);
+              }
             });
           });
           
