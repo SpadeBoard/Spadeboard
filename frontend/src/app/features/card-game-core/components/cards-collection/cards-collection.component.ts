@@ -15,6 +15,7 @@ import { CardGameCoreService } from '../../services/card-game-core/card-game-cor
 import { isCard } from '../../utils/card-game-core.utils';
 import { CardComponent } from '../card/card.component';
 import { CardEditorCardDtoApiService } from '../../services/card-game-core/api/card-editor-card-dto-api.service';
+import { DEFAULT_CARD_SCALE } from '../../utils/card.constants';
 
 @Component({
   selector: 'app-cards-collection',
@@ -282,6 +283,10 @@ export class CardsCollectionComponent {
 
     if (card)
       item.action(card);
+  }
+
+  getDefaultCardScale(): number {
+    return DEFAULT_CARD_SCALE;
   }
 
   // TODO: Refactor, use the gameRoomService here and the cardPositionPerRoomApiService here instead, pass in the item index for the subject to then communicate with the DndBoard

@@ -17,6 +17,7 @@ import { CardPositionPerRoomApiService } from '../../services/card-game-core/api
 import { CardComponent } from '../card/card.component';
 import { DEFAULT_CARD_FACE_DIMENSIONS, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
 import { CardFaceImage } from '../../utils/card-face.utils';
+import { DEFAULT_CARD_SCALE } from '../../utils/card.constants';
 
 @Component({
   selector: 'app-card-position-per-room',
@@ -50,7 +51,8 @@ export class CardPositionPerRoomComponent {
  private overlappedCprs: Map<string, CardPositionPerRoom[]> = new Map();
 
   // TODO: Refactor the bloody architecture
-  cardsPositionPerRoomScale: number = 1;
+  // TODO: Replace the card scale here
+  cardsPositionPerRoomScale: number = DEFAULT_CARD_SCALE;
   
   private dragOffset: Coordinates = {x: 0, y: 0};
 

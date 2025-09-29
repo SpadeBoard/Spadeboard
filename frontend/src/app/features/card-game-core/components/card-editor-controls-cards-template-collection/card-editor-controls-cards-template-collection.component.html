@@ -2,7 +2,7 @@
     <app-card [card]="new" [title] ="new.cardName" (click)="onClickCard($event, new.cardId)"/>
     @if (cards.length > 0) {
         @for (card of cards; track card.cardId) {
-        <app-card [card]="card" [title]="card.cardName" (click)="onClickCard($event, card.cardId)"
+        <app-card [cardScale] = "getDefaultCardScale()" [card]="card" [title]="card.cardName" (click)="onClickCard($event, card.cardId)"
             (contextmenu)="onCardRightClick($event, card.cardId)" />
 
             @if (card.cardId !== getCurrentEditedCardId()) {

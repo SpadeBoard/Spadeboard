@@ -4,7 +4,7 @@ import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject,
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import html2canvas from 'html2canvas';
 import { distinctUntilChanged, from, map, Observable, switchMap } from 'rxjs';
-import { clamp, Coordinates, exportCustomTypeFile, getMidpoint } from '../../../../utils/utils';
+import { clamp, Coordinates, exportCustomTypeFile, flattenToImage, getMidpoint } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { BorderDimensions, Style } from '../../../style/models/style';
@@ -380,35 +380,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     })
   }
 
-  private flattenCardFaceToImage(cardEditorFace: ElementRef<any>): Promise<FormData> {
-    return new Promise((resolve, reject) => {
-      // TODO: Pass in the ref and scale as parameters
-      html2canvas(cardEditorFace.nativeElement, {
-        scale: 0.45,
-        backgroundColor: "transparent"
-      })
-        .then((canvas: any) => {
-          canvas.toBlob((blob: Blob | null) => {
-            if (!blob /*|| cardFace === undefined || cardFace?.cardFaceThumbnailFilePath === undefined*/) {
-              reject(new Error('Canvas blob is null'));
-              return;
-            }
-
-            let formData = new FormData();
-            
-            formData.append('formFile', blob);
-            // console.log(cardFaceFileName);
-            // console.log(`Form data: ${JSON.stringify(formData.values)}`);
-
-            resolve(formData);
-          }, 'image/jpg', 0.8);
-        })
-        .catch((error: any) => {
-          reject(error);
-        });
-    });
-  }
-
   updateCardEditorCardFaceDto() {
     this.setCardFaceThumbnailImage$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
       .pipe(
@@ -442,7 +413,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private updateCardFaceImages$(cardFaceIndexToTakeImageOf: number): Observable<FormData[]> {
-    return from(this.flattenCardFaceToImage(this.cardEditorFace)).pipe(
+    return from(flattenToImage(this.cardEditorFace)).pipe(
       map((value: FormData) => {
         this.cardEditorPreviewService.cardFaceImages [cardFaceIndexToTakeImageOf] = value;
         return this.cardEditorPreviewService.cardFaceImages;
@@ -452,7 +423,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private setCardFaceThumbnailImage$(cardFaceIndex: number): Observable<string | undefined> {
-    return from(this.flattenCardFaceToImage(this.cardEditorFace)).pipe(
+    return from(flattenToImage(this.cardEditorFace)).pipe(
       switchMap((cardFaceThumbnailImage: FormData) =>
         this.cardEditorPreviewService
           .createCardFaceThumbnailImage$(cardFaceIndex, cardFaceThumbnailImage)
