@@ -1,7 +1,7 @@
 import { Dimensions } from "ngx-image-cropper";
-import { CardFaceImage } from "./card-face.utils";
-import { CardFace } from "../models/card-face";
 import { Style } from "../../style/models/style";
+import { CardFace } from "../models/card-face";
+import { CardFaceImage } from "./card-face.utils";
 
 export const DEFAULT_CARD_FACE_PLACEHOLDER_SRC: string = '/blank-card-canvas.svg';
 export const DEFAULT_CARD_FACE_PLACEHOLDER_ALT: string = 'Placeholder card face';

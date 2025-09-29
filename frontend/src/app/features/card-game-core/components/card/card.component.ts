@@ -6,9 +6,11 @@ import { CommonModule } from '@angular/common';
 import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
 import { CardFace } from '../../models/card-face';
 import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
-import { DEFAULT_CARD_FACE_DIMENSIONS, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
+import { getDefaultCardEditorCardFaceDimensions } from '../../utils/card-editor.constants';
+import { DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
 import { CardFaceImage } from '../../utils/card-face.utils';
 import { CardFaceComponent } from '../card-face/card-face.component';
+import { Dimensions } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-card',
@@ -49,11 +51,27 @@ export class CardComponent {
     });
   }
 
+  // TODO: Grab the dimensions of the first card face, always, check and see if there's a dimension associated with it
+  private defaultCardFaceDimensions: Dimensions = getDefaultCardEditorCardFaceDimensions();
+
+  private setDefaultDimensionsFromFrontFace(): void {
+    // NOTE: The reason why we do this is so let's say we have no back face, the blank placeholder will still maintain the same dimensions as the face that has dimensions
+    // ASSUMPTION: First face will always have an image due to the canvas taking an image of it on creation/update
+    // FIXME: Why is this not working
+    let image: CardFaceImage | undefined = this.cardFaceImages.get(0);
+    
+    if (!image) return;
+
+    this.defaultCardFaceDimensions = image.dimensions;
+  }
+
   getCurrentCardFaceImage(): CardFaceImage {
     let currentCardFaceIndex: number = this.card().currentCardFaceIndex;
 
+    // NOTE: The reason is because we currently pass in the card scale as the DEFAULT_CARD_SCALE
+    // CHECKME: Make sure we actually want to do this and potentially modify it to be more easy to manage in the future
     if (!this.cardFaceImages.has(currentCardFaceIndex)) {
-      return getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS);
+      return getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, this.defaultCardFaceDimensions);
     }
 
     return this.cardFaceImages.get(currentCardFaceIndex)!;
@@ -73,7 +91,8 @@ export class CardComponent {
         this.getCardFaceImageSrc(cardFace).then((image: HTMLImageElement | undefined) => {
           if (!image) {
             console.warn(`No image associated with ${cardFace.cardFaceId}`);
-            this.cardFaceImages.set(idx, getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS));
+            
+            this.cardFaceImages.set(idx, getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, this.defaultCardFaceDimensions));
             return;
           }
 

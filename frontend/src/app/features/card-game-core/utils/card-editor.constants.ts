@@ -1,3 +1,4 @@
+import { Dimensions } from "ngx-image-cropper";
 import { Style } from "../../style/models/style";
 import { CardEditorCardDto } from "../models/card";
 import { CardFaceImage } from "./card-face.utils";
@@ -18,6 +19,13 @@ export const DEFAULT_CARD_FACE_BACKGROUND_COLOR: string = "#fefffe";
 export const DEFAULT_CARD_FACE_BORDER_COLOR: string = "#fefffe";
 export const DEFAULT_CARD_FACE_BORDER_WIDTH: number = 2;
 export const DEFAULT_CARD_FACE_BORDER_RADIUS: number = 10;
+
+export function getDefaultCardEditorCardFaceDimensions(): Dimensions {
+  return {
+      width: DEFAULT_CARD_FACE_WIDTH,
+      height: DEFAULT_CARD_FACE_HEIGHT
+    }
+}
 
 export const DEFAULT_CARD_EDITOR_FACE_STYLE: Style = {
     styleId: "0",

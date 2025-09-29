@@ -10,10 +10,11 @@ import { TagsPerCardApiService } from '../../services/card-game-core/api/tags-pe
 import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';
 import { CardComponent } from '../card/card.component';
 import { DEFAULT_CARD_SCALE } from '../../utils/card.constants';
+import { NewCardTemplateCollectionComponent } from '../new-card-template-collection/new-card-template-collection.component';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
-  imports: [CardComponent, CardDeleteButtonComponent, CommonModule, ActionContextMenuComponent],
+  imports: [NewCardTemplateCollectionComponent, CardComponent, CardDeleteButtonComponent, CommonModule, ActionContextMenuComponent],
   templateUrl: './card-editor-controls-cards-template-collection.component.html',
   styleUrl: './card-editor-controls-cards-template-collection.component.scss'
 })
