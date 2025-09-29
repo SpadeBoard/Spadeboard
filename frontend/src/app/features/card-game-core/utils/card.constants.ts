@@ -1,0 +1,1 @@
+export const DEFAULT_CARD_SCALE: number = 0.45;

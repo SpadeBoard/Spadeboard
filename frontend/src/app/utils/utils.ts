@@ -281,7 +281,7 @@ html2canvas(element, { scale: 1 }).then(function(originalCanvas) {
 
 
 // https://stackoverflow.com/a/50736279
-export async function flattenToImage(elementRef: ElementRef<any>, scales: { og: number; scaled: number } = { og: 1.0, scaled: 0.45 }, backgroundColor: string = 'transparent'): Promise<FormData> {
+export async function flattenToImage(elementRef: ElementRef<any>, scale: number = 1.0, dpi: number = 96, backgroundColor: string = 'transparent'): Promise<FormData> {
     function factor(dpi: number = 600): number {
        // DPI is around 96 when scale is 1, and 300 DPI is around 3
         return Math.floor(dpi/96);  
@@ -290,7 +290,7 @@ export async function flattenToImage(elementRef: ElementRef<any>, scales: { og: 
     return new Promise((resolve, reject) => {
         // TODO: Pass in the ref and scale as parameters
         html2canvas(elementRef.nativeElement, {
-            scale: scales.og * factor(), // DPI is around 96 when scale is 1, and 300 DPI is around 3
+            scale: scale * factor(dpi), // DPI is around 96 when scale is 1, and 300 DPI is around 3
             backgroundColor: backgroundColor
         })
             .then((canvas: any) => {
@@ -300,17 +300,14 @@ export async function flattenToImage(elementRef: ElementRef<any>, scales: { og: 
                         return;
                     }
 
-                    let reduce: ImageBlobReduce.ImageBlobReduce = ImageBlobReduce();
-                    let reducedBlob: Blob = await reduce.toBlob(blob, {max: Math.max(scales.scaled * (canvas.width / factor()), scales.scaled * (canvas.height / factor()))});
-
                     let formData = new FormData();
 
-                    formData.append('formFile', reducedBlob);
+                    formData.append('formFile', blob);
                     // console.log(cardFaceFileName);
                     // console.log(`Form data: ${JSON.stringify(formData.values)}`);
 
                     resolve(formData);
-                }, 'image/jpg', 0.8);
+                }, 'image/png', 0.8);
             })
             .catch((error: any) => {
                 reject(error);

@@ -9,6 +9,7 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { TagsPerCardApiService } from '../../services/card-game-core/api/tags-per-card-api.service';
 import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';
 import { CardComponent } from '../card/card.component';
+import { DEFAULT_CARD_SCALE } from '../../utils/card.constants';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
@@ -20,6 +21,10 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
   private readonly tagsPerCardApiService: TagsPerCardApiService = inject(TagsPerCardApiService);;
 
+  getDefaultCardScale(): number {
+    return DEFAULT_CARD_SCALE;
+  }
+  
   cards: Card[] = [];
 
   new: Card =  {
