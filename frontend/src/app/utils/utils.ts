@@ -1,4 +1,21 @@
+import { ElementRef } from "@angular/core";
 import { SafeUrl } from "@angular/platform-browser";
+import html2canvas from "html2canvas";
+import { FileMetadata, FileMetadataStatus } from "./models/file-metadata";
+import { Observable, tap } from "rxjs";
+import { FileMetadataApiService } from "./services/file-metadata-api.service";
+import ImageBlobReduce, { ResizeOptions } from 'image-blob-reduce';
+
+export function getDefaultFileMetadata(): FileMetadata {
+    return {
+        fileMetadataId: "",
+        volumePath: "",
+        fileName: "",
+        fileMetadataStatus: FileMetadataStatus.Pending,
+        creationDate: null
+    }
+}
+
 
 export function clamp(value: number, min: number, max: number): number {
     // console.log(`[CLAMP] value: ${value}, min: ${min}, max: ${max}`);
@@ -51,6 +68,14 @@ export async function blobToDataURL(blobUrl: string): Promise<string> {
         reader.readAsDataURL(blob);
     });
 }
+
+export function createImageFromBlob(blob: Blob): HTMLImageElement {
+  let image: HTMLImageElement = new Image();
+  let objectUrl: string = URL.createObjectURL(blob);
+  image.src = objectUrl;
+  return image;
+}
+
 
 // TODO: Refactor all these functions, probably should split them into smaller files
 export function getScaledItemRenderDimensions(
@@ -234,3 +259,223 @@ export function exportCustomTypeFile(data: any | JSONValue, filename: string, ex
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+/* https://html2canvas.net/how-to-convert-canvas-to-base64-image/
+// Step 1: html2canvas with scale 1
+html2canvas(element, { scale: 1 }).then(function(originalCanvas) {
+  // Step 2: Create secondary canvas for scaling down
+  const scale = 0.45;
+  const width = originalCanvas.width * scale;
+  const height = originalCanvas.height * scale;
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = width;
+  tmpCanvas.height = height;
+  const ctx = tmpCanvas.getContext('2d');
+  ctx.drawImage(originalCanvas, 0, 0, width, height);
+
+  // Step 3: Output the resized image if needed
+  const dataUrl = tmpCanvas.toDataURL('image/png');
+  // ...save or use the dataUrl as required
+});
+*/
+
+export function flattenToImage(elementRef: ElementRef<any>, scales: { og: number; scaled: number } = { og: 1.0, scaled: 0.45 }, backgroundColor: string = 'transparent'): Promise<FormData> {
+    return new Promise((resolve, reject) => {
+        // TODO: Pass in the ref and scale as parameters
+        html2canvas(elementRef.nativeElement, {
+            scale: scales.og,
+            backgroundColor: backgroundColor
+        })
+            .then((canvas: any) => {
+                let tmp: any = document.createElement('canvas');
+                tmp.width = canvas.width * scales.scaled;
+                tmp.height = canvas.height * scales.scaled;
+
+                let ctx: any = tmp.getContext('2d');
+                ctx.drawImage(canvas, 0, 0, tmp.width, tmp.height);
+
+                return tmp;
+            })
+            .then((canvas: any) => {
+                canvas.toBlob((blob: Blob | null) => {
+                    if (!blob /*|| cardFace === undefined || cardFace?.cardFaceThumbnailFilePath === undefined*/) {
+                        reject(new Error('Canvas blob is null'));
+                        return;
+                    }
+
+                    let formData: FormData = new FormData();
+
+                    formData.append('formFile', blob);
+                    // console.log(cardFaceFileName);
+                    // console.log(`Form data: ${JSON.stringify(formData.values)}`);
+
+                    resolve(formData);
+                }, 'image/png', 0.8);
+            })
+            .catch((error: any) => {
+                reject(error);
+            });
+    });
+}
+
+// TODO: Rename function
+// https://www.npmjs.com/package/image-blob-reduce
+// TODO: Make another utility function for using image-blob-reduce, pass in the FormData or a blob, if it's a form data, grab that blob
+// And then scale the quality down by an array of default image quality values
+
+/*
+import ImageBlobReduce from 'image-blob-reduce';
+
+// Create reducer instance
+const reduce = ImageBlobReduce();
+
+async function reduceBlobInFormData(originalFormData: FormData): Promise<FormData> {
+  // Assuming the blob is stored with key 'file'
+  const originalBlob = originalFormData.get('file') as Blob;
+
+  if (!originalBlob) {
+    throw new Error('No file blob found in FormData');
+  }
+
+  // Reduce the blob size (resize max dimension 1000px)
+  const reducedBlob = await reduce.toBlob(originalBlob, { max: 1000 });
+
+  // Create new FormData and copy all other entries except 'file'
+  const newFormData = new FormData();
+  originalFormData.forEach((value, key) => {
+    if (key !== 'file') {
+      newFormData.append(key, value);
+    }
+  });
+
+  // Append the reduced blob with the same key and original filename if available
+  const fileName = (originalBlob as any).name || 'file.jpg'; // fallback filename
+  newFormData.append('file', reducedBlob, fileName);
+
+  return newFormData;
+}
+*/
+
+export async function generateResizedImagesAtQualities(
+    image: FormData,
+    key: string = 'formFile',
+    scales: number[] = [0.8, 0.6, 0.4, 0.2]
+): Promise<FormData> {
+    let images: FormData = new FormData();
+    let reduce: ImageBlobReduce.ImageBlobReduce = ImageBlobReduce();
+
+    interface ExtendedResizeOptions extends ResizeOptions {
+        quality?: number;
+    }
+
+    reduce.before('_create_blob', async (env: any) => {
+        env.opts.quality = env.opts.quality ?? 0.8;
+        return env;
+    });
+
+    let blob: Blob = image.get(key) as Blob;
+
+    if (!blob) throw new Error('No file blob found in form data');
+
+    images.append('formFiles', blob, `image_${1.0}.jpg`);
+
+    await Promise.all(scales.map(async (scale: number) => {
+        let opts: ExtendedResizeOptions = { quality: scale };
+        let reducedBlob: Blob = await reduce.toBlob(blob, opts);
+        images.append('formFiles', reducedBlob, `image_${scale}.jpg`);
+    }));
+
+    return images;
+}
+
+// TODO: Normalise function 
+// https://www.statology.org/normalize-data-between-0-and-1/
+export function normalize(value: number, min: number, max: number): number {
+    return (value - min) / (max - min);
+}
+
+// TODO: Maybe make it dynamic and calculate the LOD instead
+// Calculate how many levels of detail there are, normalise it between 0 - 1
+// Then use that to compare to the scale
+export function getLodIndex(scale: number, lodsAmt: number = 5): number {
+    if (scale > 1) scale = normalize(scale, 0, 1);
+    return Math.floor(clamp((scale * lodsAmt) - 1, 0, lodsAmt - 1)); // Because the LODs start with 0
+}
+
+// LOD levels:
+  // 1.0 - LOD 0
+  // 0.8 - LOD 1
+  // 0.6 - LOD 2
+  // 0.4 - LOD 3
+  // 0.2 - LOD 4
+export function flattenToImages(elementRef: ElementRef<any>, scales: number[] = [1.0, 0.8, 0.6, 0.4, 0.2], backgroundColor: string = 'transparent'
+): Promise<FormData> {
+    let formData: FormData = new FormData();
+
+    let promises: Promise<void>[] = scales.map(scale =>
+        html2canvas(elementRef.nativeElement, {
+            scale: scale,
+            backgroundColor: backgroundColor,
+        }).then((canvas: any) =>
+            new Promise<void>((resolve, reject) => {
+                canvas.toBlob((blob: Blob | null) => {
+                    if (!blob) {
+                        reject(new Error(`Canvas blob is null for scale ${scale}`));
+                        return;
+                    }
+                    // Append with unique filename so backend can tell them apart
+                    formData.append('formFiles', blob, `image_${scale}.jpg`);
+                    resolve();
+                }, 'image/jpeg', 0.8);
+            })
+        )
+    );
+
+    return Promise.all(promises).then(() => formData);
+}
+
+// CHECKME: Would this work, the FileMetadataApiService being passed through part
+export function createFilesMetadata(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileNames: string[], fileMetadataStatus: FileMetadataStatus): Observable<FileMetadata[] | undefined> {
+    let filesMetadata: FileMetadata[] = [];
+
+    fileNames.forEach((fileName) => {
+      let fileMetadata: FileMetadata = {
+        fileMetadataId: '0',
+        volumePath: volumePath,
+        fileName: fileName,
+        creationDate: new Date(),
+        fileMetadataStatus: fileMetadataStatus
+      };
+
+      filesMetadata.push(fileMetadata);
+    });
+
+    return fileMetadataApiService.createFilesMetadata$(filesMetadata).pipe(
+      tap(result => {
+        if (result === undefined) {
+          throw new Error("File metadata wasn't able to be created");
+        }
+        console.log(`Created file metadata: ${JSON.stringify(result, null, 2)}`);
+      })
+    );
+  }
+
+export function createFileMetadata(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileName: string, fileMetadataStatus: FileMetadataStatus
+  ): Observable<FileMetadata | undefined> {
+    let fileMetadata: FileMetadata = {
+      fileMetadataId: '0',
+      volumePath: volumePath,
+      fileName: fileName,
+      creationDate: new Date(),
+      fileMetadataStatus: fileMetadataStatus
+    };
+
+    return fileMetadataApiService.createFileMetadata$(fileMetadata).pipe(
+      tap(result => {
+        if (result === undefined) {
+          throw new Error("File metadata wasn't able to be created");
+        }
+        console.log(`Created file metadata: ${JSON.stringify(result, null, 2)}`);
+      })
+    );
+  }
