@@ -279,38 +279,38 @@ html2canvas(element, { scale: 1 }).then(function(originalCanvas) {
 });
 */
 
-export function flattenToImage(elementRef: ElementRef<any>, scales: { og: number; scaled: number } = { og: 1.0, scaled: 0.45 }, backgroundColor: string = 'transparent'): Promise<FormData> {
+
+// https://stackoverflow.com/a/50736279
+export async function flattenToImage(elementRef: ElementRef<any>, scales: { og: number; scaled: number } = { og: 1.0, scaled: 0.45 }, backgroundColor: string = 'transparent'): Promise<FormData> {
+    function factor(dpi: number = 600): number {
+       // DPI is around 96 when scale is 1, and 300 DPI is around 3
+        return Math.floor(dpi/96);  
+    }
+    
     return new Promise((resolve, reject) => {
         // TODO: Pass in the ref and scale as parameters
         html2canvas(elementRef.nativeElement, {
-            scale: scales.og,
+            scale: scales.og * factor(), // DPI is around 96 when scale is 1, and 300 DPI is around 3
             backgroundColor: backgroundColor
         })
             .then((canvas: any) => {
-                let tmp: any = document.createElement('canvas');
-                tmp.width = canvas.width * scales.scaled;
-                tmp.height = canvas.height * scales.scaled;
-
-                let ctx: any = tmp.getContext('2d');
-                ctx.drawImage(canvas, 0, 0, tmp.width, tmp.height);
-
-                return tmp;
-            })
-            .then((canvas: any) => {
-                canvas.toBlob((blob: Blob | null) => {
+                canvas.toBlob(async (blob: Blob | null) => {
                     if (!blob /*|| cardFace === undefined || cardFace?.cardFaceThumbnailFilePath === undefined*/) {
                         reject(new Error('Canvas blob is null'));
                         return;
                     }
 
-                    let formData: FormData = new FormData();
+                    let reduce: ImageBlobReduce.ImageBlobReduce = ImageBlobReduce();
+                    let reducedBlob: Blob = await reduce.toBlob(blob, {max: Math.max(scales.scaled * (canvas.width / factor()), scales.scaled * (canvas.height / factor()))});
 
-                    formData.append('formFile', blob);
+                    let formData = new FormData();
+
+                    formData.append('formFile', reducedBlob);
                     // console.log(cardFaceFileName);
                     // console.log(`Form data: ${JSON.stringify(formData.values)}`);
 
                     resolve(formData);
-                }, 'image/png', 0.8);
+                }, 'image/jpg', 0.8);
             })
             .catch((error: any) => {
                 reject(error);
@@ -400,38 +400,6 @@ export function normalize(value: number, min: number, max: number): number {
 export function getLodIndex(scale: number, lodsAmt: number = 5): number {
     if (scale > 1) scale = normalize(scale, 0, 1);
     return Math.floor(clamp((scale * lodsAmt) - 1, 0, lodsAmt - 1)); // Because the LODs start with 0
-}
-
-// LOD levels:
-  // 1.0 - LOD 0
-  // 0.8 - LOD 1
-  // 0.6 - LOD 2
-  // 0.4 - LOD 3
-  // 0.2 - LOD 4
-export function flattenToImages(elementRef: ElementRef<any>, scales: number[] = [1.0, 0.8, 0.6, 0.4, 0.2], backgroundColor: string = 'transparent'
-): Promise<FormData> {
-    let formData: FormData = new FormData();
-
-    let promises: Promise<void>[] = scales.map(scale =>
-        html2canvas(elementRef.nativeElement, {
-            scale: scale,
-            backgroundColor: backgroundColor,
-        }).then((canvas: any) =>
-            new Promise<void>((resolve, reject) => {
-                canvas.toBlob((blob: Blob | null) => {
-                    if (!blob) {
-                        reject(new Error(`Canvas blob is null for scale ${scale}`));
-                        return;
-                    }
-                    // Append with unique filename so backend can tell them apart
-                    formData.append('formFiles', blob, `image_${scale}.jpg`);
-                    resolve();
-                }, 'image/jpeg', 0.8);
-            })
-        )
-    );
-
-    return Promise.all(promises).then(() => formData);
 }
 
 // CHECKME: Would this work, the FileMetadataApiService being passed through part
