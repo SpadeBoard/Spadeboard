@@ -15,6 +15,7 @@ import { isCardEditorCardDto } from '../utils/card-game-core.utils';
 import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-card-dto-api.service';
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
 import { TagsPerCardApiService } from './card-game-core/api/tags-per-card-api.service';
+import { getDefaultCardFace } from '../utils/card-face.constants';
 
 @Injectable({
   providedIn: 'root'
@@ -31,12 +32,7 @@ export class CardEditorPreviewService {
   cardEditorCardDto: CardEditorCardDto = getBlankCardTemplate(DEFAULT_CARD_EDITOR_FACE_STYLE, '5811e387-1551-4090-9485-a3ebe30efb5a');
 
   currentCardEditorCardFaceDto: CardEditorCardFaceDto = {
-    cardFace: {
-      cardFaceId: "0",
-      style: {
-        styleId: "0"
-      }
-    },
+    cardFace: getDefaultCardFace(),
     cardFaceElementsPerCardFace: []
   };
 
