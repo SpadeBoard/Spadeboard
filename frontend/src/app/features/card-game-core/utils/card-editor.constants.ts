@@ -57,12 +57,13 @@ export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEdit
       cardEditorCardFacesDto: [
         {
           cardFace: getDefaultCardFace("0", { ...style }),
-          cardFaceElementsPerCardFace: [
-          ]
+          cardFaceElementsPerCardFace: [],
+          fileMetadataLods: []
         },
         {
           cardFace: getDefaultCardFace("-1", { ...style }),
-          cardFaceElementsPerCardFace: []
+          cardFaceElementsPerCardFace: [],
+          fileMetadataLods: []
         }
       ],
       tagNames: []

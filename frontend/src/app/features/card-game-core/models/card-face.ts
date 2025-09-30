@@ -10,5 +10,6 @@ export interface CardFace {
 
 export interface CardEditorCardFaceDto {
     cardFace: CardFace;
+    fileMetadataLods: FileMetadata[];
     cardFaceElementsPerCardFace: CardFaceElementPerCardFace[];
 }
