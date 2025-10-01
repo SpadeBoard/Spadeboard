@@ -16,6 +16,7 @@ import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-ca
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
 import { TagsPerCardApiService } from './card-game-core/api/tags-per-card-api.service';
 import { getDefaultCardFace } from '../utils/card-face.constants';
+import { createFilesMetadata } from '../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +34,8 @@ export class CardEditorPreviewService {
 
   currentCardEditorCardFaceDto: CardEditorCardFaceDto = {
     cardFace: getDefaultCardFace(),
-    cardFaceElementsPerCardFace: []
+    cardFaceElementsPerCardFace: [],
+    fileMetadataLods: []
   };
 
   cardFaceImages: FormData[] = [];
@@ -233,6 +235,57 @@ export class CardEditorPreviewService {
     this.setCurrentCardEditorCardFaceDto();
 
     this.postFlip$$.next();
+  }
+
+  createCardFaceThumbnailImages$(cardEditorCardDto: CardEditorCardDto, cardFaceIndex: number, cardFaceThumbnailImages: FormData): Observable<string[] | undefined> {
+    if (!cardFaceThumbnailImages) {
+      return of(undefined);
+    }
+
+    return this.fileUploadApiService.uploadFiles$(cardFaceThumbnailImages, 'card-face').pipe(
+      switchMap((result: string[] | undefined) => {
+        // TODO: Why are the upload files not working
+        console.log('Upload card face thumbnail image result:', result);
+        if (!result || result.length <= 0) return of(undefined);
+
+
+        // ASSUMPTION: The cardFacePerLods already have elements beforehand, set in the blank card template
+        // CHECKME: Would we even need this check
+        /*if (!cardFacePerLods || cardFacePerLods.length === 0)
+          throw Error("No LODs associated with card face to add thumbnail images to");*/
+
+        // console.log(`Card face thumbnail LODs before orphaning file metadata: ${JSON.stringify(cardFacePerLods, null, 2)}`);
+
+        // Because files are automatically created, we just want to delay and see whether we'd need to delete those files in the first place
+        // As this is before saving or creating
+        cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods.map((fm: FileMetadata) => {
+          this.orphanedFileMetadata.push(fm);
+        });
+
+        // TODO: Really do replace this, it shouldn't be here
+        let cardFaceFilePath: string = "/app/backend/card-face-thumbnail-images";
+
+        // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
+        // When we get to that point, the backend will handle setting creationDate to null
+        return createFilesMetadata(this.fileMetadataApiService, cardFaceFilePath, result, FileMetadataStatus.Pending).pipe(
+          map((filesMetadata: FileMetadata[] | undefined) => {
+            if (!filesMetadata || filesMetadata.length <= 0)
+              return result;
+
+            cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods = filesMetadata;
+
+            let fileNames: string[] = [];
+
+            filesMetadata.forEach((fm: FileMetadata) => {
+              fileNames.push(fm.fileName);
+            });
+
+            return fileNames;
+          }),
+          takeUntilDestroyed(this.destroyRef)
+        );
+      })
+    )
   }
 
   // Again, this should be fine, we're not going to override anything, just upload the files and link to a new URL, because automatic file deletion's a thing we can do

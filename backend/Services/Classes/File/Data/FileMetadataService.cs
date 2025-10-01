@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Services;
 using Data;
 using Models.Files;
 using Microsoft.EntityFrameworkCore;
 
 namespace Services
 {
-    public class FileMetadataService(ApplicationDbContext context, IFileUploadService fileUploadService): IFileMetadataService
+    public class FileMetadataService(ApplicationDbContext context, IFileUploadService fileUploadService) : IFileMetadataService
     {
         private readonly ApplicationDbContext _context = context;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
@@ -18,6 +13,18 @@ namespace Services
         public async Task<FileMetadata> CreateAsync(FileMetadata item)
         {
             return await _crudService.CreateAsync(item);
+        }
+
+        public async Task<IEnumerable<FileMetadata>> CreateAllAsync(FileMetadata[] items)
+        {
+            List<FileMetadata> created = [];
+
+            foreach (FileMetadata item in items)
+            {
+                created.Add(await CreateAsync(item));
+            }
+
+            return created;
         }
 
         public async Task<bool> DeleteAsync(long id)
@@ -52,7 +59,8 @@ namespace Services
 
         public async Task<bool> UpdateAllAsync(FileMetadata[] fileMetadata)
         {
-            foreach (FileMetadata fileMetadatum in fileMetadata) {
+            foreach (FileMetadata fileMetadatum in fileMetadata)
+            {
                 await UpdateAsync(fileMetadatum.FileMetadataId, fileMetadatum);
             }
 
@@ -62,21 +70,23 @@ namespace Services
         public async Task<bool> UpdateStatusByVolumePathAndFileNameAsync(string volumePath, string fileName, FileMetadataStatus fileMetadataStatus)
         {
             FileMetadata? fileMetadata = await _context.FileMetadata.FirstOrDefaultAsync(f => f.VolumePath == volumePath && f.FileName == fileName);
-        
-            if (fileMetadata == null) {
+
+            if (fileMetadata == null)
+            {
                 return false;
             }
 
-            fileMetadata.FileMetadataStatus =fileMetadataStatus;
+            fileMetadata.FileMetadataStatus = fileMetadataStatus;
             int changes = await _context.SaveChangesAsync();
             return changes > 0;
         }
 
         public async Task<bool> MarkAsAttachedByIdAsync(long fileMetadataId)
         {
-             FileMetadata? fileMetadata =  await GetAsync(fileMetadataId);
+            FileMetadata? fileMetadata = await GetAsync(fileMetadataId);
 
-            if (fileMetadata == null) {
+            if (fileMetadata == null)
+            {
                 return false;
             }
 
@@ -86,9 +96,10 @@ namespace Services
 
         public async Task<bool> MarkAsOrphanedByIdAsync(long fileMetadataId)
         {
-            FileMetadata? fileMetadata =  await GetAsync(fileMetadataId);
+            FileMetadata? fileMetadata = await GetAsync(fileMetadataId);
 
-            if (fileMetadata == null) {
+            if (fileMetadata == null)
+            {
                 return false;
             }
 
@@ -98,19 +109,20 @@ namespace Services
 
         public async Task<bool> MarkPendingToOrphanedAsync()
         {
-           List<FileMetadata> pendingFiles = await _context.FileMetadata
-                .Where(f => f.FileMetadataStatus == FileMetadataStatus.Pending)
-                .ToListAsync();
+            List<FileMetadata> pendingFiles = await _context.FileMetadata
+                 .Where(f => f.FileMetadataStatus == FileMetadataStatus.Pending)
+                 .ToListAsync();
 
-            foreach (var file in pendingFiles) {
+            foreach (var file in pendingFiles)
+            {
                 file.FileMetadataStatus = FileMetadataStatus.Orphaned;
             }
 
             return await _context.SaveChangesAsync() > 0;
         }
 
-         public async Task<bool> DeleteFilesByThresholdDataAsync( DateTime thresholdDate, CancellationToken cancellationToken)
-         {
+        public async Task<bool> DeleteFilesByThresholdDataAsync(DateTime thresholdDate, CancellationToken cancellationToken)
+        {
             List<FileMetadata> oldFilesMetadata = await _context.FileMetadata
                         .Where(f => f.CreationDate != null && f.CreationDate < thresholdDate && f.FileMetadataStatus == FileMetadataStatus.Orphaned)
                         .ToListAsync(cancellationToken);
@@ -119,11 +131,11 @@ namespace Services
             {
                 // CHECKME: Should we have it be two separate processes, delete the file vs deleting model separately?
                 await _fileUploadService.DeleteFileAsync(fileMetadata.VolumePath, fileMetadata.FileName);
-                _context.FileMetadata.Remove(fileMetadata);    
+                _context.FileMetadata.Remove(fileMetadata);
             }
 
             int changes = await _context.SaveChangesAsync(cancellationToken);
             return changes > 0;
-         }
+        }
     }
 }
