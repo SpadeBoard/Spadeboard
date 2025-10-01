@@ -2,22 +2,21 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import html2canvas from 'html2canvas';
-import { distinctUntilChanged, from, map, Observable, switchMap } from 'rxjs';
-import { clamp, Coordinates, exportCustomTypeFile, flattenToImage, getMidpoint } from '../../../../utils/utils';
+import { distinctUntilChanged, from, Observable, switchMap } from 'rxjs';
+import { clamp, Coordinates, exportCustomTypeFile, flattenToImage, generateResizedImagesAtQualities, getMidpoint } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { BorderDimensions, Style } from '../../../style/models/style';
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { CardEditorCardDto } from '../../models/card';
+import { FileAuthenticationPerExportedCard } from '../../models/file-authentication-per-exported-card';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
-import { DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
-import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 import { FileAuthenticationPerExportedCardApiService } from '../../services/card-game-core/api/file-authentication-per-exported-card-api.service';
-import { FileAuthenticationPerExportedCard } from '../../models/file-authentication-per-exported-card';
+import { DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
+import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
+import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -166,7 +165,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    console.log(`After view init cef preview component: ${JSON.stringify(this.cardEditorFace.nativeElement)}`);
+    // console.log(`After view init cef preview component: ${JSON.stringify(this.cardEditorFace.nativeElement)}`);
   
     this.onFlip();
     this.getCardEditorFaceStyle();
@@ -319,7 +318,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardEditorPreviewService.updateCurrentCardFaceStyle(currentCardFaceStyle);
     this.cardEditorPreviewService.updateCardEditorCardFaceDto();
 
-    console.log(`Update current card editor card face dto\nCurrent card face: ${JSON.stringify(this.cardEditorPreviewService.getCurrentCardFace())}\nCurrent Card Editor Card Face Dto: ${JSON.stringify(this.cardEditorPreviewService.currentCardEditorCardFaceDto)}`);
+    console.log(`Update current card editor card face dto\nCurrent card face: ${JSON.stringify(this.cardEditorPreviewService.getCurrentCardFace(), null, 2)}\nCurrent Card Face Per Lods: ${JSON.stringify(this.cardEditorPreviewService.getCurrentCardFacePerLods, null, 2)}\nCurrent Card Editor Card Face Dto: ${JSON.stringify(this.cardEditorPreviewService.currentCardEditorCardFaceDto, null, 2)}`);
   }
 
   onBorderDimensionsChange() {
@@ -381,13 +380,12 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   updateCardEditorCardFaceDto() {
-    this.setCardFaceThumbnailImage$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+    this.setCardFaceThumbnailImages$(this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.getCurrentCardFaceIndex())
       .pipe(
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe((cardFaceThumbnailFilePath: string | undefined) => {
-        if (cardFaceThumbnailFilePath === "" || cardFaceThumbnailFilePath === undefined)
-        {
+      .subscribe((cardFaceThumbnailFilePaths: string[] | undefined) => {
+        if ( !cardFaceThumbnailFilePaths || cardFaceThumbnailFilePaths.length <= 0) {
           throw new Error("Card face thumbnail file path was never updated");
         }
 
@@ -407,22 +405,9 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       });
   }
 
-  updateCardFaceImagesForCurrentCardFace() {
-    this.updateCardFaceImages$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
-    .pipe(takeUntilDestroyed(this.destroyRef));
-  }
-
-  private updateCardFaceImages$(cardFaceIndexToTakeImageOf: number): Observable<FormData[]> {
-    return from(flattenToImage(this.cardEditorFace)).pipe(
-      map((value: FormData) => {
-        this.cardEditorPreviewService.cardFaceImages [cardFaceIndexToTakeImageOf] = value;
-        return this.cardEditorPreviewService.cardFaceImages;
-      }),
-      takeUntilDestroyed(this.destroyRef)
-    );
-  }
-
+  // CHECKME: Do we want to remove this eventually?
   private setCardFaceThumbnailImage$(cardFaceIndex: number): Observable<string | undefined> {
+    // TODO: Replace with flattenToImages
     return from(flattenToImage(this.cardEditorFace)).pipe(
       switchMap((cardFaceThumbnailImage: FormData) =>
         this.cardEditorPreviewService
@@ -433,13 +418,32 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     );
   }
 
+  // https://www.npmjs.com/package/image-blob-reduce
+  private setCardFaceThumbnailImages$(cardEditorCardDto: CardEditorCardDto, cardFaceIndex: number): Observable<string[] | undefined> {
+    return from(flattenToImage(this.cardEditorFace))
+      .pipe(
+        switchMap((originalThumbnail: FormData) =>
+          from(generateResizedImagesAtQualities(originalThumbnail)).
+            pipe(
+              switchMap((differentQualitiesThumbnails: FormData) =>
+                this.cardEditorPreviewService
+                  .createCardFaceThumbnailImages$(cardEditorCardDto, cardFaceIndex,differentQualitiesThumbnails)
+                  .pipe(takeUntilDestroyed(this.destroyRef))
+              )
+          )
+      ),
+      takeUntilDestroyed(this.destroyRef)
+    );
+  }
+
+
   createCard() {
-    this.setCardFaceThumbnailImage$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+    this.setCardFaceThumbnailImages$(this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.getCurrentCardFaceIndex())
       .pipe(
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe((cardFaceThumbnailFilePath: string | undefined) => {
-        if (cardFaceThumbnailFilePath === "" || cardFaceThumbnailFilePath === undefined) {
+      .subscribe((cardFaceThumbnailFilePaths: string[] | undefined) => {
+        if ( !cardFaceThumbnailFilePaths || cardFaceThumbnailFilePaths.length <= 0) {
           throw new Error("Card face thumbnail file path was never updated");
         }
 
@@ -473,12 +477,12 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   saveCard() {
-    this.setCardFaceThumbnailImage$(this.cardEditorPreviewService.getCurrentCardFaceIndex())
+    this.setCardFaceThumbnailImages$(this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.getCurrentCardFaceIndex())
       .pipe(
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe((cardFaceThumbnailFilePath: string | undefined) => {
-        if (cardFaceThumbnailFilePath === "" || cardFaceThumbnailFilePath === undefined) {
+      .subscribe((cardFaceThumbnailFilePaths: string[] | undefined) => {
+        if ( !cardFaceThumbnailFilePaths || cardFaceThumbnailFilePaths.length <= 0) {
           throw new Error("Card face thumbnail file path was never updated");
         }
 
