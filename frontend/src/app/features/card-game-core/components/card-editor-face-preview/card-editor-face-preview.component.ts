@@ -318,7 +318,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardEditorPreviewService.updateCurrentCardFaceStyle(currentCardFaceStyle);
     this.cardEditorPreviewService.updateCardEditorCardFaceDto();
 
-    console.log(`Update current card editor card face dto\nCurrent card face: ${JSON.stringify(this.cardEditorPreviewService.getCurrentCardFace(), null, 2)}\nCurrent Card Face Per Lods: ${JSON.stringify(this.cardEditorPreviewService.getCurrentCardFacePerLods, null, 2)}\nCurrent Card Editor Card Face Dto: ${JSON.stringify(this.cardEditorPreviewService.currentCardEditorCardFaceDto, null, 2)}`);
+    console.log(`Update current card editor card face dto\nCurrent card face: ${JSON.stringify(this.cardEditorPreviewService.getCurrentCardFace(), null, 2)}\nCurrent Card Face Per Lods: ${JSON.stringify(this.cardEditorPreviewService.getCurrentCardFace, null, 2)}\nCurrent Card Editor Card Face Dto: ${JSON.stringify(this.cardEditorPreviewService.currentCardEditorCardFaceDto, null, 2)}`);
   }
 
   onBorderDimensionsChange() {

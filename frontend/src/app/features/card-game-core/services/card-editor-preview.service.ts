@@ -34,7 +34,8 @@ export class CardEditorPreviewService {
 
   currentCardEditorCardFaceDto: CardEditorCardFaceDto = {
     cardFace: getDefaultCardFace(),
-    cardFaceElementsPerCardFace: []
+    cardFaceElementsPerCardFace: [],
+    fileMetadataLods: []
   };
 
   cardFaceImages: FormData[] = [];
