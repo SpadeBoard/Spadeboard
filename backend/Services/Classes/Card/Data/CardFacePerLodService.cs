@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Bridge;
 using Models.Cards;
+using Models.Files;
 
 namespace Services
 {
@@ -36,17 +37,16 @@ namespace Services
             return await _crudService.CreateAsync(item);
         }
 
-        public async Task<IEnumerable<CardFacePerLod>> CreateAllAsync(CardFacePerLod[] items, CardFace cardFace)
+        public async Task<IEnumerable<CardFacePerLod>> CreateAllFromFilesMetadataPerCardFaceAsync(FileMetadata[] filesMetadata, long cardFaceId)
         {
             IEnumerable<CardFacePerLod> cardFacePerLods = Enumerable.Empty<CardFacePerLod>();
-            foreach(CardFacePerLod item in items) {
-                item.CardFace = cardFace;
-
-                if (item.FileMetadata == null) throw new ArgumentNullException("No file metadata associated with card face per lod");
-
-                if (!_fileMetadataService.Exists(item.FileMetadata.FileMetadataId)) continue;
-
-                cardFacePerLods.Append(await CreateAsync(item));
+            foreach(var fm in filesMetadata.Select((value, index) => new { value, index })) {
+                cardFacePerLods.Append(await CreateAsync(new(){
+                    CardFacePerLodId = 0,
+                    FileMetadataId = fm.value.FileMetadataId,
+                    Lod = fm.index,
+                    CardFaceId = cardFaceId
+                }));
             }
 
             return cardFacePerLods;
