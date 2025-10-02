@@ -82,51 +82,8 @@ namespace Services
             return await _crudService.UpdateAsync(id, item);
         }
 
-        /*public async Task<Lods?> GetLodsNavByCardFaceIdAsync(long cardFaceId)
-        {
-            return await _context.CardFacePerLod
-                .Where(c => c.CardFaceId == cardFaceId)
-                .Select(c => c.Lods!)
-                .Include(c => c.Lod0!)
-                .Include(c => c.Lod1!)
-                .Include(c => c.Lod2!)
-                 .Include(c => c.Lod3!)
-                .Include(c => c.Lod4!)
-                .FirstOrDefaultAsync();
-        }
-
-        // CHECKME: To remove? We can't actually do the Dictionary with the multiple file streams in a controller
-        public async Task<Dictionary<long, List<FileStream>>> GetCardFaceImageFilesByCardIdAsync(long cardId)
-        {
-            Dictionary<long, List<FileStream>> cardFaceImageFiles = new Dictionary<long, List<FileStream>>();
-
-            List<CardFace>? cardFaces = (await _cardFacePerCardService.GetAllFacesByCardId(cardId)).ToList();
-
-            foreach (CardFace cardFace in cardFaces)
-            {
-                Lods? lods = await GetLodsNavByCardFaceIdAsync(cardFace.CardFaceId);
-
-                if (lods == null)
-                    break;
-
-                List<FileMetadata> filesMetadata = (await _lodService.GetFileMetadataOfAllLodsAsync(lods)).ToList();
-
-                List<string> fileNames = [];
-
-                foreach (FileMetadata fileMetadata in filesMetadata)
-                {
-                    fileNames.Add(fileMetadata.FileName);
-                }
-
-                cardFaceImageFiles.Add(cardFace.CardFaceId, (await _fileUploadService.GetCardFaceFilesAsync(fileNames)).ToList());
-            }
-
-            return cardFaceImageFiles;
-        }*/
-
         // TODO: Make another function that passes in MULTIPLE card face IDs
         // Then run the below function in either a loop or a Task.WhenAll
-
         public async Task<IEnumerable<long>> GetFileMetadataIdsByCardFace(long cardFaceId)
         {
             return await _context.CardFacePerLod

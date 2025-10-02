@@ -1,15 +1,44 @@
 using Microsoft.AspNetCore.Mvc;
-using Data;
+using System.IO.Compression;
 using Services;
-
 
 namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FilesController(IFileUploadService fileUploadService): ControllerBase
+    public class FilesController(IFileUploadService fileUploadService) : ControllerBase
     {
         private readonly IFileUploadService _fileUploadService = fileUploadService;
+
+        [HttpGet("card-face/lods/{fileNames}")]
+        public async Task<IActionResult> GetCardFaceFilesAsync(List<string> fileNames)
+        {
+            List<FileStream> files = (await _fileUploadService.GetCardFaceFilesAsync(fileNames)).ToList();
+
+            if (files == null || files.Count <= 0)
+            {
+                Console.WriteLine("Null or empty file list");
+                return BadRequest();
+            }
+
+            string zipName = $"CardFaceLods-{DateTime.UtcNow}.zip";
+
+            using var ms = new MemoryStream();
+            // required: using System.IO.Compression;
+            using var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true);
+
+            foreach (var file in files)
+            {
+                var entry = zip.CreateEntry(file.Name);
+                using var entryStream = entry.Open();
+
+                if (file.CanSeek) file.Position = 0;
+                file.CopyTo(entryStream);
+            }
+
+            ms.Position = 0;
+            return File(ms, "application/zip", zipName);
+        }
 
         [HttpGet("card-face/{fileName}")]
         public async Task<IActionResult> GetCardFaceFileAsync(string fileName)
@@ -18,7 +47,7 @@ namespace backend.Controllers
 
             var file = await _fileUploadService.GetCardFaceFileAsync(fileName);
 
-            if (file == null) 
+            if (file == null)
             {
                 Console.WriteLine(String.Format("Null file"));
 
@@ -43,6 +72,20 @@ namespace backend.Controllers
             return Ok(new { id = fileName });
         }
 
+        // TODO: Figure out why there's no preview or response here
+        [HttpPost("card-face/lods")]
+        public async Task<ActionResult<IEnumerable<string>>> UploadCardFaceFilesAsync([FromForm] List<IFormFile> formFiles)
+        {
+            var fileNames = await _fileUploadService.UploadCardFaceFilesAsync(formFiles);
+
+            if (fileNames == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(fileNames);
+        }
+
         [HttpGet("card-face-element-image/{fileName}")]
         public async Task<IActionResult> GetCardFaceElementImageAsync(string fileName)
         {
@@ -50,7 +93,7 @@ namespace backend.Controllers
 
             var file = await _fileUploadService.GetCardFaceElementImageFileAsync(fileName);
 
-            if (file == null) 
+            if (file == null)
             {
                 Console.WriteLine(String.Format("Null file"));
 
@@ -93,14 +136,20 @@ namespace backend.Controllers
         public async Task<ActionResult<string>> ReplaceCardFaceThumbnailImageFilePathAsync(string srcFileName)
         {
             string id = await _fileUploadService.ReplaceCardFaceThumbnailImageFilePathAsync(srcFileName);
-            return Ok(new {id});
+            return Ok(new { id });
+        }
+
+        [HttpPut("card-face-image-path/batch")]
+        public async Task<ActionResult<IEnumerable<string>>> ReplaceCardFaceThumbnailImagesFilePathAsync(string[] srcFileNames)
+        {
+            return Ok(await _fileUploadService.ReplaceCardFaceThumbnailImagesFilePathAsync(srcFileNames));
         }
 
         [HttpPut("card-face-element-image-path/{srcFileName}")]
         public async Task<ActionResult<string>> ReplaceCardFaceElementImageFilePathAsync(string srcFileName)
         {
             string id = await _fileUploadService.ReplaceCardFaceElementImageFilePathAsync(srcFileName);
-            return Ok(new {id});
+            return Ok(new { id });
         }
     }
 }
