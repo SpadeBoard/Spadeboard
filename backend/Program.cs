@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
 using Data;
 using Services;
 using AutoMapper;
@@ -11,9 +10,9 @@ using System.Text.Json.Serialization;
 string DevelopmentOrigins = "_devOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");;
+var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found."); ;
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)
 );
 
@@ -48,13 +47,21 @@ builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IGameRoomService, GameRoomService>();
 
 builder.Services.AddScoped<ICardService, CardService>();
+
 builder.Services.AddScoped<ICardPerOwnerService, CardPerOwnerService>();
+
 builder.Services.AddScoped<ICardPositionPerRoomService, CardPositionPerRoomService>();
+
 builder.Services.AddScoped<ICardFaceService, CardFaceService>();
 builder.Services.AddScoped<ICardFacePerCardService, CardFacePerCardService>();
 builder.Services.AddScoped<ICardFaceElementService, CardFaceElementService>();
+
 builder.Services.AddScoped<ICardFaceElementPerCardFaceService, CardFaceElementPerCardFaceService>();
 builder.Services.AddScoped<ICardFacePerCardDtoService, CardFacePerCardDtoService>();
+
+builder.Services.AddScoped<ICardFacePerLodService, CardFacePerLodService>();
+builder.Services.AddScoped<ICardFacePerLodDtoService, CardFacePerLodDtoService>();
+
 builder.Services.AddScoped<ICardFaceElementPerCardFaceDtoService, CardFaceElementPerCardFaceDtoService>();
 builder.Services.AddScoped<ICardPerOwnerDtoService, CardPerOwnerDtoService>();
 
@@ -89,8 +96,9 @@ builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<ITagsPerCardDtoService, TagsPerCardDtoService>();
 builder.Services.AddScoped<ITagsPerCardService, TagsPerCardService>();
 
-builder.Services.AddControllers().AddJsonOptions(options =>{
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); 
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     // options.JsonSerializerOptions.AllowOutOfOrderMetadataProperties = true; // https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism By default, the $type discriminator must be placed at the start of the JSON object, grouped together with other metadata properties like $id and $ref. - TODO: only in .NET9, so let's upgrade
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;  // Problem is if we don't add this, the serialization type has to match exactly, CardFaceElementType in backend vs. cardFaceElementType in frontend // FIXME: Makes no sense why this isn't working
 });
@@ -164,9 +172,9 @@ app.MapControllerRoute(
 using (IServiceScope scope = serviceProvider.CreateScope())
 {
     ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    
+
     var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
-    
+
     if (pendingMigrations.Any())
     {
         await dbContext.Database.MigrateAsync();
