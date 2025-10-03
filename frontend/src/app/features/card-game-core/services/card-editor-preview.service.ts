@@ -16,7 +16,7 @@ import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-ca
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
 import { TagsPerCardApiService } from './card-game-core/api/tags-per-card-api.service';
 import { getDefaultCardFace } from '../utils/card-face.constants';
-import { createFileMetadata$, createFilesMetadata$, duplicateFile$ } from '../../../utils/utils';
+import { createFileMetadata$, createFilesMetadata$, duplicateFile$, duplicateFiles$ } from '../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -381,15 +381,13 @@ export class CardEditorPreviewService {
     return of(undefined);
   }
 
-  duplicateCardFaceThumbnails$(cardEditorCardDto: CardEditorCardDto): Observable<(FileMetadata | undefined)[]> {
+  duplicateCardFaceThumbnails$(cardEditorCardDto: CardEditorCardDto): Observable<(FileMetadata[] | undefined)[]> {
     let itemsToDuplicate: {
-      fileMetadata: FileMetadata;
       cardFace: CardFace;
       fileMetadataLods: FileMetadata[];
     }[] = cardEditorCardDto.cardEditorCardFacesDto
-      .filter(dto => dto.cardFace && dto.cardFace.cardFaceThumbnailFileMetadata && dto.fileMetadataLods)
+      .filter(dto => dto.cardFace && dto.fileMetadataLods)
       .map(dto => ({
-        fileMetadata: dto.cardFace.cardFaceThumbnailFileMetadata!,
         cardFace: dto.cardFace,
         fileMetadataLods: dto.fileMetadataLods
       }));
@@ -398,16 +396,16 @@ export class CardEditorPreviewService {
     if (itemsToDuplicate.length <= 0)
       return of([]);
 
-    let duplicationObservables: Observable<FileMetadata | undefined>[] = itemsToDuplicate.map(item => duplicateFile$(
+    let duplicationObservables: Observable<FileMetadata[] | undefined>[] = itemsToDuplicate.map(item => duplicateFiles$(
       this.fileUploadApiService,
       this.fileMetadataApiService,
-      item.fileMetadata,
+      item.fileMetadataLods,
       'card-face',
       '/app/backend/card-face-thumbnail-images'
     ).pipe(
-      tap((newFileMetadata: FileMetadata | undefined) => {
-        if (newFileMetadata) {
-          item.fileMetadata = newFileMetadata;
+      tap((newFileMetadataLods: FileMetadata[] | undefined) => {
+        if (newFileMetadataLods) {
+          item.fileMetadataLods = newFileMetadataLods;
         }
       })
     )

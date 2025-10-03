@@ -457,7 +457,7 @@ export function duplicateFile$(fileUploadApiService: FileUploadApiService, fileM
   export function duplicateFiles$(fileUploadApiService: FileUploadApiService, fileMetadataApiService: FileMetadataApiService, filesMetadata: FileMetadata[], fileType: string, filePath: string, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending) {
     let fileNames: string[] = filesMetadata.map((fm: FileMetadata) =>(fm.fileName));
 
-    return fileUploadApiService.replaceFilePaths$(fileNames, 'card-face').pipe(
+    return fileUploadApiService.replaceFilePaths$(fileNames, fileType).pipe(
         switchMap((result: string[]) => {
             return createFilesMetadata$(fileMetadataApiService, filePath, result, fileMetadataStatus);
         })
