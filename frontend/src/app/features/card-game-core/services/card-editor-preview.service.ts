@@ -258,7 +258,9 @@ export class CardEditorPreviewService {
 
         // Because files are automatically created, we just want to delay and see whether we'd need to delete those files in the first place
         // As this is before saving or creating
-        cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods.map((fm: FileMetadata) => {
+        let fileMetadataLods: FileMetadata[] = cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods;
+
+        if (fileMetadataLods.length > 0) fileMetadataLods.map((fm: FileMetadata) => {
           this.orphanedFileMetadata.push(fm);
         });
 
@@ -272,7 +274,7 @@ export class CardEditorPreviewService {
             if (!filesMetadata || filesMetadata.length <= 0)
               return result;
 
-            cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods = filesMetadata;
+            fileMetadataLods = filesMetadata;
 
             let fileNames: string[] = [];
 
