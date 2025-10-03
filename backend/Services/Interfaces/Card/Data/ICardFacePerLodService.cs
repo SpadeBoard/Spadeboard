@@ -9,6 +9,8 @@ namespace Services
 
         public Task<IEnumerable<FileMetadata>> GetFilesMetadataByCardFace(long cardFaceId);
 
+        public Task<IEnumerable<string>> GetFileMetadataFileNamesByCardFace(long cardFaceId);
+
         public Task<bool> OrphanLodsByCardFaceIdAsync(long cardFaceId);
 
         public Task<bool> AttachLodsByCardFaceIdAsync(long cardFaceId);

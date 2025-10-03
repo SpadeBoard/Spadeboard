@@ -22,7 +22,7 @@ namespace Models.Bridge
 
         // TODO: Maybe have the levels of detail be set via the admin
         [Range(typeof(int), "0", "4") ]
-        public int Lod; // TODO: Get rid of the LOD object
+        public int Lod { get; set; } // TODO: Get rid of the LOD object
 
         // TODO: Replace with FileMetadataID instead
         public long FileMetadataId { get; set; }

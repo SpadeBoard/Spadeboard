@@ -39,17 +39,18 @@ namespace Services
 
         public async Task<IEnumerable<CardFacePerLod>> CreateAllFromFilesMetadataPerCardFaceAsync(FileMetadata[] filesMetadata, long cardFaceId)
         {
-            IEnumerable<CardFacePerLod> cardFacePerLods = Enumerable.Empty<CardFacePerLod>();
-            foreach(var fm in filesMetadata.Select((value, index) => new { value, index })) {
-                cardFacePerLods.Append(await CreateAsync(new(){
-                    CardFacePerLodId = 0,
-                    FileMetadataId = fm.value.FileMetadataId,
-                    Lod = fm.index,
-                    CardFaceId = cardFaceId
-                }));
-            }
+               IEnumerable<Task<CardFacePerLod>>? tasks = filesMetadata.Select((fm, index) =>
+                    CreateAsync(new()
+                    {
+                        CardFacePerLodId = 0,
+                        FileMetadataId = fm.FileMetadataId,
+                        Lod = index,
+                        CardFaceId = cardFaceId
+                    })
+                );
 
-            return cardFacePerLods;
+                CardFacePerLod[]? cardFacePerLods = await Task.WhenAll(tasks);
+                return cardFacePerLods;
         }
 
         public async Task<bool> DeleteAsync(long id)
@@ -97,6 +98,15 @@ namespace Services
             return await _context.CardFacePerLod
                 .Where(c => c.CardFaceId == cardFaceId)
                 .Select(c => c.FileMetadata)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<string>> GetFileMetadataFileNamesByCardFace(long cardFaceId)
+        {
+            return await _context.CardFacePerLod
+                .Where(c => c.CardFaceId == cardFaceId)
+                .OrderBy(c => c.Lod)
+                .Select(c => c.FileMetadata.FileName)
                 .ToListAsync();
         }
 

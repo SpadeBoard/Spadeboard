@@ -58,6 +58,11 @@ namespace Services
             return _mapper.Map<IEnumerable<FileMetadataDto>>(await _cardFacePerLodService.GetFilesMetadataByCardFace(DtoIdConversion.DtoStringToLong(cardFaceId)));
         }
 
+        public async Task<IEnumerable<string>> GetFileMetadataFileNamesByCardFaceDto(string cardFaceId)
+        {
+            return await _cardFacePerLodService.GetFileMetadataFileNamesByCardFace(DtoIdConversion.DtoStringToLong(cardFaceId));
+        }
+
         public async Task<bool> AttachLodsByCardFaceIdDtoAsync(string cardFaceId) 
         {
             return await _cardFacePerLodService.AttachLodsByCardFaceIdAsync(DtoIdConversion.DtoStringToLong(cardFaceId));
