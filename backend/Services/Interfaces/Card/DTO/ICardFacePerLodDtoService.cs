@@ -9,6 +9,8 @@ namespace Services
 
         public Task<bool> OrphanLodsByCardFaceIdDtoAsync(string cardFaceId);
 
+        public Task<IEnumerable<FileMetadataDto>> GetFilesMetadataByCardFaceDto(string cardFaceId);
+
         public Task<IEnumerable<CardFacePerLodDto>> CreateAllFromFilesMetadataPerCardFaceDtoAsync(FileMetadataDto[] filesMetadata, string cardFaceId);
     }
 }

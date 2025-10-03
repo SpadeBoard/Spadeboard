@@ -42,7 +42,8 @@ namespace Services
                     CardFace = cardFace,
                     CardFaceElementsPerCardFace = (await _cardFaceElementPerCardFaceDtoService
         .CreateAllNavDtoByCardFaceDtoIdAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardFace))
-        .ToArray()
+        .ToArray(),
+                    FileMetadataLods = (await _cardFacePerLodDtoService.GetFilesMetadataByCardFaceDto(cardFace.CardFaceId)).ToArray()
                 };
             }
             catch (Exception ex)
@@ -57,7 +58,8 @@ namespace Services
             return new()
             {
                 CardFace = cardFaceDto,
-                CardFaceElementsPerCardFace = (await _cardFaceElementPerCardFaceDtoService.GetAllNavDtoByCardFaceDtoIdAsync(cardFaceDto.CardFaceId)).ToArray()
+                CardFaceElementsPerCardFace = (await _cardFaceElementPerCardFaceDtoService.GetAllNavDtoByCardFaceDtoIdAsync(cardFaceDto.CardFaceId)).ToArray(),
+                FileMetadataLods = (await _cardFacePerLodDtoService.GetFilesMetadataByCardFaceDto(cardFaceDto.CardFaceId)).ToArray()
             };
         }
 

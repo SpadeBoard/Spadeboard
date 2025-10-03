@@ -92,6 +92,14 @@ namespace Services
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<FileMetadata>> GetFilesMetadataByCardFace(long cardFaceId)
+        {
+            return await _context.CardFacePerLod
+                .Where(c => c.CardFaceId == cardFaceId)
+                .Select(c => c.FileMetadata)
+                .ToListAsync();
+        }
+
         public async Task<bool> OrphanLodsByCardFaceIdAsync(long cardFaceId) 
         {
             List<long> fileMetadataIds = (await GetFileMetadataIdsByCardFace(cardFaceId)).ToList();
