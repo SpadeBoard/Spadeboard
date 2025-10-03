@@ -1,46 +1,49 @@
 using Models.Cards;
+using Newtonsoft.Json;
 
-// https://stackoverflow.com/questions/59753218/how-to-use-dbcontext-in-separate-class-library-net-core
-// https://www.postgresql.org/docs/current/ddl-schemas.html#:~:text=Unlike%20databases%2C%20schemas%20are%20not,without%20interfering%20with%20each%20other.
-
-// Main schema: bridge tables containing item, dnd position, game room id as well as bridge tables containing item ID and user ID
-
-
+// TODO: For the backend, instead of creating the file metadata, we just want to add the keys to the CardFacePerLod table
+// And update the file metadata to be attached
 namespace Services
 {
-    public class CardEditorCardFaceDtoService(ICardFacePerCardDtoService cardFacePerCardDtoService, ICardFaceDtoService cardFaceDtoService, ICardFaceElementPerCardFaceDtoService cardFaceElementPerCardFaceDtoService, ICardFaceService cardFaceService, ICardFaceElementPerCardFaceService cardFaceElementPerCardFaceService) : ICardEditorCardFaceDtoService
+    public class CardEditorCardFaceDtoService(ICardFacePerCardDtoService cardFacePerCardDtoService, ICardFaceDtoService cardFaceDtoService, ICardFaceElementPerCardFaceDtoService cardFaceElementPerCardFaceDtoService, ICardFacePerLodDtoService cardFacePerLodDtoService) : ICardEditorCardFaceDtoService
     {
         private readonly ICardFacePerCardDtoService _cardFacePerCardDtoService = cardFacePerCardDtoService;
         private readonly ICardFaceDtoService _cardFaceDtoService = cardFaceDtoService;
         private readonly ICardFaceElementPerCardFaceDtoService _cardFaceElementPerCardFaceDtoService = cardFaceElementPerCardFaceDtoService;
+        private readonly ICardFacePerLodDtoService _cardFacePerLodDtoService = cardFacePerLodDtoService;
 
         public async Task<IEnumerable<CardEditorCardFaceDto>> CreateAllDtoAsync(CardEditorCardFaceDto[] cardEditorCardFacesDto)
         {
             var results = new List<CardEditorCardFaceDto>();
-            foreach (var cardEditorCardFaceDto in cardEditorCardFacesDto)
+            foreach (CardEditorCardFaceDto cardEditorCardFaceDto in cardEditorCardFacesDto)
             {
-                var result = await CreateDtoAsync(cardEditorCardFaceDto);
+                CardEditorCardFaceDto result = await CreateDtoAsync(cardEditorCardFaceDto);
                 results.Add(result);
+
+                await _cardFacePerLodDtoService.AttachLodsByCardFaceIdDtoAsync(result.CardFace.CardFaceId);
             }
             return results;
         }
-
         public async Task<CardEditorCardFaceDto> CreateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
         {
-            // TODO: Make a try catch statement here
             try
             {
                 CardFaceDto cardFace = await _cardFaceDtoService.CreateDtoNavAsync(cardEditorCardFaceDto.CardFace);
 
-                if (cardFace.CardFaceId == "0")
-                    throw new Exception("Card face ID is not updated");
+                if (cardFace.CardFaceId == "0") throw new Exception("Card face ID is not updated");
+
+                Console.WriteLine($"\nCard Editor Card Face Dto - After Card Face Create DTO Nav Async: {JsonConvert.SerializeObject(cardFace, Formatting.Indented)}\n");
+
+                await _cardFacePerLodDtoService.CreateAllFromFilesMetadataPerCardFaceDtoAsync(cardEditorCardFaceDto.FileMetadataLods, cardFace.CardFaceId);
+                await _cardFacePerLodDtoService.AttachLodsByCardFaceIdDtoAsync(cardFace.CardFaceId);
 
                 return new CardEditorCardFaceDto
                 {
                     CardFace = cardFace,
                     CardFaceElementsPerCardFace = (await _cardFaceElementPerCardFaceDtoService
         .CreateAllNavDtoByCardFaceDtoIdAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardFace))
-        .ToArray()
+        .ToArray(),
+                    FileMetadataLods = (await _cardFacePerLodDtoService.GetFilesMetadataByCardFaceDto(cardFace.CardFaceId)).ToArray()
                 };
             }
             catch (Exception ex)
@@ -52,9 +55,11 @@ namespace Services
 
         public async Task<CardEditorCardFaceDto?> GetDtoAsyncByCardFace(CardFaceDto cardFaceDto)
         {
-            return new(){
+            return new()
+            {
                 CardFace = cardFaceDto,
-                CardFaceElementsPerCardFace = (await _cardFaceElementPerCardFaceDtoService.GetAllNavDtoByCardFaceDtoIdAsync(cardFaceDto.CardFaceId)).ToArray()
+                CardFaceElementsPerCardFace = (await _cardFaceElementPerCardFaceDtoService.GetAllNavDtoByCardFaceDtoIdAsync(cardFaceDto.CardFaceId)).ToArray(),
+                FileMetadataLods = (await _cardFacePerLodDtoService.GetFilesMetadataByCardFaceDto(cardFaceDto.CardFaceId)).ToArray()
             };
         }
 
@@ -62,9 +67,10 @@ namespace Services
         {
             var updated = true;
 
-            foreach (var cfd in cardEditorCardFacesDto) {
+            foreach (var cfd in cardEditorCardFacesDto)
+            {
                 updated = await UpdateDtoAsync(cfd);
-            
+
                 if (updated == false)
                     return updated;
             }
@@ -74,6 +80,8 @@ namespace Services
 
         public async Task<bool> UpdateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
         {
+            // CHECKME: Do we need to check to see if the CardFacePerLod's File Metadata ID already exists
+            // TODO: Update the CardFacePerLod by swapping out the ID of the previous file metadata with the new one based on the CardFacePerLod Id
             return await _cardFaceElementPerCardFaceDtoService.UpdateAllDtoNavByCardFaceAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
         }
 
@@ -115,7 +123,9 @@ namespace Services
 
         public async Task<bool> DeleteDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
         {
-           return await  _cardFaceElementPerCardFaceDtoService.DeleteAllDtoNavByCardFaceAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
+            // TODO: Use  await _cardFacePerLodDtoService.AttachLodsByCardFaceIdDtoAsync(result.CardFace.CardFaceId);
+
+            return await _cardFaceElementPerCardFaceDtoService.DeleteAllDtoNavByCardFaceAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
         }
 
         public async Task<CardEditorCardFaceDto?> GetDtoAsync(string id)

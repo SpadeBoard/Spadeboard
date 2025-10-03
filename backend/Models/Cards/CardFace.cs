@@ -40,6 +40,8 @@ namespace Models.Cards
     {
         public CardFaceDto CardFace {get; set;}
 
+        public FileMetadataDto[] FileMetadataLods { get; set; }
+
         public CardFaceElementPerCardFaceDto[] CardFaceElementsPerCardFace {get; set;}
     }
 }

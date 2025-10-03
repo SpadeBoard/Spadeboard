@@ -16,7 +16,7 @@ import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-ca
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
 import { TagsPerCardApiService } from './card-game-core/api/tags-per-card-api.service';
 import { getDefaultCardFace } from '../utils/card-face.constants';
-import { createFilesMetadata } from '../../../utils/utils';
+import { createFileMetadata$, createFilesMetadata$, duplicateFile$, duplicateFiles$ } from '../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -258,7 +258,9 @@ export class CardEditorPreviewService {
 
         // Because files are automatically created, we just want to delay and see whether we'd need to delete those files in the first place
         // As this is before saving or creating
-        cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods.map((fm: FileMetadata) => {
+        let fileMetadataLods: FileMetadata[] = cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods;
+
+        if (fileMetadataLods.length > 0) fileMetadataLods.map((fm: FileMetadata) => {
           this.orphanedFileMetadata.push(fm);
         });
 
@@ -267,12 +269,12 @@ export class CardEditorPreviewService {
 
         // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
         // When we get to that point, the backend will handle setting creationDate to null
-        return createFilesMetadata(this.fileMetadataApiService, cardFaceFilePath, result, FileMetadataStatus.Pending).pipe(
+        return createFilesMetadata$(this.fileMetadataApiService, cardFaceFilePath, result, FileMetadataStatus.Pending).pipe(
           map((filesMetadata: FileMetadata[] | undefined) => {
             if (!filesMetadata || filesMetadata.length <= 0)
               return result;
 
-            cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods = filesMetadata;
+            fileMetadataLods = filesMetadata;
 
             let fileNames: string[] = [];
 
@@ -310,7 +312,7 @@ export class CardEditorPreviewService {
 
         // We assume that the file's not used immediately because this is at the stage before creating, saving, etc.
         // When we get to that point, the backend will handle setting creationDate to null
-        return this.createFileMetadata$(cardFaceFilePath, result.id, FileMetadataStatus.Pending).pipe(
+        return createFileMetadata$(this.fileMetadataApiService, cardFaceFilePath, result.id, FileMetadataStatus.Pending).pipe(
           map((fileMetadata: FileMetadata | undefined) => {
             if (fileMetadata === undefined)
               return result.id;
@@ -321,27 +323,6 @@ export class CardEditorPreviewService {
           }),
           takeUntilDestroyed(this.destroyRef)
         );
-      })
-    );
-  }
-
-
-  createFileMetadata$(volumePath: string, fileName: string, fileMetadataStatus: FileMetadataStatus
-  ): Observable<FileMetadata | undefined> {
-    const fileMetadata: FileMetadata = {
-      fileMetadataId: '0',
-      volumePath: volumePath,
-      fileName: fileName,
-      creationDate: new Date(),
-      fileMetadataStatus: fileMetadataStatus
-    };
-
-    return this.fileMetadataApiService.createFileMetadata$(fileMetadata).pipe(
-      tap(result => {
-        if (result === undefined) {
-          throw new Error("File metadata wasn't able to be created");
-        }
-        console.log(`Created file metadata: ${JSON.stringify(result)}`);
       })
     );
   }
@@ -377,7 +358,7 @@ export class CardEditorPreviewService {
 
           let cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
         
-          return this.createFileMetadata$(cardFaceElementImageFilePath, result.id, FileMetadataStatus.Pending).pipe(
+          return createFileMetadata$(this.fileMetadataApiService, cardFaceElementImageFilePath, result.id, FileMetadataStatus.Pending).pipe(
             map((newFileMetadata: FileMetadata | undefined) => {
               console.log(`On create file metadata${JSON.stringify(newFileMetadata)}`);
               if (newFileMetadata) {
@@ -400,25 +381,34 @@ export class CardEditorPreviewService {
     return of(undefined);
   }
 
-  duplicateCardFaceThumbnails$(cardEditorCardDto: CardEditorCardDto): Observable<(FileMetadata | undefined)[]> {
-    let itemsToDuplicate =cardEditorCardDto.cardEditorCardFacesDto
-      .filter(dto => dto.cardFace && dto.cardFace.cardFaceThumbnailFileMetadata)
+  duplicateCardFaceThumbnails$(cardEditorCardDto: CardEditorCardDto): Observable<(FileMetadata[] | undefined)[]> {
+    let itemsToDuplicate: {
+      cardFace: CardFace;
+      fileMetadataLods: FileMetadata[];
+    }[] = cardEditorCardDto.cardEditorCardFacesDto
+      .filter(dto => dto.cardFace && dto.fileMetadataLods)
       .map(dto => ({
-        fileMetadata: dto.cardFace.cardFaceThumbnailFileMetadata!,
-        cardFace: dto.cardFace
+        cardFace: dto.cardFace,
+        fileMetadataLods: dto.fileMetadataLods
       }));
 
     // Emit an empty array if there are no observables to join to continue onto switch map
     if (itemsToDuplicate.length <= 0)
       return of([]);
 
-    let duplicationObservables = itemsToDuplicate.map(item => this.duplicateFile$(item.fileMetadata, 'card-face', '/app/backend/card-face-thumbnail-images').pipe(
-        tap((newFileMetadata: FileMetadata | undefined) => {
-          if (newFileMetadata) {
-            item.fileMetadata = newFileMetadata;
-          }
-        })
-      )
+    let duplicationObservables: Observable<FileMetadata[] | undefined>[] = itemsToDuplicate.map(item => duplicateFiles$(
+      this.fileUploadApiService,
+      this.fileMetadataApiService,
+      item.fileMetadataLods,
+      'card-face',
+      '/app/backend/card-face-thumbnail-images'
+    ).pipe(
+      tap((newFileMetadataLods: FileMetadata[] | undefined) => {
+        if (newFileMetadataLods) {
+          item.fileMetadataLods = newFileMetadataLods;
+        }
+      })
+    )
     );
 
     // Emit an empty array if there are no observables to join to continue onto switch map
@@ -427,15 +417,6 @@ export class CardEditorPreviewService {
     }
 
     return forkJoin(duplicationObservables).pipe(takeUntilDestroyed(this.destroyRef));
-  }
-
-  duplicateFile$(fileMetadata: FileMetadata, fileType: string, filePath: string): Observable<FileMetadata | undefined> {
-    return this.fileUploadApiService.replaceFilePath$(fileMetadata.fileName, fileType).pipe(
-      switchMap((result: { id: string | undefined }) => {
-        if (!result.id) return of(undefined);
-        return this.createFileMetadata$(filePath, result.id, FileMetadataStatus.Pending);
-      })
-    );
   }
 
   duplicateCardFaceElementImages$(cardEditorCardDto: CardEditorCardDto): Observable<void> {
@@ -460,7 +441,9 @@ export class CardEditorPreviewService {
             return;
 
           observables.push(
-            this.duplicateFile$(
+            duplicateFile$(
+              this.fileUploadApiService,
+              this.fileMetadataApiService,
               cardFaceElementImage.imageFileMetadata,
               'card-face-element',
               '/app/backend/card-face-element-images'

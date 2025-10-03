@@ -1,5 +1,5 @@
 using Models.Bridge;
-using Models.Cards;
+using Models.Files;
 
 namespace Services
 {
@@ -9,6 +9,8 @@ namespace Services
 
         public Task<bool> OrphanLodsByCardFaceIdDtoAsync(string cardFaceId);
 
-        public Task<IEnumerable<CardFacePerLodDto>> CreateAllDtoAsync(CardFacePerLodDto[] items, CardFaceDto cardFace);
+        public Task<IEnumerable<FileMetadataDto>> GetFilesMetadataByCardFaceDto(string cardFaceId);
+
+        public Task<IEnumerable<CardFacePerLodDto>> CreateAllFromFilesMetadataPerCardFaceDtoAsync(FileMetadataDto[] filesMetadata, string cardFaceId);
     }
 }

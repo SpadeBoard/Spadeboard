@@ -2,8 +2,9 @@ import { ElementRef } from "@angular/core";
 import { SafeUrl } from "@angular/platform-browser";
 import html2canvas from "html2canvas";
 import { FileMetadata, FileMetadataStatus } from "./models/file-metadata";
-import { Observable, tap } from "rxjs";
+import { Observable, of, switchMap, tap } from "rxjs";
 import { FileMetadataApiService } from "./services/file-metadata-api.service";
+import { FileUploadApiService } from "./services/file-upload-api.service";
 import ImageBlobReduce, { ResizeOptions } from 'image-blob-reduce';
 
 export function getDefaultFileMetadata(): FileMetadata {
@@ -400,7 +401,7 @@ export function getLodIndex(scale: number, lodsAmt: number = 5): number {
 }
 
 // CHECKME: Would this work, the FileMetadataApiService being passed through part
-export function createFilesMetadata(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileNames: string[], fileMetadataStatus: FileMetadataStatus): Observable<FileMetadata[] | undefined> {
+export function createFilesMetadata$(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileNames: string[], fileMetadataStatus: FileMetadataStatus): Observable<FileMetadata[] | undefined> {
     let filesMetadata: FileMetadata[] = [];
 
     fileNames.forEach((fileName) => {
@@ -425,22 +426,40 @@ export function createFilesMetadata(fileMetadataApiService: FileMetadataApiServi
     );
   }
 
-export function createFileMetadata(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileName: string, fileMetadataStatus: FileMetadataStatus
-  ): Observable<FileMetadata | undefined> {
+export function createFileMetadata$(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileName: string, fileMetadataStatus: FileMetadataStatus): Observable<FileMetadata | undefined> {
     let fileMetadata: FileMetadata = {
-      fileMetadataId: '0',
-      volumePath: volumePath,
-      fileName: fileName,
-      creationDate: new Date(),
-      fileMetadataStatus: fileMetadataStatus
+        fileMetadataId: '0',
+        volumePath: volumePath,
+        fileName: fileName,
+        creationDate: new Date(),
+        fileMetadataStatus: fileMetadataStatus
     };
 
     return fileMetadataApiService.createFileMetadata$(fileMetadata).pipe(
-      tap(result => {
-        if (result === undefined) {
-          throw new Error("File metadata wasn't able to be created");
-        }
-        console.log(`Created file metadata: ${JSON.stringify(result, null, 2)}`);
+        tap(result => {
+            if (result === undefined) {
+                throw new Error("File metadata wasn't able to be created");
+            }
+            console.log(`Created file metadata: ${JSON.stringify(result, null, 2)}`);
+        })
+    );
+}
+
+export function duplicateFile$(fileUploadApiService: FileUploadApiService, fileMetadataApiService: FileMetadataApiService, fileMetadata: FileMetadata, fileType: string, filePath: string, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending): Observable<FileMetadata | undefined> {
+    return fileUploadApiService.replaceFilePath$(fileMetadata.fileName, fileType).pipe(
+      switchMap((result: { id: string | undefined }) => {
+        if (!result.id) return of(undefined);
+        return createFileMetadata$(fileMetadataApiService, filePath, result.id, fileMetadataStatus);
       })
     );
+  }
+
+  export function duplicateFiles$(fileUploadApiService: FileUploadApiService, fileMetadataApiService: FileMetadataApiService, filesMetadata: FileMetadata[], fileType: string, filePath: string, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending) {
+    let fileNames: string[] = filesMetadata.map((fm: FileMetadata) =>(fm.fileName));
+
+    return fileUploadApiService.replaceFilePaths$(fileNames, fileType).pipe(
+        switchMap((result: string[]) => {
+            return createFilesMetadata$(fileMetadataApiService, filePath, result, fileMetadataStatus);
+        })
+    )
   }

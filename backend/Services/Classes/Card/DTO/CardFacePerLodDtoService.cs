@@ -1,7 +1,7 @@
 using AutoMapper;
 using Models.Bridge;
 using Utils;
-using Models.Cards;
+using Models.Files;
 
 namespace Services
 {
@@ -18,11 +18,9 @@ namespace Services
             _dtoCrudService = new DtoCrudService<CardFacePerLod, CardFacePerLodDto>(_mapper, _cardFacePerLodService);
         }
 
-        public async Task<IEnumerable<CardFacePerLodDto>> CreateAllDtoAsync(CardFacePerLodDto[] items, CardFaceDto cardFace)
+        public async Task<IEnumerable<CardFacePerLodDto>> CreateAllFromFilesMetadataPerCardFaceDtoAsync(FileMetadataDto[] filesMetadata, string cardFaceId)
         {
-            CardFacePerLod[] cardFacePerLods = _mapper.Map<IEnumerable<CardFacePerLod>>(items).ToArray();
-            CardFace cf= _mapper.Map<CardFace>(cardFace);
-            return _mapper.Map<IEnumerable<CardFacePerLodDto>>(await _cardFacePerLodService.CreateAllAsync(cardFacePerLods, cf));
+            return _mapper.Map<IEnumerable<CardFacePerLodDto>>(await _cardFacePerLodService.CreateAllFromFilesMetadataPerCardFaceAsync(_mapper.Map<IEnumerable<FileMetadata>>(filesMetadata).ToArray(), DtoIdConversion.DtoStringToLong(cardFaceId)));
         }
 
         public async Task<CardFacePerLodDto> CreateDtoAsync(CardFacePerLodDto dto)
@@ -53,6 +51,11 @@ namespace Services
         public bool Exists(string id)
         {
             return _dtoCrudService.Exists(id);
+        }
+
+        public async Task<IEnumerable<FileMetadataDto>> GetFilesMetadataByCardFaceDto(string cardFaceId)
+        {
+            return _mapper.Map<IEnumerable<FileMetadataDto>>(await _cardFacePerLodService.GetFilesMetadataByCardFace(DtoIdConversion.DtoStringToLong(cardFaceId)));
         }
 
         public async Task<bool> AttachLodsByCardFaceIdDtoAsync(string cardFaceId) 
