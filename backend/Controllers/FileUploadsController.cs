@@ -10,8 +10,8 @@ namespace backend.Controllers
     {
         private readonly IFileUploadService _fileUploadService = fileUploadService;
 
-        [HttpGet("card-face/lods/{fileNames}")]
-        public async Task<IActionResult> GetCardFaceFilesAsync(List<string> fileNames)
+        [HttpGet("card-face/lods")]
+        public async Task<IActionResult> GetCardFaceFilesAsync([FromQuery] List<string> fileNames)
         {
             List<FileStream> files = (await _fileUploadService.GetCardFaceFilesAsync(fileNames)).ToList();
 

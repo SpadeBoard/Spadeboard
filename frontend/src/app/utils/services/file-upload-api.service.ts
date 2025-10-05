@@ -21,7 +21,7 @@ export class FileUploadApiService {
   getFiles$(fileNames: string[], type?: string): Observable<Blob | undefined> {
     switch (type) {
       case "card-face":
-        return this.http.get(`${this.apiUrl}/card-face/lods/${fileNames}`, { responseType: 'blob' });
+        return this.http.post(`${this.apiUrl}/card-face/lods`, { fileNames }, { responseType: 'blob' });
       default:
         return this.http.get(`${this.apiUrl}/${fileNames}`, { responseType: 'blob' });
     }

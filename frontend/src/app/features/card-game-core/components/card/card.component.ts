@@ -148,8 +148,11 @@ export class CardComponent {
           }
 
           try {
-            let zip = await JSZip.loadAsync(result);
+            let zip: JSZip = await JSZip.loadAsync(result);
             let files: JSZip.JSZipObject[] = Object.values(zip.files);
+
+            console.log(`Zip files: ${JSON.stringify(files), null, 2}`);
+
             let images: HTMLImageElement[] = [];
 
             for (let file of files) {
