@@ -274,7 +274,7 @@ export class CardEditorPreviewService {
             if (!filesMetadata || filesMetadata.length <= 0)
               return result;
 
-            fileMetadataLods = filesMetadata;
+            cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].fileMetadataLods = filesMetadata;
 
             let fileNames: string[] = [];
 
