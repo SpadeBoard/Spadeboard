@@ -39,18 +39,19 @@ namespace Services
 
         public async Task<IEnumerable<CardFacePerLod>> CreateAllFromFilesMetadataPerCardFaceAsync(FileMetadata[] filesMetadata, long cardFaceId)
         {
-               IEnumerable<Task<CardFacePerLod>>? tasks = filesMetadata.Select((fm, index) =>
-                    CreateAsync(new()
-                    {
-                        CardFacePerLodId = 0,
-                        FileMetadataId = fm.FileMetadataId,
-                        Lod = index,
-                        CardFaceId = cardFaceId
-                    })
-                );
+            IEnumerable<CardFacePerLod> cardFacePerLods = Enumerable.Empty<CardFacePerLod>();
+            foreach (var fm in filesMetadata.Select((value, index) => new { value, index }))
+            {
+                cardFacePerLods = cardFacePerLods.Append(await CreateAsync(new()
+                {
+                    CardFacePerLodId = 0,
+                    FileMetadataId = fm.value.FileMetadataId,
+                    Lod = fm.index,
+                    CardFaceId = cardFaceId
+                }));
+            }
 
-                CardFacePerLod[]? cardFacePerLods = await Task.WhenAll(tasks);
-                return cardFacePerLods;
+            return cardFacePerLods;
         }
 
         public async Task<bool> DeleteAsync(long id)
