@@ -15,30 +15,42 @@ namespace backend.Controllers
         {
             List<FileStream> files = (await _fileUploadService.GetCardFaceFilesAsync(fileNames)).ToList();
 
-            if (files == null || files.Count <= 0)
+            if (files == null || files.Count == 0)
             {
                 Console.WriteLine("Null or empty file list");
                 return BadRequest();
             }
 
-            string zipName = $"CardFaceLods-{DateTime.UtcNow}.zip";
+            string zipName = $"CardFaceLods-{DateTime.UtcNow:yyyyMMddHHmmss}.zip";
 
-            using var ms = new MemoryStream();
-            // required: using System.IO.Compression;
-            using var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true);
-
-            foreach (var file in files)
+            try
             {
-                var entry = zip.CreateEntry(file.Name);
-                using var entryStream = entry.Open();
+                using MemoryStream? ms = new();
+                using ZipArchive? zip = new(ms, ZipArchiveMode.Create, leaveOpen: true);
 
-                if (file.CanSeek) file.Position = 0;
-                file.CopyTo(entryStream);
+                foreach (FileStream? file in files)
+                {
+                    if (file.CanSeek) file.Position = 0;
+
+                    ZipArchiveEntry? entry = zip.CreateEntry(file.Name);
+                    using Stream? entryStream = entry.Open();
+
+                    await file.CopyToAsync(entryStream);
+                    await entryStream.FlushAsync();
+                }
+
+                zip.Dispose(); // Explicit disposal to finalize ZIP archive
+                ms.Position = 0;
+                Console.WriteLine($"Returning ZIP file with length={ms.Length} bytes");
+                return File(ms, "application/zip", zipName);
             }
-
-            ms.Position = 0;
-            return File(ms, "application/zip", zipName);
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error while creating ZIP: {ex.Message}");
+                return StatusCode(500, "Error creating ZIP file");
+            }
         }
+
 
         [HttpGet("card-face/{fileName}")]
         public async Task<IActionResult> GetCardFaceFileAsync(string fileName)
