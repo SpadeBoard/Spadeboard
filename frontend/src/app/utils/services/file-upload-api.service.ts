@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -19,11 +19,16 @@ export class FileUploadApiService {
 
   // https://stackoverflow.com/questions/62539753/extract-zip-file-and-read-the-data-inside-the-file-in-angular
   getFiles$(fileNames: string[], type?: string): Observable<Blob | undefined> {
+    let params: HttpParams = new HttpParams();
+    fileNames.forEach(name => {
+      params = params.append('fileNames', name);
+    });
+
     switch (type) {
       case "card-face":
-        return this.http.post(`${this.apiUrl}/card-face/lods`, { fileNames }, { responseType: 'blob' });
+        return this.http.get(`${this.apiUrl}/card-face/lods`, { params, responseType: 'blob' });
       default:
-        return this.http.get(`${this.apiUrl}/${fileNames}`, { responseType: 'blob' });
+        throw new Error("Must have a specific type of file");
     }
   }
 

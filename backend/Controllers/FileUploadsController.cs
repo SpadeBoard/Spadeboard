@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.IO.Compression;
 using Services;
+using System.Net;
+using System.Net.Http.Headers;
 
 namespace backend.Controllers
 {
@@ -10,6 +12,7 @@ namespace backend.Controllers
     {
         private readonly IFileUploadService _fileUploadService = fileUploadService;
 
+        // https://www.c-sharpcorner.com/article/creating-a-file-zip-functionality-in-asp-net-core-web-api/
         [HttpGet("card-face/lods")]
         public async Task<IActionResult> GetCardFaceFilesAsync([FromQuery] List<string> fileNames)
         {
@@ -25,22 +28,23 @@ namespace backend.Controllers
 
             try
             {
-                using MemoryStream? ms = new();
+                // NOTE: Using would automatically dispose it
+                /*using*/ MemoryStream? ms = new();
                 using ZipArchive? zip = new(ms, ZipArchiveMode.Create, leaveOpen: true);
-
                 foreach (FileStream? file in files)
                 {
                     if (file.CanSeek) file.Position = 0;
 
                     ZipArchiveEntry? entry = zip.CreateEntry(file.Name);
+                    
                     using Stream? entryStream = entry.Open();
-
                     await file.CopyToAsync(entryStream);
-                    await entryStream.FlushAsync();
+                    // await entryStream.FlushAsync();
                 }
 
-                zip.Dispose(); // Explicit disposal to finalize ZIP archive
+                // zip.Dispose(); // Explicit disposal to finalize ZIP archive
                 ms.Position = 0;
+
                 Console.WriteLine($"Returning ZIP file with length={ms.Length} bytes");
                 return File(ms, "application/zip", zipName);
             }
