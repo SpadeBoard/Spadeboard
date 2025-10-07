@@ -105,7 +105,13 @@ export class CardComponent {
         // TODO: Grab the file names, then pass into getCardFaceLodsSrcs
         this.cardFacePerLodApiService.getFileMetadataFileNamesByCardFace$(cardFace.cardFaceId)
           .subscribe((fileMetadataNames: string[] | undefined) => {
-            if (!fileMetadataNames) throw new Error("No file metadata names to grab thumbnails");
+            if (!fileMetadataNames || fileMetadataNames.length <= 0) {
+               this.cardFaceImages.set(cardFace.cardFaceId, [
+                  getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, this.defaultCardFaceDimensions)
+                ]);
+
+                return;
+            }
 
             this.getCardFaceLodsSrcs(fileMetadataNames).then((images: HTMLImageElement[] | undefined) => {
               if (!images) {
@@ -151,7 +157,7 @@ export class CardComponent {
             let zip: JSZip = await JSZip.loadAsync(result);
             let files: JSZip.JSZipObject[] = Object.values(zip.files);
 
-            console.log(`Zip files: ${JSON.stringify(files), null, 2}`);
+            console.log(`Zip files: ${JSON.stringify(files, null, 2)})`);
 
             let images: HTMLImageElement[] = [];
 
