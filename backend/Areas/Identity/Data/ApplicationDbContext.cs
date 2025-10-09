@@ -135,6 +135,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(cp => cp.StyleId)
             .IsRequired(false);
 
+        builder.Entity<CardFacePerLod>()
+            .HasIndex(a => new { a.CardFaceId, a.Lod })
+            .IsUnique();
+
+        // NOTE: If we do add a card face index on CardFacePerCard, do the same thing with that
+
         builder.Entity<CardFaceElement>()
             .HasOne(cp => cp.Style)
             .WithMany()
