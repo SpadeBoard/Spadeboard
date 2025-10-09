@@ -29,23 +29,21 @@ namespace backend.Controllers
             try
             {
                 // NOTE: Using would automatically dispose it
-                /*using*/ MemoryStream? ms = new();
-                using ZipArchive? zip = new(ms, ZipArchiveMode.Create, leaveOpen: true);
-                foreach (FileStream? file in files)
+                MemoryStream ms = new();
+                using (ZipArchive  zip = new(ms, ZipArchiveMode.Create, leaveOpen: true))
                 {
-                    if (file.CanSeek) file.Position = 0;
+                    foreach (FileStream file in files)
+                    {
+                        if (file.CanSeek) file.Position = 0;
+                        ZipArchiveEntry  entry = zip.CreateEntry(file.Name);
 
-                    ZipArchiveEntry? entry = zip.CreateEntry(file.Name);
-                    
-                    using Stream? entryStream = entry.Open();
-                    await file.CopyToAsync(entryStream);
-                    // await entryStream.FlushAsync();
-                }
+                        using Stream? entryStream = entry.Open();
+                        await file.CopyToAsync(entryStream);
+                    }
+                } // ZipArchive disposed here, data finalized into ms
 
-                // zip.Dispose(); // Explicit disposal to finalize ZIP archive
-                ms.Position = 0;
+                ms.Position = 0; // Reset to start of stream
 
-                Console.WriteLine($"Returning ZIP file with length={ms.Length} bytes");
                 return File(ms, "application/zip", zipName);
             }
             catch (Exception ex)
