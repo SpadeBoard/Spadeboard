@@ -106,10 +106,7 @@ export class CardComponent {
         this.cardFacePerLodApiService.getFileMetadataFileNamesByCardFace$(cardFace.cardFaceId)
           .subscribe((fileMetadataNames: string[] | undefined) => {
             if (!fileMetadataNames || fileMetadataNames.length <= 0) {
-               this.cardFaceImages.set(cardFace.cardFaceId, [
-                  getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, this.defaultCardFaceDimensions)
-                ]);
-
+                console.warn(`No file metadata associated with card face ${cardFace.cardFaceId}`);
                 return;
             }
 
