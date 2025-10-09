@@ -111,6 +111,14 @@ namespace Services
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<CardFacePerLod>> GetCardFacePerLodByCardFace(long cardFaceId)
+        {
+            return await _context.CardFacePerLod
+                .Where(c => c.CardFaceId == cardFaceId)
+                .OrderBy(c => c.Lod)
+                .ToListAsync();
+        }
+
         public async Task<bool> OrphanLodsByCardFaceIdAsync(long cardFaceId) 
         {
             List<long> fileMetadataIds = (await GetFileMetadataIdsByCardFace(cardFaceId)).ToList();
@@ -135,6 +143,18 @@ namespace Services
             }
 
             return true;
+        }
+
+        // ASSUMPTION: Lods will always be in the correct order
+        // Grab back all LODs by CardFAceID, and order them
+         public async Task<bool> UpdateFileMetadataByCardFace(long cardFaceId)
+        {
+            IEnumerable<CardFacePerLod> await GetCardFacePerLodByCardFace(cardFaceId);
+
+            return await _context.CardFacePerLod
+                .Where(c => c.CardFaceId == cardFaceId)
+                .OrderBy(c => c.Lod)
+                .ToListAsync();
         }
     }
 }
