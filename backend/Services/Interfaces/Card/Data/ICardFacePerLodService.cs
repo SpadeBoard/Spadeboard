@@ -18,5 +18,7 @@ namespace Services
         public Task<IEnumerable<CardFacePerLod>> CreateAllFromFilesMetadataPerCardFaceAsync(FileMetadata[] filesMetadata, long cardFaceId);
 
         public Task<IEnumerable<CardFacePerLod>> GetCardFacePerLodByCardFace(long cardFaceId);
+
+        public Task<bool> UpdateFileMetadataByCardFace(long cardFaceId, List<long> fileMetadataIds);
     }
 }
