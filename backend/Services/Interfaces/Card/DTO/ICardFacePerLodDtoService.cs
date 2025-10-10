@@ -11,6 +11,8 @@ namespace Services
 
         public Task<IEnumerable<FileMetadataDto>> GetFilesMetadataByCardFaceDto(string cardFaceId);
 
+        public Task<IEnumerable<string>> GetFileMetadataFileNamesByCardFaceDto(string cardFaceId);
+
         public Task<IEnumerable<CardFacePerLodDto>> CreateAllFromFilesMetadataPerCardFaceDtoAsync(FileMetadataDto[] filesMetadata, string cardFaceId);
     }
 }
