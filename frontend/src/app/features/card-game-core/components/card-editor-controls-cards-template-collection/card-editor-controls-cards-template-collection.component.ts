@@ -11,6 +11,7 @@ import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-but
 import { CardComponent } from '../card/card.component';
 import { DEFAULT_CARD_SCALE } from '../../utils/card.constants';
 import { NewCardTemplateCollectionComponent } from '../new-card-template-collection/new-card-template-collection.component';
+import { getFlip } from '../../utils/card.constants';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
@@ -41,24 +42,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     
   currentContextMenuId: string = "";
 
-  actionContextMenuItems: ActionContextMenuItem[] = [
-    {
-      id: 0,
-      name: 'Flip',
-      action: (card?: Card) => {
-        if (!card) return;
-
-        let idx = this.cards.findIndex(c => c.cardId === card.cardId);
-        if (idx !== -1) {
-          this.cards[idx] = {
-            ...card,
-            currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
-          };
-        }
-      },
-      disabled: false
-    }
-  ];
+  actionContextMenuItems: ActionContextMenuItem[] = [ getFlip() ];
 
   constructor() {
     this.getCardTemplates();
@@ -186,6 +170,11 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextMenuId);
 
     if (card)
-      item.action(card);
+      item.action(
+        {
+          card: card,
+          cards: this.cards
+        }
+      );
   }
 }
