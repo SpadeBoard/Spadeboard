@@ -15,7 +15,7 @@ import { CardGameCoreService } from '../../services/card-game-core/card-game-cor
 import { isCard } from '../../utils/card-game-core.utils';
 import { CardComponent } from '../card/card.component';
 import { CardEditorCardDtoApiService } from '../../services/card-game-core/api/card-editor-card-dto-api.service';
-import { DEFAULT_CARD_SCALE } from '../../utils/card.constants';
+import { DEFAULT_CARD_SCALE, getFlip } from '../../utils/card.constants';
 
 @Component({
   selector: 'app-cards-collection',
@@ -49,22 +49,8 @@ export class CardsCollectionComponent {
   currentContextMenuId: string = "";
 
   get actionContextMenuItems(): ActionContextMenuItem[] {
-    return [{
-      id: 0,
-      name: 'Flip',
-      action: (card?: Card) => {
-        if (!card) return;
-
-        let idx = this.cards.findIndex(c => c.cardId === card.cardId);
-        if (idx !== -1) {
-          this.cards[idx] = {
-            ...card,
-            currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
-          };
-        }
-      },
-      disabled: false
-    },
+    return [
+      getFlip(),
      {
        id: 1,
        name: 'Edit Card',
@@ -281,8 +267,16 @@ export class CardsCollectionComponent {
   handleActionContextMenuItemClick(item: ActionContextMenuItem) {
     let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextMenuId);
 
-    if (card)
-      item.action(card);
+    if (!card) return;
+
+    switch (item.id) {
+      case 0: 
+        item.action({card: card, cards: this.cards});
+        break;
+      default:
+        item.action(card);
+        break;
+    }
   }
 
   getDefaultCardScale(): number {
