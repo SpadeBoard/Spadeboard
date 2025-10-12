@@ -111,6 +111,14 @@ namespace Services
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<CardFacePerLod>> GetCardFacePerLodByCardFace(long cardFaceId)
+        {
+            return await _context.CardFacePerLod
+                .Where(c => c.CardFaceId == cardFaceId)
+                .OrderBy(c => c.Lod)
+                .ToListAsync();
+        }
+
         public async Task<bool> OrphanLodsByCardFaceIdAsync(long cardFaceId) 
         {
             List<long> fileMetadataIds = (await GetFileMetadataIdsByCardFace(cardFaceId)).ToList();
@@ -135,6 +143,27 @@ namespace Services
             }
 
             return true;
+        }
+
+        // ASSUMPTION: Lods will always be in the correct order
+        // Grab back all LODs by CardFAceID, and order them
+        public async Task<bool> UpdateFileMetadataByCardFace(long cardFaceId, List<long> fileMetadataIds)
+        {
+            List<CardFacePerLod> cardFacePerLods = (await GetCardFacePerLodByCardFace(cardFaceId)).ToList();
+
+            if (cardFacePerLods.Count != fileMetadataIds.Count) throw new Exception("The amount of File Metadata IDs should match the amount of Card Face Per Lods");
+            
+            for (int i = 0; i < cardFacePerLods.Count; i++)
+                cardFacePerLods[i].FileMetadataId = fileMetadataIds[i];
+            
+            foreach (CardFacePerLod cardFacePerLod in cardFacePerLods) {
+                _context.Entry(cardFacePerLod).State = EntityState.Modified;
+                Console.WriteLine($"ID: {cardFacePerLod.CardFacePerLodId} State: {_context.Entry(cardFacePerLod).State}");
+            }
+
+            Console.WriteLine($"Does update file metadata by card face track changes: {_context.ChangeTracker.HasChanges()}");
+
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

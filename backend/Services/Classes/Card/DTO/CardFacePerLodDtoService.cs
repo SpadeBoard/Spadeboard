@@ -72,5 +72,15 @@ namespace Services
         {
             return await _cardFacePerLodService.OrphanLodsByCardFaceIdAsync(DtoIdConversion.DtoStringToLong(cardFaceId));
         }
+
+         public async Task<bool> UpdateFileMetadataByCardFaceDto(string cardFaceId, List<string> fileMetadataIds)
+         {
+            List<long> ids = [];
+            ids.AddRange(fileMetadataIds.Select(fileMetadataId => DtoIdConversion.DtoStringToLong(fileMetadataId)));
+
+            return await _cardFacePerLodService.UpdateFileMetadataByCardFace(
+                DtoIdConversion.DtoStringToLong(cardFaceId), 
+                ids);
+        }
     }
 }

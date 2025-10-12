@@ -1,4 +1,5 @@
 using Models.Cards;
+using Models.Files;
 using Newtonsoft.Json;
 
 // TODO: For the backend, instead of creating the file metadata, we just want to add the keys to the CardFacePerLod table
@@ -80,8 +81,24 @@ namespace Services
 
         public async Task<bool> UpdateDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
         {
-            // CHECKME: Do we need to check to see if the CardFacePerLod's File Metadata ID already exists
-            // TODO: Update the CardFacePerLod by swapping out the ID of the previous file metadata with the new one based on the CardFacePerLod Id
+            string cardFaceId = cardEditorCardFaceDto.CardFace.CardFaceId;
+            FileMetadataDto[] fileMetadataLods = cardEditorCardFaceDto.FileMetadataLods;
+
+            // NOTE: Essentially we need to check whether the LODs already exist and whether there's LODs to add because someone might have not flipped the back face and only modified the front face
+            // Which means that we need the second condition otherwise we'll send in an empty array leading to that exception
+            if ((await _cardFacePerLodDtoService.GetFilesMetadataByCardFaceDto(cardFaceId)).ToList().Count <= 0 && fileMetadataLods.Length > 0)
+            {
+                if ((await _cardFacePerLodDtoService.CreateAllFromFilesMetadataPerCardFaceDtoAsync(fileMetadataLods, cardFaceId)).ToList().Count <= 0) throw new Exception("If the card face didn't have LODs before, it should've created them now");
+            }
+            else
+            {
+                await _cardFacePerLodDtoService.UpdateFileMetadataByCardFaceDto(cardEditorCardFaceDto.CardFace.CardFaceId, cardEditorCardFaceDto.FileMetadataLods.Select(f => f.FileMetadataId).ToList());
+            }
+
+
+            // bool updated = await _cardFacePerLodDtoService.UpdateFileMetadataByCardFaceDto(cardEditorCardFaceDto.CardFace.CardFaceId, cardEditorCardFaceDto.FileMetadataLods.Select(f => f.FileMetadataId).ToList());
+            // if (!updated) throw new Exception("File metadata for Card Face Per Lod has not been updated");
+
             return await _cardFaceElementPerCardFaceDtoService.UpdateAllDtoNavByCardFaceAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
         }
 
