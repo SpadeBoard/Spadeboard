@@ -105,7 +105,7 @@ export class CardsCollectionComponent {
   Only adds one card per call:
   If the server has many new cards, you’ll need to call onCreateCardEditorCardDto() repeatedly (or use a loop/recursion) to fully sync.
   */
-  private onCreateCardEditorCardDto() {
+  private onCreateCardEditorCardDto(): void {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
@@ -113,7 +113,7 @@ export class CardsCollectionComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0) {
-        this.cards.push(cardEditorCardDto.card);
+        this.cards.push({...cardEditorCardDto.card});
         return;
       }
 
@@ -121,7 +121,7 @@ export class CardsCollectionComponent {
     });
   }
 
-  private onUpdateCardEditorCardDto() {
+  private onUpdateCardEditorCardDto(): void {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
@@ -132,13 +132,13 @@ export class CardsCollectionComponent {
         let index = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
 
         if (index !== -1) {
-          this.cards[index] = cardEditorCardDto.card;
+          this.cards[index] = {...cardEditorCardDto.card};
         }
       }
     });
   }
 
-  private onDeleteCardEditorCardDto() {
+  private onDeleteCardEditorCardDto(): void {
     this.cardEditorPreviewService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardId: string) => {

@@ -56,7 +56,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     return this.cardEditorPreviewService.cardEditorCardDto.card.cardId;
   }
 
-  getCardTemplates() {
+  getCardTemplates(): void {
     this.tagsPerCardApiService.getCardTemplatesByOwnerId$('5811e387-1551-4090-9485-a3ebe30efb5a').subscribe((cards: Card[] | undefined) => {
       console.log(`Get card templates by owner ID: ${JSON.stringify(cards)}`);
       
@@ -64,11 +64,11 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     });
   }
 
-  onClickCard(event: Event, cardId: string) {
+  onClickCard(event: Event, cardId: string): void {
     this.cardEditorPreviewService.setCardEditorCardDtoByCardId(cardId);
   }
 
-  private onCreateCardEditorCardDto() {
+  private onCreateCardEditorCardDto() : void{
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
@@ -84,7 +84,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     });
   }
 
-  private onUpdateCardEditorCardDto() {
+  private onUpdateCardEditorCardDto(): void {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
@@ -103,7 +103,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
             return;
           }
 
-          this.cards[index] = cardEditorCardDto.card;
+          this.cards[index] = {...cardEditorCardDto.card};
           return;
         }
         
@@ -112,7 +112,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   }
 
   // TODO: Too much duplication between cards-collection and here, make a service for cards collection and then use these functions to populate here
-  private onDeleteCardEditorCardDto() {
+  private onDeleteCardEditorCardDto(): void {
     this.cardEditorPreviewService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe((cardId: string) => {
@@ -122,7 +122,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
 
   private addCardTemplate(cardEditorCardDto: CardEditorCardDto): boolean {
     if (this.cardEditorPreviewService.isCardTemplate(cardEditorCardDto)) {
-      this.cards.push(cardEditorCardDto.card);
+      this.cards.push({...cardEditorCardDto.card});
     }
 
     return this.cards.includes(cardEditorCardDto.card);
