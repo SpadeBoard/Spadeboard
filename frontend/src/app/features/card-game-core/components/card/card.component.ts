@@ -38,7 +38,9 @@ export class CardComponent {
   });
 
   // TODO: Figure out the alternate text for images
-  // CHECKME: Do we want the ID for the card face instead of the index
+  // TODO:
+  // 1. Potentially store the file metadata ID OR file name associated with the card face image
+  // The reason is so we can check to see if it's already there, so we don't have to load that LOD again.
   cardFaceImages: Map<string, CardFaceImage[]> = new Map<string, CardFaceImage[]>();
 
   cardScale: InputSignal<number> =  input<number>(1);
@@ -49,6 +51,11 @@ export class CardComponent {
   constructor() {
     effect(() => {
       // https://builtin.com/software-engineering-perspectives/forkjoin
+      // CHECKME: Are there unnecessary reloadings in place causing lag and dimensions calculation errors?
+      // It's not reading the card periodically, is triggered by certain actions
+      // TODO: We need to figure out how to ONLY load the card faces when the card faces themselves have changed AND when the card model changes
+      
+      // Potentially also if cardScale changes too
       if (this.card()) {
         this.loadCardFaces(this.card());
       }
@@ -109,6 +116,9 @@ export class CardComponent {
                 console.warn(`No file metadata associated with card face ${cardFace.cardFaceId}`);
                 return;
             }
+
+            // TODO: Check to see if these file metadata file names already exist inside of the cardFaceImages variable
+            // If they don't, then load the LODs, else just return
 
             this.getCardFaceLodsSrcs(fileMetadataNames).then((images: HTMLImageElement[] | undefined) => {
               if (!images) {
@@ -197,29 +207,21 @@ export class CardComponent {
   }
 
 
-  private getCardFaceImageSrc(cardFace: CardFace): Promise<HTMLImageElement | undefined> {
-    if (!cardFace.cardFaceThumbnailFileMetadata) {
-      console.warn(`ID: ${cardFace.cardFaceId}, No card face thumbnail file metadata`);
-      return Promise.resolve(undefined);
-    }
-
+  private getCardFaceImageSrc(fileName: string): Promise<HTMLImageElement | undefined> {
     // https://www.learnrxjs.io/learn-rxjs/operators/filtering/takeuntil
     return new Promise((resolve) => {
-      this.fileUploadApiService.getFile$(
-        cardFace.cardFaceThumbnailFileMetadata?.fileName as string,
-        'card-face'
-      ).pipe(
+      this.fileUploadApiService.getFile$(fileName, 'card-face').pipe(
         // takeUntil(this.destroy$) // Call on ngDestroy, prevents memory leaks
       ).subscribe({
         next: (result: Blob | undefined) => {
           if (!result) {
-            console.warn(`Get file metadata: ID - ${cardFace.cardFaceId}, No card face thumbnail file metadata`);
+            console.warn(`Get file metadata: Name - ${fileName}, No card face thumbnail file metadata`);
             resolve(undefined);
             return;
           }
   
-          let image = new Image();
-          let objectUrl = URL.createObjectURL(result);
+          let image: HTMLImageElement = new Image();
+          let objectUrl: string = URL.createObjectURL(result);
           image.src = objectUrl;
           
           image.onload = () => {
@@ -234,8 +236,8 @@ export class CardComponent {
           };
         },
         error: (err: any) => {
-          console.log(`Get file metadata: ID - ${cardFace.cardFaceId}, Error: ${JSON.stringify(err)}`);
-          resolve(undefined) // Handle API errors
+          console.log(`Get file metadata: ID - ${fileName}, Error: ${JSON.stringify(err)}`);
+          resolve(undefined)
         }
       });
     });

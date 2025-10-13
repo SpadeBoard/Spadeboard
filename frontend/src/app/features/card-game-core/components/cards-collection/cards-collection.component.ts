@@ -15,7 +15,7 @@ import { CardGameCoreService } from '../../services/card-game-core/card-game-cor
 import { isCard } from '../../utils/card-game-core.utils';
 import { CardComponent } from '../card/card.component';
 import { CardEditorCardDtoApiService } from '../../services/card-game-core/api/card-editor-card-dto-api.service';
-import { DEFAULT_CARD_SCALE, getFlip } from '../../utils/card.constants';
+import { DEFAULT_CARD_SCALE, getDeleteCard, getEditCard, getFlip } from '../../utils/card.constants';
 
 @Component({
   selector: 'app-cards-collection',
@@ -51,26 +51,10 @@ export class CardsCollectionComponent {
   get actionContextMenuItems(): ActionContextMenuItem[] {
     return [
       getFlip(),
-     {
-       id: 1,
-       name: 'Edit Card',
-       action: (card?: Card) => {
-         if (!card) return;
-         this.cardEditorPreviewService.getCardEditorCardDtoByCardId(card.cardId);
-         this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
-       },
-       disabled: false
-     },
-    {
-      id: 2,
-      name: 'Delete Card',
-      action: (card?: Card) => {
-        if (!card || card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
-        this.cardEditorPreviewService.deleteCard(card.cardId);
-      },
-       disabled: ((this.currentContextMenuId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)) ? true: false
-    }
-  ]};
+      getEditCard(),
+      getDeleteCard(this.currentContextMenuId, this.cardEditorPreviewService)
+    ]
+  };
 
   constructor() {
     // TODO: Might want to do a behavior subject instead where we get the latest card based on when we add the card
@@ -269,13 +253,19 @@ export class CardsCollectionComponent {
 
     if (!card) return;
 
+    // CHECKME: Can we refactor this and make it something other than a switch statement? A dictionary if we really wanted to?
     switch (item.id) {
       case 0: 
         item.action({card: card, cards: this.cards});
         break;
-      default:
-        item.action(card);
+      case 1:
+        item.action({cardId: card.cardId, cardEditorPreviewService: this.cardEditorPreviewService, cardGameCoreService: this.cardGameCoreService});
         break;
+      case 2:
+        item.action({currentContextMenuId: this.currentContextMenuId, cardEditorPreviewService: this.cardEditorPreviewService});
+        break;
+      default:
+        throw new Error("No default implementation for item");
     }
   }
 
