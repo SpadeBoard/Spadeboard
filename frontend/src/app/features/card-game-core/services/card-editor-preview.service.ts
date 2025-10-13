@@ -301,12 +301,6 @@ export class CardEditorPreviewService {
         console.log('Upload card face thumbnail image result:', result);
         if (!result.id) return of(undefined);
 
-        // Because files are automatically created, we just want to delay and see whether we'd need to delete those files in the first place
-        // As this is before saving or creating
-        if (this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata !== undefined) {
-          this.orphanedFileMetadata.push(this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata);
-        }
-
         // TODO: Really do replace this, it shouldn't be here
         let cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
 
@@ -317,8 +311,6 @@ export class CardEditorPreviewService {
             if (fileMetadata === undefined)
               return result.id;
 
-            this.cardEditorCardDto.cardEditorCardFacesDto[cardFaceIndex].cardFace.cardFaceThumbnailFileMetadata = fileMetadata;
-            
             return fileMetadata.fileName;
           }),
           takeUntilDestroyed(this.destroyRef)

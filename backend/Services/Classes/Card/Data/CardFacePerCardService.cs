@@ -76,7 +76,6 @@ namespace Services
                 .Include(c => c.CardFace)
                     .ThenInclude(cf => cf.Style)
                 .Include(c => c.CardFace)
-                    .ThenInclude(cf => cf.CardFaceThumbnailFileMetadata)
                 .Select(c => c.CardFace)
                 .Where(face => face != null)
                 .Select(face => face!)

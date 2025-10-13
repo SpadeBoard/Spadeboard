@@ -42,9 +42,7 @@ namespace Mapper
                            opt => opt.MapFrom(src => long.Parse(src.CardFaceId)))
                .ForMember(dest => dest.StyleId,
                             opt => opt.MapFrom(src => string.IsNullOrEmpty(src.StyleId) ? (long?)null : long.Parse(src.StyleId)))
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.CardFaceThumbnailFileMetadataId, opt => opt.Ignore())
-                .ForMember(dest => dest.CardFaceThumbnailFileMetadata, opt => opt.Ignore());
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Long -> String
             CreateMap<CardFacePerCard, CardFacePerCardDto>();

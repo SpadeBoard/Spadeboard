@@ -2,17 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
 using Algorithms;
-using Models.Files;
 
 namespace Services
 {
-    public class CardFaceService(ApplicationDbContext context, IStyleService styleService, IFileMetadataService fileMetadataService) : ICardFaceService
+    public class CardFaceService(ApplicationDbContext context) : ICardFaceService
     {
         private readonly ApplicationDbContext _context = context;
-
-        private readonly IStyleService _styleService = styleService;
-
-        private readonly IFileMetadataService _fileMetadataService = fileMetadataService;
 
         private readonly CrudService<CardFace> _crudService = new(context, cardFace => cardFace.CardFaceId);
 
@@ -61,14 +56,6 @@ namespace Services
                 return false;
             }
 
-            // We're just marking the file metadata
-            // Furthermore, when we're deleting a card, we're not actually modifying the metadata in any way
-            // For consistency, just do it in backend, don't do it in frontend
-            if (nav.CardFaceThumbnailFileMetadataId != null)
-            {
-               await _fileMetadataService.MarkAsOrphanedByIdAsync(nav.CardFaceThumbnailFileMetadataId.Value);
-            }
-            
             _context.CardFace.Remove(nav);
 
             if (nav.Style != null)
@@ -85,27 +72,6 @@ namespace Services
             if (nav.Style != null /*&& _styleService.IsModified(nav.Style)*/)
             {
                 _context.Entry(nav.Style).State = EntityState.Modified;
-            }
-
-            // Again, this should be just attached just in case
-            if (nav.CardFaceThumbnailFileMetadata != null)
-            {
-                long id = nav.CardFaceThumbnailFileMetadata.FileMetadataId;
-                
-                // Again, speed
-                if (nav.CardFaceThumbnailFileMetadata.FileMetadataStatus != FileMetadataStatus.Attached)
-                {
-                    await _fileMetadataService.MarkAsAttachedByIdAsync(id);
-                }
-
-                // Ok, this has to be redundant and can be simplified somehow
-                // The problem is we're just marking the file metadata as attached, we need to reassign the imageElement.FileMetadata, and then modiify it
-                // Because we need to reassign the file metadata, else it's not going to override what we previously had
-                FileMetadata? updatedFileMetadata = await _fileMetadataService.GetAsync(id);
-                if (updatedFileMetadata != null) {
-                    nav.CardFaceThumbnailFileMetadata = updatedFileMetadata;
-                    _context.Entry(nav.CardFaceThumbnailFileMetadata).State = EntityState.Modified;
-                }
             }
 
             _context.Entry(nav).State = EntityState.Modified;
@@ -132,7 +98,6 @@ namespace Services
         {
             var cardFace = await _context.CardFace
                 .Include(cardFace => cardFace.Style)
-                .Include(cardFace => cardFace.CardFaceThumbnailFileMetadata)
                 .FirstOrDefaultAsync(cardFace => cardFace.CardFaceId == cardFaceId);
 
             if (cardFace == null)
@@ -147,7 +112,6 @@ namespace Services
         {
             var cardFaces = await _context.CardFace
             .Include(cf => cf.Style)
-            .Include(cf => cf.CardFaceThumbnailFileMetadata)
             .ToListAsync();
 
             return cardFaces;
@@ -158,27 +122,6 @@ namespace Services
              if (nav.Style == null) {
                 throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe Style property of CardFace cannot be null.", nameof(nav));
             }
-
-            // It's theoretically possible for a card face to never have a thumbnail image taken of
-            if (nav.CardFaceThumbnailFileMetadata != null) {
-                if (!_fileMetadataService.Exists(nav.CardFaceThumbnailFileMetadata.FileMetadataId))
-                {
-                    throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadataproperty of CardFace must already exist", nameof(nav));
-                }
-
-                if (!await _fileMetadataService.MarkAsAttachedByIdAsync(nav.CardFaceThumbnailFileMetadata.FileMetadataId))
-                {
-                    throw new Exception("Card face thumbnail wasn't attached");
-                }
-
-                nav.CardFaceThumbnailFileMetadataId = nav.CardFaceThumbnailFileMetadata.FileMetadataId;
-                nav.CardFaceThumbnailFileMetadata = null;
-            }
-
-            // TODO: Use this when we set up the LODs
-            /*if (!_cardFaceThumbnailFileMetadataService.Exists(nav.CardFaceThumbnailFileMetadata.CardFaceThumbnailFileMetadataId) {
-                throw new ArgumentException("Item: CardFace Face\nFunction: Create Nav Async\nThe CardFaceThumbnailFileMetadataproperty of CardFace must already exist", nameof(nav));
-            }*/
 
             nav.Style.StyleId = Snowflake.NewId();
             nav.CardFaceId = Snowflake.NewId();
@@ -193,7 +136,6 @@ namespace Services
                 throw new Exception("No changes were made");
 
             await _context.Entry(nav).Reference(n => n.Style).LoadAsync();
-            await _context.Entry(nav).Reference(n => n.CardFaceThumbnailFileMetadata).LoadAsync();
             return nav; 
         }
     }

@@ -107,8 +107,6 @@ export class CardComponent {
       console.log(`Load card faces: ${JSON.stringify(result, null, 2)}`);
 
       result.map((cardFace: CardFace, idx: number) => {
-        // console.log(`Thumbnail File Metadata: ${JSON.stringify(cardFace.cardFaceThumbnailFileMetadata, null, 2)}`);
-
         // TODO: Grab the file names, then pass into getCardFaceLodsSrcs
         this.cardFacePerLodApiService.getFileMetadataFileNamesByCardFace$(cardFace.cardFaceId)
           .subscribe((fileMetadataNames: string[] | undefined) => {
