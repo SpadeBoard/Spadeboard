@@ -101,7 +101,7 @@ namespace Services
 
         public async Task<bool> DeleteByCardAndCardFaceAsync(long cardId, long cardFaceId)
         {
-            var cardFacesPerCard= await _context.CardFacePerCard
+            List<CardFacePerCard>? cardFacesPerCard= await _context.CardFacePerCard
             .Where(c => c.CardId == cardId && c.CardFaceId == cardFaceId).ToListAsync();
 
             if (cardFacesPerCard.Count > 0)

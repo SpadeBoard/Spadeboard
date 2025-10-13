@@ -165,5 +165,17 @@ namespace Services
 
             return await _context.SaveChangesAsync() > 0;
         }
+
+
+        public async Task<bool> DeleteByCardFaceAsync(long cardFaceId)
+        {
+            List<CardFacePerLod> cardFacePerLods = (await GetCardFacePerLodByCardFace(cardFaceId)).ToList();
+
+            foreach (CardFacePerLod c in cardFacePerLods)
+                await _fileMetadataService.MarkAsOrphanedByIdAsync(c.FileMetadataId);
+
+            _context.CardFacePerLod.RemoveRange(cardFacePerLods);
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

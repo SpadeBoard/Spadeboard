@@ -20,5 +20,7 @@ namespace Services
         public Task<IEnumerable<CardFacePerLod>> GetCardFacePerLodByCardFace(long cardFaceId);
 
         public Task<bool> UpdateFileMetadataByCardFace(long cardFaceId, List<long> fileMetadataIds);
+
+        public Task<bool> DeleteByCardFaceAsync(long cardFaceId);
     }
 }

@@ -140,7 +140,7 @@ namespace Services
 
         public async Task<bool> DeleteDtoAsync(CardEditorCardFaceDto cardEditorCardFaceDto)
         {
-            // TODO: Use  await _cardFacePerLodDtoService.AttachLodsByCardFaceIdDtoAsync(result.CardFace.CardFaceId);
+            await _cardFacePerLodDtoService.DeleteByCardFaceDtoAsync(cardEditorCardFaceDto.CardFace.CardFaceId);
 
             return await _cardFaceElementPerCardFaceDtoService.DeleteAllDtoNavByCardFaceAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
         }

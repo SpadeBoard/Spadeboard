@@ -58,6 +58,8 @@ export class CardComponent {
       // Potentially also if cardScale changes too
       if (this.card()) {
         this.loadCardFaces(this.card());
+
+        // this.setDefaultDimensionsFromFrontFace();
       }
     });
   }

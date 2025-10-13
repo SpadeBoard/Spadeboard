@@ -82,5 +82,10 @@ namespace Services
                 DtoIdConversion.DtoStringToLong(cardFaceId), 
                 ids);
         }
+
+        public async Task<bool> DeleteByCardFaceDtoAsync(string cardFaceId) 
+        {
+            return await _cardFacePerLodService.DeleteByCardFaceAsync(DtoIdConversion.DtoStringToLong(cardFaceId));
+        }
     }
 }
