@@ -5,7 +5,6 @@ using Models.Cards;
 using Models.Styles;
 using Models.GameRooms;
 using Models.DndItems;
-using System.Configuration;
 using Models.Bridge;
 using Models.Files;
 using Models.Tags;
@@ -17,7 +16,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        
+
         builder.HasPostgresEnum<FileMetadataStatus>();
 
         // CHECKME: Do we want these as sets
@@ -110,23 +109,23 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // https://code-maze.com/efcore-add-unique-constraints-to-a-property-code-first/
         // https://stackoverflow.com/questions/49526370/is-there-a-data-annotation-for-unique-constraint-in-ef-core-code-first
         builder.Entity<PlayersPerRoom>()
-            .HasIndex(a => new {a.PlayerId, a.GameRoomId})
+            .HasIndex(a => new { a.PlayerId, a.GameRoomId })
             .IsUnique();
 
-         builder.Entity<OwnersPerRoom>()
-            .HasIndex(a => new {a.OwnerId, a.GameRoomId})
-            .IsUnique();
+        builder.Entity<OwnersPerRoom>()
+           .HasIndex(a => new { a.OwnerId, a.GameRoomId })
+           .IsUnique();
 
         builder.Entity<TagsPerCard>()
-            .HasIndex(a => new {a.TagId, a.CardId})
+            .HasIndex(a => new { a.TagId, a.CardId })
             .IsUnique();
 
-          builder.Entity<CardPerOwner>()
-            .HasIndex(a => new {a.CardId, a.OwnerId})
-            .IsUnique();
+        builder.Entity<CardPerOwner>()
+          .HasIndex(a => new { a.CardId, a.OwnerId })
+          .IsUnique();
 
         builder.Entity<Tag>()
-            .HasIndex(a => new {a.TagName})
+            .HasIndex(a => new { a.TagName })
             .IsUnique();
 
         /*****************************************************************/
@@ -135,6 +134,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany()
             .HasForeignKey(cp => cp.StyleId)
             .IsRequired(false);
+
+        builder.Entity<CardFacePerLod>()
+            .HasIndex(a => new { a.CardFaceId, a.Lod })
+            .IsUnique();
+
+        // NOTE: If we do add a card face index on CardFacePerCard, do the same thing with that
 
         builder.Entity<CardFaceElement>()
             .HasOne(cp => cp.Style)
@@ -146,19 +151,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         /*****************************************************************/
         builder.Entity<Tag>()
-            .HasIndex(a => new {a.TagName})
+            .HasIndex(a => new { a.TagName })
             .IsUnique();
 
         builder.Entity<Tag>()
             .HasData(new Tag
             {
                 TagId = 1,
-                TagName="Template"
+                TagName = "Template"
             }
         );
 
         /****************************************************************/
-    
+
         // FIXME: TEMPORARY SEED DATA
         builder.Entity<GameRoom>()
             .HasData(new GameRoom
@@ -166,7 +171,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 GameRoomId = 1
             }
         );
-        
+
         builder.Entity<IdentityUser>().HasData(
             new IdentityUser
             {
@@ -190,39 +195,41 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<CardFace> CardFace { get; set; } = default!;
 
+    public DbSet<CardFacePerLod> CardFacePerLod { get; set; } = default!;
+
     public DbSet<CardFaceElement> CardFaceElement { get; set; } = default!;
-    
+
     public DbSet<Style> Style { get; set; } = default!;
 
     public DbSet<GameRoom> GameRoom { get; set; } = default!;
 
     public DbSet<DndItem> DndItem { get; set; } = default!;
 
-    public DbSet<DndDragBoundary> DndDragBoundary {get;set;} = default!;
+    public DbSet<DndDragBoundary> DndDragBoundary { get; set; } = default!;
 
-    public DbSet<DndPosition> DndPosition {get;set;} = default!;
+    public DbSet<DndPosition> DndPosition { get; set; } = default!;
 
-    public DbSet<DndRotation> DndRotation {get;set;} = default!;
+    public DbSet<DndRotation> DndRotation { get; set; } = default!;
 
-    public DbSet<CardPositionPerRoom> CardPositionPerRoom {get;set;} = default!;
+    public DbSet<CardPositionPerRoom> CardPositionPerRoom { get; set; } = default!;
 
     public DbSet<IdentityUser> Users { get; set; } = default!;
 
-    public DbSet<CardFaceElementPerCardFace> CardFaceElementPerCardFace{ get; set; } = default!;
+    public DbSet<CardFaceElementPerCardFace> CardFaceElementPerCardFace { get; set; } = default!;
 
-    public DbSet<CardPerOwner> CardPerOwner{ get; set; } = default!;
+    public DbSet<CardPerOwner> CardPerOwner { get; set; } = default!;
 
     public DbSet<CardFacePerCard> CardFacePerCard { get; set; } = default!;
 
-    public DbSet<FileMetadata> FileMetadata {get; set;} = default!;
+    public DbSet<FileMetadata> FileMetadata { get; set; } = default!;
 
-    public DbSet<PlayersPerRoom> PlayersPerRoom {get; set;} = default!;
+    public DbSet<PlayersPerRoom> PlayersPerRoom { get; set; } = default!;
 
-    public DbSet<OwnersPerRoom> OwnersPerRoom {get; set;} = default!;
+    public DbSet<OwnersPerRoom> OwnersPerRoom { get; set; } = default!;
 
-    public DbSet<Tag> Tag {get; set;} =default!;
+    public DbSet<Tag> Tag { get; set; } = default!;
 
-    public DbSet<FileAuthenticationPerExportedCard> FileAuthenticationPerExportedCard {get;set;} = default!;
+    public DbSet<FileAuthenticationPerExportedCard> FileAuthenticationPerExportedCard { get; set; } = default!;
 
     public DbSet<TagsPerCard> TagsPerCard { get; set; } = default!;
 }

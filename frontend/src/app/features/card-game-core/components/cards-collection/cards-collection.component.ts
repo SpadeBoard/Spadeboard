@@ -15,7 +15,7 @@ import { CardGameCoreService } from '../../services/card-game-core/card-game-cor
 import { isCard } from '../../utils/card-game-core.utils';
 import { CardComponent } from '../card/card.component';
 import { CardEditorCardDtoApiService } from '../../services/card-game-core/api/card-editor-card-dto-api.service';
-import { DEFAULT_CARD_SCALE } from '../../utils/card.constants';
+import { DEFAULT_CARD_SCALE, getDeleteCard, getEditCard, getFlip } from '../../utils/card.constants';
 
 @Component({
   selector: 'app-cards-collection',
@@ -49,42 +49,12 @@ export class CardsCollectionComponent {
   currentContextMenuId: string = "";
 
   get actionContextMenuItems(): ActionContextMenuItem[] {
-    return [{
-      id: 0,
-      name: 'Flip',
-      action: (card?: Card) => {
-        if (!card) return;
-
-        let idx = this.cards.findIndex(c => c.cardId === card.cardId);
-        if (idx !== -1) {
-          this.cards[idx] = {
-            ...card,
-            currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
-          };
-        }
-      },
-      disabled: false
-    },
-     {
-       id: 1,
-       name: 'Edit Card',
-       action: (card?: Card) => {
-         if (!card) return;
-         this.cardEditorPreviewService.getCardEditorCardDtoByCardId(card.cardId);
-         this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
-       },
-       disabled: false
-     },
-    {
-      id: 2,
-      name: 'Delete Card',
-      action: (card?: Card) => {
-        if (!card || card.cardId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId) return;
-        this.cardEditorPreviewService.deleteCard(card.cardId);
-      },
-       disabled: ((this.currentContextMenuId === this.cardEditorPreviewService.cardEditorCardDto.card.cardId)) ? true: false
-    }
-  ]};
+    return [
+      getFlip(),
+      getEditCard(),
+      getDeleteCard(this.currentContextMenuId, this.cardEditorPreviewService)
+    ]
+  };
 
   constructor() {
     // TODO: Might want to do a behavior subject instead where we get the latest card based on when we add the card
@@ -135,7 +105,7 @@ export class CardsCollectionComponent {
   Only adds one card per call:
   If the server has many new cards, you’ll need to call onCreateCardEditorCardDto() repeatedly (or use a loop/recursion) to fully sync.
   */
-  private onCreateCardEditorCardDto() {
+  private onCreateCardEditorCardDto(): void {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
@@ -143,7 +113,7 @@ export class CardsCollectionComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardEditorCardDto: CardEditorCardDto) => {
       if (cardEditorCardDto && this.cards.length > 0) {
-        this.cards.push(cardEditorCardDto.card);
+        this.cards.push({...cardEditorCardDto.card});
         return;
       }
 
@@ -151,7 +121,7 @@ export class CardsCollectionComponent {
     });
   }
 
-  private onUpdateCardEditorCardDto() {
+  private onUpdateCardEditorCardDto(): void {
     // ASSUMPTION:
     // It's possible for cards collection to already have cards before adding the new card, i.e., cards you've made before and now are having a new session
     // You might create a new card before opening menu, so without this check, then you'd only ever add the new card that's just created, not loading all of the cards at your dispersal
@@ -162,13 +132,13 @@ export class CardsCollectionComponent {
         let index = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
 
         if (index !== -1) {
-          this.cards[index] = cardEditorCardDto.card;
+          this.cards[index] = {...cardEditorCardDto.card};
         }
       }
     });
   }
 
-  private onDeleteCardEditorCardDto() {
+  private onDeleteCardEditorCardDto(): void {
     this.cardEditorPreviewService.onDeleteCardEditorCardDto$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cardId: string) => {
@@ -281,8 +251,22 @@ export class CardsCollectionComponent {
   handleActionContextMenuItemClick(item: ActionContextMenuItem) {
     let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextMenuId);
 
-    if (card)
-      item.action(card);
+    if (!card) return;
+
+    // CHECKME: Can we refactor this and make it something other than a switch statement? A dictionary if we really wanted to?
+    switch (item.id) {
+      case 0: 
+        item.action({card: card, cards: this.cards});
+        break;
+      case 1:
+        item.action({cardId: card.cardId, cardEditorPreviewService: this.cardEditorPreviewService, cardGameCoreService: this.cardGameCoreService});
+        break;
+      case 2:
+        item.action({currentContextMenuId: this.currentContextMenuId, cardEditorPreviewService: this.cardEditorPreviewService});
+        break;
+      default:
+        throw new Error("No default implementation for item");
+    }
   }
 
   getDefaultCardScale(): number {

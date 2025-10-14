@@ -1,13 +1,4 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Data;
-using Models.Cards;
+using System.Text.Json;
 
 namespace Services
 {
@@ -17,6 +8,8 @@ namespace Services
         // TODO: Modify this to read from the environment instead, maybe pass in the volume path instead as a parameter
         private readonly string cardFaceFilePath = "/app/backend/card-face-thumbnail-images";
         private readonly string cardFaceElementImageFilePath = "/app/backend/card-face-elements-images";
+
+        // NOTE: Allow an option to toggle on max file length, but also need to make sure the card creation process doesn't stop in case if the length is too big
         private readonly float maxFileSizeCardFace = 1000000; // TODO: Read from environment variable
 
         private readonly float maxFileSizeCardFaceElementImage = 1000000; // TODO: Read from environment variable
@@ -62,7 +55,7 @@ namespace Services
             {
                 // TODO: Replace -1 for the card face ID in the other function
                 // string fileName = String.Format("{0}-{1}", -1, Guid.NewGuid().ToString());
-                
+
                 string fileName = Guid.NewGuid().ToString();
 
                 // string? fileName = Path.GetRandomFileName() + Path.GetExtension(formFile.FileName); // TODO: Replace the file name
@@ -91,14 +84,6 @@ namespace Services
             string tempFilePath = Path.GetTempFileName();
             string destinationFilePath = Path.Combine(volumePath, fileName);
             string backupFilePath = Path.Combine(volumePath, fileName + ".bak");
-
-            /*
-                System.IO.IOException: Cross-device link
-                at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
-                at Interop.CheckIo(Int64 result, String path, Boolean isDirError)
-                at System.IO.FileSystem.ReplaceFile(String sourceFullPath, String destFullPath, String destBackupFullPath, Boolean ignoreMetadataErrors)
-                at Services.FileUploadService.ReplaceFileAsync(IFormFile formFile, String volumePath, String fileName, Single maxLength) in /app/backend/Services/Classes/File/FileUploadService.cs:line 110
-            */
 
             try
             {
@@ -147,10 +132,38 @@ namespace Services
             return await GetFileAsync(fileName, cardFaceFilePath);
         }
 
+        public async Task<IEnumerable<FileStream>> GetCardFaceFilesAsync(List<string> fileNames)
+        {
+            List<FileStream> cardFaces = [];
+
+            foreach (string fileName in fileNames)
+            {
+                FileStream? file = await GetFileAsync(fileName, cardFaceFilePath);
+                if (file != null) cardFaces.Add(file);
+            }
+
+            return cardFaces;
+        }
+
         public async Task<string?> UploadCardFaceFileAsync(IFormFile formFile)
         {
-            // TODO: To be modified, this should be specifically for images
             return await UploadFileAsync(formFile, maxFileSizeCardFace, cardFaceFilePath);
+        }
+
+        public async Task<IEnumerable<string>> UploadCardFaceFilesAsync(List<IFormFile> formFiles)
+        {
+            Console.WriteLine("Upload card face files: ", JsonSerializer.Serialize(formFiles));
+
+            List<string> fileNames = [];
+
+            foreach (IFormFile formFile in formFiles)
+            {
+                string? fileName = await UploadFileAsync(formFile, maxFileSizeCardFace, cardFaceFilePath);
+
+                if (fileName != null) fileNames.Add(fileName);
+            }
+
+            return fileNames;
         }
 
         public async Task<FileStream?> GetCardFaceElementImageFileAsync(string fileName)
@@ -187,27 +200,39 @@ namespace Services
             await DeleteFileAsync(cardFaceElementImageFilePath, fileName);
         }
 
-        public async Task<string> ReplaceFilePathAsync(string volumePath, string sourceFileName)
-    {
-        string sourceFilePath = Path.Combine(volumePath, sourceFileName);
-
-        if (string.IsNullOrWhiteSpace(sourceFileName))
-            throw new ArgumentException("Source file name cannot be null or empty.", nameof(sourceFileName));
-        if (!File.Exists(sourceFilePath))
-            throw new FileNotFoundException("Source file does not exist.", sourceFileName);
-
-        string destinationFileName = Guid.NewGuid().ToString();
-         string destinationFilePath = Path.Combine(volumePath, destinationFileName);
-
-        // Asynchronously copy the file
-        using (FileStream sourceStream = File.Open(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-        using (FileStream destinationStream = File.Create(destinationFilePath))
+        public async Task<IEnumerable<string>> ReplaceFilePathsAsync(string volumePath, string[] sourceFileNames)
         {
-            await sourceStream.CopyToAsync(destinationStream);
+            List<string> filePaths = [];
+
+            foreach (string sourceFileName in sourceFileNames)
+            {
+                filePaths.Add(await ReplaceFilePathAsync(volumePath, sourceFileName));
+            }
+
+            return filePaths;
         }
 
-        return destinationFileName;
-    }
+        public async Task<string> ReplaceFilePathAsync(string volumePath, string sourceFileName)
+        {
+            string sourceFilePath = Path.Combine(volumePath, sourceFileName);
+
+            if (string.IsNullOrWhiteSpace(sourceFileName))
+                throw new ArgumentException("Source file name cannot be null or empty.", nameof(sourceFileName));
+            if (!File.Exists(sourceFilePath))
+                throw new FileNotFoundException("Source file does not exist.", sourceFileName);
+
+            string destinationFileName = Guid.NewGuid().ToString();
+            string destinationFilePath = Path.Combine(volumePath, destinationFileName);
+
+            // Asynchronously copy the file
+            using (FileStream sourceStream = File.Open(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (FileStream destinationStream = File.Create(destinationFilePath))
+            {
+                await sourceStream.CopyToAsync(destinationStream);
+            }
+
+            return destinationFileName;
+        }
 
         public async Task<string> ReplaceCardFaceElementImageFilePathAsync(string srcFileName)
         {
@@ -219,26 +244,11 @@ namespace Services
             return await ReplaceFilePathAsync(cardFaceFilePath, srcFileName);
         }
 
-        // TODO: figure out how to fix this
-        /*public void ConvertBlobToFile(byte[] blob, string filePath) {
-            try 
-            {
-                filePath = Path.Combine(cardFaceFilePath, filePath);
-
-                using FileStream fs = new(filePath, FileMode.Create);
-                using BinaryWriter bw = new(fs);
-                bw.Write(blob);
-                // https://learn.microsoft.com/en-us/dotnet/api/system.io.filestream?view=net-9.0
-                // https://learn.microsoft.com/en-us/dotnet/api/system.io.binarywriter?view=net-9.0
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("An error occurred while writing the file: " + ex.Message);
-            }
-        }*/
+        public async Task<IEnumerable<string>> ReplaceCardFaceThumbnailImagesFilePathAsync(string[] srcFileNames)
+        {
+            return await ReplaceFilePathsAsync(cardFaceFilePath, srcFileNames);
+        }
 
         // TODO: Delete files at a certain point if there's no user reference to it
-
-        // TODO: Replace file path, use it with creating a new CardEditorCardDto from an existing one, replace the file path
     }
 }

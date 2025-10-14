@@ -20,10 +20,6 @@ namespace Models.Cards
         public long? StyleId {get; set;}
         [ForeignKey("StyleId")]
         public virtual Style? Style { get; set; }
-
-        public long? CardFaceThumbnailFileMetadataId {get; set;}
-        [ForeignKey("CardFaceThumbnailFileMetadataId")]
-        public virtual FileMetadata? CardFaceThumbnailFileMetadata {get;set;}
     }
 
     public class CardFaceDto
@@ -31,14 +27,13 @@ namespace Models.Cards
         public string CardFaceId { get; set; } = "0";
         public string? StyleId {get; set;} = "0";
         public virtual StyleDto? Style { get; set; }
-
-        public string? CardFaceThumbnailFileMetadataId {get; set;}
-        public virtual FileMetadataDto? CardFaceThumbnailFileMetadata {get;set;}
     }
 
     public class CardEditorCardFaceDto 
     {
         public CardFaceDto CardFace {get; set;}
+
+        public FileMetadataDto[] FileMetadataLods { get; set; }
 
         public CardFaceElementPerCardFaceDto[] CardFaceElementsPerCardFace {get; set;}
     }

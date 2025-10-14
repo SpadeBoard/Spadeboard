@@ -76,7 +76,6 @@ namespace Services
                 .Include(c => c.CardFace)
                     .ThenInclude(cf => cf.Style)
                 .Include(c => c.CardFace)
-                    .ThenInclude(cf => cf.CardFaceThumbnailFileMetadata)
                 .Select(c => c.CardFace)
                 .Where(face => face != null)
                 .Select(face => face!)
@@ -102,7 +101,7 @@ namespace Services
 
         public async Task<bool> DeleteByCardAndCardFaceAsync(long cardId, long cardFaceId)
         {
-            var cardFacesPerCard= await _context.CardFacePerCard
+            List<CardFacePerCard>? cardFacesPerCard= await _context.CardFacePerCard
             .Where(c => c.CardId == cardId && c.CardFaceId == cardFaceId).ToListAsync();
 
             if (cardFacesPerCard.Count > 0)

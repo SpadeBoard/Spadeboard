@@ -5,10 +5,10 @@ import { CardFaceElementPerCardFace } from "./card-face-element";
 export interface CardFace {
     cardFaceId: string;
     style: Style;
-    cardFaceThumbnailFileMetadata?: FileMetadata;
 }
 
 export interface CardEditorCardFaceDto {
     cardFace: CardFace;
+    fileMetadataLods: FileMetadata[];
     cardFaceElementsPerCardFace: CardFaceElementPerCardFace[];
 }

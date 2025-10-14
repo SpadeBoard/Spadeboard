@@ -23,7 +23,9 @@ namespace Models.Bridge
         [NotMapped]
         public long Id { get => CardFacePerCardId; set => CardFacePerCardId = value; }
 
-        [Required]
+        // CHECKME: Do we want a CardFaceIndex here too?
+        
+        [Required]        
         public long CardId { get; set; }
         [ForeignKey("CardId")]
         public virtual Card? Card { get; set; }

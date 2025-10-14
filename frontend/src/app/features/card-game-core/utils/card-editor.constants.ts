@@ -2,6 +2,7 @@ import { Dimensions } from "ngx-image-cropper";
 import { Style } from "../../style/models/style";
 import { CardEditorCardDto } from "../models/card";
 import { CardFaceImage } from "./card-face.utils";
+import { getDefaultCardFace } from "./card-face.constants";
 
 export const MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
 export const MIN_CARD_FACE_WIDTH: number = 20;
@@ -55,19 +56,14 @@ export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEdit
       ownerId: newOwnerId,
       cardEditorCardFacesDto: [
         {
-          cardFace: {
-            cardFaceId: "0",
-            style: {...style},
-          },
-          cardFaceElementsPerCardFace: [
-          ]
+          cardFace: getDefaultCardFace("0", { ...style }),
+          cardFaceElementsPerCardFace: [],
+          fileMetadataLods: []
         },
         {
-          cardFace: {
-            cardFaceId: "-1",
-            style: {...style},
-          },
-          cardFaceElementsPerCardFace: []
+          cardFace: getDefaultCardFace("-1", { ...style }),
+          cardFaceElementsPerCardFace: [],
+          fileMetadataLods: []
         }
       ],
       tagNames: []
