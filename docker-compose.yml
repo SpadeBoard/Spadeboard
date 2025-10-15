@@ -34,6 +34,9 @@ services:
     - ConnectionStrings__ApplicationDbContextConnection=Server=db;Port=${DB_PORT:-5432};Database=${DB_NAME:-spadeboard-db};Username=${DB_USER:-spadeboard-db-user};Password=${DB_PASSWORD:-spadeboard-db-pwd};Include Error Detail=true
     - ASPNETCORE_ENVIRONMENT=Development
     - ASPNETCORE_URLS=http://+:{BACKEND_PORT:-80}
+    - SNOWFLAKE_NODE_ID=${SNOWFLAKE_NODE_ID:-0}
+    - SNOWFLAKE_WORKER_ID=${SNOWFLAKE_WORKER_ID:-0}
+    - SNOWFLAKE_EPOCH_TIME=${SNOWFLAKE_EPOCH_TIME:-1288834974657}
     ports:
       -  "${BACKEND_IP_ADDRESS:-8080}:${BACKEND_PORT:-80}"
     depends_on:

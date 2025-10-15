@@ -13,7 +13,7 @@ namespace Algorithms
 
         // Twitter's custom epoch: 2010-11-04 01:42:54 UTC
         // https://medium.com/data-science/api-design-of-x-twitter-home-timeline-da426f19edfe
-        private static readonly long customEpoch = 1288834974657L;
+        private static readonly long customEpoch = long.Parse(Environment.GetEnvironmentVariable("SNOWFLAKE_EPOCH_TIME") ?? "1288834974657");
 
         public static long NewId()
         {
