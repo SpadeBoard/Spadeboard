@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Bridge;
-using Models.Cards;
 using Models.Files;
 
 namespace Services
@@ -109,6 +108,27 @@ namespace Services
                 .OrderBy(c => c.Lod)
                 .Select(c => c.FileMetadata.FileName)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<string>> GetFileMetadataFileNamesByCardFacesAndLod(List<long> cardFaceIds, int lod)
+        {
+            IEnumerable<string> fileNames = Enumerable.Empty<string>();
+
+            foreach (long cardFaceId in cardFaceIds) {
+                string? fileName = await GetFileMetadataFileNameByCardFaceAndLod(cardFaceId, lod);
+
+                if (fileName != null) fileNames = fileNames.Append(fileName);
+            }
+
+            return fileNames;
+        }
+
+        public async Task<string?> GetFileMetadataFileNameByCardFaceAndLod(long cardFaceId, int lod)
+        {
+            return await _context.CardFacePerLod
+                .Where(c => c.CardFaceId == cardFaceId && c.Lod == lod)
+                .Select(c => c.FileMetadata.FileName)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<CardFacePerLod>> GetCardFacePerLodByCardFace(long cardFaceId)

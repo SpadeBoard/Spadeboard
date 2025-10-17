@@ -18,4 +18,8 @@ export class CardFacePerCardApiService {
   getCardFacesPerCard$(cardId: string): Observable<CardFace[] | undefined> {
     return this.http.get<CardFace[]>(`${this.apiUrl}/card/${cardId}`);
   }
+
+  getCardFacesByLod$(cardId: string, lod: number): Observable<Blob | undefined> {
+    return this.http.get(`${this.apiUrl}/card/${cardId}/${lod}`, { responseType: 'blob' });
+  }
 }

@@ -1,23 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data;
 using Models.Cards;
-using System.Net.Sockets;
-using Newtonsoft.Json;
 using Models.Bridge;
 
 namespace Services
 {
-    public class CardFacePerCardService(ApplicationDbContext context) : ICardFacePerCardService
+    public class CardFacePerCardService(ApplicationDbContext context, ICardFacePerLodService cardFacePerLodService, IFileUploadService fileUploadService) : ICardFacePerCardService
     {
         private readonly ApplicationDbContext _context = context;
 
         private readonly CrudService<CardFacePerCard> _crudService = new(context, fpc => fpc.CardFacePerCardId);
+
+        private readonly ICardFacePerLodService _cardFacePerLodService = cardFacePerLodService;
+
+        private readonly IFileUploadService _fileUploadService = fileUploadService;
 
         public async Task<CardFacePerCard> CreateAsync(CardFacePerCard item)
         {
@@ -111,6 +107,13 @@ namespace Services
             }
 
             return false;
+        }
+
+        public async Task<IEnumerable<FileStream>> GetCardFacesByLodAsync(long cardId, int lod)
+        {
+            List<long> cardFaceIds = (await GetAllFacesByCardId(cardId)).Select(cf => cf.CardFaceId).ToList();
+
+            return await _fileUploadService.GetCardFaceFilesAsync((await  _cardFacePerLodService.GetFileMetadataFileNamesByCardFacesAndLod(cardFaceIds, lod)).ToList());
         }
     }
 }

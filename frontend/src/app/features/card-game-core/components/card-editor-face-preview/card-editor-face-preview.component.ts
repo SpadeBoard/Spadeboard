@@ -13,10 +13,13 @@ import { FileAuthenticationPerExportedCard } from '../../models/file-authenticat
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { FileAuthenticationPerExportedCardApiService } from '../../services/card-game-core/api/file-authentication-per-exported-card-api.service';
-import { DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { DEFAULT_ATLAS_EXPORT_LOD, DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
 import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
+import { AtlasExportService } from '../../../../utils/services/atlas-export/atlas-export.service';
+import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
+import JSZip from 'jszip';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -28,6 +31,12 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   private readonly cardEditorPreviewService: CardEditorPreviewService  = inject(CardEditorPreviewService);
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService );
   private readonly fileAuthenticationPerExportedCardApiService: FileAuthenticationPerExportedCardApiService = inject(FileAuthenticationPerExportedCardApiService);
+  
+  private readonly cardFacesPerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
+
+  private readonly atlasExportService: AtlasExportService = inject(AtlasExportService);
+  
+
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
   
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
@@ -113,43 +122,52 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
        {
         id: 2,
         name: 'Export (Atlas)',
-        action: () => {
-          // TODO: Grab all the file metadata's paths for the thumbnail images
-          // Create the images, somehow put them into an atlas?
-          // Wait until we have the LODs, gotta make sure we grab LOD0
+        action: (cardEditorCardDto: CardEditorCardDto) => {
+          if (!cardEditorCardDto)
+            throw new Error("No card editor card dto to be found");
 
-          // Have an invisible canvas somewhere which then adds the images onto it? Make the size of the atlas texture the dimensions of the images combined, but with a tiny bit of padding?
+          if (cardEditorCardDto.card.cardId === "0")
+            throw new Error("Can't export a card that hasn't been made yet.");
 
-          // Just seems handy
-          // https://stackoverflow.com/questions/52116877/save-hidden-div-as-canvas-image
+          this.cardFacesPerCardApiService.getCardFacesByLod$(cardEditorCardDto.card.cardId, DEFAULT_ATLAS_EXPORT_LOD).subscribe({
+            next: async (result: Blob | undefined) => {
+              if (!result) throw new Error("There are no card faces thumbnails");
 
-          // Maybe a service since canvases can be storied in memory?
-          /*
-          AtlasExportService {
-          // We probably want this to be universal, so grab the file names and attach the paths
-          async createAtlas(imagePaths: string[]): Promise<string> {
-            let canvas = document.createElement('canvas');
-           
-            let ctx = canvas.getContext('2d');
-            // We need to set the dimensions
-            // Also set that gap somehow
-            // Potentially 2 per row?
+              let zip: JSZip = await JSZip.loadAsync(result);
+              let files: JSZip.JSZipObject[] = Object.values(zip.files);
 
-            for (let path of imagePaths) {
-              // get file paths
-              let  img: Image = new Image();
-              img.src = path;
+              console.log(`Zip files for atlas export: ${JSON.stringify(files, null, 2)})`);
 
-              // Grab that blob, then draw image?
+              let images: HTMLImageElement[] = [];
 
-              // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
-              ctx.drawImage(img, ...);
-            }
-            return canvas.toDataURL('image/png');
-          }
-           */
+              for (let file of files) {
+                if (file.dir) {
+                  throw new Error("Zip contains directories, expected only files");
+                }
+
+                let blob: Blob = await file.async("blob");
+                let image: HTMLImageElement = new Image();
+                let objectUrl: string = URL.createObjectURL(blob);
+
+                // Await image load or error
+                await new Promise<void>((imageResolve, imageReject) => {
+                  image.onload = () => {
+                    imageResolve();
+                  };
+                  image.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    imageReject(new Error(`Failed to load image ${file.name}`));
+                  };
+                  image.src = objectUrl;
+                });
+
+                images.push(image);
+              }
+
+              this.atlasExportService.atlasExport(images, 0.05, cardEditorCardDto.card.cardId);
+            }});
         },
-        disabled: true
+        disabled: false
       }
     ];
 
@@ -553,6 +571,9 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         break;
       case 1:
         this.actionContextMenuItems[1].action(this.cardEditorPreviewService.cardEditorCardDto);
+        break;
+      case 2:
+        this.actionContextMenuItems[2].action(this.cardEditorPreviewService.cardEditorCardDto);
         break;
     }
   }

@@ -6,6 +6,7 @@ import { Observable, of, switchMap, tap } from "rxjs";
 import { FileMetadataApiService } from "./services/file-metadata-api.service";
 import { FileUploadApiService } from "./services/file-upload-api.service";
 import ImageBlobReduce, { ResizeOptions } from 'image-blob-reduce';
+import JSZip from "jszip";
 
 export function getDefaultFileMetadata(): FileMetadata {
     return {
@@ -71,22 +72,22 @@ export async function blobToDataURL(blobUrl: string): Promise<string> {
 }
 
 export function createImageFromBlob(blob: Blob): HTMLImageElement {
-  let image: HTMLImageElement = new Image();
-  let objectUrl: string = URL.createObjectURL(blob);
-  image.src = objectUrl;
-  return image;
+    let image: HTMLImageElement = new Image();
+    let objectUrl: string = URL.createObjectURL(blob);
+    image.src = objectUrl;
+    return image;
 }
 
 
 // TODO: Refactor all these functions, probably should split them into smaller files
 export function getScaledItemRenderDimensions(
-  original: Dimensions,
-  scale: number
+    original: Dimensions,
+    scale: number
 ): Dimensions {
-  return {
-    width: original.width * scale,
-    height: original.height * scale
-  };
+    return {
+        width: original.width * scale,
+        height: original.height * scale
+    };
 }
 
 export type Coordinates = {
@@ -97,6 +98,10 @@ export type Coordinates = {
 export type Dimensions = {
     width: number;
     height: number;
+}
+
+export function areDimensionsHigherThanZero(dimensions: Dimensions) {
+    return (dimensions.width > 0 && dimensions.height > 0);
 }
 
 export type Rect = {
@@ -133,16 +138,16 @@ end
 // Function to compute orientation of the triplet (a, b, c)
 // Returns -1 for clockwise, 1 for counter-clockwise, 0 for collinear
 export function orientationFromCoordinates(a: Coordinates, b: Coordinates, c: Coordinates) {
-    let v: number = a.x * (b.y - c.y) + 
-              b.x * (c.y - a.y) + 
-              c.x * (a.y - b.y);
+    let v: number = a.x * (b.y - c.y) +
+        b.x * (c.y - a.y) +
+        c.x * (a.y - b.y);
     if (v < 0) return -1;  // clockwise
     if (v > 0) return +1;  // counter-clockwise
     return 0;              // collinear
 }
 
 export function orientationFromAngle(a: number) {
-    if (a <0) return -1; // clockwise
+    if (a < 0) return -1; // clockwise
     if (a > 0) return +1; // counter-clockwise
     return 0; // collinear
 }
@@ -156,9 +161,9 @@ export function getDistanceSquared(a: Coordinates, b: Coordinates): number {
 }
 
 export function sortByPolarAngle(coordinates: Coordinates[]): Coordinates[] {
-   let p0: Coordinates = getMinCoordinates(coordinates);
+    let p0: Coordinates = getMinCoordinates(coordinates);
 
-    let others: Coordinates[] = coordinates.filter(c=> c !== p0);
+    let others: Coordinates[] = coordinates.filter(c => c !== p0);
 
     // Sort by polar angle, then by distance descending
     others.sort((a, b) => {
@@ -225,25 +230,25 @@ export function getBoundingBox(coordinates: Coordinates[]): {
 }
 
 export function moveToFront(array: any[], index: number) {
-  if (index > 0 && index < array.length) {
-    let [item]: any = array.splice(index, 1);
-    array.unshift(item);
-  }
-  return array;
+    if (index > 0 && index < array.length) {
+        let [item]: any = array.splice(index, 1);
+        array.unshift(item);
+    }
+    return array;
 }
 
 export function moveToBack(array: any[], index: number) {
-  if (index >= 0 && index < array.length) {
-    let [item]: any = array.splice(index, 1);
-    array.push(item);
-  }
-  return array;
+    if (index >= 0 && index < array.length) {
+        let [item]: any = array.splice(index, 1);
+        array.push(item);
+    }
+    return array;
 }
 
 export function getMidpoint(a: Coordinates, b: Coordinates): Coordinates {
     return {
-        x: a.x + b.x /2,
-        y: a.y + b.y /2
+        x: a.x + b.x / 2,
+        y: a.y + b.y / 2
     }
 }
 
@@ -252,13 +257,17 @@ export type JSONValue = JSONPrimitive | JSONValue[] | { [key: string]: JSONValue
 
 // TODO: Probably shouldn't have any
 export function exportCustomTypeFile(data: any | JSONValue, filename: string, extension: string) {
-  let fileContent: string = JSON.stringify(data); // NOTE: Pretty printing screws up with the hash so no
- let blob: Blob = new Blob([fileContent], { type: 'application/octet-stream' });
-  let a: HTMLAnchorElement = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${filename}.${extension}`; // custom extension
-  a.click();
-  URL.revokeObjectURL(a.href);
+    let fileContent: string = JSON.stringify(data); // NOTE: Pretty printing screws up with the hash so no
+    let blob: Blob = new Blob([fileContent], { type: 'application/octet-stream' });
+    download(filename, extension, URL.createObjectURL(blob));
+}
+
+export function download(filename: string, extension: string, href: any) {
+    let a: HTMLAnchorElement = document.createElement('a');
+    a.href = href;
+    a.download = `${filename}.${extension}`; // custom extension
+    a.click();
+    if (a.href.startsWith('blob:')) URL.revokeObjectURL(a.href);
 }
 
 /* https://html2canvas.net/how-to-convert-canvas-to-base64-image/
@@ -284,10 +293,10 @@ html2canvas(element, { scale: 1 }).then(function(originalCanvas) {
 // https://stackoverflow.com/a/50736279
 export async function flattenToImage(elementRef: ElementRef<any>, scale: number = 1.0, dpi: number = 96, backgroundColor: string = 'transparent'): Promise<FormData> {
     function factor(dpi: number = 600): number {
-       // DPI is around 96 when scale is 1, and 300 DPI is around 3
-        return Math.floor(dpi/96);  
+        // DPI is around 96 when scale is 1, and 300 DPI is around 3
+        return Math.floor(dpi / 96);
     }
-    
+
     return new Promise((resolve, reject) => {
         // TODO: Pass in the ref and scale as parameters
         html2canvas(elementRef.nativeElement, {
@@ -316,43 +325,8 @@ export async function flattenToImage(elementRef: ElementRef<any>, scale: number 
     });
 }
 
-// TODO: Rename function
 // https://www.npmjs.com/package/image-blob-reduce
-// TODO: Make another utility function for using image-blob-reduce, pass in the FormData or a blob, if it's a form data, grab that blob
-// And then scale the quality down by an array of default image quality values
 
-/*
-import ImageBlobReduce from 'image-blob-reduce';
-
-// Create reducer instance
-const reduce = ImageBlobReduce();
-
-async function reduceBlobInFormData(originalFormData: FormData): Promise<FormData> {
-  // Assuming the blob is stored with key 'file'
-  const originalBlob = originalFormData.get('file') as Blob;
-
-  if (!originalBlob) {
-    throw new Error('No file blob found in FormData');
-  }
-
-  // Reduce the blob size (resize max dimension 1000px)
-  const reducedBlob = await reduce.toBlob(originalBlob, { max: 1000 });
-
-  // Create new FormData and copy all other entries except 'file'
-  const newFormData = new FormData();
-  originalFormData.forEach((value, key) => {
-    if (key !== 'file') {
-      newFormData.append(key, value);
-    }
-  });
-
-  // Append the reduced blob with the same key and original filename if available
-  const fileName = (originalBlob as any).name || 'file.jpg'; // fallback filename
-  newFormData.append('file', reducedBlob, fileName);
-
-  return newFormData;
-}
-*/
 
 export async function generateResizedImagesAtQualities(
     image: FormData,
@@ -405,26 +379,26 @@ export function createFilesMetadata$(fileMetadataApiService: FileMetadataApiServ
     let filesMetadata: FileMetadata[] = [];
 
     fileNames.forEach((fileName) => {
-      let fileMetadata: FileMetadata = {
-        fileMetadataId: '0',
-        volumePath: volumePath,
-        fileName: fileName,
-        creationDate: new Date(),
-        fileMetadataStatus: fileMetadataStatus
-      };
+        let fileMetadata: FileMetadata = {
+            fileMetadataId: '0',
+            volumePath: volumePath,
+            fileName: fileName,
+            creationDate: new Date(),
+            fileMetadataStatus: fileMetadataStatus
+        };
 
-      filesMetadata.push(fileMetadata);
+        filesMetadata.push(fileMetadata);
     });
 
     return fileMetadataApiService.createFilesMetadata$(filesMetadata).pipe(
-      tap(result => {
-        if (result === undefined) {
-          throw new Error("File metadata wasn't able to be created");
-        }
-        console.log(`Created file metadata: ${JSON.stringify(result, null, 2)}`);
-      })
+        tap(result => {
+            if (result === undefined) {
+                throw new Error("File metadata wasn't able to be created");
+            }
+            console.log(`Created file metadata: ${JSON.stringify(result, null, 2)}`);
+        })
     );
-  }
+}
 
 export function createFileMetadata$(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileName: string, fileMetadataStatus: FileMetadataStatus): Observable<FileMetadata | undefined> {
     let fileMetadata: FileMetadata = {
@@ -447,19 +421,62 @@ export function createFileMetadata$(fileMetadataApiService: FileMetadataApiServi
 
 export function duplicateFile$(fileUploadApiService: FileUploadApiService, fileMetadataApiService: FileMetadataApiService, fileMetadata: FileMetadata, fileType: string, filePath: string, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending): Observable<FileMetadata | undefined> {
     return fileUploadApiService.replaceFilePath$(fileMetadata.fileName, fileType).pipe(
-      switchMap((result: { id: string | undefined }) => {
-        if (!result.id) return of(undefined);
-        return createFileMetadata$(fileMetadataApiService, filePath, result.id, fileMetadataStatus);
-      })
+        switchMap((result: { id: string | undefined }) => {
+            if (!result.id) return of(undefined);
+            return createFileMetadata$(fileMetadataApiService, filePath, result.id, fileMetadataStatus);
+        })
     );
-  }
+}
 
-  export function duplicateFiles$(fileUploadApiService: FileUploadApiService, fileMetadataApiService: FileMetadataApiService, filesMetadata: FileMetadata[], fileType: string, filePath: string, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending) {
-    let fileNames: string[] = filesMetadata.map((fm: FileMetadata) =>(fm.fileName));
+export function duplicateFiles$(fileUploadApiService: FileUploadApiService, fileMetadataApiService: FileMetadataApiService, filesMetadata: FileMetadata[], fileType: string, filePath: string, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending) {
+    let fileNames: string[] = filesMetadata.map((fm: FileMetadata) => (fm.fileName));
 
     return fileUploadApiService.replaceFilePaths$(fileNames, fileType).pipe(
         switchMap((result: string[]) => {
             return createFilesMetadata$(fileMetadataApiService, filePath, result, fileMetadataStatus);
         })
     )
-  }
+}
+
+export async function unzipImages(result: Blob): Promise<HTMLImageElement[] | undefined> {
+    return new Promise(async (resolve) => {
+        try {
+            let zip: JSZip = await JSZip.loadAsync(result);
+            let files: JSZip.JSZipObject[] = Object.values(zip.files);
+
+            console.log(`Zip files: ${JSON.stringify(files, null, 2)})`);
+
+            let images: HTMLImageElement[] = [];
+
+            for (let file of files) {
+                if (file.dir) {
+                    throw new Error("Zip contains directories, expected only files");
+                }
+
+                let blob: Blob = await file.async("blob");
+                let image: HTMLImageElement = new Image();
+                let objectUrl: string = URL.createObjectURL(blob);
+
+                // Await image load or error
+                await new Promise<void>((imageResolve, imageReject) => {
+                    image.onload = () => {
+                        imageResolve();
+                    };
+                    image.onerror = () => {
+                        URL.revokeObjectURL(objectUrl);
+                        imageReject(new Error(`Failed to load image ${file.name}`));
+                    };
+                    image.src = objectUrl;
+                });
+
+                images.push(image);
+            }
+
+            resolve(images);
+        } catch (error) {
+            console.error("Error while processing zip file images", error);
+            resolve(undefined);
+        }
+    }
+    )
+}

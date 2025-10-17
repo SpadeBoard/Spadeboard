@@ -10,5 +10,7 @@ namespace Services
         public Task<IEnumerable<CardFaceDto>> GetAllFacesDtoByCardId(string cardId);
 
         public Task<bool> DeleteDtoByCardAndCardFaceAsync(string cardId,string cardFaceId);
+
+        public Task<IEnumerable<FileStream>> GetCardFacesByLodDtoAsync(string cardId, int lod);
     }
 }

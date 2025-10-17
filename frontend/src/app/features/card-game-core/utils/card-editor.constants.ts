@@ -3,6 +3,7 @@ import { Style } from "../../style/models/style";
 import { CardEditorCardDto } from "../models/card";
 import { CardFaceImage } from "./card-face.utils";
 import { getDefaultCardFace } from "./card-face.constants";
+import { clamp } from "../../../utils/utils";
 
 export const MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
 export const MIN_CARD_FACE_WIDTH: number = 20;
@@ -86,3 +87,5 @@ export function getDefaultCardFaceElementImage(): CardFaceImage {
     }
   };
 }
+
+export const DEFAULT_ATLAS_EXPORT_LOD: number = clamp(0, 0, 4);

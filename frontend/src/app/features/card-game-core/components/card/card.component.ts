@@ -160,6 +160,8 @@ export class CardComponent {
             return;
           }
 
+          // TODO: Replace with resolve(unzipImages(result));
+
           try {
             let zip: JSZip = await JSZip.loadAsync(result);
             let files: JSZip.JSZipObject[] = Object.values(zip.files);
