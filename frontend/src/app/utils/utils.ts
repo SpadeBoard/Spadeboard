@@ -270,24 +270,7 @@ export function download(filename: string, extension: string, href: any) {
     if (a.href.startsWith('blob:')) URL.revokeObjectURL(a.href);
 }
 
-/* https://html2canvas.net/how-to-convert-canvas-to-base64-image/
-// Step 1: html2canvas with scale 1
-html2canvas(element, { scale: 1 }).then(function(originalCanvas) {
-  // Step 2: Create secondary canvas for scaling down
-  const scale = 0.45;
-  const width = originalCanvas.width * scale;
-  const height = originalCanvas.height * scale;
-  const tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = width;
-  tmpCanvas.height = height;
-  const ctx = tmpCanvas.getContext('2d');
-  ctx.drawImage(originalCanvas, 0, 0, width, height);
-
-  // Step 3: Output the resized image if needed
-  const dataUrl = tmpCanvas.toDataURL('image/png');
-  // ...save or use the dataUrl as required
-});
-*/
+/* https://html2canvas.net/how-to-convert-canvas-to-base64-image/*/
 
 
 // https://stackoverflow.com/a/50736279

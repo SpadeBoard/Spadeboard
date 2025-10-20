@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { areDimensionsHigherThanZero, clamp, Coordinates, Dimensions, download, getMidpoint, normalize } from '../../utils';
 
-export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
+export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
   imagePiecesWithCoordinates: Map<Coordinates, HTMLImageElement>,
   canvasDimensions: Dimensions
 } {
@@ -17,6 +17,8 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
     left: Node | null;
     right: Node | null;
     isPiece: boolean = false;
+
+    static nodes: Node[] = [];
 
     // NOTE: We want to keep it 0-1 https://www.cyanilux.com/tutorials/sprite-local-uv/
     coordinates: Coordinates = {
@@ -36,6 +38,8 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
       this.parent = parent ?? null;
       this.left = left ?? null;
       this.right = right ?? null;
+    
+      Node.nodes.push(this);
     }
   }
 
@@ -48,12 +52,12 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
     node.right = null;
   }
 
-  function cut(parent: Node, side: 'w' | 'h', offset: number): 'w' | 'h' | undefined {
+  function cut(id: string, parent: Node, side: 'w' | 'h', offset: number): 'w' | 'h' | undefined {
     let centre: Coordinates = parent.coordinates;
 
     if (side == 'w' && offset <= parent.dimensions.width) {
-      parent.left = new Node(Date.now().toString(), { width: offset, height: parent.dimensions.height }, parent);
-      parent.right = new Node(Date.now().toString(), { width: parent.dimensions.width - offset, height: parent.dimensions.height }, parent);
+      parent.left = new Node(id, { width: offset, height: parent.dimensions.height }, parent);
+      parent.right = new Node(id, { width: parent.dimensions.width - offset, height: parent.dimensions.height }, parent);
 
       /*
       this.left.draw( { x: o.x - this.w/2 + this.left.w/2, y: o.y })
@@ -71,13 +75,13 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
     }
 
     if (side == 'h' && offset <= parent.dimensions.height) {
-      parent.left = new Node(Date.now().toString(), { width: parent.dimensions.width, height: parent.dimensions.height - offset }, parent);
+      parent.left = new Node(id, { width: parent.dimensions.width, height: parent.dimensions.height - offset }, parent);
       /*
       this.left.draw( { x: o.x, y: o.y - this.h/2 + this.right.h + this.left.h/2 })
       this.right.draw({ x: o.x, y: o.y - this.h/2 + this.right.h/2 })
       */
 
-      parent.right = new Node(Date.now().toString(), { width: parent.dimensions.width, height: offset }, parent);
+      parent.right = new Node(id, { width: parent.dimensions.width, height: offset }, parent);
 
       let halfParentHeight: number = parent.dimensions.height / 2;
       let halfLeftHeight: number = parent.left.dimensions.height / 2;
@@ -94,8 +98,8 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
   }
 
   // NOTE: Attempts to place piece in existing node
-  function canPush(piece: Node, nodes: Node[], margin: number): boolean {
-    for (let node of nodes) {
+  function canPush(piece: Node, margin: number): boolean {
+    for (let node of Node.nodes) {
       // For expansion of the canvas if necessary
       if (node.dimensions.width < piece.dimensions.width || node.dimensions.height < piece.dimensions.height) {
         /*node.dimensions = {
@@ -109,29 +113,18 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
 
       if (!node.isPiece && !isCut(node)) {
         // TODO: Potentially have user choice in how to cut? 
-        cut(node, 'w', piece.dimensions.width / margin);
+        cut(piece.id, node, 'w', piece.dimensions.width/* / margin*/);
 
-        if (!node.left) {
-          console.warn("Guillotine: When you cut a node, there should be a left and right");
-          return false;
-        }
+        if (!node.left) throw new Error("Guillotine - node.left: When you cut a node, there should be a left and right");
 
-        cut(node.left, 'h', piece.dimensions.height / margin);
+        cut(piece.id, node.left, 'h', piece.dimensions.height/* / margin*/);
 
-        if (node.left.right) {
-          console.log(`node.left.right exists`);
+        if (!node.left.right) throw new Error("Guillotine - node.left.right: When you cut a node, there should be a left and right");
 
-          node.left.right.isPiece = true;
-          piece.isPiece = true;
-          
-          node.left.right.id = piece.id;
-          piece.coordinates = node.left.right.coordinates;
-
-          nodes.push(piece);
-          return true;
-        }
+        node.left.right.isPiece = true;
+        return true;
       }
-    };
+    }
 
     return false;
   }
@@ -140,7 +133,7 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
     return (!isCut(node) && areDimensionsHigherThanZero(node.dimensions) && node.isPiece);
   }
 
-  margin = clamp(normalize(margin, 0, 1), 0.01, 1);
+  margin = clamp(normalize(margin, 0.5, 1), 0.5, 1);
 
   let pieces: Node[] = images.map((image: HTMLImageElement) => {
     return new Node(
@@ -161,20 +154,16 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
   let root: Node = new Node('root', canvasDimensions);
   root.coordinates = { x: canvasDimensions.width / 2, y: canvasDimensions.height / 2 };
 
-  let nodes: Node[] = [
-    root
-  ];
-
   // https://github.com/mariowise/2d-guillotine-cutter/blob/master/js/tree.js
   pieces.forEach((piece: Node) => {
-    canPush(piece, nodes, margin);
+    canPush(piece, margin);
   });
 
   // If should draw, then add coordinates to map and HTML Image Element based on ID
 
   let imagePiecesWithCoordinates: Map<Coordinates, HTMLImageElement> = new Map();
 
-  nodes.forEach((node: Node) => {
+  Node.nodes.forEach((node: Node) => {
     if (!shouldDraw(node)) return;
 
     let idx: number = images.findIndex(i => i.src === node.id);
@@ -185,8 +174,8 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.1): {
   return {
     imagePiecesWithCoordinates,
     canvasDimensions: {
-      width: Math.max(...nodes.map(node => node.coordinates.x + node.dimensions.width)) / margin,
-      height: Math.max(...nodes.map(node => node.coordinates.y + node.dimensions.height)) / margin
+      width: Math.max(...Node.nodes.map(node => /*node.coordinates.x + */node.dimensions.width))/* / margin*/,
+      height: Math.max(...Node.nodes.map(node => /*node.coordinates.y + */node.dimensions.height))/* / margin*/
     }
   }
 }
@@ -204,7 +193,7 @@ export class AtlasExportService {
   // Get the size of the padding based on that: 80/100 = x/y
   // Then determine the size of the canvas
 
-  atlasExport(images: HTMLImageElement[], margin: number = 0.1, fileName: string = 'atlas'): void {
+  atlasExport(images: HTMLImageElement[], margin: number = 0.5, fileName: string = 'atlas'): void {
     let final: {
       imagePiecesWithCoordinates: Map<Coordinates, HTMLImageElement>;
       canvasDimensions: Dimensions;
@@ -218,10 +207,16 @@ export class AtlasExportService {
 
     let ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
     final.imagePiecesWithCoordinates.forEach((value: HTMLImageElement, key: Coordinates, map: Map<Coordinates, HTMLImageElement>) => {
-      if (ctx) ctx.drawImage(value, key.x, key.y);
+      if (ctx && value.complete) ctx.drawImage(value, key.x /* + (value.width/2)*/, key.y /* + (value.height/2)*/); // CHECKME: The keys are 0, 0, so would we need to make sure it's shifted because the root node starts smack dab in the middle of the canvas?
     });
 
-    download(fileName, 'png', canvas.toDataURL("image/png"));
+    console.log('Atlas export canvas size', canvas.width, canvas.height);
+
+    canvas.toBlob((blob: Blob | null) => {
+      if (!blob) throw new Error("Atlas export canvas can't be converted to a blob.");
+
+      download(fileName, 'png', URL.createObjectURL(blob));
+    });
   }
 
   /*

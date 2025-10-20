@@ -164,7 +164,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
                 images.push(image);
               }
 
-              this.atlasExportService.atlasExport(images, 0.05, cardEditorCardDto.card.cardId);
+              this.atlasExportService.atlasExport(images, 0.95, cardEditorCardDto.card.cardId);
             }});
         },
         disabled: false
