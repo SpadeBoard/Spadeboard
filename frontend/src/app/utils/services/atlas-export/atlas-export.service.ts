@@ -55,58 +55,45 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
   }
 
   function cut(parent: Node, side: 'w' | 'h', offset: number): 'w' | 'h' | undefined {
-    let centre: Coordinates = parent.coordinates;
+    let origin: Coordinates = parent.coordinates; 
+
+    // Coordinates are relative to the parent
 
     if (side == 'w' && offset <= parent.dimensions.width) {
+      // We cut first at Node.root here - starts at 0, 0
       parent.left = new Node(uuidv4(), { width: offset, height: parent.dimensions.height }, parent);
+      parent.left.coordinates = { x: origin.x, y: origin.y };  // Node.root.left starts at 0, 0
+
       parent.right = new Node(uuidv4(), { width: parent.dimensions.width - offset, height: parent.dimensions.height }, parent);
-
-      /*
-      this.left.draw( { x: o.x - this.w/2 + this.left.w/2, y: o.y })
-      this.right.draw({ x: o.x - this.w/2 + this.left.w + this.right.w/2, y: o.y })
-      */
-
-      let halfParentWidth: number = parent.dimensions.width / 2;
-      let halfLeftWidth: number = parent.left.dimensions.width / 2;
-      let halfRightWidth: number = parent.right.dimensions.width / 2;
-
-      parent.left.coordinates = { x: centre.x - halfParentWidth + halfLeftWidth, y: centre.y };
-      parent.right.coordinates = { x: centre.x - halfParentWidth + parent.left.dimensions.width + halfRightWidth, y: centre.y };
+      parent.right.coordinates = { x: origin.x + offset, y: origin.y }; // Node.root.right starts at where it needs to be to fill the rest of the dimensions of Node.root
 
       return side;
     }
 
+    // LEFT: BOTTOM, RIGHT: TOP?
     if (side == 'h' && offset <= parent.dimensions.height) {
+      // We cut first at Node.root.left - starts at 0, 0
       parent.left = new Node(uuidv4(), { width: parent.dimensions.width, height: parent.dimensions.height - offset }, parent);
-      /*
-      this.left.draw( { x: o.x, y: o.y - this.h/2 + this.right.h + this.left.h/2 })
-      this.right.draw({ x: o.x, y: o.y - this.h/2 + this.right.h/2 })
-      */
+      parent.left.coordinates = { x: origin.x, y: origin.y + offset }; // Node.root.left.left starts at 0, where its rightcounterpart ends
 
       parent.right = new Node(uuidv4(), { width: parent.dimensions.width, height: offset }, parent);
-
-      let halfParentHeight: number = parent.dimensions.height / 2;
-      let halfLeftHeight: number = parent.left.dimensions.height / 2;
-      let halfRightHeight: number = parent.right.dimensions.height / 2;
-
-      parent.left.coordinates = { x: centre.x, y: centre.y - halfParentHeight + parent.right.dimensions.height + halfLeftHeight };
-      parent.right.coordinates = { x: centre.x, y: centre.y - halfParentHeight + halfRightHeight };
+      parent.right.coordinates = { x: origin.x, y: origin.y}; // Node.root.left.right starts at 0, 0
 
       return side;
     }
 
-    console.error("An attempt has been made to create an invalid cut");
+    console.error(`For side ${side}: An attempt has been made to create an invalid cut with an offset: ${offset} and parent dimensions: ${JSON.stringify(parent.dimensions)}`);
     return;
   }
 
   // NOTE: Attempts to place piece in existing node
-  function canPush(piece: Node, margin: number): boolean {
+  function canPush(piece: Node): boolean {
     function splitNode(piece: Node, node: Node): boolean {
-      cut(node, 'w', piece.dimensions.width/* / margin*/);
+      cut(node, 'w', piece.dimensions.width);
 
       if (!node.left) throw new Error("Guillotine - node.left: When you cut a node, there should be a left and right");
 
-      cut(node.left, 'h', piece.dimensions.height/* / margin*/);
+      cut(node.left, 'h', piece.dimensions.height);
 
       if (!node.left.right) throw new Error("Guillotine - node.left.right: When you cut a node, there should be a left and right");
 
@@ -132,10 +119,7 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
         if (!node.left || !node.right) throw new Error("Guillotine: When you cut a node, there should be a left and right");
 
         let fit: Node | null = findFitNode(node.left, piece);
-
-        if (fit) return fit;
-
-        return findFitNode(node.right, piece);
+        return (fit) ? fit : findFitNode(node.right, piece);
       }
 
       // Or there's no fit node
@@ -151,39 +135,54 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
       return true;
     }
 
+    // CASE: Node.root.right will not be split
+    if (!Node.root.left || !Node.root.right) throw new Error("The root node should always have a left and right leaf. We know that there's no occupation for Node.root.right because we always make a piece the Node.root.left.right. So we need to make Node.root.right bigger.");
 
-    // This is to check whether the canvas needs to be expanded, which is the size of our root
-    // ASSUMPTION: Root's initial dimension will always be based on biggest item's dimensions
-    // We check if there's a difference because we need to see if there's an overlap, x >=0 means there is an overlap
-    let difference: Dimensions = {
-      width: Node.root.dimensions.width - piece.dimensions.width,
-      height: Node.root.dimensions.height - piece.dimensions.height
-    }
+    let fitDimensionGap: Dimensions = {
+      width: piece.dimensions.width - Node.root.right.dimensions.width,
+      height: piece.dimensions.height - Node.root.right.dimensions.height
+    };
 
     // BASE CASE: If there's no difference in dimension size, there's no need for the root to grow
-    if (difference.width < 0 && difference.height < 0) return false;
+    // If the root right's dimension is big enough to fit the piece, then don't expand it
+    // Checks to see if the piece is smaller than the root's right
+    if (fitDimensionGap.width <= 0 && fitDimensionGap.height <= 0) return false;
 
-    let resizedRootDimensions: Dimensions = {
-      width: (difference.width >= 0) ? Node.root.dimensions.width + piece.dimensions.width / margin : Node.root.dimensions.width,
-      height: (difference.height >= 0) ? Node.root.dimensions.height + piece.dimensions.height / margin : Node.root.dimensions.height
+    // This is the amount of space needed then to fit the piece in
+    let compensatedRootRightDimensions: Dimensions = {
+      width: Node.root.right.dimensions.width + fitDimensionGap.width,
+      height: Node.root.right.dimensions.height + fitDimensionGap.height
     }
 
+    // CHECKME: Should be this, so we take the Node.root.left's dimensions + additional dimensions to what's our Node.root.right essentially
+    // We're replacing the Node.root.right's original dimensions
+   let resizedRootDimensions: Dimensions = {
+      width: (fitDimensionGap.width > 0) ? Node.root.left.dimensions.width + compensatedRootRightDimensions.width : Node.root.dimensions.width,
+      height: (fitDimensionGap.height > 0) ? Node.root.left.dimensions.height + compensatedRootRightDimensions.height : Node.root.dimensions.height
+    }
+
+    // CHECKME: Is the fallback value correct?
     let resizedRootRightDimensions: Dimensions = {
-      width: (difference.width >= 0) ? piece.dimensions.width / margin : Node.root.dimensions.width,
-      height: (difference.height >= 0) ? piece.dimensions.height / margin : Node.root.dimensions.height
+      width: (fitDimensionGap.width > 0) ? compensatedRootRightDimensions.width : Node.root.right.dimensions.width,
+      height: (fitDimensionGap.height > 0) ? compensatedRootRightDimensions.height : Node.root.right.dimensions.height
     }
 
+    /*********************************** Should be right logic **************************************** */
     let resizedRoot: Node = new Node(uuidv4(), resizedRootDimensions, null, Node.root);
-    resizedRoot.coordinates = getCentre(resizedRootDimensions);
 
     resizedRoot.right = new Node(uuidv4(), resizedRootRightDimensions, resizedRoot);
-    resizedRoot.right.coordinates = getCentre(resizedRootRightDimensions);
+
+    if (!Node.root.right) throw new Error("The node should always have a right leaf");
+
+    // CHECKME: I think it should be like this, because the right node of the original root never gets tampered with. Node.root.left gets splits
+    resizedRoot.right.coordinates = Node.root.right.coordinates;
 
     Node.root.parent = resizedRoot;
     Node.root = resizedRoot;
 
     // So we want to replace the root with a new root so we don't need to reposition our pieces
-    return canPush(piece, margin);
+    return canPush(piece);
+    /*********************************************************************************************** */
   }
 
   function shouldDraw(node: Node): boolean {
@@ -224,16 +223,15 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
 
   // We want to do this from the start because the canvas might already be big enough to store everything
   let canvasDimensions: Dimensions = {
-    width: Math.max(...pieces.map(node => node.dimensions.width)) / margin,
-    height: Math.max(...pieces.map(node => node.dimensions.height)) / margin
+    width: Math.max(...pieces.map(node => node.dimensions.width)),
+    height: Math.max(...pieces.map(node => node.dimensions.height))
   }
 
-  Node.root = new Node(`${uuidv4()}`, canvasDimensions);
-  Node.root.coordinates = getCentre(canvasDimensions);
+  Node.root = new Node(uuidv4(), canvasDimensions);
 
   // https://github.com/mariowise/2d-guillotine-cutter/blob/master/js/tree.js
   pieces.forEach((piece: Node) => {
-    canPush(piece, margin);
+    canPush(piece);
   });
 
   let imagePiecesWithCoordinates: Map<Coordinates, HTMLImageElement> = new Map();
@@ -243,15 +241,12 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
 
     let idx: number = images.findIndex(i => i.src === node.id);
 
-    if (idx > -1) imagePiecesWithCoordinates.set(node.coordinates, images[idx]);
+    if (idx > -1) imagePiecesWithCoordinates.set(node.coordinates/*getAbsoluteCoordinates(node)*/, images[idx]);
   });
-
+ 
   return {
     imagePiecesWithCoordinates,
-    canvasDimensions: {
-      width: Math.max(...Node.nodes.map(node => /*node.coordinates.x + */node.dimensions.width))/* / margin*/,
-      height: Math.max(...Node.nodes.map(node => /*node.coordinates.y + */node.dimensions.height))/* / margin*/
-    },
+    canvasDimensions: Node.root.dimensions // ASSUMPTION: We always have the root node be resized properly
   }
 }
 
@@ -267,7 +262,18 @@ export class AtlasExportService {
       canvasDimensions: Dimensions;
     } = guillotine(images, margin);
 
-    console.log(`Atlas export guillotine results: ${JSON.stringify(final, null, 2)}`);
+    let print: {
+      imagePiecesWithCoordinates: {
+        coordinates: Coordinates;
+        image: HTMLImageElement;
+      }[];
+      canvasDimensions: Dimensions;
+    } = {
+      imagePiecesWithCoordinates: Array.from(final.imagePiecesWithCoordinates, ([coordinates, image]) => ({ coordinates, image })),
+      canvasDimensions: final.canvasDimensions
+    }
+
+    console.log(`Atlas export guillotine results: ${JSON.stringify(print, null, 2)}`);
 
     let canvas: HTMLCanvasElement = document.createElement("canvas");
     canvas.width = final.canvasDimensions.width;
@@ -275,7 +281,7 @@ export class AtlasExportService {
 
     let ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
     final.imagePiecesWithCoordinates.forEach((value: HTMLImageElement, key: Coordinates) => {
-      if (ctx && value.complete) ctx.drawImage(value, (key.x  + (canvas.width / 2) - value.width)/2, (key.y + (canvas.height/2) - value.height)/2); // CHECKME: The keys are 0, 0, so would we need to make sure it's shifted because the root node starts smack dab in the middle of the canvas?
+      if (ctx && value.complete) ctx.drawImage(value, key.x, key.y); // NOTE: This should be fine since all roots always start at 0, 0, so no matter what, all child nodes (including grandchildren) will always be absolutely positioned
     });
 
     console.log('Atlas export canvas size', canvas.width, canvas.height);
