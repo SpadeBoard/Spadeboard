@@ -88,7 +88,7 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
 
   // NOTE: Attempts to place piece in existing node
   function canPush(piece: Node): boolean {
-    function splitNode(piece: Node, node: Node): boolean {
+    function splitNode(node: Node): boolean {
       cut(node, 'w', piece.dimensions.width);
 
       if (!node.left) throw new Error("Guillotine - node.left: When you cut a node, there should be a left and right");
@@ -100,8 +100,8 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
       return true;
     }
 
-    function getPiece(piece: Node, node: Node): Node {
-      if (!splitNode(piece, node)) throw new Error("Could not split node: When you cut a node, there should be a left and right");
+    function getPiece(node: Node): Node {
+      if (!splitNode(node)) throw new Error("Could not split node: When you cut a node, there should be a left and right");
 
       if (!node || !node.left || !node.left.right) throw new Error("Guillotine - node.left.right: When you cut a node, there should be a left and right");
 
@@ -110,7 +110,7 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
     }
 
     // Essentially we need to find a fit node to place our piece inside
-    function findFitNode(node: Node, piece: Node): Node | null {
+    function findFitNode(node: Node): Node | null {
       // So there's three possibilities: the node already fits the piece and isn't a piece itself
       if (!node.isPiece && !isCut(node) && node.dimensions.width >= piece.dimensions.width && node.dimensions.height >= piece.dimensions.height) return node;
 
@@ -118,95 +118,78 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
       if (isCut(node)) {
         if (!node.left || !node.right) throw new Error("Guillotine: When you cut a node, there should be a left and right");
 
-        let fit: Node | null = findFitNode(node.left, piece);
-        return (fit) ? fit : findFitNode(node.right, piece);
+        let fit: Node | null = findFitNode(node.left);
+        return (fit) ? fit : findFitNode(node.right);
       }
 
       // Or there's no fit node
       return null;
     }
 
+    function setResizedRoot(): boolean {
+      if (!Node.root.left || !Node.root.right) throw new Error("The root node should always have a left and right leaf. We know that there's no occupation for Node.root.right because we always make a piece the Node.root.left.right. So we need to make Node.root.right bigger.");
+
+      let fitDimensionGap: Dimensions = {
+        width: piece.dimensions.width - Node.root.right.dimensions.width,
+        height: piece.dimensions.height - Node.root.right.dimensions.height
+      };
+
+      // BASE CASE: If there's no difference in dimension size, there's no need for the root to grow
+      // If the root right's dimension is big enough to fit the piece, then don't expand it
+      // Checks to see if the piece is smaller than the root's right
+      if (fitDimensionGap.width <= 0 && fitDimensionGap.height <= 0) return false;
+
+      // This is the amount of space needed then to fit the piece in
+      let compensatedRootRightDimensions: Dimensions = {
+        width: Node.root.right.dimensions.width + fitDimensionGap.width,
+        height: Node.root.right.dimensions.height + fitDimensionGap.height
+      }
+
+      // CHECKME: Should be this, so we take the Node.root.left's dimensions + additional dimensions to what's our Node.root.right essentially
+      // We're replacing the Node.root.right's original dimensions
+      let resizedRootDimensions: Dimensions = {
+        width: (fitDimensionGap.width > 0) ? Node.root.left.dimensions.width + compensatedRootRightDimensions.width : Node.root.dimensions.width,
+        height: (fitDimensionGap.height > 0) ? Node.root.left.dimensions.height + compensatedRootRightDimensions.height : Node.root.dimensions.height
+      }
+
+      // CHECKME: Is the fallback value correct?
+      let resizedRootRightDimensions: Dimensions = {
+        width: (fitDimensionGap.width > 0) ? compensatedRootRightDimensions.width : Node.root.right.dimensions.width,
+        height: (fitDimensionGap.height > 0) ? compensatedRootRightDimensions.height : Node.root.right.dimensions.height
+      }
+
+      /*********************************** Should be right logic **************************************** */
+      let resizedRoot: Node = new Node(uuidv4(), resizedRootDimensions, null, Node.root);
+
+      resizedRoot.right = new Node(uuidv4(), resizedRootRightDimensions, resizedRoot);
+
+      if (!Node.root.right) throw new Error("The node should always have a right leaf");
+
+      // CHECKME: I think it should be like this, because the right node of the original root never gets tampered with. Node.root.left gets splits
+      resizedRoot.right.coordinates = Node.root.right.coordinates;
+
+      Node.root.parent = resizedRoot;
+      Node.root = resizedRoot;
+
+      return true;
+    }
+
     // So we want to find out whether the root node's already big enough, essentially if it isn't then we do stuff from there
-    let node: Node | null = findFitNode(Node.root, piece);
+    let node: Node | null = findFitNode(Node.root);
     if (node) { // TODO: Potentially have user choice in how to cut? 
-      let leaf: Node = getPiece(piece, node);
+      let leaf: Node = getPiece(node);
       leaf.id = piece.id; // We need to do this because we grab the specific pieces by their shared IDs
 
       return true;
     }
 
     // CASE: Node.root.right will not be split
-    if (!Node.root.left || !Node.root.right) throw new Error("The root node should always have a left and right leaf. We know that there's no occupation for Node.root.right because we always make a piece the Node.root.left.right. So we need to make Node.root.right bigger.");
-
-    let fitDimensionGap: Dimensions = {
-      width: piece.dimensions.width - Node.root.right.dimensions.width,
-      height: piece.dimensions.height - Node.root.right.dimensions.height
-    };
-
-    // BASE CASE: If there's no difference in dimension size, there's no need for the root to grow
-    // If the root right's dimension is big enough to fit the piece, then don't expand it
-    // Checks to see if the piece is smaller than the root's right
-    if (fitDimensionGap.width <= 0 && fitDimensionGap.height <= 0) return false;
-
-    // This is the amount of space needed then to fit the piece in
-    let compensatedRootRightDimensions: Dimensions = {
-      width: Node.root.right.dimensions.width + fitDimensionGap.width,
-      height: Node.root.right.dimensions.height + fitDimensionGap.height
-    }
-
-    // CHECKME: Should be this, so we take the Node.root.left's dimensions + additional dimensions to what's our Node.root.right essentially
-    // We're replacing the Node.root.right's original dimensions
-   let resizedRootDimensions: Dimensions = {
-      width: (fitDimensionGap.width > 0) ? Node.root.left.dimensions.width + compensatedRootRightDimensions.width : Node.root.dimensions.width,
-      height: (fitDimensionGap.height > 0) ? Node.root.left.dimensions.height + compensatedRootRightDimensions.height : Node.root.dimensions.height
-    }
-
-    // CHECKME: Is the fallback value correct?
-    let resizedRootRightDimensions: Dimensions = {
-      width: (fitDimensionGap.width > 0) ? compensatedRootRightDimensions.width : Node.root.right.dimensions.width,
-      height: (fitDimensionGap.height > 0) ? compensatedRootRightDimensions.height : Node.root.right.dimensions.height
-    }
-
-    /*********************************** Should be right logic **************************************** */
-    let resizedRoot: Node = new Node(uuidv4(), resizedRootDimensions, null, Node.root);
-
-    resizedRoot.right = new Node(uuidv4(), resizedRootRightDimensions, resizedRoot);
-
-    if (!Node.root.right) throw new Error("The node should always have a right leaf");
-
-    // CHECKME: I think it should be like this, because the right node of the original root never gets tampered with. Node.root.left gets splits
-    resizedRoot.right.coordinates = Node.root.right.coordinates;
-
-    Node.root.parent = resizedRoot;
-    Node.root = resizedRoot;
-
-    // So we want to replace the root with a new root so we don't need to reposition our pieces
+    if (!setResizedRoot()) throw new Error("This is impossible considering Node.root.right hasn't been split, that means the original Node.root couldn't fit the piece");
     return canPush(piece);
-    /*********************************************************************************************** */
   }
 
   function shouldDraw(node: Node): boolean {
     return (!isCut(node) && areDimensionsHigherThanZero(node.dimensions) && node.isPiece);
-  }
-
-  // So this is to make sure coordinate alignments is correct, we start from the centre of the canvas, not top left
-  function getCentre(dimensions: Dimensions): Coordinates {
-    return {
-      x: dimensions.width / 2,
-      y: dimensions.height / 2
-    }
-  }
-
-  // For use with image nodes because the problem is position's relative to parent
-  function getAbsoluteCoordinates(node: Node): Coordinates {
-    if (!node.parent) return node.coordinates;
-
-    let parent: Coordinates = getAbsoluteCoordinates(node.parent);
-    // Move right, move down
-    return {
-      x: parent.x + node.coordinates.x,
-      y: parent.y + node.coordinates.y
-    }
   }
 
   margin = clamp(normalize(margin, 0.5, 1), 0.5, 1);
