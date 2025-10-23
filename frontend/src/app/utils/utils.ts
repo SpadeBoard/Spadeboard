@@ -7,6 +7,8 @@ import { FileMetadataApiService } from "./services/file-metadata-api.service";
 import { FileUploadApiService } from "./services/file-upload-api.service";
 import ImageBlobReduce, { ResizeOptions } from 'image-blob-reduce';
 import JSZip from "jszip";
+// import { PNGChunk, PngMetadata } from "@sonrisa-dev/png-metadata";
+import * as PngMetadata from '@sonrisa-dev/png-metadata';
 
 export function getDefaultFileMetadata(): FileMetadata {
     return {
@@ -199,7 +201,7 @@ export function sortByPolarAngle(coordinates: Coordinates[]): Coordinates[] {
     let unique: Coordinates[] = [];
 
     let lastAngle: number | null = null;
-    for (const p of others) {
+    for (let p of others) {
         let angle = getPolarAngle(p0, p);
 
         if (angle !== lastAngle) {
@@ -483,4 +485,77 @@ export async function unzipImages(result: Blob): Promise<HTMLImageElement[] | un
         }
     }
     )
+}
+
+export function addMetadataToPng(buffer: ArrayBuffer | Uint8Array | Buffer, metadata: string): Blob {
+    let chunks: false | PngMetadata.PNGChunk[] = PngMetadata.splitChunk(bufferToBinaryString(buffer));
+
+    if (!chunks || chunks.length <= 0) chunks = [];
+
+    // Example: Add a text chunk with a comment  
+    // Create chunk with UTF-8 encoded metadata as binary string
+    let commentChunk: PngMetadata.PNGChunk = PngMetadata.createChunk('tEXt', encodeToBinaryString(metadata));
+    chunks.splice(-1, 0, commentChunk);
+
+    // Join chunks back into a PNG file
+    let modifiedBinary: string = PngMetadata.joinChunk(chunks);
+
+    console.log(`Modified binary - UTF-8: ${modifiedBinary}\n\nBinary - UTF-8 to base64: ${btoa(modifiedBinary)}`);
+
+    // Convert binary string back to Uint8Array
+    let modifiedUint8: Uint8Array<ArrayBufferLike> = binaryStringToUint8Array(modifiedBinary);
+
+    // Create a Blob from the modified PNG data
+    return new Blob([typedArrayToBuffer(modifiedUint8)], { type: 'image/png' });
+}
+
+// Returns UTF-8
+export function encodeToBinaryString(metadata: string): string {
+    let encoder: TextEncoder = new TextEncoder();
+    let encoded: Uint8Array<ArrayBuffer> = encoder.encode(metadata);
+
+    // Convert encoded bytes to binary string for createChunk
+    let bstr: string = '';
+    for (let i = 0; i < encoded.length; i++) {
+        bstr+= String.fromCharCode(encoded[i]);
+    }
+
+    return bstr;
+}
+
+// binaryToString('01000001 01110010 01100101 01101110 00100111 01110100')
+// CHECKME: Delete if we don't have a use? Has to be base64?
+/*export function binaryToString(bstr: string): string {
+    let s: string = '';
+
+    bstr.split(' ').map(function (bin: string) {
+        s += String.fromCharCode(parseInt(bin, 2));
+    });
+
+    return s;
+}*/
+
+
+export function typedArrayToBuffer(array: Uint8Array): ArrayBuffer {
+    return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset) as ArrayBuffer;
+}
+
+// Returns UTF-8
+export function bufferToBinaryString(buffer: ArrayBuffer | Uint8Array | Buffer): string {
+    let uint8: Uint8Array<ArrayBufferLike> | Buffer<ArrayBufferLike> = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+    let binary: string = '';
+    for (let i = 0; i < uint8.length; i++) {
+        binary += String.fromCharCode(uint8[i]);
+    }
+    return binary;
+}
+
+// Passes in UTF-8
+export function binaryStringToUint8Array(binary: string): Uint8Array {
+    let length: number = binary.length;
+    let uint8: Uint8Array<ArrayBuffer> = new Uint8Array(length);
+    for (let i = 0; i < length; i++) {
+        uint8[i] = binary.charCodeAt(i);
+    }
+    return uint8;
 }

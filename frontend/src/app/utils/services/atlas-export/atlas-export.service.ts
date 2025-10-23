@@ -1,9 +1,15 @@
 import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
-import { areDimensionsHigherThanZero, clamp, Coordinates, Dimensions, download, normalize } from '../../utils';
+import { addMetadataToPng, areDimensionsHigherThanZero, clamp, Coordinates, Dimensions, download, normalize } from '../../utils';
+
+export interface AtlasTextureImage {
+  coordinates: Coordinates;
+  dimensions: Dimensions;
+  element: HTMLImageElement;
+}
 
 export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
-  imagePiecesWithCoordinates: Map<Coordinates, HTMLImageElement>,
+  atlasTextureImages: AtlasTextureImage[],
   canvasDimensions: Dimensions
 } {
   class Node {
@@ -217,18 +223,22 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
     canPush(piece);
   });
 
-  let imagePiecesWithCoordinates: Map<Coordinates, HTMLImageElement> = new Map();
+  let atlasTextureImages: AtlasTextureImage[] =[];
 
   Node.nodes.forEach((node: Node) => {
     if (!shouldDraw(node)) return;
 
     let idx: number = images.findIndex(i => i.src === node.id);
 
-    if (idx > -1) imagePiecesWithCoordinates.set(node.coordinates/*getAbsoluteCoordinates(node)*/, images[idx]);
+    if (idx > -1) atlasTextureImages.push({
+      coordinates: node.coordinates,
+      dimensions: node.dimensions,
+      element: images[idx]
+    });
   });
  
   return {
-    imagePiecesWithCoordinates,
+    atlasTextureImages,
     canvasDimensions: Node.root.dimensions // ASSUMPTION: We always have the root node be resized properly
   }
 }
@@ -241,38 +251,30 @@ export class AtlasExportService {
 
   atlasExport(images: HTMLImageElement[], margin: number = 0.5, fileName: string = 'atlas'): void {
     let final: {
-      imagePiecesWithCoordinates: Map<Coordinates, HTMLImageElement>;
+      atlasTextureImages: AtlasTextureImage[];
       canvasDimensions: Dimensions;
     } = guillotine(images, margin);
 
-    let print: {
-      imagePiecesWithCoordinates: {
-        coordinates: Coordinates;
-        image: HTMLImageElement;
-      }[];
-      canvasDimensions: Dimensions;
-    } = {
-      imagePiecesWithCoordinates: Array.from(final.imagePiecesWithCoordinates, ([coordinates, image]) => ({ coordinates, image })),
-      canvasDimensions: final.canvasDimensions
-    }
-
-    console.log(`Atlas export guillotine results: ${JSON.stringify(print, null, 2)}`);
+    console.log(`Atlas export guillotine results: ${JSON.stringify(final, null, 2)}`);
 
     let canvas: HTMLCanvasElement = document.createElement("canvas");
     canvas.width = final.canvasDimensions.width;
     canvas.height = final.canvasDimensions.height;
 
     let ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
-    final.imagePiecesWithCoordinates.forEach((value: HTMLImageElement, key: Coordinates) => {
-      if (ctx && value.complete) ctx.drawImage(value, key.x, key.y); // NOTE: This should be fine since all roots always start at 0, 0, so no matter what, all child nodes (including grandchildren) will always be absolutely positioned
+    
+    if (!ctx) throw new Error("No Canvas Rendering Context");
+    
+    final.atlasTextureImages.forEach((value: AtlasTextureImage) => {
+      if (value.element.complete) ctx.drawImage(value.element, value.coordinates.x, value.coordinates.y); // NOTE: This should be fine since all roots always start at 0, 0, so no matter what, all child nodes (including grandchildren) will always be absolutely positioned
     });
 
     console.log('Atlas export canvas size', canvas.width, canvas.height);
-
+  
     canvas.toBlob(async (blob: Blob | null) => {
       if (!blob) throw new Error("Atlas export canvas can't be converted to a blob.");
 
-      download(fileName, 'png', URL.createObjectURL(blob));
+      download(fileName, 'png', URL.createObjectURL(addMetadataToPng(await blob.arrayBuffer(), JSON.stringify(final.atlasTextureImages))));
     });
   }
 }
