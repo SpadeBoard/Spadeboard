@@ -28,9 +28,9 @@ export function clamp(value: number, min: number, max: number): number {
 
 export async function safeUrlToBlob(safeUrl: SafeUrl): Promise<Blob | null> {
     try {
-        let urlString = safeUrl.toString();
-        let response = await fetch(urlString);
-        let blob = await response.blob();
+        let urlString: string = safeUrl.toString();
+        let response: Response = await fetch(urlString);
+        let blob: Blob = await response.blob();
         return blob;
     } catch (error) {
         console.error('Error converting SafeUrl to Blob:', error);
@@ -38,9 +38,10 @@ export async function safeUrlToBlob(safeUrl: SafeUrl): Promise<Blob | null> {
     }
 }
 
-export async function onLoadReadBlobAsBase64(blob: Blob): Promise<string> {
+// TODO: Combine with blobUrlToDataUrl and have function overload
+export async function blobToDataUrl(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
+        let reader: FileReader = new FileReader();
 
         // Read the blob as a data URL
         reader.readAsDataURL(blob);
@@ -61,14 +62,34 @@ export async function onLoadReadBlobAsBase64(blob: Blob): Promise<string> {
     });
 }
 
-export async function blobToDataURL(blobUrl: string): Promise<string> {
-    let response = await fetch(blobUrl);
-    let blob = await response.blob();
+export async function blobUrlToDataURL(blobUrl: string): Promise<string> {
+    let response: Response = await fetch(blobUrl);
+    let blob: Blob = await response.blob();
     return new Promise((resolve) => {
-        let reader = new FileReader();
+        let reader: FileReader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.readAsDataURL(blob);
     });
+}
+
+export function dataURLtoBlob(dataUrl: string, type?: string): Blob {
+    if (!dataUrl || dataUrl.length <= 0) throw new Error("Data URL must have content");
+
+    let arr: string[] = dataUrl.split(',');
+
+    let match: RegExpMatchArray | null = arr[0].match(/:(.*?);/);
+
+    let mime: string | undefined = match ? match[1] :  type;
+    let bstr: string = atob(arr[1]);
+    let n: number = bstr.length;
+        
+    let u8arr: Uint8Array<ArrayBuffer> = new Uint8Array(n);
+
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    return new Blob([u8arr], {type: mime});
 }
 
 export function createImageFromBlob(blob: Blob): HTMLImageElement {

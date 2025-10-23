@@ -4,7 +4,7 @@ import { AfterViewInit, Component, computed, DestroyRef, ElementRef, inject, inp
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, from, switchMap } from 'rxjs';
 import { FileMetadata } from '../../../../utils/models/file-metadata';
-import { blobToDataURL, clamp, Coordinates, Dimensions, Threshold } from '../../../../utils/utils';
+import { blobUrlToDataURL, clamp, Coordinates, Dimensions, Threshold } from '../../../../utils/utils';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
@@ -687,7 +687,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent implements Af
     if (!cardFaceElementPerCardFace)
       return;
 
-    from(blobToDataURL(croppedImage))
+    from(blobUrlToDataURL(croppedImage))
       .pipe(
         switchMap((base64Image) =>
           this.cardEditorPreviewService.getImageFormData$(base64Image)

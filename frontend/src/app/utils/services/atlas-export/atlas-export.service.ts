@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
-import { areDimensionsHigherThanZero, clamp, Coordinates, Dimensions, download, normalize } from '../../utils';
+import { addExifData, areDimensionsHigherThanZero, clamp, Coordinates, Dimensions, download, normalize } from '../../utils';
 
 export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
   imagePiecesWithCoordinates: Map<Coordinates, HTMLImageElement>,
@@ -269,8 +269,10 @@ export class AtlasExportService {
 
     console.log('Atlas export canvas size', canvas.width, canvas.height);
 
-    canvas.toBlob((blob: Blob | null) => {
+    canvas.toBlob(async (blob: Blob | null) => {
       if (!blob) throw new Error("Atlas export canvas can't be converted to a blob.");
+
+      let exif = await addExifData(blob, '');
 
       download(fileName, 'png', URL.createObjectURL(blob));
     });
