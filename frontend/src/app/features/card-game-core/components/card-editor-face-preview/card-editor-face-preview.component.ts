@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, from, Observable, switchMap } from 'rxjs';
-import { clamp, Coordinates, exportCustomTypeFile, flattenToImage, generateResizedImagesAtQualities, getMidpoint } from '../../../../utils/utils';
+import { clamp, Coordinates, exportCustomTypeFile, flattenToImage, generateResizedImagesAtQualities, getMidpoint, unzipImages } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { BorderDimensions, Style } from '../../../style/models/style';
@@ -19,7 +19,6 @@ import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-e
 import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 import { AtlasExportService } from '../../../../utils/services/atlas-export/atlas-export.service';
 import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
-import JSZip from 'jszip';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -133,36 +132,9 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
             next: async (result: Blob | undefined) => {
               if (!result) throw new Error("There are no card faces thumbnails");
 
-              let zip: JSZip = await JSZip.loadAsync(result);
-              let files: JSZip.JSZipObject[] = Object.values(zip.files);
+              let images: HTMLImageElement[] | undefined = await unzipImages(result);
 
-              console.log(`Zip files for atlas export: ${JSON.stringify(files, null, 2)})`);
-
-              let images: HTMLImageElement[] = [];
-
-              for (let file of files) {
-                if (file.dir) {
-                  throw new Error("Zip contains directories, expected only files");
-                }
-
-                let blob: Blob = await file.async("blob");
-                let image: HTMLImageElement = new Image();
-                let objectUrl: string = URL.createObjectURL(blob);
-
-                // Await image load or error
-                await new Promise<void>((imageResolve, imageReject) => {
-                  image.onload = () => {
-                    imageResolve();
-                  };
-                  image.onerror = () => {
-                    URL.revokeObjectURL(objectUrl);
-                    imageReject(new Error(`Failed to load image ${file.name}`));
-                  };
-                  image.src = objectUrl;
-                });
-
-                images.push(image);
-              }
+              if (!images) throw new Error("Failed to unzip images");
 
               this.atlasExportService.atlasExport(images, 0.97, cardEditorCardDto.card.cardId);
             }});

@@ -10,7 +10,7 @@ import { getDefaultCardEditorCardFaceDimensions } from '../../utils/card-editor.
 import { DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
 import { CardFaceImage } from '../../utils/card-face.utils';
 import { CardFaceComponent } from '../card-face/card-face.component';
-import { Dimensions, getLodIndex } from '../../../../utils/utils';
+import { Dimensions, getLodIndex, unzipImages } from '../../../../utils/utils';
 import JSZip from 'jszip';
 import { CardFacePerLodApiService } from '../../services/card-game-core/api/card-face-per-lod-api.service';
 
@@ -160,45 +160,7 @@ export class CardComponent {
             return;
           }
 
-          // TODO: Replace with resolve(unzipImages(result));
-
-          try {
-            let zip: JSZip = await JSZip.loadAsync(result);
-            let files: JSZip.JSZipObject[] = Object.values(zip.files);
-
-            console.log(`Zip files: ${JSON.stringify(files, null, 2)})`);
-
-            let images: HTMLImageElement[] = [];
-
-            for (let file of files) {
-              if (file.dir) {
-                throw new Error("Zip contains directories, expected only files");
-              }
-
-              let blob: Blob = await file.async("blob");
-              let image: HTMLImageElement = new Image();
-              let objectUrl: string = URL.createObjectURL(blob);
-
-              // Await image load or error
-              await new Promise<void>((imageResolve, imageReject) => {
-                image.onload = () => {
-                  imageResolve();
-                };
-                image.onerror = () => {
-                  URL.revokeObjectURL(objectUrl);
-                  imageReject(new Error(`Failed to load image ${file.name}`));
-                };
-                image.src = objectUrl;
-              });
-
-              images.push(image);
-            }
-
-            resolve(images);
-          } catch (error) {
-            console.error("Error while processing zip file images", error);
-            resolve(undefined);
-          }
+          resolve(unzipImages(result));
         },
         error: (err) => {
           console.log(`Get files metadata, Error: ${JSON.stringify(err)}`);
