@@ -444,6 +444,15 @@ export function duplicateFiles$(fileUploadApiService: FileUploadApiService, file
     )
 }
 
+export async function zipFiles(files: Blob[], fileName: string, type: string): Promise<Blob> {
+    let zip: JSZip = new JSZip();
+    files.forEach((blob: Blob, idx: number) => {
+        zip.file(`${fileName} - ${idx}.${type}`, blob);
+    });
+
+    return await zip.generateAsync({type: 'blob'});
+}
+
 export async function unzipImages(result: Blob): Promise<HTMLImageElement[] | undefined> {
     return new Promise(async (resolve) => {
         try {

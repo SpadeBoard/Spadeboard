@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
-import { addMetadataToPng, areDimensionsHigherThanZero, clamp, Coordinates, Dimensions, download, normalize } from '../../utils';
+import { addMetadataToPng, areDimensionsHigherThanZero, clamp, Coordinates, Dimensions, download, normalize, zipFiles } from '../../utils';
 
 export interface AtlasTextureImage {
   coordinates: Coordinates;
@@ -8,7 +8,7 @@ export interface AtlasTextureImage {
   element: HTMLImageElement;
 }
 
-export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
+export function guillotine(images: HTMLImageElement[]): {
   atlasTextureImages: AtlasTextureImage[],
   canvasDimensions: Dimensions
 } {
@@ -61,7 +61,7 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
   }
 
   function cut(parent: Node, side: 'w' | 'h', offset: number): 'w' | 'h' | undefined {
-    let origin: Coordinates = parent.coordinates; 
+    let origin: Coordinates = parent.coordinates;
 
     // Coordinates are relative to the parent
 
@@ -83,7 +83,7 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
       parent.left.coordinates = { x: origin.x, y: origin.y + offset }; // Node.root.left.left starts at 0, where its rightcounterpart ends
 
       parent.right = new Node(uuidv4(), { width: parent.dimensions.width, height: offset }, parent);
-      parent.right.coordinates = { x: origin.x, y: origin.y}; // Node.root.left.right starts at 0, 0
+      parent.right.coordinates = { x: origin.x, y: origin.y }; // Node.root.left.right starts at 0, 0
 
       return side;
     }
@@ -198,8 +198,6 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
     return (!isCut(node) && areDimensionsHigherThanZero(node.dimensions) && node.isPiece);
   }
 
-  margin = clamp(normalize(margin, 0.5, 1), 0.5, 1);
-
   let pieces: Node[] = images.map((image: HTMLImageElement) => {
     return new Node(
       image.src,
@@ -223,7 +221,7 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
     canPush(piece);
   });
 
-  let atlasTextureImages: AtlasTextureImage[] =[];
+  let atlasTextureImages: AtlasTextureImage[] = [];
 
   Node.nodes.forEach((node: Node) => {
     if (!shouldDraw(node)) return;
@@ -236,7 +234,7 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
       element: images[idx]
     });
   });
- 
+
   return {
     atlasTextureImages,
     canvasDimensions: Node.root.dimensions // ASSUMPTION: We always have the root node be resized properly
@@ -249,33 +247,98 @@ export function guillotine(images: HTMLImageElement[], margin: number = 0.5): {
 export class AtlasExportService {
   constructor() { }
 
-  atlasExport(images: HTMLImageElement[], margin: number = 0.5, fileName: string = 'atlas'): void {
-    let final: {
-      atlasTextureImages: AtlasTextureImage[];
-      canvasDimensions: Dimensions;
-    } = guillotine(images, margin);
+  async atlasExport(images: HTMLImageElement[], fileName: string = 'atlas', maxCanvasSize: Dimensions): Promise<void> {
+    /************* SPLIT INTO FUNCTION, make blob, don't download yet******************/
+    // Check to see if we need to split the HTML Image Elements[] into multiple to then pass into createAtlas
+    function atlasAmt(images: HTMLImageElement[]): number {
+      let neededCanvasDimensions: Dimensions = {
+        width: images.reduce((accumulator: number, current: HTMLImageElement) => accumulator + current.width, 0),
+        height: images.reduce((accumulator: number, current: HTMLImageElement) => accumulator + current.height, 0)
+      };
 
-    console.log(`Atlas export guillotine results: ${JSON.stringify(final, null, 2)}`);
+      if (neededCanvasDimensions.width > maxCanvasSize.width || neededCanvasDimensions.height > maxCanvasSize.height) {
+        let divisor: Dimensions = {
+          width: neededCanvasDimensions.width / maxCanvasSize.width,
+          height: neededCanvasDimensions.height / maxCanvasSize.height
+        }
 
-    let canvas: HTMLCanvasElement = document.createElement("canvas");
-    canvas.width = final.canvasDimensions.width;
-    canvas.height = final.canvasDimensions.height;
+        return Math.ceil(divisor.width * divisor.height);
+      }
 
-    let ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
-    
-    if (!ctx) throw new Error("No Canvas Rendering Context");
-    
-    final.atlasTextureImages.forEach((value: AtlasTextureImage) => {
-      if (value.element.complete) ctx.drawImage(value.element, value.coordinates.x, value.coordinates.y); // NOTE: This should be fine since all roots always start at 0, 0, so no matter what, all child nodes (including grandchildren) will always be absolutely positioned
-    });
+      return 1;
+    };
 
-    console.log('Atlas export canvas size', canvas.width, canvas.height);
-  
-    canvas.toBlob(async (blob: Blob | null) => {
-      if (!blob) throw new Error("Atlas export canvas can't be converted to a blob.");
+    function splitIntoAtlases(images: HTMLImageElement[], atlasAmt: number): Array<HTMLImageElement[]> {
+      let partitions = (arr: HTMLImageElement[], atlasAmt: number) =>
+        arr.reduce((accumulator: Array<Array<HTMLImageElement>>, value: HTMLImageElement) => {
 
-      download(fileName, 'png', URL.createObjectURL(addMetadataToPng(await blob.arrayBuffer(), JSON.stringify(final.atlasTextureImages))));
-    });
+          // Find the index of the sub-array with the fewest elements
+          // currMinIdx starts at 0, current is current array it's processing, idx is current index of that current array
+          // array refers to the entirety of the accumulator
+          let minIdx: number = accumulator.reduce((currMinIdx: number, current: Array<HTMLImageElement>, idx: number, array: Array<Array<HTMLImageElement>>) =>
+            current.length < array[currMinIdx].length ? idx : currMinIdx, 0
+          );
+
+          accumulator[minIdx].push(value);
+          return accumulator;
+        },
+          Array.from({ length: atlasAmt }, () => [] as HTMLImageElement[]));
+
+      return partitions(images, atlasAmt);
+    };
+
+    // If there's only one blob, then just download, else zip then download
+    function createAtlas(images: HTMLImageElement[]): Promise<Blob> {
+      return new Promise((resolve) => {
+        let final: {
+          atlasTextureImages: AtlasTextureImage[];
+          canvasDimensions: Dimensions;
+        } = guillotine(images);
+
+        console.log(`Atlas export guillotine results: ${JSON.stringify(final, null, 2)}`);
+
+        let canvas: HTMLCanvasElement = document.createElement("canvas");
+        canvas.width = final.canvasDimensions.width;
+        canvas.height = final.canvasDimensions.height;
+
+        let ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
+
+        if (!ctx) throw new Error("No Canvas Rendering Context");
+
+        final.atlasTextureImages.forEach((value: AtlasTextureImage) => {
+          if (value.element.complete) ctx.drawImage(value.element, value.coordinates.x, value.coordinates.y); // NOTE: This should be fine since all roots always start at 0, 0, so no matter what, all child nodes (including grandchildren) will always be absolutely positioned
+        });
+
+        console.log('Atlas export canvas size', canvas.width, canvas.height);
+
+        canvas.toBlob(async (blob: Blob | null) => {
+          if (!blob) throw new Error("Could not create canvas");
+
+          resolve(addMetadataToPng(await blob.arrayBuffer(), JSON.stringify(final.atlasTextureImages)));
+        });
+      })
+    }
+
+    async function createAtlases(images: Array<Array<HTMLImageElement>>): Promise<Blob | undefined> {
+      let blobs: Blob[] = [];
+
+      images.forEach(async (element: HTMLImageElement[]) => {
+        let blob: Blob | undefined = await createAtlas(element);
+
+        if (!blob) throw new Error("Could not create canvas");
+        blobs.push(blob);
+      });
+
+      return await zipFiles(blobs, fileName, 'png');
+    }
+
+    let amt: number = atlasAmt(images);
+
+    let atlas: Blob | undefined = (amt === 1) ? await createAtlas(images) : await createAtlases(splitIntoAtlases(images, amt));
+
+    console.log(`Atlas: ${atlas}`);
+
+    if (atlas) download(fileName, 'png', URL.createObjectURL(atlas));
   }
 }
 

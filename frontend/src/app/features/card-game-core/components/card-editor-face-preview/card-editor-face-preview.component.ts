@@ -19,6 +19,7 @@ import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-e
 import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 import { AtlasExportService } from '../../../../utils/services/atlas-export/atlas-export.service';
 import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
+import canvasSize from 'canvas-size';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -136,7 +137,21 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
               if (!images) throw new Error("Failed to unzip images");
 
-              this.atlasExportService.atlasExport(images, 0.97, cardEditorCardDto.card.cardId);
+              let results = await canvasSize.maxArea({
+                max: 10000,
+                min: 1,
+                step: 100,
+                // useWorker: true,
+                onError(results) {
+                  console.error('🔴', results);
+                },
+                usePromise: true
+              });
+
+              this.atlasExportService.atlasExport(images, cardEditorCardDto.card.cardId, {
+                width: results.width,
+                height: results.height
+              });
             }});
         },
         disabled: false
