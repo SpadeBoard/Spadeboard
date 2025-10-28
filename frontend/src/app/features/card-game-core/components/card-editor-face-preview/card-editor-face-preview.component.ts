@@ -9,7 +9,6 @@ import { ActionContextMenuItem } from '../../../actions-context-menu/models/acti
 import { BorderDimensions, Style } from '../../../style/models/style';
 import { filterAgainstNull } from '../../../style/utils/get-style';
 import { CardEditorCardDto } from '../../models/card';
-import { FileAuthenticationPerExportedCard } from '../../models/file-authentication-per-exported-card';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
 import { FileAuthenticationPerExportedCardApiService } from '../../services/card-game-core/api/file-authentication-per-exported-card-api.service';
@@ -59,37 +58,32 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   // TODO: Have action context menu items be groupable
   actionContextMenuItems: ActionContextMenuItem[] = [
-      {
-        id: 0,
-        name: 'Import Card (.sbd)',
-        action: (cardEditorCardDto: CardEditorCardDto) => {
-          // CHECKME: You should be able to import cards that have already been deleted and elements that have been already deleted
-          if (!cardEditorCardDto)
-            throw new Error("No card editor card dto to be found");
+    {
+      id: 0,
+      name: 'Import Card (.sbd)',
+      action: (cardEditorCardDto: CardEditorCardDto) => {
+        // CHECKME: You should be able to import cards that have already been deleted and elements that have been already deleted
+        if (!cardEditorCardDto)
+          throw new Error("No card editor card dto to be found");
 
-          if (cardEditorCardDto.card.cardId === "0")
-            throw new Error("Can't import export a card that hasn't been made yet.");
+        if (cardEditorCardDto.card.cardId === "0")
+          throw new Error("Can't import export a card that hasn't been made yet.");
 
-          this.fileAuthenticationPerExportedCardApiService.isValidImport$(cardEditorCardDto).subscribe((isValidImport: boolean) => {
-            if (!isValidImport)
-              throw new Error("Invalid import, either card ID or file hash doesn't match");
+        this.cardEditorPreviewService.duplicateCard$(cardEditorCardDto).subscribe((result: CardEditorCardDto | undefined) => {
+          if (!result)
+            throw new Error("Invalid import, can't duplicate card");
 
-            this.cardEditorPreviewService.duplicateCard$(cardEditorCardDto).subscribe((result: CardEditorCardDto | undefined) => {
-              if (!result)
-                throw new Error("Invalid import, can't duplicate card");
+          this.cardEditorPreviewService.setOnCreateCardEditorCardDto(result);
 
-              this.cardEditorPreviewService.setOnCreateCardEditorCardDto(cardEditorCardDto);
+          // TODO: Make a flag that can automatically just open the card in the editor
+          if (window.confirm('Open imported card in editor? The currently opened card will be overridden in the editor..')) {
+            this.cardEditorPreviewService.setCardEditorCardDtoByCardId(result.card.cardId);
+          }
+        });
 
-              // TODO: Make a flag that can automatically just open the card in the editor
-              if (window.confirm('Open imported card in editor? The currently opened card will be overridden in the editor..')) {
-                this.cardEditorPreviewService.setCardEditorCardDtoByCardId(cardEditorCardDto.card.cardId);
-              }
-            });
-          });
-          
-          // TODO: Make the preview service create card, duplicate cards and update cards into pure functions
-        },
-        disabled: false
+        // TODO: Make the preview service create card, duplicate cards and update cards into pure functions
+      },
+      disabled: false
       },
       {
         id: 1,
@@ -100,22 +94,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
           if (cardEditorCardDto.card.cardId === "0")
             throw new Error("Can't export a card that hasn't been made yet.");
-
-          let fileAuthenticationPerExportedCard: FileAuthenticationPerExportedCard = {
-            fileAuthenticationPerExportedCardId: "0",
-            cardId: cardEditorCardDto.card.cardId,
-            cardEditorCardDto,
-            fileHash: "",
-            digitalSignature: ""
-          }
-
-          // TODO: Figure out the digital signature
-          this.fileAuthenticationPerExportedCardApiService.createFileAuthenticationPerExportedCard$(fileAuthenticationPerExportedCard).subscribe((fileAuthenticationPerExportedCard: FileAuthenticationPerExportedCard | undefined) =>{
-            if (!fileAuthenticationPerExportedCard)
-              throw new Error("File authentication per exported card wasn't created");
             
-            exportCustomTypeFile(cardEditorCardDto, `${cardEditorCardDto.card.cardId}`, 'sbd');
-          })
+          exportCustomTypeFile(cardEditorCardDto, `${cardEditorCardDto.card.cardId}`, 'sbd');
         },
         disabled: false
       },

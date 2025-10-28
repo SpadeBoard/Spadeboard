@@ -2,7 +2,6 @@ import { CdkDrag, CdkDragDrop, CdkDragMove, DragDropModule } from '@angular/cdk/
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, effect, HostListener, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, Observable, switchMap } from 'rxjs';
 import { Coordinates, getMidpoint } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
