@@ -87,5 +87,10 @@ namespace Services
         {
            return await _dtoCrudService.GetAllDtoAsync();
         }
+
+        public async Task<IEnumerable<FileStream>> GetCardFacesByLodDtoAsync(string cardId, int lod)
+        {
+            return await _cardFacePerCardService.GetCardFacesByLodAsync(DtoIdConversion.DtoStringToLong(cardId), lod);
+        }
     }
 }

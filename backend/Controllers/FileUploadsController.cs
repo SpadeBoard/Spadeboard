@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using System.IO.Compression;
 using Services;
-using System.Net;
-using System.Net.Http.Headers;
+using Utils;
 
 namespace backend.Controllers
 {
@@ -26,30 +24,14 @@ namespace backend.Controllers
 
             string zipName = $"CardFaceLods-{DateTime.UtcNow:yyyyMMddHHmmss}.zip";
 
-            try
+             try
             {
-                // NOTE: Using would automatically dispose it
-                MemoryStream ms = new();
-                using (ZipArchive  zip = new(ms, ZipArchiveMode.Create, leaveOpen: true))
-                {
-                    foreach (FileStream file in files)
-                    {
-                        if (file.CanSeek) file.Position = 0;
-                        ZipArchiveEntry  entry = zip.CreateEntry(file.Name);
-
-                        using Stream? entryStream = entry.Open();
-                        await file.CopyToAsync(entryStream);
-                    }
-                } // ZipArchive disposed here, data finalized into ms
-
-                ms.Position = 0; // Reset to start of stream
-
+                MemoryStream ms = await ZipArchiveFunctionality.Zip(files);
                 return File(ms, "application/zip", zipName);
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error while creating ZIP: {ex.Message}");
-                return StatusCode(500, "Error creating ZIP file");
+                return StatusCode(500, ex);
             }
         }
 

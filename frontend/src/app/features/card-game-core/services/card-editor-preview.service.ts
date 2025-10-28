@@ -16,7 +16,7 @@ import { CardEditorCardDtoApiService } from './card-game-core/api/card-editor-ca
 import { CardFaceElementApiService } from './card-game-core/api/card-face-element-api.service';
 import { TagsPerCardApiService } from './card-game-core/api/tags-per-card-api.service';
 import { getDefaultCardFace } from '../utils/card-face.constants';
-import { createFileMetadata$, createFilesMetadata$, duplicateFile$, duplicateFiles$ } from '../../../utils/utils';
+import { createFileMetadata$, createFilesMetadata$, dataURLtoBlob, duplicateFile$, duplicateFiles$ } from '../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -466,11 +466,11 @@ export class CardEditorPreviewService {
 
 
   getImageFormData$(content: string): Observable<FormData | undefined> {
+    let formData: FormData = new FormData();
     // Handle blob: URL or .png URL
     if (content.startsWith('blob:') || content.endsWith('.png')) {
-      return from(fetch(content).then(res => res.blob())).pipe(
-        switchMap(blob => {
-          const formData = new FormData();
+      return from(fetch(content).then((res: Response) => res.blob())).pipe(
+        switchMap((blob: Blob) => {
           formData.append('formFile', blob);
           return of(formData);
         }),
@@ -480,17 +480,10 @@ export class CardEditorPreviewService {
 
     // Handle data: URL (base64)
     if (content.startsWith('data:image/')) {
-      const base64 = content.replace(/^data:image\/\w+;base64,/, '');
-      const byteString = atob(base64);
-      const arrayBuffer = new ArrayBuffer(byteString.length);
-      const intArray = new Uint8Array(arrayBuffer);
+      let base64: string = content.replace(/^data:image\/\w+;base64,/, '');
 
-      for (let i = 0; i < byteString.length; i++) {
-        intArray[i] = byteString.charCodeAt(i);
-      }
+      let blob: Blob = dataURLtoBlob(base64, 'image/png');
 
-      const blob = new Blob([intArray], { type: 'image/png' });
-      const formData = new FormData();
       formData.append('formFile', blob);
       return of(formData);
     }

@@ -28,3 +28,37 @@ declare namespace NodeJS {
 
 declare module '@thoughtsunificator/bbcode-parser';
 declare module '@thoughtsunificator/bbcode-parser-template';
+
+declare module "@sonrisa-dev/png-metadata" {
+  export namespace PngMetadata {
+    export const PNG_SIG: string;
+
+    export function readFileSync(path: string): string; // binary string
+    
+    export function writeFileSync(path: string, bin: string): void;
+
+    export function isPNG(s: string): boolean;
+
+    export interface PNGChunk {
+      size: number;
+      type: string;
+      data: string;
+      crc: number;
+    }
+
+    export function splitChunk(s: string): PNGChunk[] | false;
+
+    export function joinChunk(chunklist: PNGChunk[]): string;
+
+    export function createChunk(type: string, data: string): PNGChunk;
+
+    export function itos(v: number, size: number): string;
+
+    export function stoi(s: string): number;
+
+    export function crc32(str: string): number;
+  }
+
+  export = PngMetadata;
+};
+

@@ -132,6 +132,10 @@ namespace Services
             return await GetFileAsync(fileName, cardFaceFilePath);
         }
 
+        // TODO: Pass the card ID and lod to the backend, check to make sure it's in range, clamp it
+          // Use card faces per card to grab all those IDs
+          // Then use the card face per lod to only grab the file name specifically where the lod is equal to 0
+
         public async Task<IEnumerable<FileStream>> GetCardFaceFilesAsync(List<string> fileNames)
         {
             List<FileStream> cardFaces = [];
