@@ -41,6 +41,12 @@ namespace backend.Controllers
             return card;
         }
 
+        [HttpGet("exists/{id}")]
+        public async Task<ActionResult<bool>> IsExist(string id)
+        {
+            return _cardDtoService.Exists(id);
+        }
+
         [HttpGet("owner/{ownerId}")]
         public async Task<ActionResult<IEnumerable<CardDto>>> GetCardsByOwner(string ownerId)
         {

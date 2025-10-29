@@ -79,6 +79,8 @@ export function dataURLtoBlob(dataUrl: string, type?: string): Blob {
 
     let arr: string[] = dataUrl.split(',');
 
+    if (!arr) throw new Error("The heading must have been split beforehand");
+
     let match: RegExpMatchArray | null = arr[0].match(/:(.*?);/);
 
     let mime: string | undefined = match ? match[1] :  type;
@@ -509,7 +511,7 @@ export function addMetadataToPng(buffer: ArrayBuffer | Uint8Array | Buffer, meta
     // Join chunks back into a PNG file
     let modifiedBinary: string = PngMetadata.joinChunk(chunks);
 
-    console.log(`Modified binary - UTF-8: ${modifiedBinary}\n\nBinary - UTF-8 to base64: ${btoa(modifiedBinary)}`);
+    // console.log(`Modified binary - UTF-8: ${modifiedBinary}\n\nBinary - UTF-8 to base64: ${btoa(modifiedBinary)}`);
 
     // Convert binary string back to Uint8Array
     let modifiedUint8: Uint8Array<ArrayBufferLike> = binaryStringToUint8Array(modifiedBinary);
@@ -531,19 +533,6 @@ export function encodeToBinaryString(metadata: string): string {
 
     return bstr;
 }
-
-// binaryToString('01000001 01110010 01100101 01101110 00100111 01110100')
-// CHECKME: Delete if we don't have a use? Has to be base64?
-/*export function binaryToString(bstr: string): string {
-    let s: string = '';
-
-    bstr.split(' ').map(function (bin: string) {
-        s += String.fromCharCode(parseInt(bin, 2));
-    });
-
-    return s;
-}*/
-
 
 export function typedArrayToBuffer(array: Uint8Array): ArrayBuffer {
     return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset) as ArrayBuffer;

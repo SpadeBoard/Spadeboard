@@ -480,9 +480,7 @@ export class CardEditorPreviewService {
 
     // Handle data: URL (base64)
     if (content.startsWith('data:image/')) {
-      let base64: string = content.replace(/^data:image\/\w+;base64,/, '');
-
-      let blob: Blob = dataURLtoBlob(base64, 'image/png');
+      let blob: Blob = dataURLtoBlob(content, 'image/png');
 
       formData.append('formFile', blob);
       return of(formData);

@@ -2,7 +2,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { distinctUntilChanged, from, Observable, switchMap } from 'rxjs';
+import { distinctUntilChanged, from, iif, Observable, switchMap } from 'rxjs';
 import { clamp, Coordinates, exportCustomTypeFile, flattenToImage, generateResizedImagesAtQualities, getMidpoint, unzipImages } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
@@ -11,7 +11,6 @@ import { filterAgainstNull } from '../../../style/utils/get-style';
 import { CardEditorCardDto } from '../../models/card';
 import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { FileAuthenticationPerExportedCardApiService } from '../../services/card-game-core/api/file-authentication-per-exported-card-api.service';
 import { DEFAULT_ATLAS_EXPORT_LOD, DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
@@ -19,6 +18,7 @@ import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-
 import { AtlasExportService } from '../../../../utils/services/atlas-export/atlas-export.service';
 import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
 import canvasSize from 'canvas-size';
+import { CardApiService } from '../../services/card-game-core/api/card-api.service';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -27,10 +27,10 @@ import canvasSize from 'canvas-size';
   styleUrl: './card-editor-face-preview.component.scss'
 })
 export class CardEditorFacePreviewComponent implements AfterViewInit {
-  private readonly cardEditorPreviewService: CardEditorPreviewService  = inject(CardEditorPreviewService);
-  private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService );
-  private readonly fileAuthenticationPerExportedCardApiService: FileAuthenticationPerExportedCardApiService = inject(FileAuthenticationPerExportedCardApiService);
-  
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);
+  private readonly cardApiService: CardApiService = inject(CardApiService);
+
   private readonly cardFacesPerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
 
   private readonly atlasExportService: AtlasExportService = inject(AtlasExportService);
@@ -69,17 +69,27 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         if (cardEditorCardDto.card.cardId === "0")
           throw new Error("Can't import export a card that hasn't been made yet.");
 
-        this.cardEditorPreviewService.duplicateCard$(cardEditorCardDto).subscribe((result: CardEditorCardDto | undefined) => {
-          if (!result)
-            throw new Error("Invalid import, can't duplicate card");
+        this.cardApiService.exists$(cardEditorCardDto.card.cardId)
+          .pipe(
+            switchMap((exists: boolean) => {
+              return iif(
+                () => exists,
+                this.cardEditorPreviewService.duplicateCard$(cardEditorCardDto),
+                this.cardEditorPreviewService.createCard$(cardEditorCardDto)
+              );
+            })
+          )
+          .subscribe((result: CardEditorCardDto | undefined) => {
+            if (!result)
+              throw new Error("Invalid import, can't duplicate card");
 
-          this.cardEditorPreviewService.setOnCreateCardEditorCardDto(result);
+            this.cardEditorPreviewService.setOnCreateCardEditorCardDto(result);
 
-          // TODO: Make a flag that can automatically just open the card in the editor
-          if (window.confirm('Open imported card in editor? The currently opened card will be overridden in the editor..')) {
-            this.cardEditorPreviewService.setCardEditorCardDtoByCardId(result.card.cardId);
-          }
-        });
+            // TODO: Make a flag that can automatically just open the card in the editor
+            if (window.confirm('Open imported card in editor? The currently opened card will be overridden in the editor..')) {
+              this.cardEditorPreviewService.setCardEditorCardDtoByCardId(result.card.cardId);
+            }
+          });
 
         // TODO: Make the preview service create card, duplicate cards and update cards into pure functions
       },
@@ -94,8 +104,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
           if (cardEditorCardDto.card.cardId === "0")
             throw new Error("Can't export a card that hasn't been made yet.");
-            
-          exportCustomTypeFile(cardEditorCardDto, `${cardEditorCardDto.card.cardId}`, 'sbd');
+
+          exportCustomTypeFile(Object.fromEntries(Object.entries(cardEditorCardDto).filter(([key]) => key !== 'fileMetadataLods')), `${cardEditorCardDto.card.cardId}`, 'sbd');
         },
         disabled: false
       },

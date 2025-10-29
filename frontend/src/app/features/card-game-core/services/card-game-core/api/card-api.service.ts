@@ -73,4 +73,8 @@ export class CardApiService {
           // do something with array input
       }
   }*/
+
+  exists$(cardId: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/exists/${cardId}`);
+  }
 }

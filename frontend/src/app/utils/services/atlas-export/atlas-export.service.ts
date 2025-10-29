@@ -336,7 +336,7 @@ export class AtlasExportService {
 
     let atlas: Blob | undefined = (amt === 1) ? await createAtlas(images) : await createAtlases(splitIntoAtlases(images, amt));
 
-    console.log(`Atlas: ${atlas}`);
+    console.log(`Atlas: ${JSON.stringify(atlas)}`);
 
     if (atlas) download(fileName, 'png', URL.createObjectURL(atlas));
   }
