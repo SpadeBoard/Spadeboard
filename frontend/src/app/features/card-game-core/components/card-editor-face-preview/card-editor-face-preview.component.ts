@@ -14,7 +14,7 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
 import { DEFAULT_ATLAS_EXPORT_LOD, DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
-import { CardEditorFacePreviewGridComponent } from '../card-editor-face-preview-grid/card-editor-face-preview-grid.component';
+import { CardEditorFacePreviewGridComponent } from './card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 import { AtlasExportService } from '../../../../utils/services/atlas-export/atlas-export.service';
 import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
 import canvasSize from 'canvas-size';
@@ -42,7 +42,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   @ViewChild("cardFaceElementsPerCardFace") cardFaceElementsPerCardFace!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
   @ViewChild('importedCardFileInput') importedCardFileInput!: ElementRef<HTMLInputElement>;
 
-  shouldSnapToGrid: boolean = false;
+  protected shouldSnapToGrid: boolean = false;
 
   @HostListener('document:keyup', ['$event'])
   handleCtrlUp(event: KeyboardEvent) {
@@ -57,7 +57,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   };
 
   // TODO: Have action context menu items be groupable
-  actionContextMenuItems: ActionContextMenuItem[] = [
+  protected actionContextMenuItems: ActionContextMenuItem[] = [
     {
       id: 0,
       name: 'Import Card (.sbd)',
@@ -69,6 +69,19 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         if (cardEditorCardDto.card.cardId === "0")
           throw new Error("Can't import export a card that hasn't been made yet.");
 
+        // 1. Make the dynamic component
+        /*
+        <div #cardEditorFace [ngStyle]="getCardEditorFaceStyle()" (contextmenu)="onCardEditorFaceRightClick($event)">
+            <app-card-editor-face-preview-grid [shouldSnapToGrid]="shouldSnapToGrid" data-html2canvas-ignore="true"/>
+            <app-card-editor-current-card-face-elements-per-card-face [cardFaceBorderRadius]="cardFaceBorderRadius" [shouldSnapToGrid]="shouldSnapToGrid" #cardFaceElementsPerCardFace/>
+        </div>
+        */
+
+        // 2. Set it offscreen and pass in all the inputs
+
+        // 3. Add the results of the canvas back into cardEditorCardDto
+
+        // 4. This
         this.cardApiService.exists$(cardEditorCardDto.card.cardId)
           .pipe(
             switchMap((exists: boolean) => {
@@ -148,9 +161,9 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       }
     ];
 
-  isDisplayContextMenu: boolean = false;
+  protected isDisplayContextMenu: boolean = false;
 
-  cardFaceBorderRadius: number = DEFAULT_CARD_FACE_BORDER_RADIUS;
+  protected cardFaceBorderRadius: number = DEFAULT_CARD_FACE_BORDER_RADIUS;
       
   constructor() {
     this.cardEditorControlsDesignCardFaceAttributesService.setCurrentCardFaceId();

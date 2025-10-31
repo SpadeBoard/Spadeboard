@@ -1,5 +1,5 @@
 import { Component, computed, input, InputSignal, Signal } from '@angular/core';
-import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../utils/card-editor-face-preview.constants';
+import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../../utils/card-editor-face-preview.constants';
 
 @Component({
   selector: 'app-card-editor-face-preview-grid',
