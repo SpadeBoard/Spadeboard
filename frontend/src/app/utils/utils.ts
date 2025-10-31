@@ -1,14 +1,15 @@
-import { ElementRef } from "@angular/core";
+import { DestroyRef, ElementRef } from "@angular/core";
 import { SafeUrl } from "@angular/platform-browser";
 import html2canvas from "html2canvas";
 import { FileMetadata, FileMetadataStatus } from "./models/file-metadata";
-import { Observable, of, switchMap, tap } from "rxjs";
+import { from, Observable, of, switchMap, tap } from "rxjs";
 import { FileMetadataApiService } from "./services/file-metadata-api.service";
 import { FileUploadApiService } from "./services/file-upload-api.service";
 import ImageBlobReduce, { ResizeOptions } from 'image-blob-reduce';
 import JSZip from "jszip";
 // import { PNGChunk, PngMetadata } from "@sonrisa-dev/png-metadata";
 import * as PngMetadata from '@sonrisa-dev/png-metadata';
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 export function getDefaultFileMetadata(): FileMetadata {
     return {
@@ -83,17 +84,17 @@ export function dataURLtoBlob(dataUrl: string, type?: string): Blob {
 
     let match: RegExpMatchArray | null = arr[0].match(/:(.*?);/);
 
-    let mime: string | undefined = match ? match[1] :  type;
+    let mime: string | undefined = match ? match[1] : type;
     let bstr: string = atob(arr[1]);
     let n: number = bstr.length;
-        
+
     let u8arr: Uint8Array<ArrayBuffer> = new Uint8Array(n);
 
     while (n--) {
         u8arr[n] = bstr.charCodeAt(n);
     }
 
-    return new Blob([u8arr], {type: mime});
+    return new Blob([u8arr], { type: mime });
 }
 
 export function createImageFromBlob(blob: Blob): HTMLImageElement {
@@ -452,7 +453,7 @@ export async function zipFiles(files: Blob[], fileName: string, type: string): P
         zip.file(`${fileName} - ${idx}.${type}`, blob);
     });
 
-    return await zip.generateAsync({type: 'blob'});
+    return await zip.generateAsync({ type: 'blob' });
 }
 
 export async function unzipImages(result: Blob): Promise<HTMLImageElement[] | undefined> {
@@ -528,7 +529,7 @@ export function encodeToBinaryString(metadata: string): string {
     // Convert encoded bytes to binary string for createChunk
     let bstr: string = '';
     for (let i = 0; i < encoded.length; i++) {
-        bstr+= String.fromCharCode(encoded[i]);
+        bstr += String.fromCharCode(encoded[i]);
     }
 
     return bstr;
@@ -557,3 +558,35 @@ export function binaryStringToUint8Array(binary: string): Uint8Array {
     }
     return uint8;
 }
+
+export function parseNumeric(value: string | number): number {
+    if (typeof value === 'number') return value;
+    // Remove anything that's not a digit, decimal, or minus sign
+    let numeric: RegExpMatchArray | null = value.match(/-?\d+(\.\d+)?/);
+    return numeric ? parseFloat(numeric[0]) : 0;
+}
+
+export function getImageFormData$(content: string, destroyRef: DestroyRef): Observable<FormData | undefined> {
+    let formData: FormData = new FormData();
+    // Handle blob: URL or .png URL
+    if (content.startsWith('blob:') || content.endsWith('.png')) {
+      return from(fetch(content).then((res: Response) => res.blob())).pipe(
+        switchMap((blob: Blob) => {
+          formData.append('formFile', blob);
+          return of(formData);
+        }),
+        takeUntilDestroyed(destroyRef)
+      );
+    }
+
+    // Handle data: URL (base64)
+    if (content.startsWith('data:image/')) {
+      let blob: Blob = dataURLtoBlob(content, 'image/png');
+
+      formData.append('formFile', blob);
+      return of(formData);
+    }
+
+    // Unsupported type
+    return of(undefined);
+  }

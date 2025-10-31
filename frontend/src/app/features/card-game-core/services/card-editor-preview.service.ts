@@ -463,33 +463,6 @@ export class CardEditorPreviewService {
     );
   }
 
-
-
-  getImageFormData$(content: string): Observable<FormData | undefined> {
-    let formData: FormData = new FormData();
-    // Handle blob: URL or .png URL
-    if (content.startsWith('blob:') || content.endsWith('.png')) {
-      return from(fetch(content).then((res: Response) => res.blob())).pipe(
-        switchMap((blob: Blob) => {
-          formData.append('formFile', blob);
-          return of(formData);
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      );
-    }
-
-    // Handle data: URL (base64)
-    if (content.startsWith('data:image/')) {
-      let blob: Blob = dataURLtoBlob(content, 'image/png');
-
-      formData.append('formFile', blob);
-      return of(formData);
-    }
-
-    // Unsupported type
-    return of(undefined);
-  }
-
   markOrphanedData() {
     if (this.orphanedFileMetadata.length <= 0) {
       console.warn('No files to orphan.');

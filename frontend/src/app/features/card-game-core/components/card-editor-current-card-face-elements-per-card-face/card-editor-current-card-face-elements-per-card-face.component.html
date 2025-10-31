@@ -23,8 +23,8 @@
             @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
                 @case ("Rte") {
                     <app-card-face-rt 
-                        [cardFaceRtWidth]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
-                        [cardFaceRtHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height"
+                        [cardFaceRtWidth]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace).width"
+                        [cardFaceRtHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace).height"
                         (mousedown)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                         [content]="getCardFaceElementRtContentByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
                     </app-card-face-rt>
@@ -33,8 +33,8 @@
                     <app-card-face-image 
                         (mousedown)="onFocusImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
                         [cardFaceImageSrc]="getCardFaceElementImageSrcByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) ?? placeholderImageSrc"
-                        [cardFaceImageWidth]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).width"
-                        [cardFaceImageHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId).height">
+                        [cardFaceImageWidth]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace).width"
+                        [cardFaceImageHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace).height">
                         <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
                     </app-card-face-image>
                 }
@@ -44,7 +44,7 @@
                     [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
                     data-html2canvas-ignore="true" />
                 <app-resizable-wrapper
-                    [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                    [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace)"
                     [resizeThreshold]="getResizeThreshold()"
                     (resizableChange)="onResizableChange($event)" data-html2canvas-ignore="true" />
             }
