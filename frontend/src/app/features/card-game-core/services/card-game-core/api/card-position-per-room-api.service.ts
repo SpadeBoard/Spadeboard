@@ -8,28 +8,28 @@ import { CardPositionPerRoom } from '../../../models/card';
   providedIn: 'root'
 })
 export class CardPositionPerRoomApiService {
-  private http = inject(HttpClient);
+  private readonly http: HttpClient = inject(HttpClient);
   
-  private apiUrl = `${environment.hostServerUrl}/api/CardPositionPerRooms`;
+  private readonly apiUrl: string = `${environment.hostServerUrl}/api/CardPositionPerRooms`;
   
   constructor() { }
 
-  getCardsPositionPerRoomByRoomId(gameRoomId: string): Observable<CardPositionPerRoom[] | undefined> {
+  public getCardsPositionPerRoomByRoomId(gameRoomId: string): Observable<CardPositionPerRoom[] | undefined> {
     return this.http.get<CardPositionPerRoom[]>(`${this.apiUrl}/nav/room/${gameRoomId}`);
   }
 
   // TODO: Do a DTO? Gotta add the position and item separately
-  createCardPositionPerRoom(cpr: CardPositionPerRoom): Observable<CardPositionPerRoom | undefined> {
+  public createCardPositionPerRoom(cpr: CardPositionPerRoom): Observable<CardPositionPerRoom | undefined> {
     // TODO: Make a separate function for updating navs
     return this.http.post<CardPositionPerRoom>(`${this.apiUrl}/nav`, cpr);
   }
 
-  updateCardsPositionPerRoom(cprs: CardPositionPerRoom[]): Observable<CardPositionPerRoom[] | undefined> {
+  public updateCardsPositionPerRoom(cprs: CardPositionPerRoom[]): Observable<CardPositionPerRoom[] | undefined> {
     return this.http.put<CardPositionPerRoom[]>(`${this.apiUrl}/nav`, cprs);
   }
 
   // TODO: Two options, delete nav vs delete just the reference?
-  deleteCardPositionPerRoom(id: string) {
+  public deleteCardPositionPerRoom(id: string) {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

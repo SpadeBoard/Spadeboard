@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
+import { CardEditorOperationsService } from '../../services/card-game-core/card-editor/operations/card-editor-operations.service';
 
 @Component({
   selector: 'app-card-editor-preview-change-face',
@@ -8,13 +9,15 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
   styleUrl: './card-editor-preview-change-face.component.scss'
 })
 export class CardEditorPreviewChangeFaceComponent {
-    private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+    private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+
+    private readonly cardEditorOperationsService: CardEditorOperationsService = inject(CardEditorOperationsService);
   
     get isFlipped(): boolean {
-      return (this.cardEditorPreviewService.cardEditorCardDto.card.currentCardFaceIndex === 0) ? false : true;
+      return this.cardEditorPreviewService.isFlipped();
     }
 
-    onFlip(event: Event): void {
-      this.cardEditorPreviewService.setOnFlip();
+    protected onFlip(event: Event): void {
+      this.cardEditorOperationsService.onFlip();
     }
 }

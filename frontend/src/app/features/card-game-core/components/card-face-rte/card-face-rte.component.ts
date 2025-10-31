@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, InputSignal, Signal } from 
 import { FormsModule } from '@angular/forms';
 import { AngularEditorConfig, AngularEditorModule, UploadResponse } from '@kolkov/angular-editor';
 import { Observable } from 'rxjs';
-import { CardEditorControlsDesignRteService } from '../../services/card-editor-controls-design-rte.service';
+import { CardEditorControlsDesignRteService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-rte.service';
 import {NgDompurifySanitizer, SANITIZE_STYLE, SanitizeStyle} from '@taiga-ui/dompurify';
 import {SecurityContext} from '@angular/core';
 import { sanitizeStyle } from '../../utils/rich-text-sanitizer.utils';
@@ -43,25 +43,26 @@ handleError @ core.mjs:6673
 Show 1 more frame
 Show less
   */
-  private readonly http = inject(HttpClient);
+  private readonly http: HttpClient = inject(HttpClient);
 
   private cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
 
   private readonly dompurifySanitizer: NgDompurifySanitizer = inject(NgDompurifySanitizer);
   private readonly sanitizeStyle: SanitizeStyle = inject(SANITIZE_STYLE);
 
-  htmlContent: string = '';
-  isEditable: boolean = false;
+  protected htmlContent: string = '';
+
+  protected isEditable: boolean = false;
   
-  readonly isEditableInput: InputSignal<boolean | undefined> = input<boolean | undefined>(false);
-  readonly htmlContentInput : InputSignal<string | undefined>= input<string | undefined>("");
+  public readonly isEditableInput: InputSignal<boolean | undefined> = input<boolean | undefined>(false);
+
+  public readonly htmlContentInput : InputSignal<string | undefined>= input<string | undefined>("");
   
   // rteHtmlContentInject: (htmlContent: string) => void  = inject(RTE_HTML_CONTENT);
   // TODO: Have an injector to pass back up the htmlContent
 
   constructor() {
-    this.onEnableRte();
-    this.onDisableRte();
+    this.onRteStatusToggle();
     
     effect(() => {
 
@@ -69,7 +70,7 @@ Show less
 
       // console.log('HTML input: ', html);
 
-      if (html !== undefined && html !== '') {
+      if (html) {
         this.htmlContent = html;
         // console.log('HTML content: ', this.htmlContent);
       }
@@ -78,7 +79,7 @@ Show less
 
   // TODO: Have input for enabling toolbar, enabling editable
   // TODO: Use what's stored in the style to assign heights, etc. to the angularEditorConfig
-  readonly angularEditorConfigInput : InputSignal<AngularEditorConfig| undefined>= input<AngularEditorConfig | undefined>(/*{
+  public readonly angularEditorConfigInput : InputSignal<AngularEditorConfig| undefined>= input<AngularEditorConfig | undefined>(/*{
     // minHeight: '5rem',
     // maxHeight: '38rem',
     // minWidth: '5rem',
@@ -94,6 +95,11 @@ Show less
 
     return this.angularEditorConfigInput();
   });
+
+  private rteStatusOperations: Map<string, Function> = new Map<string, Function>([
+    ['enable', (emitted: {id: string, text: string}) => this.enableRte(emitted)],
+    ['disable', (emitted: {id: string, text: string}) => this.disableRte(emitted)]
+  ]);
   
   /*
   This function declaration defines an upload method that takes a File object as an argument and returns an Observable of HttpEvent<UploadResponse>. Let's break down each part of the syntax
@@ -102,9 +108,9 @@ upload:: This is the name of the function.
 : Observable<HttpEvent<UploadResponse>>: This is the return type annotation. It indicates that the function returns an Observable that emits HttpEvent objects of type UploadResponse.
 => { ... }: This is an arrow function syntax, defining the body of the function.
   */
-  private uploadUrl = '/upload/to/';
+  private uploadUrl: string = '/upload/to/';
 
-  getAngularEditorConfig(): AngularEditorConfig {
+  protected getAngularEditorConfig(): AngularEditorConfig {
     return {
       editable: this.isEditable,
       spellcheck: true,
@@ -152,34 +158,25 @@ upload:: This is the name of the function.
     }
   }
 
-  onEnableRte() {
-    this.cardEditorControlsDesignRteService.onEnableRte$.subscribe((text: string) => {
-      this.isEditable = true;
-      this.htmlContent = text;
-    })
+  private onRteStatusToggle(): void {
+    this.cardEditorControlsDesignRteService.onStatusToggle(this.rteStatusOperations);
+  }
+
+  private enableRte(emitted: {id: string, text: string}): void {
+    this.isEditable = true;
+    this.htmlContent = emitted.text;
   }
 
   // TODO: Make a disable rte editor too?
-
-  onDisableRte() {
-    this.cardEditorControlsDesignRteService.onDisableRte$.subscribe(() => {
-      this.isEditable = false;
-    })
+  private disableRte(emitted: {id: string, text: string}): void {
+    this.isEditable = false;
   }
 
-  onContentChange(updatedHtml: string) {
-    // Your logic here
-    console.log('Editor content changed:', updatedHtml);
-
+  protected onContentChange(updatedHtml: string): void {
     // NOTE: We want to sanitize the style too because we're saving it to the database
     updatedHtml = this.sanitizeStyle(updatedHtml);
-
-    console.log(`Sanitised style: ${updatedHtml}`);
-
     // https://medium.com/angular-in-depth/warning-sanitizing-html-stripped-some-content-and-how-to-deal-with-it-properly-10ff77012d5a
     updatedHtml = this.dompurifySanitizer.sanitize(SecurityContext.HTML, updatedHtml);
-    
-    console.log(`Sanitised HTML: ${updatedHtml}`);
     
     this.cardEditorControlsDesignRteService.setOnRteTextChange(updatedHtml);
   }

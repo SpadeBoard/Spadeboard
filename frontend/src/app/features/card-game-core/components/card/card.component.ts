@@ -1,18 +1,14 @@
-import { Component, computed, effect, inject, input, InputSignal, model, ModelSignal, Signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, input, InputSignal, model, ModelSignal, Signal } from '@angular/core';
 
 import { Card } from '../../models/card';
 
 import { CommonModule } from '@angular/common';
-import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
-import { CardFace } from '../../models/card-face';
-import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
+import { Dimensions, getLodIndex } from '../../../../utils/utils';
+import { CardService } from '../../services/card-game-core/card/card.service';
 import { getDefaultCardEditorCardFaceDimensions } from '../../utils/card-editor.constants';
-import { DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
+import { DEFAULT_CARD_FACE_PLACEHOLDER_SRC } from '../../utils/card-face.constants';
 import { CardFaceImage } from '../../utils/card-face.utils';
 import { CardFaceComponent } from '../card-face/card-face.component';
-import { Dimensions, getLodIndex, unzipImages } from '../../../../utils/utils';
-import JSZip from 'jszip';
-import { CardFacePerLodApiService } from '../../services/card-game-core/api/card-face-per-lod-api.service';
 
 @Component({
   selector: 'app-card',
@@ -25,13 +21,9 @@ import { CardFacePerLodApiService } from '../../services/card-game-core/api/card
   // animations: [cardFlipAnimation]
 })
 export class CardComponent {
-  private readonly cardFacePerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
-  private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
-  private readonly cardFacePerLodApiService: CardFacePerLodApiService = inject(CardFacePerLodApiService);
+  private readonly cardService: CardService = inject(CardService);
 
-  @ViewChild('cardFace') cardFaceRef!: CardFaceComponent;
-
-  card: ModelSignal<Card> =model<Card >({
+  public $card: ModelSignal<Card> = model<Card>({
     cardId: "0",
     currentCardFaceIndex: 0,
     cardName: ''
@@ -41,12 +33,11 @@ export class CardComponent {
   // TODO:
   // 1. Potentially store the file metadata ID OR file name associated with the card face image
   // The reason is so we can check to see if it's already there, so we don't have to load that LOD again.
-  cardFaceImages: Map<string, CardFaceImage[]> = new Map<string, CardFaceImage[]>();
+  private cardFaceIdImagesPairs: Map<string, CardFaceImage[]> = new Map<string, CardFaceImage[]>();
 
-  cardScale: InputSignal<number> =  input<number>(1);
-  cardScaleComputed: Signal<number>  = computed(() => this.cardScale());
+  public readonly $cardScale: InputSignal<number> = input<number>(1);
 
-  currentLodComputed: Signal<number> = computed(() => getLodIndex(this.cardScale()));
+  private readonly $currentLodComputed: Signal<number> = computed(() => getLodIndex(this.$cardScale()));
 
   constructor() {
     effect(() => {
@@ -54,10 +45,10 @@ export class CardComponent {
       // CHECKME: Are there unnecessary reloadings in place causing lag and dimensions calculation errors?
       // It's not reading the card periodically, is triggered by certain actions
       // TODO: We need to figure out how to ONLY load the card faces when the card faces themselves have changed AND when the card model changes
-      
-      // Potentially also if cardScale changes too
-      if (this.card()) {
-        this.loadCardFaces(this.card());
+
+      // Potentially also if $cardScale changes too
+      if (this.$card()) {
+        this.cardService.loadCardFaces(this.$card(), this.cardFaceIdImagesPairs, this.defaultCardFaceDimensions);
 
         // this.setDefaultDimensionsFromFrontFace();
       }
@@ -65,153 +56,18 @@ export class CardComponent {
   }
 
   // TODO: Grab the dimensions of the first card face, always, check and see if there's a dimension associated with it
+  // CHECKME: Move into service?
   private defaultCardFaceDimensions: Dimensions = getDefaultCardEditorCardFaceDimensions();
 
-  private setDefaultDimensionsFromFrontFace(): void {
-    // NOTE: The reason why we do this is so let's say we have no back face, the blank placeholder will still maintain the same dimensions as the face that has dimensions
-    // ASSUMPTION: First face will always have an image due to the canvas taking an image of it on creation/update
-    // FIXME: Why is this not working
-    let key: string = Array.from(this.cardFaceImages.keys())[0];
-    let cardFaceImages: CardFaceImage[] | undefined = this.cardFaceImages.get(key);
-
-    if (!cardFaceImages || cardFaceImages.length <= 0) throw new Error("Card should at least have front face");
-
-    let image: CardFaceImage | undefined = cardFaceImages[0];
-    
-    if (!image) return;
-
-    this.defaultCardFaceDimensions = image.dimensions;
+  protected getCurrentCardFaceImage(): CardFaceImage {
+    return this.cardService.getCurrentCardFaceImage(this.$card().currentCardFaceIndex, this.cardFaceIdImagesPairs, this.$currentLodComputed(), this.defaultCardFaceDimensions);
   }
 
-  getCurrentCardFaceImage(): CardFaceImage {
-    let currentCardFaceIndex: number = this.card().currentCardFaceIndex;
-    let key: string = Array.from(this.cardFaceImages.keys())[currentCardFaceIndex];
-
-    let cardFaceImages: CardFaceImage[] | undefined = this.cardFaceImages.get(key);
-
-    if (!cardFaceImages || cardFaceImages.length <= 0) return getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, this.defaultCardFaceDimensions);
-
-    // NOTE: The reason is because we currently pass in the card scale as the DEFAULT_CARD_SCALE
-    // CHECKME: Make sure we actually want to do this and potentially modify it to be more easy to manage in the future
-    let lod: CardFaceImage | undefined = cardFaceImages[this.currentLodComputed()];
-
-    if (!lod) return getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, this.defaultCardFaceDimensions);
-
-    return lod;
-  }
-
-  // TODO: Rework this, use cardApiService to get the card face IDs, then use a switch map, pass it into the next then assign the cardFaces
-  private loadCardFaces(card: Card): void {
-    this.cardFacePerCardApiService.getCardFacesPerCard$(card.cardId).subscribe((result: CardFace[] | undefined) => {
-      if (!result)
-        return;
-
-      console.log(`Load card faces: ${JSON.stringify(result, null, 2)}`);
-
-      result.map((cardFace: CardFace, idx: number) => {
-        // TODO: Grab the file names, then pass into getCardFaceLodsSrcs
-        this.cardFacePerLodApiService.getFileMetadataFileNamesByCardFace$(cardFace.cardFaceId)
-          .subscribe((fileMetadataNames: string[] | undefined) => {
-            if (!fileMetadataNames || fileMetadataNames.length <= 0) {
-                console.warn(`No file metadata associated with card face ${cardFace.cardFaceId}`);
-                return;
-            }
-
-            // TODO: Check to see if these file metadata file names already exist inside of the cardFaceImages variable
-            // If they don't, then load the LODs, else just return
-
-            this.getCardFaceLodsSrcs(fileMetadataNames).then((images: HTMLImageElement[] | undefined) => {
-              if (!images) {
-                console.warn(`No image associated with ${cardFace.cardFaceId}`);
-
-                this.cardFaceImages.set(cardFace.cardFaceId, [
-                  getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, this.defaultCardFaceDimensions)
-                ]);
-
-                return;
-              }
-
-              this.cardFaceImages.set(cardFace.cardFaceId, images.map((image: HTMLImageElement) => {
-                return {
-                  src: image.src,
-                  alt: image.alt,
-                  dimensions: {
-                    width: image.width,
-                    height: image.height
-                  }
-                }
-              }));
-              })
-            });
-          });
-    });
-  }
-  
-  // TODO: Sort the card faces per lod in the backend?
-  // Just return the file names
-
-  private async getCardFaceLodsSrcs(fileNames: string[]): Promise<HTMLImageElement[] | undefined> {
-    return new Promise((resolve) => {
-      this.fileUploadApiService.getFiles$(fileNames, 'card-face').subscribe({
-        next: async (result: Blob | undefined) => {
-          if (!result) {
-            console.warn(`No card face thumbnail file metadata`);
-            resolve(undefined);
-            return;
-          }
-
-          resolve(unzipImages(result));
-        },
-        error: (err) => {
-          console.log(`Get files metadata, Error: ${JSON.stringify(err)}`);
-          resolve(undefined);
-        }
-      });
-    });
-  }
-
-
-  private getCardFaceImageSrc(fileName: string): Promise<HTMLImageElement | undefined> {
-    // https://www.learnrxjs.io/learn-rxjs/operators/filtering/takeuntil
-    return new Promise((resolve) => {
-      this.fileUploadApiService.getFile$(fileName, 'card-face').pipe(
-        // takeUntil(this.destroy$) // Call on ngDestroy, prevents memory leaks
-      ).subscribe({
-        next: (result: Blob | undefined) => {
-          if (!result) {
-            console.warn(`Get file metadata: Name - ${fileName}, No card face thumbnail file metadata`);
-            resolve(undefined);
-            return;
-          }
-  
-          let image: HTMLImageElement = new Image();
-          let objectUrl: string = URL.createObjectURL(result);
-          image.src = objectUrl;
-          
-          image.onload = () => {
-            // console.log('Image loaded:', image.naturalWidth, image.naturalHeight);
-            resolve(image); // Resolve first then release because it has to be rendered first
-          }
-  
-          image.onerror = () => {
-            // console.log(`Image on error`);
-            URL.revokeObjectURL(objectUrl); // Release on error
-            resolve(undefined);
-          };
-        },
-        error: (err: any) => {
-          console.log(`Get file metadata: ID - ${fileName}, Error: ${JSON.stringify(err)}`);
-          resolve(undefined)
-        }
-      });
-    });
-  }
-
-  onRevokeSrc(url: string) {
-    console.log(`Url to revoke: ${url}`);
+  private onRevokeSrc(url: string): void {
+    console.log(`%c${this.constructor.name} - ${this.onRevokeSrc.name}: Url to revoke: ${url}`, `color: #627566; background: #D0E9F0; padding: 5px; border-radius: 5px;`);
 
     if (!url.startsWith('blob:')) {
-      console.warn("Should be a blob we're revoking");
+      console.error(`${this.constructor.name} - ${this.onRevokeSrc.name}: Should be a blob we're revoking`);
       return;
     }
 
@@ -219,11 +75,11 @@ export class CardComponent {
     // console.log('Blob URL revoked after image loaded');
   }
 
-  ngOnDestroy() {
+  public ngOnDestroy(): void {
     // Image not loading on flipped card, problem is it's being destroyed as the card's being flipped, so it's not present in the DOM to be taken images of
     // TODO: Actually call the revoke source somehow
     // This is literally just a workaround and not gonna work
-    this.cardFaceImages.forEach((values: CardFaceImage[], key: string) => {
+    this.cardFaceIdImagesPairs.forEach((values: CardFaceImage[], key: string) => {
       if (!values)
         throw new Error("Card face image doesn't have a url");
 

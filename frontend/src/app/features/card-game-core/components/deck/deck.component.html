@@ -1,15 +1,15 @@
 <!--TODO: Move these app-dnd-resizable-containers to the dnd-board and create them there-->
 <!--<app-dnd-resizable-container
-    (isDraggable)="deck().isDraggable" 
-    (isDroppable)="deck().isDroppable" 
+    (isDraggable)="$deck().isDraggable" 
+    (isDroppable)="$deck().isDroppable" 
     (customDrop)="onCustomDrop($event)"
     (customDragEntered)="onCustomDragEntered" 
     (customDrag)="onCustomDrag($event)"
     (customDragExited)="onCustomDragExited($event)"
 >!-->
 <app-dnd-resizable-container
-    (isDraggable)="deck().isDraggable" 
-    (isDroppable)="deck().isDroppable"
+    (isDraggable)="$deck().isDraggable" 
+    (isDroppable)="$deck().isDroppable"
 >
     <div class="deck">
         <!--TODO: Call function to render cards-->
@@ -18,4 +18,4 @@
 </app-dnd-resizable-container>
 
 <!--TODO: Communications should be through the service, decks and cards should send information back to the service-->
-<!--TODO: Fix the service functions so that it works that way, because we're directly grabbing the data from the card and deck right now-->
+<!--TODO: Fix the service functions so that it works that way, because we're directly grabbing the data from the card and $deck right now-->

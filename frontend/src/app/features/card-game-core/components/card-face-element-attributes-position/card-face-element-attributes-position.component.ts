@@ -1,9 +1,9 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { debounceTime, Subject } from 'rxjs';
-import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
-import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
+import { debounceTime, map, merge, Subject } from 'rxjs';
+import { clamp, Coordinates, Dimensions, operate } from '../../../../utils/utils';
+import { CardEditorControlsDesignElementAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/attributes/card-editor-controls-design-element-attributes.service';
 import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 
 @Component({
@@ -15,13 +15,19 @@ import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIB
 export class CardFaceElementAttributesPositionComponent {
   private readonly cardEditorControlsDesignElementAttributesService: CardEditorControlsDesignElementAttributesService = inject(CardEditorControlsDesignElementAttributesService);
 
-  private readonly x$$ = new Subject<number>();
-  private readonly y$$ = new Subject<number>();
+  private readonly x$$: Subject<number> = new Subject<number>();
 
-  coordinates: Coordinates = {
+  private readonly y$$: Subject<number> = new Subject<number>();
+
+  protected coordinates: Coordinates = {
     x: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X,
     y: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y
   }
+
+  private positionOperations: Map<string, Function> = new Map<string, Function>([
+    ['x', (value: number) => this.setPosition(value, MAX_CARD_FACE_WIDTH, this.cardEditorControlsDesignElementAttributesService.setX)],
+    ['y', (value: number) => this.setPosition(value, MAX_CARD_FACE_HEIGHT, this.cardEditorControlsDesignElementAttributesService.setY)]
+  ]);
 
   // FIXME: This is a hacky fix
   @ViewChild('xInput') xRef!: ElementRef<HTMLInputElement>;
@@ -30,7 +36,9 @@ export class CardFaceElementAttributesPositionComponent {
   private readonly DEBOUNCE_TIME = 300;
 
   constructor() {
-    this.onResetCardFaceAttributes();
+    this.resetElementAttributes();
+
+    this.setPosition$$(this.positionOperations);
 
     this.onSetX();
     this.onSetY();
@@ -39,15 +47,37 @@ export class CardFaceElementAttributesPositionComponent {
     this.setY();
   }
 
-  onXChange(x: number): void {
+  public onXChange(x: number): void {
     this.x$$.next(x);
   }
 
-  onYChange(y: number): void {
+  public onYChange(y: number): void {
     this.y$$.next(y);
   }
 
-  setX(): void {
+  public setPosition$$(positionOperations: Map<string, Function>): void {
+    merge(
+      this.x$$.pipe(
+        map((x: number) => ({ operation: 'x', emitted: x }))
+      ),
+      this.y$$.pipe(
+        map((y: number) => ({ operation: 'y', emitted: y }))
+      )
+    )
+      .pipe(
+        debounceTime(this.DEBOUNCE_TIME),
+        takeUntilDestroyed()
+      )
+      .subscribe((result: ({ operation: string, emitted: number })) => {
+        operate(result, positionOperations);
+      });
+  }
+
+  private setPosition(value: number, max: number, fn: Function): void {
+    fn(isNaN(value) ? 0 : clamp(value, 0, max));
+  }
+
+  public setX(): void {
     this.x$$
       .pipe(
         debounceTime(this.DEBOUNCE_TIME),
@@ -62,7 +92,7 @@ export class CardFaceElementAttributesPositionComponent {
       );
   }
 
-  setY(): void {
+  public setY(): void {
     this.y$$
       .pipe(
         debounceTime(this.DEBOUNCE_TIME),
@@ -77,11 +107,8 @@ export class CardFaceElementAttributesPositionComponent {
       );
   }
 
-
-
-
-  onSetX(): void {
-    this.cardEditorControlsDesignElementAttributesService.onSetX$
+  public onSetX(): void {
+    this.cardEditorControlsDesignElementAttributesService.setX$
       .pipe(
         // distinctUntilChanged(),
         takeUntilDestroyed()
@@ -93,8 +120,8 @@ export class CardFaceElementAttributesPositionComponent {
       })
   }
 
-  onSetY(): void {
-    this.cardEditorControlsDesignElementAttributesService.onSetY$
+  public onSetY(): void {
+    this.cardEditorControlsDesignElementAttributesService.setY$
       .pipe(
         // distinctUntilChanged(),
         takeUntilDestroyed()
@@ -106,8 +133,8 @@ export class CardFaceElementAttributesPositionComponent {
       })
   }
 
-  onResetCardFaceAttributes(): void {
-    this.cardEditorControlsDesignElementAttributesService.onResetCardFaceAttributes$
+  public resetElementAttributes(): void {
+    this.cardEditorControlsDesignElementAttributesService.resetedElementAttributes$
       .pipe(
         takeUntilDestroyed()
       )

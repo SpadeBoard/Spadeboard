@@ -102,8 +102,9 @@ namespace Services
                 foreach (CardEditorCardFaceDto cardEditorCardFaceDto in dto.CardEditorCardFacesDto)
                 {
                     deleted = await _cardFacePerCardDtoService.DeleteDtoByCardAndCardFaceAsync(dto.Card.CardId, cardEditorCardFaceDto.CardFace.CardFaceId);
-                
-                    if (!deleted) {
+
+                    if (!deleted)
+                    {
                         throw new Exception("Didn't delete record in Card Face Per Card");
                     }
                 }
@@ -112,16 +113,19 @@ namespace Services
                 if (!String.IsNullOrEmpty(dto.OwnerId))
                 {
                     deleted = await _cardPerOwnerDtoService.DeleteDtoByCardIdAndOwnerIdAsync(dto.Card.CardId, dto.OwnerId);
-                
-                    if (!deleted) {
+
+                    if (!deleted)
+                    {
                         throw new Exception("Didn't delete record in Card Per Owner");
                     }
                 }
 
-                if (dto.TagNames.Length > 0) {
+                if (dto.TagNames.Length > 0)
+                {
                     deleted = await _tagsPerCardDtoService.DeleteByTagNamesAndCardIdDtoAsync(dto.TagNames, dto.Card.CardId);
 
-                     if (!deleted) {
+                    if (!deleted)
+                    {
                         throw new Exception("Didn't delete all records in Tags Per Card");
                     }
                 }
@@ -129,7 +133,8 @@ namespace Services
                 // NOTE: We're assuming there's only one card one position one dnd item 
                 CardPositionPerRoomDto? cpr = await _cardPositionPerRoomDtoService.GetDtoByCardIdAsync(dto.Card.CardId);
 
-                if (cpr == null) {
+                if (cpr == null)
+                {
                     deleted = await _cardDtoService.DeleteDtoAsync(dto.Card.CardId);
 
                     if (!deleted)
@@ -140,8 +145,8 @@ namespace Services
                 else
                 {
                     deleted = await _cardPositionPerRoomDtoService.DeleteDtoNavAsync(cpr.CardPositionPerRoomId);
-                
-                     if (!deleted)
+
+                    if (!deleted)
                     {
                         throw new Exception("Didn't delete record in Card Position Per Room and all subsequent navigational properties");
                     }
@@ -149,8 +154,8 @@ namespace Services
 
                 foreach (CardEditorCardFaceDto cardEditorCardFaceDto in dto.CardEditorCardFacesDto)
                 {
-                    deleted = await _cardEditorCardFaceDtoService.DeleteDtoAsync(cardEditorCardFaceDto);        
-                
+                    deleted = await _cardEditorCardFaceDtoService.DeleteDtoAsync(cardEditorCardFaceDto);
+
                     if (!deleted)
                     {
                         throw new Exception("Card face and card face elements per card face weren't deleted");
@@ -176,7 +181,7 @@ namespace Services
         public async Task<CardEditorCardDto?> GetDtoAsync(string id)
         {
             CardDto? card = await _cardDtoService.GetDtoAsync(id);
-            
+
             if (card == null)
                 return null;
 
@@ -190,7 +195,7 @@ namespace Services
 
             CardPerOwnerDto? cpo = await _cardPerOwnerDtoService.GetDtoByCardIdAsync(dto.Card.CardId);
 
-            if (cpo != null) 
+            if (cpo != null)
                 dto.OwnerId = cpo.OwnerId;
 
             dto.TagNames = (await _tagsPerCardDtoService.GetTagNamesByCardIdDtoAsync(dto.Card.CardId)).ToArray();
@@ -211,15 +216,24 @@ namespace Services
             {
                 bool updated = false;
 
-                if (dto.CardEditorCardFacesDto != null) {
-                   updated =  await  _cardEditorCardFaceDtoService.UpdateAllDtoAsync(dto.CardEditorCardFacesDto);
+                if (dto.CardEditorCardFacesDto != null)
+                {
+                    updated = await _cardEditorCardFaceDtoService.UpdateAllDtoAsync(dto.CardEditorCardFacesDto);
                 }
 
                 updated = await _cardDtoService.UpdateDtoAsync(dto.Card.CardId, dto.Card);
 
+                // NOTE: Delete existing tag associations first, then recreate them - ensures removed tags are actually deleted
+                // CHECKME: Does this slow down the program significantly though?
+                IEnumerable<string>? existingTagNames = await _tagsPerCardDtoService.GetTagNamesByCardIdDtoAsync(dto.Card.CardId);
+                if (existingTagNames.Any())
+                {
+                    await _tagsPerCardDtoService.DeleteByTagNamesAndCardIdDtoAsync(existingTagNames.ToArray(), dto.Card.CardId);
+                }
+
                 // ASSUMPTION: The tags that are already exist will be returned instead, no duplicate tags to throw errors on
                 dto.TagNames = await CreateAndResolveTagNamesAsync(dto.TagNames, dto.Card.CardId);
-            
+
                 await transaction.CommitAsync();
                 return updated;
             }
@@ -236,14 +250,14 @@ namespace Services
                     throw;
                 }
             }
-            catch (Exception) 
+            catch (Exception)
             {
-                await transaction.RollbackAsync();            
+                await transaction.RollbackAsync();
                 throw;
             }
         }
 
-        public bool Exists(string id) 
+        public bool Exists(string id)
         {
             throw new NotImplementedException();
         }

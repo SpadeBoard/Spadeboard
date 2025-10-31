@@ -1,7 +1,6 @@
 import { Card, CardEditorCardDto, CardPositionPerRoom } from "../models/card";
 import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from "../models/card-face-element";
 import { Deck } from "../models/deck";
-import { CardPositionPerRoomService } from "../services/card-game-core/card-position-per-room.service";
 
 // Are interfaces so we can't do instanceof to check
 export function isCard(obj: any): obj is Card {
@@ -32,6 +31,14 @@ export function isCardFaceElement(obj: any): obj is CardFaceElement {
         && typeof obj === 'object'
         && 'cardFaceElementType' in obj
         && 'cardFaceElementId' in obj
+}
+
+export function isCardFaceElementImage(obj: any): obj is CardFaceElementImage {
+    return obj
+        && typeof obj === 'object'
+        && 'cardFaceElementType' in obj
+        && obj.cardFaceElementType === 'Image'
+        && 'imageFileMetadata' in obj
 }
 
 export function isCardFaceElementPerCardFace(obj: any): obj is CardFaceElementPerCardFace {

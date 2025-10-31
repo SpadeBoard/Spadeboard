@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
 import { FileAuthenticationPerExportedCardApiService } from './file-authentication-per-exported-card-api.service';
+import { provideHttpClient } from '@angular/common/http';
 
 describe('FileAuthenticationPerExportedCardApiService', () => {
   let service: FileAuthenticationPerExportedCardApiService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({providers: [provideHttpClient()]});
     service = TestBed.inject(FileAuthenticationPerExportedCardApiService);
   });
 

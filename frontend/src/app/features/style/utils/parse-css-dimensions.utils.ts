@@ -1,11 +1,11 @@
 export function parseCssDimension(value: string | undefined): number {
     if (!value) return 0;
 
-    const match = value.match(/^(\d+(?:\.\d+)?)(px|em|rem|%|vw|vh|cm|mm|in|pt|pc)?$/);
+    let match = value.match(/^(\d+(?:\.\d+)?)(px|em|rem|%|vw|vh|cm|mm|in|pt|pc)?$/);
     if (!match) return 0;
 
-    const [, numStr, unit] = match;
-    const num = parseFloat(numStr);
+    let [, numStr, unit] = match;
+    let num = parseFloat(numStr);
 
     switch (unit) {
         case 'px':

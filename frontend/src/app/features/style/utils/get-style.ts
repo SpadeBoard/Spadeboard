@@ -1,4 +1,4 @@
-import { Style } from "../models/style";
+import { BorderDimensions, Style } from "../models/style";
 
 export function getStyle(model: any): Style {
     // TODO: Destructure the style
@@ -717,4 +717,11 @@ export function filterAgainstNull(style: Omit<Style, 'styleId'>): Omit<Style, 's
         }, {} as { [key: string]: string });
 
     return filtered;
+}
+
+export function isBorderDimensions(obj: any): obj is BorderDimensions {
+    return obj
+        && typeof obj === 'object'
+        && 'borderWidth' in obj
+        && 'borderRect' in obj;
 }

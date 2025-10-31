@@ -1,8 +1,8 @@
-@if (unculledCprs.length > 0) {
-    @for (cpr of unculledCprs; track cpr.cardPositionPerRoomId) {
+@if (unculled.length > 0) {
+    @for (cpr of unculled; track cpr.cardPositionPerRoomId) {
     <div cdkDrag class="cpr-cdk-drag" 
             [cdkDragPreviewContainer]="'parent'"
-            [ngStyle]="{
+            [style]="{
                 left: getCardScreenPosition(cpr).x + 'px',
                 top: getCardScreenPosition(cpr).y + 'px',
                 transform: 'rotate(' + cpr.dndRotation.degrees + 'deg)',
@@ -15,7 +15,7 @@
             (contextmenu)="onCardRightClick($event, cpr.card.cardId)"
             #cardsPositionPerRoom
         >
-            <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" [title]="cpr.card.cardName" />
+            <app-card [$cardScale]="cardsPositionPerRoomScale" [($card)]="cpr.card" [title]="cpr.card.cardName" />
 
             <!--WORKAROUND: Because the typical drag preview's set at 0,0, we'll make a custom one
             Then set it programmatically as to where the preview should be-->
@@ -23,7 +23,7 @@
                 [attr.cpr-cdk-drag-preview-id]="cpr.cardPositionPerRoomId"
             >
                 @defer {
-                    <app-card [cardScale]="cardsPositionPerRoomScale" [(card)]="cpr.card" [title]="cpr.card.cardName" /> 
+                    <app-card [$cardScale]="cardsPositionPerRoomScale" [($card)]="cpr.card" [title]="cpr.card.cardName" /> 
                 }
                 @placeholder {
                     <img
@@ -37,7 +37,7 @@
     }
 
     @if (currentContentMenuCpr) {
-    <app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="cprActionContextMenuItems"
-        (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
+    <app-action-context-menu [style]="getRightClickMenuStyle()" [actionContextMenuItems]="cprActionContextMenuItems"
+        (onActionContextMenuItemClick)="performAction($event)"></app-action-context-menu>
     }
 }

@@ -2,6 +2,7 @@ import { Component, ElementRef, input, InputSignal, model, ModelSignal, ViewChil
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, filter, Subject } from 'rxjs';
+import { convertShortHexToLongForm, isShortHex, isValidHexaCode, isValidHexCharacter, isValidHexLength, validateHex } from '../../../../utils/hex.utils';
 
 @Component({
   selector: 'app-color-picker',
@@ -12,79 +13,41 @@ import { debounceTime, filter, Subject } from 'rxjs';
 export class ColorPickerComponent {
   // https://www.angulararchitects.io/en/blog/component-communication-with-signals-inputs-two-way-bindings-and-content-view-queries/
 
-  colorPickerName: InputSignal<string> = input<string>("");
+  public colorPickerName: InputSignal<string> = input<string>("");
 
-  hexcode: ModelSignal<string> = model<string>("");
-  hexInput: ModelSignal<string> = model<string>("");
+  public hexcode: ModelSignal<string> = model<string>("");
+
+  public hexInput: ModelSignal<string> = model<string>("");
 
   @ViewChild('colorHexInput') hexInputRef!: ElementRef<HTMLInputElement>;
 
-  private readonly onShortHexChange$$ = new Subject<string>();
+  private readonly onShortHexChange$$: Subject<string>= new Subject<string>();
 
-   constructor() {
+  constructor() {
     this.onShortHexChange();
-   }
+  }
 
-   isValidHexLength(length: number) {
-    return length == 4 || length == 7;
-   }
-
-   setHexInput(hex: string) {
+  protected setHexInput(hex: string): void {
     this.hexInput.set(hex);
 
     // Forces the input to immediately update, not sure why it won't here
     if (this.hexInputRef.nativeElement) this.hexInputRef.nativeElement.value = hex;
-   }
-
-  isValidHexCharacter(char: string): boolean {
-    // Handle empty string or longer than 1 char (just in case)
-    if (char.length !== 1) return false;
-
-    let c: any = char.charCodeAt(0);
-
-    let isDigit: boolean = c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0);
-    let isLower: boolean = c >= 'a'.charCodeAt(0) && c <= 'f'.charCodeAt(0);
-    let isUpper: boolean = c >= 'A'.charCodeAt(0) && c <= 'F'.charCodeAt(0);
-    return isDigit || isLower || isUpper;
   }
 
-  // https://www.geeksforgeeks.org/check-if-a-given-string-is-a-valid-hexadecimal-color-code-or-not/
-  isValidHexaCode(str: string) {
-    if (str[0] != '#')
-      return false;
-
-    if (!this.isValidHexLength(str.length))
-      return false;
-
-    for (let i = 1; i < str.length; i++)
-     if (!this.isValidHexCharacter(str[i]))
-        return false;
-
-    return true;
-  }
-
-  validateHex(hex: string): string {
-    return (this.isValidHexaCode(hex)) ? hex : "#FFFFFF";
-  }
-
-  onShortHexChange() {
+  protected onShortHexChange(): void {
     this.onShortHexChange$$
       .pipe(
         debounceTime(500),
-        filter((color: string) => this.isShortHex(color.length) && this.isValidHexaCode(color)),  // NOTE: Should be fine since it drops earlier values
+        filter((color: string) => isShortHex(color.length) && isValidHexaCode(color)),  // NOTE: Should be fine since it drops earlier values
         takeUntilDestroyed()
       )
       .subscribe((color: string) => {
-        let hex: string = this.validateHex(color);
-        this.hexcode.set(this.convertShortHexToLongForm(hex));
+        let hex: string = validateHex(color);
+        this.hexcode.set(convertShortHexToLongForm(hex));
       })
   }
 
-  isShortHex(length: number) {
-    return length === 4;
-  }
-
-  onColorChange(value: string) {
+  protected onColorChange(value: string): void {
     // If it's greater than 7, then we get rid of the rest of it and validate it
     value = this.clampHexInput(value);
 
@@ -97,12 +60,12 @@ export class ColorPickerComponent {
     // ***************************** LONGFORM *********************************** //
 
     // So now we actually validate the nature of the hex and actually set it
-    if (!this.isShortHex(value.length) && this.isValidHexaCode(value))
+    if (!isShortHex(value.length) && isValidHexaCode(value))
       this.hexcode.set(value);
   }
-  
-  clampHexInput(value: string): string {
-    value = value.substring(0, 7); 
+
+  private clampHexInput(value: string): string {
+    value = value.substring(0, 7);
     this.setHexInput(value);
 
     // NOTE: This might look strange, but it's a null value and therefore
@@ -110,24 +73,5 @@ export class ColorPickerComponent {
     if (value.length <= 0) this.hexcode.set(value);
 
     return value;
-  }
-
-  convertShortHexToLongForm(hex: string): string {
-    hex = hex.startsWith("#") ? hex.slice(1) : hex;
-
-    if (hex.length === 3) {
-      // Expand the short hex code (e.g., #abc to #aabbcc)
-      let r: string = hex[0];
-      let g: string = hex[1];
-      let b: string = hex[2];
-
-      return `#${r}${r}${g}${g}${b}${b}`;
-    }
-    else if (hex.length === 6) {
-      return `#${hex}`;
-    }
-    else {
-      throw new Error("Invalid hex code");
-    }
   }
 }

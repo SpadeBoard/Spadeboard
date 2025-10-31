@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, Subject } from 'rxjs';
 import { clamp, Coordinates, Dimensions } from '../../../../utils/utils';
-import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
+import { CardEditorControlsDesignElementAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/attributes/card-editor-controls-design-element-attributes.service';
 import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH, MAX_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
 
 @Component({
@@ -19,14 +19,14 @@ export class CardFaceElementAttributesDimensionsComponent {
   // https://stackoverflow.com/questions/43998536/debounce-to-get-a-value-input-in-angular2
   // Subjects for debouncing each input
   // Question is if we use template reference and debounce that, is it going to cause a circular dependency
-  private readonly width$$ = new Subject<number>();
-  private readonly height$$ = new Subject<number>();
+  private readonly width$$: Subject<number> = new Subject<number>();
+  private readonly height$$: Subject<number> = new Subject<number>();
 
   // FIXME: This is a hacky fix
   @ViewChild('widthInput') widthRef!: ElementRef<HTMLInputElement>;
   @ViewChild('heightInput') heightRef!: ElementRef<HTMLInputElement>;
 
-  dimensions: Dimensions = {
+  protected dimensions: Dimensions = {
     width: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH,
     height: DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT
   }
@@ -34,7 +34,7 @@ export class CardFaceElementAttributesDimensionsComponent {
   private readonly DEBOUNCE_TIME = 300;
 
   constructor() {
-    this.onResetCardFaceAttributes();
+    this.resetElementAttributes();
 
     this.onSetWidth();
     this.onSetHeight();
@@ -43,16 +43,16 @@ export class CardFaceElementAttributesDimensionsComponent {
     this.setHeight();
   }
 
-  onWidthChange(width: number): void {
+  protected onWidthChange(width: number): void {
     this.width$$.next(width);
   }
 
-  onHeightChange(height: number): void {
+  protected onHeightChange(height: number): void {
     this.height$$.next(height);
   }
 
   // FIXME: Not sure why distinctUntilChanged is causing issues here
-  setWidth(): void {
+  private onSetWidth(): void {
     this.width$$
       .pipe(
         debounceTime(this.DEBOUNCE_TIME),
@@ -66,7 +66,7 @@ export class CardFaceElementAttributesDimensionsComponent {
       });
   }
 
-  setHeight(): void {
+  private onSetHeight(): void {
     this.height$$
       .pipe(
         debounceTime(this.DEBOUNCE_TIME),
@@ -81,10 +81,8 @@ export class CardFaceElementAttributesDimensionsComponent {
       );
   }
 
-
-
-  onSetWidth(): void {
-    this.cardEditorControlsDesignElementAttributesService.onSetWidth$
+  protected setWidth(): void {
+    this.cardEditorControlsDesignElementAttributesService.setWidth$
       .pipe(
         // distinctUntilChanged(),
         takeUntilDestroyed()
@@ -96,8 +94,8 @@ export class CardFaceElementAttributesDimensionsComponent {
       })
   };
 
-  onSetHeight(): void {
-    this.cardEditorControlsDesignElementAttributesService.onSetHeight$
+  protected setHeight(): void {
+    this.cardEditorControlsDesignElementAttributesService.setHeight$
       .pipe(
         // distinctUntilChanged(),
         takeUntilDestroyed()
@@ -109,8 +107,8 @@ export class CardFaceElementAttributesDimensionsComponent {
       })
   }
 
-  onResetCardFaceAttributes(): void {
-    this.cardEditorControlsDesignElementAttributesService.onResetCardFaceAttributes$
+  private resetElementAttributes(): void {
+    this.cardEditorControlsDesignElementAttributesService.resetedElementAttributes$
       .pipe(
         takeUntilDestroyed()
       )

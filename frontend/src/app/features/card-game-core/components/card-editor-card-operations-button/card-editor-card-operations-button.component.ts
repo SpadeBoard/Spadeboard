@@ -1,7 +1,8 @@
-import { Component, inject, output } from '@angular/core';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { Component, inject, output, OutputEmitterRef } from '@angular/core';
+import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 import { CardEditorCardDto } from '../../models/card';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
 
 @Component({
   selector: 'app-card-editor-card-operations-button',
@@ -10,41 +11,45 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrl: './card-editor-card-operations-button.component.scss'
 })
 export class CardEditorCardOperationsButtonComponent {
-  private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
-  hasCreated: boolean = false;
+  private readonly cardEditorApiService: CardEditorApiService = inject(CardEditorApiService);
 
-  handleCardCreate = output<void>();
-  handleCardSave = output<void>();
+  protected hasCreated: boolean = false;
+
+  protected $handleCardCreate: OutputEmitterRef<void> = output<void>();
+  
+  protected $handleCardSave: OutputEmitterRef<void> = output<void>();
 
   constructor() {
     this.setHasCreated();
     this.onCreateCardEditorCardDto();
-    this.onSetCardEditorCardDtoByCardId();
+    this.setCardEditorCardDto();
   }
 
-  private onCreateCardEditorCardDto() {
-    this.cardEditorPreviewService.onCreateCardEditorCardDto$
+  private onCreateCardEditorCardDto(): void {
+    this.cardEditorApiService.createdCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
      this.setHasCreated();
     })
   }
 
-  private setHasCreated() {
-    this.hasCreated = (parseFloat(this.cardEditorPreviewService.cardEditorCardDto.card.cardId) > 0) ? true : false;
+  private setHasCreated(condition?: () => boolean): void {
+    // CHECKME: Is the cardEditorCardDto being updated properly?
+    this.hasCreated = (!condition) ? !this.cardEditorPreviewService.isNewCardEditorCardDto() : condition();
   }
 
-  onCardCreate(event: Event): void {
-    this.handleCardCreate.emit();
+  protected createCard(event: Event): void {
+    this.$handleCardCreate.emit();
   }
 
-  onCardSave(event: Event): void {
-    this.handleCardSave.emit();
+  protected saveCard(event: Event): void {
+    this.$handleCardSave.emit();
   }
 
-  private onSetCardEditorCardDtoByCardId() {
-    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$
+  private setCardEditorCardDto(): void {
+    this.cardEditorPreviewService.setCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
       this.setHasCreated();

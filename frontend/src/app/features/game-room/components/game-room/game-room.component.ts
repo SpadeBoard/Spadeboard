@@ -6,8 +6,8 @@ import { EmbeddedExternalIframeComponent } from '../../../../utils/components/em
 import { SPADEBOARD_WIKI_CARD_EDITOR_URL } from '../../../../utils/wiki.constants';
 import { CardEditorComponent } from '../../../card-game-core/components/card-editor/card-editor.component';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
-import { CardEditorInfoService } from '../../../card-game-core/services/card-editor-info.service';
-import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
+import { CardEditorInfoService } from '../../../card-game-core/services/card-game-core/card-editor/info/card-editor-info.service';
+import { CardEditorPreviewService } from '../../../card-game-core/services/card-game-core/card-editor/preview/card-editor-preview.service';
 import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/dnd-board.component';
 import { GameRoomService } from '../../services/game-room.service';
 import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
@@ -27,46 +27,45 @@ export class GameRoomComponent {
   // TODO: ViewChild being cardMenu, then grab its width and height and pass that into card
   // https://stackoverflow.com/a/41095677
 
-   private readonly cardEditorInfoService: CardEditorInfoService = inject(CardEditorInfoService);
-    
-  isWikiOpen: boolean = false;
-  wikiWebsiteUrl: string = SPADEBOARD_WIKI_CARD_EDITOR_URL;
+  private readonly cardEditorInfoService: CardEditorInfoService = inject(CardEditorInfoService);
+
+  protected isWikiOpen: boolean = false;
+  protected wikiWebsiteUrl: string = SPADEBOARD_WIKI_CARD_EDITOR_URL;
 
   @ViewChild('dndBoard') dndBoard!: ElementRef;
   private gameRoomService: GameRoomService = inject(GameRoomService);
-  cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
 
-  cardsMenuDimensions: {width: number, height: number} | undefined = undefined;
+  protected cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
-  private ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a";
+  cardsMenuDimensions: { width: number, height: number } | undefined = undefined;
 
   constructor() {
     this.activateGameRoomService();
-    
-    this.cardGameCoreService.setUserId(this.ownerId);
 
-    this.onInfoUrlChange();
+    // TODO: Grab the user ID and set it?
+
+    this.infoUrlChange();
   }
 
-  activateGameRoomService() {
+  private activateGameRoomService(): void {
     this.gameRoomService.setCurrentGameRoomId("1");
     this.gameRoomService.getGameRoom$()
       .pipe(takeUntilDestroyed())
       .subscribe((gameRoom) => {
-      if (gameRoom) {
-        this.gameRoomService.onAutosaveTimeout();
-      }
-    });
+        if (gameRoom) {
+          this.gameRoomService.onAutosaveTimeout();
+        }
+      });
   }
 
-   onInfoUrlChange() {
-    this.cardEditorInfoService.onInfoUrlChange$.subscribe((src: string) => {
+  protected infoUrlChange(): void {
+    this.cardEditorInfoService.infoUrlChange$.subscribe((src: string) => {
       this.wikiWebsiteUrl = src;
       this.isWikiOpen = true;
     })
   }
 
-  onCloseInfo() {
+  protected onCloseInfo(): void {
     this.isWikiOpen = false;
   }
 

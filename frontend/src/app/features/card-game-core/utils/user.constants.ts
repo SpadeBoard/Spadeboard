@@ -1,0 +1,1 @@
+export const DEFAULT_USER_ID: string = '5811e387-1551-4090-9485-a3ebe30efb5a';

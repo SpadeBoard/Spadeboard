@@ -1,15 +1,12 @@
 import { DestroyRef, ElementRef } from "@angular/core";
 import { SafeUrl } from "@angular/platform-browser";
 import html2canvas from "html2canvas";
-import { FileMetadata, FileMetadataStatus } from "./models/file-metadata";
-import { from, Observable, of, switchMap, tap } from "rxjs";
-import { FileMetadataApiService } from "./services/file-metadata-api.service";
-import { FileUploadApiService } from "./services/file-upload-api.service";
 import ImageBlobReduce, { ResizeOptions } from 'image-blob-reduce';
 import JSZip from "jszip";
-// import { PNGChunk, PngMetadata } from "@sonrisa-dev/png-metadata";
-import * as PngMetadata from '@sonrisa-dev/png-metadata';
+import { from, Observable, of, Subscription, switchMap } from "rxjs";
+import { FileMetadata, FileMetadataStatus } from "./models/file-metadata";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import * as PngMetadata from '@sonrisa-dev/png-metadata';
 
 export function getDefaultFileMetadata(): FileMetadata {
     return {
@@ -125,6 +122,12 @@ export type Dimensions = {
     width: number;
     height: number;
 }
+
+// TODO: Refactor all of this, it's kind of insane
+export function isDimensions(obj: any): obj is Dimensions {
+    return obj.width && obj.height;
+}
+
 
 export function areDimensionsHigherThanZero(dimensions: Dimensions) {
     return (dimensions.width > 0 && dimensions.height > 0);
@@ -383,70 +386,6 @@ export function getLodIndex(scale: number, lodsAmt: number = 5): number {
     return Math.floor(clamp((scale * lodsAmt) - 1, 0, lodsAmt - 1)); // Because the LODs start with 0
 }
 
-// CHECKME: Would this work, the FileMetadataApiService being passed through part
-export function createFilesMetadata$(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileNames: string[], fileMetadataStatus: FileMetadataStatus): Observable<FileMetadata[] | undefined> {
-    let filesMetadata: FileMetadata[] = [];
-
-    fileNames.forEach((fileName) => {
-        let fileMetadata: FileMetadata = {
-            fileMetadataId: '0',
-            volumePath: volumePath,
-            fileName: fileName,
-            creationDate: new Date(),
-            fileMetadataStatus: fileMetadataStatus
-        };
-
-        filesMetadata.push(fileMetadata);
-    });
-
-    return fileMetadataApiService.createFilesMetadata$(filesMetadata).pipe(
-        tap(result => {
-            if (result === undefined) {
-                throw new Error("File metadata wasn't able to be created");
-            }
-            console.log(`Created file metadata: ${JSON.stringify(result, null, 2)}`);
-        })
-    );
-}
-
-export function createFileMetadata$(fileMetadataApiService: FileMetadataApiService, volumePath: string, fileName: string, fileMetadataStatus: FileMetadataStatus): Observable<FileMetadata | undefined> {
-    let fileMetadata: FileMetadata = {
-        fileMetadataId: '0',
-        volumePath: volumePath,
-        fileName: fileName,
-        creationDate: new Date(),
-        fileMetadataStatus: fileMetadataStatus
-    };
-
-    return fileMetadataApiService.createFileMetadata$(fileMetadata).pipe(
-        tap(result => {
-            if (result === undefined) {
-                throw new Error("File metadata wasn't able to be created");
-            }
-            console.log(`Created file metadata: ${JSON.stringify(result, null, 2)}`);
-        })
-    );
-}
-
-export function duplicateFile$(fileUploadApiService: FileUploadApiService, fileMetadataApiService: FileMetadataApiService, fileMetadata: FileMetadata, fileType: string, filePath: string, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending): Observable<FileMetadata | undefined> {
-    return fileUploadApiService.replaceFilePath$(fileMetadata.fileName, fileType).pipe(
-        switchMap((result: { id: string | undefined }) => {
-            if (!result.id) return of(undefined);
-            return createFileMetadata$(fileMetadataApiService, filePath, result.id, fileMetadataStatus);
-        })
-    );
-}
-
-export function duplicateFiles$(fileUploadApiService: FileUploadApiService, fileMetadataApiService: FileMetadataApiService, filesMetadata: FileMetadata[], fileType: string, filePath: string, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending) {
-    let fileNames: string[] = filesMetadata.map((fm: FileMetadata) => (fm.fileName));
-
-    return fileUploadApiService.replaceFilePaths$(fileNames, fileType).pipe(
-        switchMap((result: string[]) => {
-            return createFilesMetadata$(fileMetadataApiService, filePath, result, fileMetadataStatus);
-        })
-    )
-}
-
 export async function zipFiles(files: Blob[], fileName: string, type: string): Promise<Blob> {
     let zip: JSZip = new JSZip();
     files.forEach((blob: Blob, idx: number) => {
@@ -462,7 +401,7 @@ export async function unzipImages(result: Blob): Promise<HTMLImageElement[] | un
             let zip: JSZip = await JSZip.loadAsync(result);
             let files: JSZip.JSZipObject[] = Object.values(zip.files);
 
-            console.log(`Zip files: ${JSON.stringify(files, null, 2)})`);
+            // console.log(`Zip files: ${JSON.stringify(files, null, 2)})`);
 
             let images: HTMLImageElement[] = [];
 
@@ -570,23 +509,69 @@ export function getImageFormData$(content: string, destroyRef: DestroyRef): Obse
     let formData: FormData = new FormData();
     // Handle blob: URL or .png URL
     if (content.startsWith('blob:') || content.endsWith('.png')) {
-      return from(fetch(content).then((res: Response) => res.blob())).pipe(
-        switchMap((blob: Blob) => {
-          formData.append('formFile', blob);
-          return of(formData);
-        }),
-        takeUntilDestroyed(destroyRef)
-      );
+        return from(fetch(content).then((res: Response) => res.blob())).pipe(
+            switchMap((blob: Blob) => {
+                formData.append('formFile', blob);
+                return of(formData);
+            }),
+            takeUntilDestroyed(destroyRef)
+        );
     }
 
     // Handle data: URL (base64)
     if (content.startsWith('data:image/')) {
-      let blob: Blob = dataURLtoBlob(content, 'image/png');
+        let blob: Blob = dataURLtoBlob(content, 'image/png');
 
-      formData.append('formFile', blob);
-      return of(formData);
+        formData.append('formFile', blob);
+        return of(formData);
     }
 
     // Unsupported type
     return of(undefined);
+}
+
+export function clear(arr: Array<any> | Array<Array<any>>): void {
+   if (Array.isArray(arr[0])) {
+    (arr as any[][]).forEach(inner => inner.length = 0);
   }
+  arr.length = 0;
+}
+
+export function operate(key: string | { operation: string, emitted: any }, operations: Map<string, Function>): void {
+    if (typeof key === 'string') {
+        let fn: Function | undefined = operations.get(key);
+        if (fn) {
+            fn();
+            return;
+        }
+
+        console.error(`No ${key} operation`);
+        return;
+    }
+
+    let { operation, emitted } = key;
+
+    let fn: Function | undefined = operations.get(operation);
+    if (fn) {
+        fn((emitted));
+        return;
+    }
+
+    console.error(`No ${operation} operation`);
+}
+
+export function unsubscription(subscribable: Subscription | null): void {
+    if (subscribable) {
+      subscribable.unsubscribe();
+      subscribable = null;
+    }
+}
+
+export function stringify(value: any): string {
+    return JSON.stringify(
+        value,
+        (key: string, value: any) => {
+            if (value !== null) return value
+        },
+        2);
+}

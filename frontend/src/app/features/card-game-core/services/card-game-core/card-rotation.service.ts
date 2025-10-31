@@ -6,12 +6,12 @@ import { Observable, Subject } from 'rxjs';
 })
 export class CardRotationService {
 
-  private onCardRotation$$: Subject<{cardId: string, degrees: number}> = new Subject<{cardId: string, degrees: number}>();
-  onCardRotation$: Observable<{cardId: string, degrees: number}> = this.onCardRotation$$.asObservable();
+  private cardRotation$$: Subject<{cardId: string, degrees: number}> = new Subject<{cardId: string, degrees: number}>();
+  public readonly cardRotation$: Observable<{cardId: string, degrees: number}> = this.cardRotation$$.asObservable();
 
   constructor() { }
 
-  setOnCardRotation(info: {cardId: string, degrees: number}): void {
-    this.onCardRotation$$.next(info);
+  public setCardRotation(info: {cardId: string, degrees: number}): void {
+    this.cardRotation$$.next(info);
   }
 }

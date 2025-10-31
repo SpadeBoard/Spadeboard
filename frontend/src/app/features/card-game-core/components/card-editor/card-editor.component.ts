@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { Image } from '../../../style/models/image';
 import { Style } from '../../../style/models/style';
-import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
+import { CardEditorControlsDesignImageService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-image.service';
 import { CardEditorCloseComponent } from '../card-editor-close/card-editor-close.component';
 import { CardEditorControlsDesignComponent } from '../card-editor-controls-design/card-editor-controls-design.component';
 import { CardEditorPreviewComponent } from '../card-editor-preview/card-editor-preview.component';
@@ -30,15 +30,19 @@ export class CardEditorComponent{
 
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
   
+   private imageEditorStatusOperations: Map<string, Function> = new Map<string, Function>([
+    ['enable', (id: string) => this.enableImageEditor(id)],
+    ['disable', (src: string) => this.disableImageEditor(src)]
+  ]);
+
   constructor() {
-    this.onEnableImageEditor();
-    this.onDisableImageEditor();
+    this.onImageEditorStatusToggle();
   }
 
-  isCurrentPopupMenuOpen: boolean = false;
+  public isCurrentPopupMenuOpen: boolean = false;
 
   // TODO: Fix this, this should be for the card face image editor? Why is popup menu opening card face image?
-  popupMenuInputs = {
+  public popupMenuInputs = {
     // TODO: Pass in the potential card face elements as well as front card face and back card face
     cardFaceImageAttr: {
       cardFaceImage: {
@@ -59,39 +63,11 @@ export class CardEditorComponent{
   };
 
   // REFERENCE for ngComponentOutlet 'outputs': https://stackoverflow.com/a/79401383
-  /*
-  We have Angular 19 and still is not possible to subscribe to output events, but there are two strategies to handle output events when using ngComponentOutlet:
-
-  1. Inject a function using ngComponentOutletInjector and handle the behavior outside the component:
-  2) Get a reference to the component using ViewChild.
-  */
-  /*popupMenuInjector: Injector = Injector.create({
-    providers: [
-      {
-        // TODO: Rewrite, no need for this boolean
-        provide: CLOSE_IMAGE_EDITOR_TOKEN,
-        useValue: (showImageEditor: boolean) => this.onCloseImageEditor(showImageEditor)
-      },
-      {
-        provide: CROPPED_IMAGE_TOKEN,
-        useValue: (croppedImage: string) => this.setCardFaceImageElementSrc(croppedImage)
-      },
-      {
-        provide: RTE_HTML_CONTENT,
-        useValue: (htmlContent: string) => this.setRteHtmlContent(htmlContent)
-      }
-    ]
-  });*/
-
-  // initialPosition: DndPosition = {x: 0, y: 0};
-
-  // TODO: Use ngx-color-picker for picking colors on the card face
-
   private currentPopupMenu: number | null = 0;
 
   // Open the popup menu
   // TODO: Instead of using outlets and injectors, we should be using services
-  getCurrentPopupMenuComponent(): Type<any> | null {
+  protected getCurrentPopupMenuComponent(): Type<any> | null {
     switch (this.currentPopupMenu) {
       case 0:
         return CardFaceImageEditorComponent; // TODO: Replace with CardFaceImageEditor
@@ -102,26 +78,26 @@ export class CardEditorComponent{
     }
   }
 
-  onEnableImageEditor() {
-    this.cardEditorControlsDesignImageService.onEnableImageEditor$.subscribe(() => {
-      this.currentPopupMenu = 0;
-      this.isCurrentPopupMenuOpen = true;
-    })
+  private enableImageEditor(id: string): void {
+    this.currentPopupMenu = 0;
+    this.isCurrentPopupMenuOpen = true;
   }
 
-  onDisableImageEditor() {
-    this.cardEditorControlsDesignImageService.onDisableImageEditor$.subscribe((src: string) => {
-      this.isCurrentPopupMenuOpen = false;
-    })
+  private disableImageEditor(src: string): void {
+    this.isCurrentPopupMenuOpen = false;
   }
 
-    // https://stackblitz.com/edit/angular-html2canvas-example-xfgxcv?file=src%2Fapp%2Fapp.component.ts
-        // https://prasanthj.com/javascript/convet-div-to-image-in-angular/
-        // https://stackblitz.com/edit/angular-html2canvas-example?file=src%2Fapp%2Fapp.component.ts
+  private onImageEditorStatusToggle(): void {
+    this.cardEditorControlsDesignImageService.onStatusToggle(this.imageEditorStatusOperations);
+  }
 
-        // https://stackoverflow.com/questions/9664474/convert-blob-string-to-jpg-file/9664621
+  // https://stackblitz.com/edit/angular-html2canvas-example-xfgxcv?file=src%2Fapp%2Fapp.component.ts
+  // https://prasanthj.com/javascript/convet-div-to-image-in-angular/
+  // https://stackblitz.com/edit/angular-html2canvas-example?file=src%2Fapp%2Fapp.component.ts
 
-        // document.body.appendChild(canvas);
+  // https://stackoverflow.com/questions/9664474/convert-blob-string-to-jpg-file/9664621
+
+  // document.body.appendChild(canvas);
 
   // https://stackoverflow.com/questions/76188415/vue3-vite-module-has-been-externalized
 }

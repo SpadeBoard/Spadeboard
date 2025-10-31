@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
-import { Dimensions } from '../../../../utils/utils';
+import { Dimensions, stringify } from '../../../../utils/utils';
 @Component({
   selector: 'app-dnd-board-layer',
   imports: [],
@@ -9,13 +9,13 @@ import { Dimensions } from '../../../../utils/utils';
   styleUrl: './dnd-board-layer.component.scss'
 })
 export class DndBoardLayerComponent {
-  private dndBoardService: DndBoardService = inject(DndBoardService);
+  private readonly dndBoardService: DndBoardService = inject(DndBoardService);
 
   @ViewChild('camera') camera!: ElementRef<HTMLDivElement>;
 
   viewport!: Dimensions;
 
-  ngOnInit() {
+  public ngOnInit(): void {
     this.viewport = {
       width: window.innerWidth,
       height: window.innerHeight
@@ -30,28 +30,27 @@ export class DndBoardLayerComponent {
 
   private onMouseMove(): void {
     this.dndBoardService.onMouseMove$.subscribe((result: { mouseScreenX: number, mouseScreenY: number, mouseX: number, mouseY: number }) => {
-      let mouseMoveLog = `Card position per room - On Mouse Move:
-        Mouse Screen coordinates (clientX, clientY): (${result.mouseScreenX}, ${result.mouseScreenY})
-        Mouse relative to board (mouseX, mouseY): (${result.mouseX}, ${result.mouseY})
-        Mouse AU coordinates: (${JSON.stringify(this.dndBoardService.mouseAUCoordinates)})
-        Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
-        Camera coordinates AU: (${JSON.stringify(this.dndBoardService.getCameraCoordinates())})
-        Grid size AU: ${this.dndBoardService.getGridSizeAU()}
-        Viewport size: (${JSON.stringify(this.viewport)})
-        Zoom Level: ${this.dndBoardService.zoom}`;
+      let mouseMoveLog: string = `this.dndBoardService.onMouseMove$ (time: ${Date.now().toLocaleString("en-US")}):
+        \nMouse Screen coordinates (clientX, clientY): (${result.mouseScreenX}, ${result.mouseScreenY})
+        \nMouse relative to board (mouseX, mouseY): (${result.mouseX}, ${result.mouseY})
+        \nMouse AU coordinates: (${stringify(this.dndBoardService.mouseAUCoordinates)})
+        \nMouse AU to Screen coordinates: (${stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
+        \nCamera coordinates AU: (${stringify(this.dndBoardService.getCameraCoordinates())})
+        \nGrid size AU: ${this.dndBoardService.getGridSizeAU()}
+        \nViewport size: (${stringify(this.viewport)})
+        \nZoom Level: ${this.dndBoardService.zoom}`;
 
-      // 3. Log everything
-      // console.log(mouseMoveLog);
+      // console.log(`%c${this.constructor.name} - ${this.onMouseMove.name}:\n${mouseMoveLog}`, `color: #5448c8; background: #fffecb; padding: 5px; border-radius: 5px;`);
     })
   }
 
-  getViewportTransform() {
+  protected getViewportTransform(): string {
     let camera = this.dndBoardService.getCameraCoordinates();
     let cellSize = this.dndBoardService.getScaledCellSize();
     return `translate(${camera.x * cellSize}px, ${camera.y * cellSize}px)`;
   }
 
-  private onUpdateCamera() {
+  private onUpdateCamera(): void {
     this.dndBoardService.onUpdateCamera$.subscribe(() => {
       this.updateGridSize();
     })
@@ -63,7 +62,7 @@ export class DndBoardLayerComponent {
     })
   }
 
-  private updateGridSize() {
+  private updateGridSize(): void {
     this.viewport = this.dndBoardService.getViewportDimensions();
 
     this.getViewportTransform();

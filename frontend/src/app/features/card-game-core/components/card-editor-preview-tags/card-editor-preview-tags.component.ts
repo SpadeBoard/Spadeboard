@@ -1,11 +1,14 @@
-import { Component, computed, inject, input, InputSignal, Signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { TagData, TagifyModule, TagifySettings } from 'ngx-tagify'; 
-import { BehaviorSubject, catchError, EMPTY, switchMap } from 'rxjs';
-import { TagApiService } from '../../../tagging-system/services/tag-api.service';
-import { Tag } from '../../../tagging-system/models/tag';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { Component, inject, input, InputSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { TagData, TagifyModule, TagifySettings } from 'ngx-tagify';
+import { BehaviorSubject, catchError, EMPTY, switchMap } from 'rxjs';
+import { Tag } from '../../../tagging-system/models/tag';
+import { TagApiService } from '../../../tagging-system/services/tag-api.service';
+import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
+import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
+import { CardTemplateService } from '../../services/card-game-core/card-template/card-template.service';
+import { stringify } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-card-editor-preview-tags',
@@ -16,11 +19,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class CardEditorPreviewTagsComponent {
   // TODO: Refactor this to potentially be reusable
   private readonly tagApiService: TagApiService = inject(TagApiService);
+  private readonly cardEditorApiService: CardEditorApiService = inject(CardEditorApiService);
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly cardTemplateService: CardTemplateService = inject(CardTemplateService);
   
-  tags: TagData[] = [];
+  protected tags: TagData[] = [];
 
-  settings: TagifySettings = {
+  protected settings: TagifySettings = {
     placeholder: 'Insert tag, ex. Template',
     blacklist: [], // TODO: Replace blacklist with custom one, potentially set by admin?
     callbacks: {
@@ -51,11 +56,11 @@ export class CardEditorPreviewTagsComponent {
           throw new Error("No TagData to update");
 
         // Have to cast it, otherwise Typescript complains
-        const tagElement = e.detail.tag as HTMLElement & { __tagifyTagData?: any };
-        const tagData = tagElement.__tagifyTagData;
+        let tagElement = e.detail.tag as HTMLElement & { __tagifyTagData?: any };
+        let tagData = tagElement.__tagifyTagData;
 
-        const originalValue: string = tagData?.__originalData?.value;
-        const originalId : string= tagData?.__originalData?.__tagId;
+        let originalValue: string = tagData?.__originalData?.value;
+        let originalId : string= tagData?.__originalData?.__tagId;
 
         console.log('Original value:', originalValue);
         console.log('Original tagId:', originalId);
@@ -71,23 +76,23 @@ export class CardEditorPreviewTagsComponent {
   };
   
   // TODO: Load the whitelist based on backend
-  whitelist$$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+  protected whitelist$$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
   
-  readonly: InputSignal<boolean> = input<boolean>(false);
-  readonlyComputed: Signal<boolean> = computed(() => this.readonly());
+  public readonly: InputSignal<boolean> = input<boolean>(false);
 
-  disabled: InputSignal<boolean> = input<boolean>(false);
-  disabledComputed: Signal<boolean> = computed(() => this.disabled());
+  public disabled: InputSignal<boolean> = input<boolean>(false);
 
   constructor() {
     this.populateTags();
     
-    this.onSetCardEditorCardDtoByCardId();
+    this.setCardEditorCardDto();
     this.refreshWhitelist();
+
+    this.clearTagsToDelete();
   }
 
-  private onSetCardEditorCardDtoByCardId(): void {
-    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$
+  private setCardEditorCardDto(): void {
+    this.cardEditorPreviewService.setCardEditorCardDto$
       .pipe(
         takeUntilDestroyed()
       )
@@ -97,18 +102,18 @@ export class CardEditorPreviewTagsComponent {
     }
 
   private populateTags(): void {
-    console.log(`Populate tags: ${JSON.stringify(this.cardEditorPreviewService.cardEditorCardDto.tagNames, null, 2)}`);
+    console.log(`%c${this.constructor.name} - ${this.populateTags.name}: ${stringify(this.cardEditorPreviewService.getCardTagNames())}`, 'color: #56021F; background: #F4CCE9; padding: 5px; border-radius: 5px;');
 
-    this.tags = this.cardEditorPreviewService.cardEditorCardDto.tagNames.map(
+    this.tags = this.cardEditorPreviewService.getCardTagNames().map(
       (tagName: string) => ({ value: tagName })
     );
   }
   
-  onAdd(tagify: {tags: TagData[], added: TagData}) {
+  protected onAdd(tagify: {tags: TagData[], added: TagData}): void {
     console.log('Added a tag', tagify);  
   }
 
-  onCreateTag(tagData: TagData) {
+  onCreateTag(tagData: TagData): void {
     let tag: Tag = {
       tagId: "0",
       tagName: tagData.value
@@ -119,7 +124,7 @@ export class CardEditorPreviewTagsComponent {
     .pipe(
       switchMap((existingTag: Tag | undefined) => {
         if (existingTag) {
-          this.cardEditorPreviewService.addTag(existingTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
+          this.cardTemplateService.addTag(existingTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardTemplateService.tagNamesToDelete);
           console.log(`Tag already exists: ${JSON.stringify(existingTag, null, 2)}`);
           
           return EMPTY; 
@@ -145,7 +150,7 @@ export class CardEditorPreviewTagsComponent {
       }
 
       console.log(`Tag has been created: ${JSON.stringify(createdTag, null, 2)}`);
-      this.cardEditorPreviewService.addTag(createdTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
+      this.cardTemplateService.addTag(createdTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardTemplateService.tagNamesToDelete);
       this.refreshWhitelist();
     });
   }
@@ -161,7 +166,7 @@ export class CardEditorPreviewTagsComponent {
     .pipe(
       switchMap((existingTag: Tag | undefined) => {
         if (existingTag) {
-          this.cardEditorPreviewService.updateTag(idx, existingTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
+          this.cardTemplateService.updateTag(idx, existingTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardTemplateService.tagNamesToDelete);
           console.log(`Tag already exists: ${JSON.stringify(existingTag, null, 2)}`);
           
           return EMPTY; 
@@ -187,18 +192,18 @@ export class CardEditorPreviewTagsComponent {
       }
 
       console.log(`Tag has been created: ${JSON.stringify(createdTag, null, 2)}`);
-      this.cardEditorPreviewService.updateTag(idx, createdTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
+      this.cardTemplateService.updateTag(idx, createdTag, this.cardEditorPreviewService.cardEditorCardDto, this.cardTemplateService.tagNamesToDelete);
       this.refreshWhitelist();
     });
   }
 
-  onDeleteTag(tagData: TagData): void {
+  protected onDeleteTag(tagData: TagData): void {
     let tag: Tag = {
       tagId: "0",
       tagName: tagData.value
     }
 
-    this.cardEditorPreviewService.deleteTag(tag, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.tagNamesToDelete);
+    this.cardTemplateService.deleteTag(tag, this.cardEditorPreviewService.cardEditorCardDto, this.cardTemplateService.tagNamesToDelete);
   }
 
   private refreshWhitelist(): void {
@@ -210,7 +215,13 @@ export class CardEditorPreviewTagsComponent {
     });
   }
   
-  onRemove(tags: TagData[]) {
+  protected onRemove(tags: TagData[]): void {
     console.log('Removed a tag', tags);
+  }
+
+  private clearTagsToDelete(): void {
+    this.cardEditorApiService.clear$.subscribe(() => {
+      this.cardTemplateService.clear();
+    });
   }
 }

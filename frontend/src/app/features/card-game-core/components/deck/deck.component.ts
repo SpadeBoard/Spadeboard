@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 
 import { Deck } from '../../models/deck';
 import { fisherYatesShuffle } from '../../utils/shuffle-algorithms.utils';
@@ -9,19 +9,20 @@ import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.servi
 
 import { shuffleAnimation } from './deck.animations';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
-import { DndResizableContainerComponent } from '../../../drag-and-drop/components/dnd-resizable-container - DISCARD/dnd-resizable-container.component';
 
 @Component({
-  selector: 'app-deck',
+  selector: 'app-$deck',
   imports: [
-    DndContentDirective, DndResizableContainerComponent
+    DndContentDirective
   ],
-  templateUrl: './deck.component.html',
-  styleUrl: './deck.component.scss',
+  templateUrl: './$deck.component.html',
+  styleUrl: './$deck.component.scss',
   animations: [shuffleAnimation] // TODO: Use shuffleAnimation when you're shuffling, probably have a button to handle that
 })
 export class DeckComponent {
-  deck = input<Deck>({
+  private readonly dndBoardService: DndBoardService = inject(DndBoardService);
+
+  public readonly $deck: InputSignal<Deck> = input<Deck>({
     zoneId: -1,
     containeeIds: [], // CHECKME: When opening displace menu, make sure that you actually grab the card containee ids then render the cards in there if needed
     maxChildren: 52, // CHECKME: Set max children, then unset max children, does it stiill work
@@ -43,9 +44,9 @@ export class DeckComponent {
     isRotatable: false
   });
 
-  deckChange = output<Deck>();
+  public $deckChange: OutputEmitterRef<Deck> = output<Deck>();
 
-  actionContextMenuItems: ActionContextMenuItem[] = [
+  protected actionContextMenuItems: ActionContextMenuItem[] = [
     {
       id: 0,
       name: "Shuffle",
@@ -60,13 +61,13 @@ export class DeckComponent {
     }
   ];
 
-  actionContextMenuItemsChange = output<ActionContextMenuItem[]>();
+  public $actionContextMenuItemsChange: OutputEmitterRef<ActionContextMenuItem[]> = output<ActionContextMenuItem[]>();
 
-  // Pass back the current src deck ID
-  onDisplaceCardChange = output<number>();
+  // Pass back the current src $deck ID
+  public $onDisplaceCardChange: OutputEmitterRef<number> = output<number>();
 
   /********* TO BE REFACTORED ************ */
-  onRightClick(event: MouseEvent) {
+  protected onRightClick(event: MouseEvent): void {
     event.preventDefault();
     
     // TODO: Potentially pass in the menu's location?
@@ -75,37 +76,32 @@ export class DeckComponent {
     event.clientY;
     */
 
-    this.actionContextMenuItemsChange.emit(this.actionContextMenuItems);
+    this.$actionContextMenuItemsChange.emit(this.actionContextMenuItems);
   }
   /*********************************/
 
-  constructor (private dndBoardService: DndBoardService){
-  }
+  constructor (){}
 
-  setDeckStyle(): void {
-
-  }
+  private setDeckStyle(): void {}
 
   // TODO: If amount of containee Ids exceeds max children, then toggle off droppability
   // Check this every time a card is about to be added
-  hasReachedMaxCards(): boolean {
-    let maxChildren: number | undefined = this.deck().maxChildren;
+  private hasReachedMaxCards(): boolean {
+    let maxChildren: number | undefined = this.$deck().maxChildren;
 
-    if (maxChildren === undefined)
-      return false;
-
-    return (this.deck().containeeIds.length >= maxChildren)
+    if (!maxChildren) return false;
+    return (this.$deck().containeeIds.length >= maxChildren)
   }
 
   // TODO: Bind this function to an action context menu, use ActionContextMenu
-  onShuffle() {
-    if (this.deck().containeeIds.length == 0)
+  private onShuffle(): void {
+    if (this.$deck().containeeIds.length == 0)
       return;
 
-    this.deck().containeeIds = fisherYatesShuffle(this.deck().containeeIds);
+    this.$deck().containeeIds = fisherYatesShuffle(this.$deck().containeeIds);
   }
 
-  onDisplaceCard() {
-    this.onDisplaceCardChange.emit(this.deck().zoneId);
+  private onDisplaceCard(): void {
+    this.$onDisplaceCardChange.emit(this.$deck().zoneId);
   }
 }

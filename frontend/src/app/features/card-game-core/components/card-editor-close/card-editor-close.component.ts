@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CardGameCoreService } from '../../services/card-game-core/card-game-core.service';
+import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 
 @Component({
   selector: 'app-card-editor-close',
@@ -8,10 +8,9 @@ import { CardGameCoreService } from '../../services/card-game-core/card-game-cor
   styleUrl: './card-editor-close.component.scss'
 })
 export class CardEditorCloseComponent {
-  private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
-  onClose(event: Event)
-  {
-     this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
+  protected onClose(event: Event): void {
+    this.cardEditorPreviewService.setIsCardEditorOpen(!this.cardEditorPreviewService.$isCardEditorOpen());
   }
 }

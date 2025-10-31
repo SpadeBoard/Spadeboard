@@ -4,7 +4,7 @@ import { Style } from '../../../style/models/style';
 
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ImageCroppedEvent, ImageCropperComponent, LoadedImage } from 'ngx-image-cropper';
-import { CardEditorControlsDesignImageService } from '../../services/card-editor-controls-design-image.service';
+import { CardEditorControlsDesignImageService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-image.service';
 
 @Component({
   selector: 'app-card-face-image-editor',
@@ -22,7 +22,7 @@ export class CardFaceImageEditorComponent {
   // https://www.youtube.com/watch?v=lCClcI3Lt2A
   // https://stackblitz.com/edit/image-cropper?file=src%2Fimage-cropper%2Fcomponent%2Fimage-cropper.component.ts%3AL255
 
-  cardFaceImageAttr: InputSignal<{cardFaceImage: Image, cardFaceImageStyle?: Style } | undefined> = input<{cardFaceImage: Image, cardFaceImageStyle?: Style}>();
+  public cardFaceImageAttr: InputSignal<{cardFaceImage: Image, cardFaceImageStyle?: Style } | undefined> = input<{cardFaceImage: Image, cardFaceImageStyle?: Style}>();
   readonly cardFaceImageAttrComputed = computed(() => 
     {
       let cardFaceImageAttr: {
@@ -48,48 +48,41 @@ export class CardFaceImageEditorComponent {
   private src: string = "";
 
   constructor() {
-    this.onEnableImageEditor();
   }
 
-  fileChangeEvent(event: Event): void {
+  public fileChangeEvent(event: Event): void {
     this.imageChangedEvent = event;
 
     // this.fileUploadComponent.onFileSelected(event);
   }
-  imageCropped(event: ImageCroppedEvent) {
+
+  public imageCropped(event: ImageCroppedEvent): void {
     if (event.objectUrl)
       this.croppedImage = this.sanitizer.bypassSecurityTrustUrl(event.objectUrl);
     // event.blob can be used to upload the cropped image
   }
-  imageLoaded(image: LoadedImage) {
+
+  public imageLoaded(image: LoadedImage): void {
     // show cropper
   }
-  cropperReady() {
+
+  public cropperReady(): void {
     // cropper ready
   }
-  loadImageFailed() {
+
+  public loadImageFailed(): void {
     // show message
   }
 
-  onModifyCardFaceImage(event: Event): void /*Promise<void>*/ {
+  public onModifyCardFaceImage(event: Event): void /*Promise<void>*/ {
     let src: string | null = this.sanitizer.sanitize(SecurityContext.URL, this.croppedImage);
 
-    if (src) {
-      this.src = src;
-    }
+    if (src) this.src = src;
 
-    this.cardEditorControlsDesignImageService.setOnDisableImageEditor(this.src);
+    this.cardEditorControlsDesignImageService.setDisableImageEditor(this.src);
   }
 
-  // TODO: Inside of card-face-image, we'd want to load that image if it exists
-  onEnableImageEditor() {
-    this.cardEditorControlsDesignImageService.onEnableImageEditor$.subscribe(() => {
-      // TODO: Open image editor and make the image in here?
-    })
-  }
-
-
-  onDisableImageEditor(event: Event): void {
-    this.cardEditorControlsDesignImageService.setOnDisableImageEditor(this.src);
+  public onDisableImageEditor(event: Event): void {
+    this.cardEditorControlsDesignImageService.setDisableImageEditor(this.src);
   }
 }

@@ -1,9 +1,9 @@
 import { Component, inject } from '@angular/core';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 import { moveToBack, moveToFront } from '../../../../utils/utils';
-import { CardEditorControlsDesignElementAttributesService } from '../../services/card-editor-controls-design-element-attributes.service';
+import { CardEditorControlsDesignElementAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/attributes/card-editor-controls-design-element-attributes.service';
 import { CardFaceElementPerCardFace } from '../../models/card-face-element';
-import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-editor-controls-element-layering-attributes.service';
+import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/attributes/card-editor-controls-element-layering-attributes.service';
 
 @Component({
   selector: 'app-card-editor-controls-element-layering-attributes',

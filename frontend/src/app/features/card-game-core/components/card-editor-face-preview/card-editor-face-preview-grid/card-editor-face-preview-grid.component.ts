@@ -1,4 +1,4 @@
-import { Component, computed, input, InputSignal, Signal } from '@angular/core';
+import { Component, input, InputSignal } from '@angular/core';
 import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../../utils/card-editor-face-preview.constants';
 
 @Component({
@@ -8,8 +8,7 @@ import { DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE } from '../../../utils/card-
   styleUrl: './card-editor-face-preview-grid.component.scss'
 })
 export class CardEditorFacePreviewGridComponent {
-  shouldSnapToGrid: InputSignal<boolean> = input(false);
-  shouldSnapToGridComputed: Signal<boolean> = computed(() => this.shouldSnapToGrid());
+  public readonly $shouldSnapToGrid: InputSignal<boolean> = input<boolean>(false);
 
-  readonly cellSizeScreen = DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE;
+  public readonly cellSizeScreen: number = DEFAULT_CARD_EDITOR_FACE_PREVIEW_CELL_SIZE;
 }

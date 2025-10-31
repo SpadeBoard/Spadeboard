@@ -1,13 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-editor-controls-design-card-face-attributes.service';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
-import { CardFaceAttributesBorderRadiusComponent } from '../card-face-attributes-border-radius/card-face-attributes-border-radius.component';
-import { CardFaceAttributesBorderWidthComponent } from '../card-face-attributes-border-width/card-face-attributes-border-width.component';
-import { CardFaceAttributesDimensionsComponent } from '../card-face-attributes-dimensions/card-face-attributes-dimensions.component';
-import { CardFaceAttributesIdComponent } from '../card-face-attributes-id/card-face-attributes-id.component';
+import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face/card-editor-controls-design-card-face-attributes.service';
+import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
+import { CardFaceAttributesBorderRadiusComponent } from '../card-face/attributes/card-face-attributes-border-radius/card-face-attributes-border-radius.component';
+import { CardFaceAttributesBorderWidthComponent } from '../card-face/attributes/card-face-attributes-border-width/card-face-attributes-border-width.component';
+import { CardFaceAttributesDimensionsComponent } from '../card-face/attributes/card-face-attributes-dimensions/card-face-attributes-dimensions.component';
+import { CardFaceAttributesIdComponent } from '../card-face/attributes/card-face-attributes-id/card-face-attributes-id.component';
 import { ColorPickerComponent } from '../color-picker/color-picker.component';
+import { CardEditorOperationsService } from '../../services/card-game-core/card-editor/operations/card-editor-operations.service';
 @Component({
   selector: 'app-card-editor-controls-card-face-attributes',
   imports: [CardFaceAttributesIdComponent, CardFaceAttributesBorderRadiusComponent, CardFaceAttributesDimensionsComponent, ColorPickerComponent, FormsModule, CardFaceAttributesBorderWidthComponent],
@@ -16,10 +17,13 @@ import { ColorPickerComponent } from '../color-picker/color-picker.component';
 })
 export class CardEditorControlsCardFaceAttributesComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+
+  private readonly cardEditorOperationsService: CardEditorOperationsService = inject(CardEditorOperationsService);
+
   private readonly cardEditorControlsDesignCardFaceAttributesService: CardEditorControlsDesignCardFaceAttributesService = inject(CardEditorControlsDesignCardFaceAttributesService);
 
   constructor() {
-    this.onSetCardEditorCardDtoByCardId();  
+    this.setCardEditorCardDto();  
     this.postFlip();
   }
 
@@ -27,16 +31,16 @@ export class CardEditorControlsCardFaceAttributesComponent {
     return this.cardEditorControlsDesignCardFaceAttributesService.areBorderDimensionsEqual();
   }
 
-  private postFlip() {
-    this.cardEditorPreviewService.postFlip$
+  private postFlip(): void {
+    this.cardEditorOperationsService.postFlip$
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
         this.cardEditorControlsDesignCardFaceAttributesService.setCardFaceAttributes();
       });
   }
 
-  private onSetCardEditorCardDtoByCardId() {
-    this.cardEditorPreviewService.onSetCardEditorCardDtoByCardId$
+  private setCardEditorCardDto(): void {
+    this.cardEditorPreviewService.setCardEditorCardDto$
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
         this.cardEditorControlsDesignCardFaceAttributesService.setCardFaceAttributes();

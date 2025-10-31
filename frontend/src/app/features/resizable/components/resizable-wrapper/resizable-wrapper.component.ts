@@ -1,5 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, input, InputSignal, output, OutputEmitterRef, Signal, ViewChild } from '@angular/core';
-import { Style } from '../../../style/models/style';
+import { Component, computed, HostListener, input, InputSignal, output, OutputEmitterRef, Signal } from '@angular/core';
 import { clamp, Dimensions, Threshold } from '../../../../utils/utils';
 
 @Component({
@@ -9,33 +8,28 @@ import { clamp, Dimensions, Threshold } from '../../../../utils/utils';
   styleUrl: './resizable-wrapper.component.scss'
 })
 export class ResizableWrapperComponent {
-  dimensions: InputSignal<Dimensions> = input<Dimensions>({
+  public readonly $dimensions: InputSignal<Dimensions> = input<Dimensions>({
     width: 0.01,
     height:0.01
   });
 
-  // TODO: Just put this outside of here, we shouldn't clamp inside the wrapper, have the parent handle clamping
-  resizeThreshold: InputSignal<Threshold> = input<Threshold>({
+  public readonly $resizeThreshold: InputSignal<Threshold> = input<Threshold>({
     min: 0.01,
     max: 400
   });
 
-  resizeThresholdComputed: Signal<Threshold> = computed(
-    () => this.resizeThreshold()
-  );
-
-  private dimensionsComputed: Signal<Dimensions> = computed(() => {
-    let value = this.dimensions();
+  private clampedDimensionsComputed: Signal<Dimensions> = computed(() => {
+    let value: Dimensions = this.$dimensions();
 
     value = {
-      width: (value.width > 0) ? value.width : this.resizeThresholdComputed().min,
-      height: (value.height) > 0 ? value.height : this.resizeThresholdComputed().min
+      width: (value.width > 0) ? value.width : this.$resizeThreshold().min,
+      height: (value.height) > 0 ? value.height : this.$resizeThreshold().min
     }
 
     return value;
   });
 
-  resizableChange: OutputEmitterRef<Dimensions> = output<Dimensions>();
+  public readonly $resizableChange: OutputEmitterRef<Dimensions> = output<Dimensions>();
 
   private draggingAttributes: {
     draggingWindow: boolean;
@@ -60,39 +54,39 @@ export class ResizableWrapperComponent {
   constructor() {
   }
 
-  topLeftResize(offsetX: number, offsetY: number) {
-    let current = this.dimensionsComputed();
-    let newWidth = clamp(current.width - offsetX, this.resizeThresholdComputed().min, this.resizeThresholdComputed().max);
-    let newHeight = clamp(current.height - offsetY, this.resizeThresholdComputed().min, this.resizeThresholdComputed().max);
+  private topLeftResize(offsetX: number, offsetY: number): void {
+    let current = this.clampedDimensionsComputed();
+    let newWidth = clamp(current.width - offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let newHeight = clamp(current.height - offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
 
-    this.resizableChange.emit({ width: newWidth, height: newHeight });
+    this.$resizableChange.emit({ width: newWidth, height: newHeight });
   }
 
-  topRightResize(offsetX: number, offsetY: number) {
-    let current = this.dimensionsComputed();
-    let newWidth = clamp(current.width + offsetX, this.resizeThresholdComputed().min, this.resizeThresholdComputed().max);
-    let newHeight = clamp(current.height - offsetY, this.resizeThresholdComputed().min, this.resizeThresholdComputed().max);
+  private topRightResize(offsetX: number, offsetY: number): void {
+    let current = this.clampedDimensionsComputed();
+    let newWidth = clamp(current.width + offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let newHeight = clamp(current.height - offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
 
-    this.resizableChange.emit({ width: newWidth, height: newHeight });
+    this.$resizableChange.emit({ width: newWidth, height: newHeight });
   }
 
-  bottomLeftResize(offsetX: number, offsetY: number) {
-    let current = this.dimensionsComputed();
-    let newWidth = clamp(current.width - offsetX, this.resizeThresholdComputed().min, this.resizeThresholdComputed().max);
-    let newHeight = clamp(current.height + offsetY, this.resizeThresholdComputed().min, this.resizeThresholdComputed().max);
+  private bottomLeftResize(offsetX: number, offsetY: number): void {
+    let current = this.clampedDimensionsComputed();
+    let newWidth = clamp(current.width - offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let newHeight = clamp(current.height + offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
 
-    this.resizableChange.emit({ width: newWidth, height: newHeight });
+    this.$resizableChange.emit({ width: newWidth, height: newHeight });
   }
 
-  bottomRightResize(offsetX: number, offsetY: number) {
-    let current = this.dimensionsComputed();
-    let newWidth = clamp(current.width + offsetX, this.resizeThresholdComputed().min, this.resizeThresholdComputed().max);
-    let newHeight = clamp(current.height + offsetY, this.resizeThresholdComputed().min, this.resizeThresholdComputed().max);
+  private bottomRightResize(offsetX: number, offsetY: number): void {
+    let current = this.clampedDimensionsComputed();
+    let newWidth = clamp(current.width + offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let newHeight = clamp(current.height + offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
 
-    this.resizableChange.emit({ width: newWidth, height: newHeight });
+    this.$resizableChange.emit({ width: newWidth, height: newHeight });
   }
 
-  onCornerClick(event: MouseEvent, corner: string) {
+  protected onCornerClick(event: MouseEvent, corner: string): void {
     this.draggingAttributes.draggingCorner = true;
 
     this.draggingAttributes.px = event.clientX;
@@ -105,7 +99,7 @@ export class ResizableWrapperComponent {
   }
 
   @HostListener('document:mousemove', ['$event'])
-  onCornerMove(event: MouseEvent) {
+  protected onCornerMove(event: MouseEvent): void {
     if (!this.draggingAttributes.draggingCorner) {
       return;
     }
@@ -136,7 +130,7 @@ export class ResizableWrapperComponent {
   }
 
   @HostListener('document:mouseup', ['$event'])
-  onCornerRelease(event: MouseEvent) {
+  protected onCornerRelease(event: MouseEvent): void {
     this.draggingAttributes.draggingWindow = false;
     this.draggingAttributes.draggingCorner = false;
   }

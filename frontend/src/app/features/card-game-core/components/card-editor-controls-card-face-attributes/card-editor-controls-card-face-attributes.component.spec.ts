@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CardEditorControlsCardFaceAttributesComponent } from './card-editor-controls-card-face-attributes.component';
+import { provideHttpClient } from '@angular/common/http';
 
 describe('CardEditorControlsCardFaceAttributesComponent', () => {
   let component: CardEditorControlsCardFaceAttributesComponent;
@@ -8,7 +9,8 @@ describe('CardEditorControlsCardFaceAttributesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CardEditorControlsCardFaceAttributesComponent]
+      imports: [CardEditorControlsCardFaceAttributesComponent],
+      providers: [provideHttpClient()]
     })
     .compileComponents();
 

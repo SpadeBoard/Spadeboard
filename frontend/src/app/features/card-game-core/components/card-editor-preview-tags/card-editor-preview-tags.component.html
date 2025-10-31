@@ -4,8 +4,8 @@
     inputClass="form-control"
     [settings]="settings" 
     [whitelist]="whitelist$$"
-    [readonly]="readonlyComputed()"
-    [disabled]="disabledComputed()"
+    [readonly]="readonly()"
+    [disabled]="disabled()"
     (add)="onAdd($event)"
     (remove)="onRemove($event)">
 </tagify>

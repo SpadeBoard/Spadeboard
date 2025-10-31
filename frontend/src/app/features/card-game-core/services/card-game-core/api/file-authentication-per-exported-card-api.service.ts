@@ -9,13 +9,13 @@ import { CardEditorCardDto } from '../../../models/card';
   providedIn: 'root'
 })
 export class FileAuthenticationPerExportedCardApiService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
     
-  private apiUrl = `${environment.hostServerUrl}/api/FileAuthenticationPerExportedCard`;
+  private readonly apiUrl = `${environment.hostServerUrl}/api/FileAuthenticationPerExportedCard`;
     
   constructor() { }
 
-  isValidImport$(cardEditorCardDto: CardEditorCardDto): Observable<boolean> {
+  public isValidImport$(cardEditorCardDto: CardEditorCardDto): Observable<boolean> {
     if (!cardEditorCardDto) {
       console.warn("No card editor card dto to check");
       return of(false);
@@ -24,7 +24,7 @@ export class FileAuthenticationPerExportedCardApiService {
     return this.http.post<boolean>(`${this.apiUrl}/is-valid-import`, cardEditorCardDto);
   }
 
-  createFileAuthenticationPerExportedCard$(fileAuthenticationPerExportedCard: FileAuthenticationPerExportedCard): Observable<FileAuthenticationPerExportedCard| undefined> {
+  public createFileAuthenticationPerExportedCard$(fileAuthenticationPerExportedCard: FileAuthenticationPerExportedCard): Observable<FileAuthenticationPerExportedCard| undefined> {
       if (!fileAuthenticationPerExportedCard) {
         return of(undefined);
       } 

@@ -1,6 +1,5 @@
-import { Injectable, HostListener, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { DndPosition } from '../models/dnd-types';
 import { clamp, Coordinates, Dimensions, getBoundingBox, getScaledItemRenderDimensions } from '../../../utils/utils';
 @Injectable({
   providedIn: 'root'
@@ -225,15 +224,15 @@ getScaledItemRenderCoordinates(itemPosition: Coordinates): Coordinates {
   return this.aUToScreenCoordinates(itemPosition);
 }
 
-  getItemRenderScale() {
+  public getItemRenderScale(): number {
     return this.getScaledCellSize() / this.cellSizeScreen;
   }
 
-  getScaledCellSize(): number {
+  public getScaledCellSize(): number {
     return this.cellSizeScreen * this.zoom;
   }
   
-  getScaledDndBoardSizeScreen(): number {
+  public getScaledDndBoardSizeScreen(): number {
     return this.dndBoardSizeAU * this.getScaledCellSize();
   }
   

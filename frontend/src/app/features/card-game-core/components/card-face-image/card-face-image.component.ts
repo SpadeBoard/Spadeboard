@@ -1,7 +1,7 @@
 import { Component, DestroyRef, effect, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, of, Subscriber, switchMap } from 'rxjs';
-import { FileUploadApiService } from '../../../../utils/services/file-upload-api.service';
+import { FileUploadApiService } from '../../../../utils/services/file/upload/api/file-upload-api.service';
 import { CardFaceImage } from '../../utils/card-face.utils';
 import { getDefaultCardFaceElementImage } from '../../utils/card-editor.constants';
 
@@ -15,19 +15,19 @@ export class CardFaceImageComponent {
   // TODO: Make sure that it's always passing in the data url and not a blob
   private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
 
-  cardFaceImageSrc: InputSignal<string | undefined> = input<string | undefined>('');
+  public cardFaceImageSrc: InputSignal<string | undefined> = input<string | undefined>('');
 
-  cardFaceImageWidth: InputSignal<number> = input<number>(100);
-  cardFaceImageHeight: InputSignal<number> = input<number>(100);
+  public cardFaceImageWidth: InputSignal<number> = input<number>(100);
+  public cardFaceImageHeight: InputSignal<number> = input<number>(100);
 
   // TODO: Have this be a function to assign
-  imageHtmlContent: CardFaceImage = getDefaultCardFaceElementImage();
+  protected imageHtmlContent: CardFaceImage = getDefaultCardFaceElementImage();
  
   private previousImageUrl: string = "";
   
-  private destroyRef: DestroyRef = inject(DestroyRef);
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
-  setImageSrc(url: string) {
+  private setImageSrc(url: string): void {
     this.previousImageUrl = url; // For the comparison above, we don't want to reset the image constantly based on effect, make sure the new url's actually different
     
     // So there's two steps, here the source is already a blob, we revoke it then assign it to the new url
@@ -69,13 +69,12 @@ export class CardFaceImageComponent {
   }
 
   // PURPOSE: Emit back the cardFaceElementID
-  showImageEditor: OutputEmitterRef<void> = output<void>();
+  public showImageEditor: OutputEmitterRef<void> = output<void>();
 
-  // FIXME: Why is this matching twice?
-  extractGuid(url: string): string | null {
+  private extractGuid(url: string): string | null {
     // Captures a GUID anywhere in the string (with or without curly braces)
-    let guidRegex = /(?:\{{0,1})([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\}{0,1})/;
-    let match = url.match(guidRegex);
+    let guidRegex: RegExp = /(?:\{{0,1})([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\}{0,1})/;
+    let match: RegExpMatchArray | null = url.match(guidRegex);
     return match ? match[1] : null;
   }
   
@@ -89,7 +88,7 @@ export class CardFaceImageComponent {
         if (!blob) return of(undefined);
 
         return new Observable<HTMLImageElement>((observer: Subscriber<HTMLImageElement>) => {
-          let img = new Image();
+          let img: HTMLImageElement = new Image();
           let objectUrl: string = URL.createObjectURL(blob);
           img.src = objectUrl;
 

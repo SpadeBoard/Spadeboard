@@ -16,17 +16,16 @@ import { getScaledItemRenderDimensions } from '../../../../utils/utils';
   styleUrl: './card-face.component.scss'
 })
 export class CardFaceComponent {
-  cardFaceImage: InputSignal<CardFaceImage> = input<CardFaceImage>(getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS));
-  cardFaceImageComputed: Signal<CardFaceImage> = computed(() => this.cardFaceImage());
+  public readonly $cardFaceScale: InputSignal<number> = input<number>(1);
 
-  cardFaceImageSrcComputed: Signal<string> = computed(() => this.cardFaceImage().src);
-  cardFaceImageAltComputed: Signal<string> = computed(() => this.cardFaceImage().alt);
+  public readonly $cardFaceImage: InputSignal<CardFaceImage> = input<CardFaceImage>(getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS));
 
-  cardFaceScale: InputSignal<number> = input<number>(1);
+  protected readonly $cardFaceImageSrcComputed: Signal<string> = computed(() => this.$cardFaceImage().src);
+  protected readonly $cardFaceImageAltComputed: Signal<string> = computed(() => this.$cardFaceImage().alt);
 
-  cardFaceImageDimensionsComputed: Signal<Dimensions> = computed(() => {
-    let {dimensions} = this.cardFaceImage();
-    
-    return getScaledItemRenderDimensions(dimensions, this.cardFaceScale())
+  protected readonly $cardFaceImageDimensionsComputed: Signal<Dimensions> = computed(() => {
+    let { dimensions } = this.$cardFaceImage();
+
+    return getScaledItemRenderDimensions(dimensions, this.$cardFaceScale())
   });
 }

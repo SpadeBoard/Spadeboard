@@ -2,7 +2,7 @@
     <app-new-card-template-collection  [title]="new.cardName" (click)="onClickCard($event, new.cardId)"></app-new-card-template-collection>
     @if (cards.length > 0) {
         @for (card of cards; track card.cardId) {
-        <app-card [cardScale] = "getDefaultCardScale()" [card]="card" [title]="card.cardName" (click)="onClickCard($event, card.cardId)"
+        <app-card [$cardScale] = "getDefaultCardScale()" [$card]="card" [title]="card.cardName" (click)="onClickCard($event, card.cardId)"
             (contextmenu)="onCardRightClick($event, card.cardId)" />
 
             @if (card.cardId !== getCurrentEditedCardId()) {
@@ -12,6 +12,6 @@
     }
 </div>
 @if (currentContextMenuId !== "") {
-    <app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
-        (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
+    <app-action-context-menu [style]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
+        (onActionContextMenuItemClick)="performAction($event)"></app-action-context-menu>
 }

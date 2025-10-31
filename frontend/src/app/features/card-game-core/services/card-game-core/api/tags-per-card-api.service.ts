@@ -10,16 +10,16 @@ import { Card } from '../../../models/card';
 export class TagsPerCardApiService {
   constructor() { }
 
-  private http = inject(HttpClient);
+  private http: HttpClient = inject(HttpClient);
 
-  private apiUrl = `${environment.hostServerUrl}/api/TagsPerCard`;
+  private readonly apiUrl: string = `${environment.hostServerUrl}/api/TagsPerCard`;
   
-  deleteByTagNamesAndCardId$(tagNames: string[], cardId: string): Observable<void> {
+  public deleteByTagNamesAndCardId$(tagNames: string[], cardId: string): Observable<void> {
     let params: HttpParams = new HttpParams({ fromObject: { tagNames } }); // tagNames will be repeated in the query string
     return this.http.delete<void>(`${this.apiUrl}/tag-names/${cardId}`, { params });
   }
 
-  getCardTemplatesByOwnerId$(ownerId: string): Observable<Card[]> {
+  public getCardTemplatesByOwnerId$(ownerId: string): Observable<Card[]> {
     return this.http.get<Card[]>(`${this.apiUrl}/owner/${ownerId}`);
   }
 }

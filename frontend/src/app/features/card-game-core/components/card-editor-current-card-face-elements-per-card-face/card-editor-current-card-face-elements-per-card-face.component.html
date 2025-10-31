@@ -3,50 +3,51 @@
     cdkDropList 
     cdkDropListSortingDisabled="true" 
     #cardEditorFace>
-    @if (currentCardFaceElementsPerCardFace.length > 0) {
+    @if ($cardFaceElementsPerCardFace().length > 0) {
         <!--CHECKME: Track by ID, but caveat is it cause issues in scenarios where you expect the DOM or child component to fully re-render or reset—such as when generating a thumbnail image-->
         <!--Which means there might need to be a potential refactor-->
-        @for (currentCardFaceElementPerCardFace of currentCardFaceElementsPerCardFace; track currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId) {
+        @for (cardFaceElementPerCardFace of $cardFaceElementsPerCardFace(); track cardFaceElementPerCardFace.cardFaceElementPerCardFaceId) {
         <div class="card-face-element-dnd-wrapper" 
             cdkDrag 
             cdkDragBoundary=".card-editor-face"
+            [title]="cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
             (mousedown)="onDragStartMouseDown($event)"
-            (cdkDragStarted)="onDragStarted($event)"
+            (cdkDragStarted)="onDragStarted($event, cardFaceElementPerCardFace)"
             (cdkDragMoved)="onDragMoved($event)"
-            (cdkDragDropped)="onDragDropped($event)" 
-            [style.left.px]="currentCardFaceElementPerCardFace.dndPosition.x"
-            [style.top.px]="currentCardFaceElementPerCardFace.dndPosition.y"
-            [style.z-index]="currentCardFaceElementPerCardFace.cardFaceElement.style?.zIndex ?? 'inherit'"
-            [attr.card-face-element-id]="currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
-            #cardFaceElement>
+            (cdkDragDropped)="onDragDropped($event, cardFaceElementPerCardFace)" 
+            [style.left.px]="cardFaceElementPerCardFace.dndPosition.x"
+            [style.top.px]="cardFaceElementPerCardFace.dndPosition.y"
+            [style.z-index]="cardFaceElementPerCardFace.cardFaceElement.style?.zIndex ?? 'inherit'"
+        >
             <!--TODO: Potentially refactor to use ngComponentOutlet, possibly call onRevokeSrc of card face image there?-->
-            @switch (currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
+            @switch (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
                 @case ("Rte") {
                     <app-card-face-rt 
-                        [cardFaceRtWidth]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace).width"
-                        [cardFaceRtHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace).height"
-                        (mousedown)="onEnableRte($event, currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [content]="getCardFaceElementRtContentByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
+                        [cardFaceRtWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
+                        [cardFaceRtHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height"
+                        (mousedown)="enableRte($event, cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                        [content]="getCardFaceElementRt(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
                     </app-card-face-rt>
                 }
                 @case ("Image") {
                     <app-card-face-image 
-                        (mousedown)="onFocusImage(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [cardFaceImageSrc]="getCardFaceElementImageSrcByCardFaceElementId(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) ?? placeholderImageSrc"
-                        [cardFaceImageWidth]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace).width"
-                        [cardFaceImageHeight]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace).height">
-                        <button class="change-image-button" (click)="onEnableImageEditor(currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
+                        (mousedown)="focusImage(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                        [cardFaceImageSrc]="getCardFaceElementImageSrc(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                        [cardFaceImageWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
+                        [cardFaceImageHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height">
+                        <button class="change-image-button" (click)="enableImageEditor(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
                     </app-card-face-image>
                 }
             }
-            @if (currentEditedCardFaceElementId === currentCardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
+            @if ($cardFaceElementId() === cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
                 <app-card-editor-element-delete-button
-                    [cardFaceElementPerCardFaceId]="currentCardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
+                    [$cardFaceElementPerCardFaceId]="cardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
                     data-html2canvas-ignore="true" />
                 <app-resizable-wrapper
-                    [dimensions]="getCardFaceElementDimensions(currentCardFaceElementPerCardFace)"
-                    [resizeThreshold]="getResizeThreshold()"
-                    (resizableChange)="onResizableChange($event)" data-html2canvas-ignore="true" />
+                    [$dimensions]="getCardFaceElementDimensions(cardFaceElementPerCardFace)"
+                    [$resizeThreshold]="getResizeThreshold()"
+                    ($resizableChange)="onResizableChange($event)" 
+                    data-html2canvas-ignore="true" />
             }
         </div>
         }

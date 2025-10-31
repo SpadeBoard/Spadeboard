@@ -9,7 +9,7 @@
         <app-cards-collection />
     </div>
 
-    @if (cardGameCoreService.isCardEditorOpen()) {
+    @if (cardEditorPreviewService.$isCardEditorOpen()) {
         <div class = "game-room-editor">
             <app-card-editor/>
         </div>

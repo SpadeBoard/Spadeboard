@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { CardGameCoreService } from '../../../card-game-core/services/card-game-core/card-game-core.service';
+import { CardEditorPreviewService } from '../../../card-game-core/services/card-game-core/card-editor/preview/card-editor-preview.service';
+import { CardsCollectionService } from '../../../card-game-core/services/card-game-core/cards-collection/cards-collection.service';
 import { GameRoomService } from '../../services/game-room.service';
 
 @Component({
@@ -9,30 +10,34 @@ import { GameRoomService } from '../../services/game-room.service';
   styleUrl: './game-room-nav.component.scss'
 })
 export class GameRoomNavComponent {
-  isCardsCollectionMenuOpen: boolean = false;
-  isGameRoomNavHovered: boolean = false;
+  protected isCardsCollectionMenuOpen: boolean = false;
+  
+  protected isGameRoomNavHovered: boolean = false;
 
-  private gameRoomService: GameRoomService = inject(GameRoomService);
-  private cardGameCoreService: CardGameCoreService = inject(CardGameCoreService);
+  private readonly gameRoomService: GameRoomService = inject(GameRoomService);
+ 
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
-  onCardEditor(event: Event): void {
-    this.cardGameCoreService.setIsCardEditorOpen(!this.cardGameCoreService.isCardEditorOpen());
+  private readonly cardsCollectionService: CardsCollectionService = inject(CardsCollectionService);
+  
+  protected cardEditorClick(event: Event): void {
+    this.cardEditorPreviewService.setIsCardEditorOpen(!this.cardEditorPreviewService.$isCardEditorOpen());
   }
 
-  onCardsCollection(event: Event): void {
+  protected cardsCollectionClick(event: Event): void {
     this.isCardsCollectionMenuOpen = !this.isCardsCollectionMenuOpen;
-    this.cardGameCoreService.setIsCardsCollectionMenuOpen(this.isCardsCollectionMenuOpen);
+    this.cardsCollectionService.setIsCardsCollectionMenuOpen(this.isCardsCollectionMenuOpen);
   }
 
-  onSaveGameRoom(event: Event): void {
+  protected saveGameRoomClick(event: Event): void {
     this.gameRoomService.onSave();
   }
 
-  onGameRoomNavMouseEnter(event: Event): void {
+  protected gameRoomNavMouseEnter(event: Event): void {
     this.isGameRoomNavHovered = true;
   }
 
-   onGameRoomNavMouseLeave(event: Event): void {
+  protected gameRoomNavMouseLeave(event: Event): void {
     this.isGameRoomNavHovered = false;
   }
 }

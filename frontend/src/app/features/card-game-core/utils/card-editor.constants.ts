@@ -79,7 +79,7 @@ export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT: number = 0;
 
 export function getDefaultCardFaceElementImage(): CardFaceImage {
   return  {
-    src: 'https://www.charitycomms.org.uk/wp-content/uploads/2019/02/placeholder-image-square.jpg',
+    src: '/card-editor-controls_card-face-elements-list_image-element-icon.svg',
     alt: 'Placeholder square image',
     dimensions: {
       width: 100,

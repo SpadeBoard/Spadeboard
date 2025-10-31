@@ -2,7 +2,7 @@ import { CdkDropList } from '@angular/cdk/drag-drop';
 import { AfterViewInit, Component, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Dimensions } from 'ngx-image-cropper';
-import { Coordinates } from '../../../../utils/utils';
+import { Coordinates, stringify } from '../../../../utils/utils';
 import { CardPositionPerRoomComponent } from '../../../card-game-core/components/card-position-per-room/card-position-per-room.component';
 import { DndBoardService } from '../../services/dnd-board.service';
 import { DndBoardGridComponent } from '../dnd-board-grid/dnd-board-grid.component';
@@ -20,7 +20,7 @@ app-dnd-board (root)          ↑
 /*************************************************************/
 @Component({
   selector: 'app-dnd-board',
-  imports: [ CdkDropList, CardPositionPerRoomComponent, DndBoardGridComponent, DndBoardLayerComponent
+  imports: [CdkDropList, CardPositionPerRoomComponent, DndBoardGridComponent, DndBoardLayerComponent
   ],
   templateUrl: './dnd-board.component.html',
   styleUrl: './dnd-board.component.scss'
@@ -32,20 +32,17 @@ export class DndBoardComponent implements AfterViewInit {
   // 1. If drags on top of something that is droppable
   // 2. Then appear menu to determine whether to add to it
 
-  shouldSnapToGrid: boolean = false;
+  protected shouldSnapToGrid: boolean = false;
 
   @HostListener('document:keyup', ['$event'])
-  handleCtrlUp(event: KeyboardEvent) {
+  protected handleCtrlUp(event: KeyboardEvent): void {
     if (event.key === 'Control') {
       this.shouldSnapToGrid = !this.shouldSnapToGrid;
     }
   }
 
   // TODO: Populate this
-  private dndBoardService: DndBoardService= inject(DndBoardService);
-
-  gameRoomId: string = "1";
-  ownerId: string = "5811e387-1551-4090-9485-a3ebe30efb5a"; // TODO: Should be admin of room
+  private dndBoardService: DndBoardService = inject(DndBoardService);
 
   mouseMoveLog: string = '';
 
@@ -55,7 +52,7 @@ export class DndBoardComponent implements AfterViewInit {
   getOffset	No	Yes	Yes	Yes	Hybrid/unknown
   getMouseContentPosition	No	Yes	Yes	Yes	Hybrid/unknown
   */
-  
+
   /* 
     Action	Camera Coordinates Change?	Why?
     User scrolls	Yes	Scroll offset → new camera AU position
@@ -70,12 +67,12 @@ export class DndBoardComponent implements AfterViewInit {
   constructor() {
     this.postShowAllItems();
   }
-  
- ngAfterViewInit(): void {
-  this.updateCameraOnScroll();
- }
- 
-  updateCameraOnScroll() {
+
+  ngAfterViewInit(): void {
+    this.updateCameraOnScroll();
+  }
+
+  protected updateCameraOnScroll(): void {
     let wrapper: HTMLDivElement = this.dndBoard.nativeElement;
 
     // Calculate camera AU directly from scroll
@@ -86,69 +83,69 @@ export class DndBoardComponent implements AfterViewInit {
       x: wrapper.scrollLeft,
       y: wrapper.scrollTop
     }
-    
+
     let camera: Coordinates = this.dndBoardService.calculateCameraPositionFromScroll(scroll);
-    let viewportDimensions: Dimensions = {width: wrapper.clientWidth, height: wrapper.clientHeight};
-  
+    let viewportDimensions: Dimensions = { width: wrapper.clientWidth, height: wrapper.clientHeight };
+
     this.dndBoardService.setCameraCoordinates(camera, viewportDimensions);
     // this.dndBoardService.setScreenPxDimensions(viewportDimensions.width, viewportDimensions.height);
-    // console.log(`On update camera - Set Dnd Board Camera: Camera AU coordinates: ${JSON.stringify(this.dndBoardService.getCameraCoordinates())}, Camera screen coordinates: ${JSON.stringify({scrollLeft, scrollTop})}`);
+    // console.log(`On update camera - Set Dnd Board Camera: Camera AU coordinates: ${stringify(this.dndBoardService.getCameraCoordinates())}, Camera screen coordinates: ${stringify({scrollLeft, scrollTop})}`);
     this.dndBoardService.onUpdateCamera();
   }
 
   @HostListener('window:keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
+  protected handleKeyDown(event: KeyboardEvent): void {
     if (event.code === 'ShiftLeft') {
       this.dndBoardService.setOnShowAllItems();
     }
   }
 
-   postShowAllItems() {
+  private postShowAllItems(): void {
     this.dndBoardService.postShowAllItems$.pipe(takeUntilDestroyed())
-    .subscribe(() => {
-      this.scrollBasedOnCamera('smooth');
-    })
+      .subscribe(() => {
+        this.scrollBasedOnCamera('smooth');
+      })
   }
 
-  scrollBasedOnCamera(scrollBehavior: 'auto' | 'smooth' = 'auto'): void {
+  private scrollBasedOnCamera(scrollBehavior: 'auto' | 'smooth' = 'auto'): void {
     if (this.dndBoard && this.dndBoard.nativeElement) {
-        let scroll: Coordinates = this.dndBoardService.calculateScrollPosiiton();
+      let scroll: Coordinates = this.dndBoardService.calculateScrollPosiiton();
 
-        this.dndBoard.nativeElement.scrollTo({
-          left: scroll.x,
-          top: scroll.y,
-          behavior: scrollBehavior // Rapid, repeated updates (like during drag or continuous zoom), smooth can cause a "lag" or "rubber-banding" effect
-        });
-      };
+      this.dndBoard.nativeElement.scrollTo({
+        left: scroll.x,
+        top: scroll.y,
+        behavior: scrollBehavior // Rapid, repeated updates (like during drag or continuous zoom), smooth can cause a "lag" or "rubber-banding" effect
+      });
+    };
   }
 
-  onScroll(event: Event) {
+  protected onScroll(event: Event): void {
     this.updateCameraOnScroll();
   }
 
-  @HostListener('document:mousemove', ['$event']) 
-  onMouseMove(event: MouseEvent) {
+  @HostListener('document:mousemove', ['$event'])
+  protected onMouseMove(event: MouseEvent): void {
     // 1. Get mouse screen coordinates
-  let mouseScreenX: number = event.clientX;
-  let mouseScreenY: number = event.clientY;
+    let mouseScreenX: number = event.clientX;
+    let mouseScreenY: number = event.clientY;
 
-  let screen: Coordinates = {
-    x: event.clientX,
-    y: event.clientY
-  }
+    let screen: Coordinates = {
+      x: event.clientX,
+      y: event.clientY
+    }
 
-  let rect: DOMRect = this.dndBoard.nativeElement.getBoundingClientRect();
-  let mouseX: number = event.clientX - rect.left;
-  let mouseY: number = event.clientY - rect.top;
+    let rect: DOMRect = this.dndBoard.nativeElement.getBoundingClientRect();
+    let mouseX: number = event.clientX - rect.left;
+    let mouseY: number = event.clientY - rect.top;
 
-  this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, rect);
+    this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, rect);
 
-  this.dndBoardService.setOnMouseMove(mouseScreenX, mouseScreenY, mouseX, mouseY);
+    this.dndBoardService.setOnMouseMove(mouseScreenX, mouseScreenY, mouseX, mouseY);
 
     /*this.mouseMoveLog = `On Mouse Move:
      Mouse Screen coordinates (clientX, clientY): (${mouseScreenX}, ${mouseScreenY})
       Mouse relative to board (mouseX, mouseY): (${mouseX}, ${mouseY})
-     Mouse AU to Screen coordinates: (${JSON.stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
+     Mouse AU to Screen coordinates: (${stringify(this.dndBoardService.aUToScreenCoordinates(this.dndBoardService.mouseAUCoordinates))})
      Grid size AU: ${this.dndBoardService.getGridSizeAU()}
      Grid size screen: (${this.gridWidthScreen}, ${this.gridHeightScreen})
      Zoom Level: ${this.dndBoardService.zoom}
@@ -160,7 +157,7 @@ export class DndBoardComponent implements AfterViewInit {
 
   // NOTE: Call this.updateCameraOnScroll immediately after zooming, scrolling, or resizing, using the current viewport size.
   @HostListener('wheel', ['$event'])
-  onWheel(event: WheelEvent) {
+  protected onWheel(event: WheelEvent): void {
     event.preventDefault();
 
     let screen: Coordinates = { x: event.clientX, y: event.clientY };
@@ -185,7 +182,7 @@ export class DndBoardComponent implements AfterViewInit {
     // Only scroll if the camera actually moved
     let newCamera: Coordinates = this.dndBoardService.camera;
 
-    console.log(`Camera position on zoom: ${JSON.stringify(newCamera)}`);
+    console.log(`%c${this.constructor.name} - ${this.onWheel.name} - Camera position on zoom: ${stringify(newCamera)}`, `color: #084b83; background: #bbe6e4; padding: 5px; border-radius: 5px;`);
 
     if (this.isCameraTranslationHighEnough(prevCamera, newCamera))
       // We need to scroll because the board's a scrollable container 
@@ -193,44 +190,47 @@ export class DndBoardComponent implements AfterViewInit {
 
     let rect: DOMRect = this.dndBoard.nativeElement.getBoundingClientRect();
 
-    this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen,  rect);
+    this.dndBoardService.updateMouseAUCoordinatesFromScreen(screen, rect);
     this.dndBoardService.setZoomLevel();
 
-    // console.log(`On Wheel: Grid size AU: ${JSON.stringify(this.dndBoardService.screenToAUCoordinates(this.gridWidthScreen, this.gridHeightScreen))} Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}, Cell Size: ${this.cellSizeScreen}`);
+    // console.log(`On Wheel: Grid size AU: ${stringify(this.dndBoardService.screenToAUCoordinates(this.gridWidthScreen, this.gridHeightScreen))} Grid size screen: ${this.gridWidthScreen}, ${this.gridHeightScreen}, Zoom Level: ${this.dndBoardService.zoom}, Cell Size: ${this.cellSizeScreen}`);
 
     // 1.1 = 10%
   }
 
-  getViewportDimensions(): Dimensions {
-     let wrapper: HTMLDivElement = this.dndBoard.nativeElement;
+  protected getViewportDimensions(): Dimensions {
+    let wrapper: HTMLDivElement = this.dndBoard.nativeElement;
     let viewportDimensions: Dimensions = { width: wrapper.clientWidth, height: wrapper.clientHeight };
-  
+
     return viewportDimensions;
   }
 
-  getCameraMovementVector(mouseAUBefore: Coordinates, mouseAUAfter: Coordinates): Coordinates {
+  protected getCameraMovementVector(mouseAUBefore: Coordinates, mouseAUAfter: Coordinates): Coordinates {
     return {
       x: mouseAUBefore.x - mouseAUAfter.x,
       y: mouseAUBefore.y - mouseAUAfter.y
     }
   }
 
-  isCameraTranslationHighEnough(prevCamera: Coordinates, newCamera: Coordinates): boolean {
-     let CAMERA_MOVEMENT_VECTOR_DIFFERENCE_EPSILON: number = 1e-6;
+  protected isCameraTranslationHighEnough(prevCamera: Coordinates, newCamera: Coordinates): boolean {
+    // TODO: Move to a constants file
+    let CAMERA_MOVEMENT_VECTOR_DIFFERENCE_EPSILON: number = 1e-6;
 
     return (Math.abs(newCamera.x - prevCamera.x) > CAMERA_MOVEMENT_VECTOR_DIFFERENCE_EPSILON ||
       Math.abs(newCamera.y - prevCamera.y) > CAMERA_MOVEMENT_VECTOR_DIFFERENCE_EPSILON);
   }
 
-   // So this is all meant to prevent the hypersensivity of the movement
-  applyCameraMovementVectorConstraints(d: Coordinates): Coordinates {
+  // So this is all meant to prevent the hypersensivity of the movement
+  private applyCameraMovementVectorConstraints(d: Coordinates): Coordinates {
     // Prevents camera microjitter, there's potential floating-point noise.
+    // TODO: Move to a constants file
     let DEAD_ZONE: number = 0.01;
     if (Math.abs(d.x) < DEAD_ZONE) d.x = 0;
     if (Math.abs(d.y) < DEAD_ZONE) d.y = 0;
 
     // Reduce camera magnitude by a value between 0 and 1 to make zooming feel smoother.
     // Acts as 'interpolation' essentially but not really interpolation
+    // TODO: Move to a constants file
     let SENSITIVITY = 0.7;
 
     // Even after scaling, a large zoom or a big movement vector could cause the camera to jump.
@@ -241,12 +241,12 @@ export class DndBoardComponent implements AfterViewInit {
 
     d.x *= SENSITIVITY;
     d.y *= SENSITIVITY;
-    
+
     return d;
   }
 
   // NOTE: https://math.stackexchange.com/questions/2585598/3d-camera-transformation-versus-object-transformation
-  adjustCameraForZoom(mouseAUBefore: Coordinates, mouseAUAfter: Coordinates): void {
+  private adjustCameraForZoom(mouseAUBefore: Coordinates, mouseAUAfter: Coordinates): void {
     // Adjust camera so the AU point under the mouse stays fixed
     //    camera = camera + (mouseAUBefore - mouseAUAfter)
     // Shifts based on the difference before and after
@@ -273,7 +273,7 @@ export class DndBoardComponent implements AfterViewInit {
     );
   }
 
-  centreCameraOnMouse(mouseAU: Coordinates): void {
+  private centreCameraOnMouse(mouseAU: Coordinates): void {
     let viewportDimensions: Dimensions = this.getViewportDimensions();
 
     // Calculate the visible area in AU based on the current zoom and viewport size
@@ -282,7 +282,7 @@ export class DndBoardComponent implements AfterViewInit {
     // Set camera so that mouseAU is at the center of the viewport
     let camera: Coordinates = {
       x: mouseAU.x - visibleDimensions.width / 2,
-      y:mouseAU.y - visibleDimensions.height / 2
+      y: mouseAU.y - visibleDimensions.height / 2
     };
 
     this.dndBoardService.setCameraCoordinates(
@@ -292,7 +292,7 @@ export class DndBoardComponent implements AfterViewInit {
   }
 
   @HostListener('dblclick', ['$event'])
-  onDoubleClick(event: MouseEvent) {
+  protected onDoubleClick(event: MouseEvent): void {
     let screen: Coordinates = { x: event.clientX, y: event.clientY };
     let mouseAU = this.dndBoardService.screenToAUCoordinates(screen);
     this.centreCameraOnMouse(mouseAU);
@@ -307,12 +307,12 @@ Mouse move for highlight	No	Only need to update highlight
   */
 
   @HostListener('window:resize')
-  onResize() {
+  protected onResize(): void {
     this.updateCameraOnScroll();
   }
 
   @HostListener('pan', ['$event'])
-  onPan(event: any): void {
+  protected onPan(event: any): void {
     // Handle the pan event
     // console.log('Pan event detected', event);
     // Access event properties like event.deltaX and event.deltaY 
@@ -320,19 +320,19 @@ Mouse move for highlight	No	Only need to update highlight
   }
 
   @HostListener('panstart', ['$event'])
-  onPanStart(event: any): void {
+  protected onPanStart(event: any): void {
     // Handle the start of the pan gesture
     // console.log('Pan started', event);
   }
 
   @HostListener('panmove', ['$event'])
-  onPanMove(event: any): void {
+  protected onPanMove(event: any): void {
     // Handle the pan move gesture
     // console.log('Pan moved', event);
   }
 
   @HostListener('panend', ['$event'])
-  onPanEnd(event: any): void {
+  protected onPanEnd(event: any): void {
     // Handle the end of the pan gesture
     // console.log('Pan ended', event);
   }

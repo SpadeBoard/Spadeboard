@@ -8,9 +8,9 @@ import { CardEditorControlsCardsTemplateCollectionComponent } from '../card-edit
   styleUrl: './card-editor-controls-design-cards-template-container.component.scss'
 })
 export class CardEditorControlsDesignCardsTemplateContainerComponent {
-   isMenuOpen = false;
+  protected isMenuOpen: boolean = false;
 
-  onToggleMenu(event: Event) {
+  protected onToggleMenu(event: Event): void {
     this.isMenuOpen = !this.isMenuOpen;
   }
 }

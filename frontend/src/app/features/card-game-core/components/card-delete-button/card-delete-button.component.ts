@@ -1,5 +1,5 @@
-import { Component, computed, inject, input, InputSignal, Signal } from '@angular/core';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { Component, inject, input, InputSignal } from '@angular/core';
+import { CardEditorOperationsService } from '../../services/card-game-core/card-editor/operations/card-editor-operations.service';
 
 @Component({
   selector: 'app-card-delete-button',
@@ -8,12 +8,11 @@ import { CardEditorPreviewService } from '../../services/card-editor-preview.ser
   styleUrl: './card-delete-button.component.scss'
 })
 export class CardDeleteButtonComponent {
-  cardId: InputSignal<string> = input<string>("-1");
-  
-  private cardIdComputed: Signal<string> = computed(() => this.cardId());
-  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  public cardId: InputSignal<string> = input<string>("-1");
 
-   onClick(event: Event) {
-    this.cardEditorPreviewService.deleteCard(this.cardIdComputed());
+  private readonly cardEditorOperationsService: CardEditorOperationsService = inject(CardEditorOperationsService);
+
+  protected onClick(event: Event): void {
+    this.cardEditorOperationsService.deleteCard(this.cardId());
   }
 }

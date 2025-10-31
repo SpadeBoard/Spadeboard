@@ -1,11 +1,32 @@
-<div #cardEditorFace [ngStyle]="getCardEditorFaceStyle()" (contextmenu)="onCardEditorFaceRightClick($event)">
-    <app-card-editor-face-preview-grid [shouldSnapToGrid]="shouldSnapToGrid" data-html2canvas-ignore="true"/>
-    <app-card-editor-current-card-face-elements-per-card-face [cardFaceBorderRadius]="cardFaceBorderRadius" [shouldSnapToGrid]="shouldSnapToGrid" #cardFaceElementsPerCardFace/>
+<div 
+    #cardEditorFace 
+    [style]="getCardEditorFaceStyle()" 
+    (contextmenu)="onCardEditorFaceRightClick($event)">
+    <app-card-editor-face-preview-grid 
+        [$shouldSnapToGrid]="shouldSnapToGrid" 
+        data-html2canvas-ignore="true" />
+    <app-card-editor-current-card-face-elements-per-card-face 
+        [$cardFaceElementId]="cardFaceElementId"
+        [$cardFaceElementsPerCardFace]="cardFaceElementsPerCardFace"
+        [cardFaceBorderRadius]="cardFaceBorderRadius" 
+
+        [$shouldSnapToGrid]="shouldSnapToGrid"
+        (setElementPosition)="setElementPosition($event)"
+        (setElementAttributes)="setElementAttributes($event)"
+        (setElementDimensions)="setElementDimensions($event)" 
+    />
 </div>
 @if (isDisplayContextMenu) {
-<app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
-    (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
+<app-action-context-menu 
+    [style]="getRightClickMenuStyle()" 
+    [actionContextMenuItems]="actionContextMenuItems"
+    (onActionContextMenuItemClick)="performAction($event)">
+</app-action-context-menu>
 }
 
 <!-- NOTE: Hidden file input for importing card-->
-<input type="file" accept=".sbd" #importedCardFileInput style="display: none" (change)="onImportedCardFileSelected($event)" />
+<input 
+    #importedCardFileInput type="file" 
+    accept=".sbd" 
+    style="display: none" 
+    (change)="importCard($event)" />

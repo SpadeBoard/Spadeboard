@@ -1,9 +1,11 @@
 import { Component, inject, ViewChild } from '@angular/core';
 import { CardEditorFacePreviewComponent } from '../card-editor-face-preview/card-editor-face-preview.component';
-import { CardEditorPreviewService } from '../../services/card-editor-preview.service';
+import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 import { CardEditorCardOperationsButtonComponent } from '../card-editor-card-operations-button/card-editor-card-operations-button.component';
 import { CardEditorPreviewChangeFaceComponent } from '../card-editor-preview-change-face/card-editor-preview-change-face.component';
 import { CardEditorPreviewTagsComponent } from '../card-editor-preview-tags/card-editor-preview-tags.component';
+import { CardEditorOperationsService } from '../../services/card-game-core/card-editor/operations/card-editor-operations.service';
+import { UserService } from '../../services/user/user.service';
 
 @Component({
   selector: 'app-card-editor-preview',
@@ -16,30 +18,35 @@ import { CardEditorPreviewTagsComponent } from '../card-editor-preview-tags/card
   styleUrl: './card-editor-preview.component.scss'
 })
 export class CardEditorPreviewComponent {
-  private cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+
+  private readonly cardEditorOperationsService: CardEditorOperationsService = inject(CardEditorOperationsService);
   
-  @ViewChild("cardEditorFacePreview")cardEditorFacePreview!: CardEditorFacePreviewComponent;
-  @ViewChild("cardOperationsBtn") cardOperationsBtn!: CardEditorCardOperationsButtonComponent;
+  private readonly userService: UserService = inject(UserService);
+
+  @ViewChild(CardEditorFacePreviewComponent)cardEditorFacePreview!: CardEditorFacePreviewComponent;
+
+  @ViewChild(CardEditorCardOperationsButtonComponent) cardOperationsBtn!: CardEditorCardOperationsButtonComponent;
 
   constructor() {
   }
 
-  getCardName() {
+  protected getCardName(): string {
    return this.cardEditorPreviewService.getCardName();
   }
 
-  onNameChange(event: Event) {
+  protected onNameChange(event: Event): void {
     let value = (event.target as HTMLInputElement).value;
     this.cardEditorPreviewService.setCardName(value);
   }
 
-  handleCardCreate() {
-    // TODO: Always assign the owner ID, use the game room service here to get owner ID
-    this.cardEditorPreviewService.cardEditorCardDto.ownerId = '5811e387-1551-4090-9485-a3ebe30efb5a';
-    this.cardEditorFacePreview.createCard();
+  protected $handleCardCreate(): void {
+    // CHECKME: Assign owner here?
+    this.cardEditorPreviewService.cardEditorCardDto.ownerId = this.userService.$userId();
+    this.cardEditorOperationsService.clickCreate();
   }
 
-  handleCardSave() {
-    this.cardEditorFacePreview.saveCard();
+  protected $handleCardSave(): void {
+    this.cardEditorOperationsService.clickSave();
   }
 }

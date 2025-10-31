@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { SPADEBOARD_WIKI_CARD_EDITOR_URL } from '../../../../utils/wiki.constants';
-import { CardEditorInfoService } from '../../services/card-editor-info.service';
+import { CardEditorInfoService } from '../../services/card-game-core/card-editor/info/card-editor-info.service';
 
 @Component({
   selector: 'app-card-editor-info',
@@ -11,7 +11,7 @@ import { CardEditorInfoService } from '../../services/card-editor-info.service';
 export class CardEditorInfoComponent {
   private readonly cardEditorInfoService: CardEditorInfoService = inject(CardEditorInfoService);
   
-  onInfoClick(event: Event): void {
+  protected onInfoClick(event: Event): void {
     this.cardEditorInfoService.setOnInfoUrlChange(SPADEBOARD_WIKI_CARD_EDITOR_URL);
   }
 }

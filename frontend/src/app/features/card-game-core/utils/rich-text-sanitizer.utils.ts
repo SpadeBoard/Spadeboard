@@ -305,12 +305,12 @@ export interface parser {
 
 export const format = (template: string, replacements: Map<RegExp | string, string>): string => {
   replacements.forEach((value: string, key: string | RegExp) => {
-    console.log(`\nFormat: Replace ${key} with ${value}\n`);
+    // console.log(`\nFormat: Replace ${key} with ${value}\n`);
 
     template = template.replace(key, value);
   });
 
-  console.log(`\nFormatted replaced placeholder: ${template}\n`);
+  // console.log(`\nFormatted replaced placeholder: ${template}\n`);
 
   return template;
 }
@@ -363,11 +363,11 @@ export function getStylableReplacement(element: string, markupConvertingTo: numb
   switch (markupConvertingTo) {
     case 1: // HTML
       let final: string = getReplacement(`<${'${element}'}${'${style}'}>${'${content}'}</${'${element}'}>`, replacements);
-      console.log(`Stylable replacement HTML: ${final}`);
+      // console.log(`Stylable replacement HTML: ${final}`);
       return final;
     default: // BBCode
       let bbcode = getReplacement(`[${'${element}'}${'${style}'}]${'${content}'}[/${'${element}'}]`, replacements);
-      console.log(`Stylable replacement BBCode: ${bbcode}`);
+      // console.log(`Stylable replacement BBCode: ${bbcode}`);
       return bbcode;
   }
 }

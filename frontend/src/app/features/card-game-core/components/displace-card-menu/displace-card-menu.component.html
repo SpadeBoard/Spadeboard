@@ -8,7 +8,7 @@
     <!--<div cdkDropList [style]="getCardStackDropListStyle()" (cdkDropListDropped)="onDragDrop($event)">
         @for (card of cardsToRender; track card) {
             <app-card 
-                    [(card)]="card" 
+                    [($card)]="card" 
 
                     (cardChange)="onCardChange($event)" 
                     (actionContextMenuItemsChange)="onActionContextMenuItemsChange($event)"

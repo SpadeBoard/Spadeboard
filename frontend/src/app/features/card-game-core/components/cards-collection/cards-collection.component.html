@@ -1,7 +1,7 @@
 <div 
-        [hidden]="!this.cardGameCoreService.isCardsCollectionMenuOpen()" 
+        [hidden]="!this.cardsCollectionService.$isCardsCollectionMenuOpen()" 
         class="cards-menu" 
-        [class.open]="this.cardGameCoreService.isCardsCollectionMenuOpen()" 
+        [class.open]="this.cardsCollectionService.$isCardsCollectionMenuOpen()" 
         cdkDropList
     >
     <!-- The configured tracking expression (track by identity) caused re-creation of the entire collection of size 2. This is an expensive operation requiring destruction and subsequent creation of DOM nodes, directives, components etc. Please review the "track expression" and make sure that it uniquely identifies items in a collection. Find more at -->
@@ -13,14 +13,14 @@
         @for (card of cards; track card.cardId) {
         <!--TODO: Wrap the draggable out of there-->
         <!--TODO: Replace the card scale here-->
-        <div cdkDrag (cdkDragMoved)="onDragMoved($event)" (cdkDragDropped)="onDragDrop($event, card)" (contextmenu)="onCardRightClick($event, card.cardId)">
-            <app-card [cardScale]="getDefaultCardScale()" [card]="card" [title]="card.cardName" />
+        <div cdkDrag (cdkDragDropped)="onDragDrop($event, card)" (contextmenu)="onCardRightClick($event, card.cardId)">
+            <app-card [$cardScale]="getDefaultCardScale()" [$card]="card" [title]="card.cardName" />
         </div>
         }
     }
 </div>
 
 @if (currentContextMenuId !== "") {
-<app-action-context-menu [ngStyle]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
-    (onActionContextMenuItemClick)="handleActionContextMenuItemClick($event)"></app-action-context-menu>
+<app-action-context-menu [style]="getRightClickMenuStyle()" [actionContextMenuItems]="actionContextMenuItems"
+    (onActionContextMenuItemClick)="performAction($event)"></app-action-context-menu>
 }
