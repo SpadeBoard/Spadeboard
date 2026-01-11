@@ -503,11 +503,11 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
       fileReader.onload = (event: ProgressEvent<FileReader>) => {
         try {
-          let json: string = JSON.parse(event.target?.result as string); // Parse file content as JSON
+          let json: Object= JSON.parse(event.target?.result as string); // Parse file content as JSON
           if (!isCardEditorCardDto(json)) throw new Error("Didn't upload a card editor card dto");
 
           let cardEditorCardDto: CardEditorCardDto = json;
-          this.actionContextMenuItems[0].action({ cardEditorCardDto, duplicateCardObservables: this.duplicateCardObservables });
+          this.actionContextMenuItems[0].action({ cardEditorCardDto, duplicateCardObservables: this.duplicateCardObservables(cardEditorCardDto) });
         } catch (e: any) {
           // Handle parse or validation errors
           console.error(e);

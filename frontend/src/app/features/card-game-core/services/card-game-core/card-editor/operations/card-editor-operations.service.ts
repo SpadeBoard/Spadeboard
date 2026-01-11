@@ -67,23 +67,27 @@ export class CardEditorOperationsService {
     </div>
     */
 
+    let imported: CardEditorCardDto = { ...cardEditorCardDto };
+
+    console.log(`%c${this.constructor.name} - ${this.importCardAction.name} (time: ${Date.now().toLocaleString("en-US")}) (before):\nimported:${stringify(imported)}}`, `color: #01161e; background: #eff6e0; padding: 5px; border-radius: 5px;`);
+
     // 2. Set it offscreen and pass in all the inputs
 
     // 3. Add the results of the canvas back into cardEditorCardDto
 
     // 4. This
-    this.cardApiService.exists$(cardEditorCardDto.card.cardId)
+    this.cardApiService.exists$(imported.card.cardId)
       .pipe(
         switchMap((exists: boolean) => {
           return iif(
             () => exists,
             defer(() => {
               console.log(`%c${this.constructor.name} - ${this.importCardAction.name}: duplicateCardEditorCardDto (before)`, `color: #2A324B; background: #C7CCDB; padding: 5px; border-radius: 5px;`);
-              return this.duplicateCardEditorCardDto$(cardEditorCardDto, duplicateCardObservables);
+              return this.duplicateCardEditorCardDto$(imported, duplicateCardObservables); // CHECKME: Can we simplify this by just creating the imported card (setting all IDs to 0) and running the duplicateCardObservables beforehand?
             }),
             defer(() => {
-               console.log(`%c${this.constructor.name} - ${this.importCardAction.name}: createCardEditorCardDto (before)`, `color: #005442; background: #FCE4D8; padding: 5px; border-radius: 5px;`);
-              return this.createCardEditorCardDto$(cardEditorCardDto);
+              console.log(`%c${this.constructor.name} - ${this.importCardAction.name}: createCardEditorCardDto (before)`, `color: #005442; background: #FCE4D8; padding: 5px; border-radius: 5px;`);
+              return this.createCardEditorCardDto$(imported);
             })
           );
         })
@@ -103,8 +107,14 @@ export class CardEditorOperationsService {
   private exportCardAction(cardEditorCardDto: CardEditorCardDto): void {
     this.isValidCard(cardEditorCardDto);
 
+    let exported: CardEditorCardDto = { ...cardEditorCardDto };
+
+    exported.cardEditorCardFacesDto.forEach((value: CardEditorCardFaceDto) => {
+      value.fileMetadataLods = [];
+    });
+
     // FIXME: Why is it not filtering out the fileMetadataLods
-    exportCustomTypeFile(Object.fromEntries(Object.entries(JSON.parse(stringify(cardEditorCardDto)) as CardEditorCardDto).filter(([key]) => key !== 'fileMetadataLods')), `${cardEditorCardDto.card.cardId}`, 'sbd');
+     exportCustomTypeFile(Object.fromEntries(Object.entries(JSON.parse(stringify(exported)) as CardEditorCardDto)), `${cardEditorCardDto.card.cardId}`, 'sbd');
   }
 
   private exportAtlasAction(cardEditorCardDto: CardEditorCardDto): void {
@@ -305,7 +315,7 @@ export class CardEditorOperationsService {
 
   public deleteCard(cardId: string): void {
     console.log(`%c${this.constructor.name} - ${this.deleteCard.name}:\ncardId: ${cardId}`, `color: #4a5759; background: #edafb8; padding: 5px; border-radius: 5px;`);
-    
+
     if (!this.canDeleteCard(cardId)) {
       throw new Error("Can't delete card as it's being edited or it's being undefined");
     }

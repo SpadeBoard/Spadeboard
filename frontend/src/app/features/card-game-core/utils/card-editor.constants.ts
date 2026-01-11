@@ -4,6 +4,7 @@ import { CardEditorCardDto } from "../models/card";
 import { CardFaceImage } from "./card-face.utils";
 import { getDefaultCardFace } from "./card-face.constants";
 import { clamp } from "../../../utils/utils";
+import { CardEditorCardFaceDto } from "../models/card-face";
 
 export const MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
 export const MIN_CARD_FACE_WIDTH: number = 20;
@@ -89,3 +90,12 @@ export function getDefaultCardFaceElementImage(): CardFaceImage {
 }
 
 export const DEFAULT_ATLAS_EXPORT_LOD: number = clamp(0, 0, 4);
+
+/******************** IMPORT ***********************/
+export function shouldMakeCardFaceThumbnailLods(cardEditorCardFaceDto: CardEditorCardFaceDto): boolean {
+  let arg: Omit<Style, 'styleId'> = cardEditorCardFaceDto.cardFace.style;
+  let base: Omit<Style, 'styleId'> = DEFAULT_CARD_EDITOR_FACE_STYLE;
+
+  // FIXME: How do we make sure that the style ignores the ID because they will mismatch
+  return !(cardEditorCardFaceDto.cardFaceElementsPerCardFace.length <= 0 && arg === base);
+}
