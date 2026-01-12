@@ -15,8 +15,8 @@ import { ActionContextMenuItem } from '../../../actions-context-menu/models/acti
   imports: [
     DndContentDirective
   ],
-  templateUrl: './$deck.component.html',
-  styleUrl: './$deck.component.scss',
+  templateUrl: './deck.component.html',
+  styleUrl: './deck.component.scss',
   animations: [shuffleAnimation] // TODO: Use shuffleAnimation when you're shuffling, probably have a button to handle that
 })
 export class DeckComponent {
