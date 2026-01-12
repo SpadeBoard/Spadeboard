@@ -5,7 +5,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, iif, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { FileMetadataService } from '../../../../utils/services/file/metadata/facade/file-metadata.service';
 import { Coordinates, Dimensions, getMidpoint, stringify, unsubscription } from '../../../../utils/utils';
-import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -33,7 +32,7 @@ import { CardEditorFacePreviewGridComponent } from './card-editor-face-preview-g
 
 @Component({
   selector: 'app-card-editor-face-preview',
-  imports: [DragDropModule, CardEditorFacePreviewGridComponent, CardEditorCurrentCardFaceElementsPerCardFaceComponent, ActionContextMenuComponent],
+  imports: [DragDropModule, CardEditorFacePreviewGridComponent, CardEditorCurrentCardFaceElementsPerCardFaceComponent],
   templateUrl: './card-editor-face-preview.component.html',
   styleUrl: './card-editor-face-preview.component.scss'
 })
