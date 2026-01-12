@@ -4,7 +4,7 @@ import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject,
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, iif, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { FileMetadataService } from '../../../../utils/services/file/metadata/facade/file-metadata.service';
-import { Coordinates, Dimensions, getMidpoint, stringify, unsubscription } from '../../../../utils/utils';
+import { Coordinates, Dimensions, stringify, unsubscription } from '../../../../utils/utils';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -125,6 +125,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   public cardFaceElementId: string = '';
 
   public cardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [];
+
+  private shouldShowContextMenu: boolean = false;
 
   @ViewChild(CardEditorCurrentCardFaceElementsPerCardFaceComponent) cardEditorCurrentCardFaceElementsPerCardFaceComponent!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
   /******************** SIGNALS *************************/
@@ -447,16 +449,21 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   protected onCardEditorFaceRightClick(event: MouseEvent): void {
     event.preventDefault();
 
-    let cardFaceRect: DOMRect = this.cardEditorFace.nativeElement.getBoundingClientRect();
-    // NOTE: If we grab the top and left, it's going to cause issues because of displacement
     // FIXME: It's still not actually centred but that's fine
-    let midpoint: Coordinates = getMidpoint(
-      { x: 0, y: 0 },
-      { x: cardFaceRect.width, y: cardFaceRect.height }
-    );
+    this.contextMenuPosition ={
+      x: event.clientX,
+      y: event.clientY
+    }
 
-    this.contextMenuPosition = midpoint;
-    this.actionContextMenuService.open(this.actionContextMenuItems, (item: ActionContextMenuItem) => this.performAction(item), this.getRightClickMenuStyle());
+    // FIXME: You can have multiple items open simultaneously, so no
+    if (!this.shouldShowContextMenu) {
+       this.actionContextMenuService.open(this.actionContextMenuItems, (item: ActionContextMenuItem) => this.performAction(item), this.getRightClickMenuStyle(), () => this.toggleActionContextMenu());
+       this.toggleActionContextMenu();
+    }
+  }
+
+  private toggleActionContextMenu(): void {
+    this.shouldShowContextMenu = !this.shouldShowContextMenu;
   }
   
   protected getRightClickMenuStyle(): Omit<Style, 'styleId'> {
@@ -464,7 +471,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       position: 'fixed',
       left: `${this.contextMenuPosition.x}px`,
       top: `${this.contextMenuPosition.y}px`,
-      zIndex: `10`
     }
   }
 

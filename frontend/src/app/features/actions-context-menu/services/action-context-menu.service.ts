@@ -13,7 +13,7 @@ export class ActionContextMenuService {
 
   constructor() { }
 
-  public open(actionContextMenuItems: ActionContextMenuItem[], performAction: (item: ActionContextMenuItem) => void, style: Omit<Style, 'styleId'>): void {
+  public open(actionContextMenuItems: ActionContextMenuItem[], performAction: (item: ActionContextMenuItem) => void, style: Omit<Style, 'styleId'>, onClosed?: () => void): void {
     let host: HTMLElement = document.createElement('action-context-menu-host');
 
     if (style.position) host.style.position = style.position;
@@ -33,6 +33,8 @@ export class ActionContextMenuService {
             document.body.removeChild(host);
             this.appRef.detachView(ref.hostView);
             ref.destroy();
+
+            if (onClosed) onClosed();
           }
         ),
         outputBinding(
