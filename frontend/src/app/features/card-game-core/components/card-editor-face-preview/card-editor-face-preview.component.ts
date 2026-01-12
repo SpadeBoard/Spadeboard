@@ -137,7 +137,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   @ViewChild('importedCardFileInput') importedCardFileInput!: ElementRef<HTMLInputElement>;
 
   @HostListener('document:keyup', ['$event'])
-  private handleCtrlUp(event: KeyboardEvent): void {
+  protected handleCtrlUp(event: KeyboardEvent): void {
     if (event.key === 'Control') {
       this.shouldSnapToGrid = !this.shouldSnapToGrid;
     }
