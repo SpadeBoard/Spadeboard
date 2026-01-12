@@ -12,7 +12,7 @@ export class ActionContextMenuComponent {
   public readonly $actionContextMenuItems: InputSignal<ActionContextMenuItem[] | undefined> = input<ActionContextMenuItem[]>();
   public readonly $onActionContextMenuItemClick: OutputEmitterRef<ActionContextMenuItem> = output<ActionContextMenuItem>();
   
-  protected readonly $closed: OutputEmitterRef<void> = output<void>();
+  public readonly $closed: OutputEmitterRef<void> = output<void>();
 
   private readonly el: ElementRef<any> = inject(ElementRef);
 

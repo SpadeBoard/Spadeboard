@@ -1,21 +1,20 @@
 
-import { Component, HostListener, inject } from '@angular/core';
-import { Coordinates } from '../../../../utils/utils';
-import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
+import { Component, inject } from '@angular/core';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { Card, CardEditorCardDto } from '../../models/card';
+import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
 import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 import { CardTemplateService } from '../../services/card-game-core/card-template/card-template.service';
 import { DEFAULT_CARD_SCALE, getFlip } from '../../utils/card.constants';
+import { DEFAULT_USER_ID } from '../../utils/user.constants';
 import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';
 import { CardComponent } from '../card/card.component';
 import { NewCardTemplateCollectionComponent } from '../new-card-template-collection/new-card-template-collection.component';
-import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
-import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
-  imports: [NewCardTemplateCollectionComponent, CardComponent, CardDeleteButtonComponent, ActionContextMenuComponent],
+  imports: [NewCardTemplateCollectionComponent, CardComponent, CardDeleteButtonComponent],
   templateUrl: './card-editor-controls-cards-template-collection.component.html',
   styleUrl: './card-editor-controls-cards-template-collection.component.scss'
 })
@@ -38,11 +37,6 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     currentCardFaceIndex: 0
   }
 
-  private contextMenuPosition: Coordinates = {
-    x: 0,
-    y: 0
-  };
-
   public currentContextCardId: string = "";
 
   public actionContextMenuItems: ActionContextMenuItem[] = [getFlip()];
@@ -53,10 +47,10 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     ['delete', (cardId: string) => this.removeCardTemplate(cardId)]
   ]);
 
-  private shouldShowContextMenu: boolean = false;
+  private actionContextMenuId: string = '';
 
   constructor() {
-    this.cardTemplateService.getCardTemplates('5811e387-1551-4090-9485-a3ebe30efb5a', this.cards);
+    this.cardTemplateService.getCardTemplates(DEFAULT_USER_ID, this.cards);
 
     this.onCardEditorCardDtoOperations();
   }
@@ -102,36 +96,49 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   }
 
   protected onCardRightClick(event: MouseEvent, cardId: string): void {
-    if (cardId === "0") return;
-
     event.preventDefault();
+
+    if (cardId === "0" || this.currentContextCardId === cardId) return;
 
     this.currentContextCardId = cardId;
 
-    // FIXME: It's still not actually centred but that's fine
-    this.contextMenuPosition = {
-      x: event.clientX,
-      y: event.clientY
-    }
-
     // FIXME: You can have multiple items open simultaneously, so no
-    if (!this.shouldShowContextMenu) {
-      this.actionContextMenuService.open(this.actionContextMenuItems, (item: ActionContextMenuItem) => this.performAction(item), this.actionContextMenuService.getStyle(this.contextMenuPosition), () => this.onClosedActionContextMenu());
-      this.toggleActionContextMenu();
+    if (!this.actionContextMenuId) {
+      this.actionContextMenuId = this.actionContextMenuService.open(
+        this.actionContextMenuItems,
+        (item: ActionContextMenuItem) => this.performAction(item),
+        this.actionContextMenuService.getStyle(
+          {
+            x: event.clientX,
+            y: event.clientY
+          }),
+        () => this.onClosedActionContextMenu());
+    }
+    else {
+      this.actionContextMenuService.setStyle(
+        this.actionContextMenuId,
+        this.actionContextMenuService.getStyle
+          (
+            {
+              x: event.clientX,
+              y: event.clientY
+            }
+          )
+      )
     }
   }
 
   private onClosedActionContextMenu(): void {
-    this.toggleActionContextMenu();
-    this.resetCurrentContextMenuId();
+    this.resetActionContextMenuId();
+    this.resetCurrentContextCardId();
   }
 
-  private resetCurrentContextMenuId(): void {
+  private resetActionContextMenuId(): void {
+    this.actionContextMenuId = '';
+  }
+
+  private resetCurrentContextCardId(): void {
     this.currentContextCardId = "";
-  }
-
-  private toggleActionContextMenu(): void {
-    this.shouldShowContextMenu = !this.shouldShowContextMenu;
   }
 
   protected performAction(item: ActionContextMenuItem): void {

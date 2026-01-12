@@ -1,11 +1,11 @@
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragPreview, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 
-import { Component, computed, effect, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChildren } from '@angular/core';
+import { Component, effect, ElementRef, inject, input, InputSignal, QueryList, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { mergeMap } from 'rxjs';
 import { Coordinates, Dimensions, getScaledItemRenderDimensions } from '../../../../utils/utils';
-import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { snapToGridCellCentre, snapToGridNearestVertex } from '../../../drag-and-drop/utils/coordinate-conversions.utils';
@@ -26,9 +26,8 @@ import { CardComponent } from '../card/card.component';
   imports: [
     CdkDrag,
     CdkDragPreview,
-    CardComponent,
-    ActionContextMenuComponent
-],
+    CardComponent
+  ],
   templateUrl: './card-position-per-room.component.html',
   styleUrl: './card-position-per-room.component.scss'
 })
@@ -49,11 +48,13 @@ export class CardPositionPerRoomComponent {
 
   protected readonly cardDragPreviewPlaceholder: CardFaceImage = getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_DIMENSIONS);
 
-  private readonly el: ElementRef<any> = inject(ElementRef);
-
   protected cprs: CardPositionPerRoom[] = [];
 
   public readonly $shouldSnapToGrid: InputSignal<boolean> = input<boolean>(false);
+
+  private readonly actionContextMenuService: ActionContextMenuService = inject(ActionContextMenuService);
+
+  private readonly  shouldCloseOnPerformActions: boolean = false;
 
   @ViewChildren('cardsPositionPerRoom') cardsPositionPerRoomRef!: QueryList<ElementRef<HTMLDivElement>>;
 
@@ -65,11 +66,6 @@ export class CardPositionPerRoomComponent {
   protected cardsPositionPerRoomScale: number = DEFAULT_CARD_SCALE;
 
   private dragOffset: Coordinates = { x: 0, y: 0 };
-
-  private contextMenuPosition: Coordinates = {
-    x: 0,
-    y: 0
-  };
 
   protected currentContentMenuCpr: CardPositionPerRoom | undefined = undefined;
 
@@ -86,6 +82,13 @@ export class CardPositionPerRoomComponent {
 
   // TODO: Replace screen position cache with just a style cache
   private screenPositionCache = new Map<string, Coordinates>();
+  
+  private actionContextMenuId: string = '';
+
+  private actionContextMenuLocation: Coordinates = {
+    x: 0,
+    y: 0
+  };
 
   protected getCardScreenPosition(cpr: CardPositionPerRoom): Coordinates {
     let key: string = cpr.cardPositionPerRoomId;
@@ -131,7 +134,7 @@ export class CardPositionPerRoomComponent {
     });
   }
 
- public ngOnInit(): void {
+  public ngOnInit(): void {
     this.createCardPositionPerRoom();
     this.updateCardPositionPerRoomOnSave();
 
@@ -142,7 +145,7 @@ export class CardPositionPerRoomComponent {
     this.setOnScreenCprs();
   }
 
-  private setActionContextMenuItems():  void{
+  private setActionContextMenuItems(): void {
     this.actionContextMenuItems = this.cardPositionPerRoomOperationsService.getMenuItems();
   }
 
@@ -448,45 +451,62 @@ export class CardPositionPerRoomComponent {
   protected onCardRightClick(event: MouseEvent, cardId: string): void {
     event.preventDefault();
 
-    // Get the parent element and its bounding rect
-    let parentElement: HTMLElement | null = this.el.nativeElement.parentElement;
-    if (!parentElement) return;
-
-    let parentRect: DOMRect = parentElement.getBoundingClientRect();
-
-    // Calculate menu position relative to parent
-    this.contextMenuPosition = {
-      x: event.clientX - parentRect.left,
-      y: event.clientY - parentRect.top
-    }
-
     let potentialCurrentContextMenuCpr: CardPositionPerRoom | undefined = this.cardPositionPerRoomOperationsService.getCpr(cardId, this.cprs);
 
-    if (!potentialCurrentContextMenuCpr)
-      throw new Error("Current context menu CPR is undefined");
+    if (!potentialCurrentContextMenuCpr) throw new Error(`${this.constructor.name} - ${this.onCardRightClick.name}: Current context menu CPR is undefined`);
 
     this.currentContentMenuCpr = potentialCurrentContextMenuCpr;
+
+    this.actionContextMenuLocation = {
+      x: event.clientX,
+      y: event.clientY
+    };
+
+    this.setActionContextMenu(this.actionContextMenuLocation);
+  }
+
+  private setActionContextMenu(location: Coordinates): void {
+    if (!this.actionContextMenuId) {
+      this.actionContextMenuId = this.actionContextMenuService.open
+        (
+          this.actionContextMenuItems,
+          (item: ActionContextMenuItem) => this.performAction(item),
+          this.actionContextMenuService.getStyle(location),
+          () => this.onClosedActionContextMenu(),
+          this. shouldCloseOnPerformActions
+        );
+    }
+    else {
+      this.actionContextMenuService.setStyle(
+        this.actionContextMenuId,
+        this.actionContextMenuService.getStyle(location)
+      )
+    }
+
+    if (!this.currentContentMenuCpr) return;
 
     this.cardPositionPerRoomOperationsService.setDisableContextMenuItems(this.actionContextMenuItems, this.currentContentMenuCpr);
   }
 
-  @HostListener('document:click')
-  protected documentClick(): void {
+  private onClosedActionContextMenu(): void {
+    this.resetCurrentMenuCpr();
+    this.resetActionContextMenuId();
+    this.resetActionContextMenuLocation();
+  }
+
+  private resetCurrentMenuCpr(): void {
     this.currentContentMenuCpr = undefined;
   }
 
-  protected getRightClickMenuStyle(): {
-    position: string;
-    left: string;
-    top: string;
-    zIndex: number;
-  } {
-    return {
-      position: 'absolute',
-      left: `${this.contextMenuPosition.x}px`,
-      top: `${this.contextMenuPosition.y}px`,
-      zIndex: this.dndBoardService.globalZIndexCounter // FIXED: Context menu can be behind the item that it's clicked on
-    }
+  private resetActionContextMenuId(): void {
+    this.actionContextMenuId = '';
+  }
+
+  private resetActionContextMenuLocation(): void {
+    this.actionContextMenuLocation = {
+      x: -1,
+      y: -1
+    };
   }
 
   protected performAction(item: ActionContextMenuItem): void {
@@ -506,6 +526,8 @@ export class CardPositionPerRoomComponent {
         break;
       }
     }
+
+    if (!this.shouldCloseOnPerformActions) this.setActionContextMenu(this.actionContextMenuLocation);
   }
 
   // TODO: Refactor this as we're probably going to have more items than just cards

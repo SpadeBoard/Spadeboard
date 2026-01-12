@@ -1,11 +1,10 @@
 import { CdkDrag, CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 
-import { Component, DestroyRef, effect, HostListener, inject } from '@angular/core';
+import { Component, DestroyRef, effect, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
-import { Coordinates, getMidpoint } from '../../../../utils/utils';
-import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { DndBoardService } from '../../../drag-and-drop/services/dnd-board.service';
 import { Card, CardEditorCardDto, CardPositionPerRoom } from '../../models/card';
 import { CardEditorCardDtoApiService } from '../../services/card-game-core/api/card-editor-card-dto-api.service';
@@ -26,15 +25,14 @@ import { CardComponent } from '../card/card.component';
   imports: [
     CardComponent,
     CdkDrag,
-    DragDropModule,
-    ActionContextMenuComponent
-],
+    DragDropModule
+  ],
   templateUrl: './cards-collection.component.html',
   styleUrl: './cards-collection.component.scss'
 })
 export class CardsCollectionComponent {
   private readonly userService: UserService = inject(UserService);
-  
+
   protected readonly cardsCollectionService: CardsCollectionService = inject(CardsCollectionService);
 
   protected readonly cardPositionPerRoomService: CardPositionPerRoomService = inject(CardPositionPerRoomService);
@@ -48,23 +46,22 @@ export class CardsCollectionComponent {
   private readonly cardEditorOperationsService: CardEditorOperationsService = inject(CardEditorOperationsService);
 
   private readonly cardEditorApiService: CardEditorApiService = inject(CardEditorApiService);
-  
+
   private readonly cardFaceLodsService: CardFaceLodsService = inject(CardFaceLodsService);
-  
+
   private readonly cardFaceElementImageService: CardFaceElementImageService = inject(CardFaceElementImageService);
-  
+
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
+
+  private readonly actionContextMenuService: ActionContextMenuService = inject(ActionContextMenuService);
 
   protected cards: Card[] = [];
 
-  private contextMenuPosition: Coordinates = {
-    x: 0,
-    y: 0
-  };
-
-  protected currentContextMenuId: string = "";
+  protected currentContextCardId: string = "";
 
   protected actionContextMenuItems: ActionContextMenuItem[] = [];
+
+  private actionContextMenuId: string = '';
 
   private cardEditorCardDtoOperations: Map<string, Function> = new Map<string, Function>([
     ['create', (cardEditorCardDto: CardEditorCardDto) => this.cardsCollectionService.addCard(this.cards, cardEditorCardDto, this.userService.$userId())],
@@ -77,7 +74,7 @@ export class CardsCollectionComponent {
 
     // TODO: Might want to do a behavior subject instead where we get the latest card based on when we add the card
     effect(() => {
-      if (this.cardsCollectionService.$isCardsCollectionMenuOpen()) this.cardsCollectionService.populateCardsCollection(this.userService.$userId(), this.cards);    
+      if (this.cardsCollectionService.$isCardsCollectionMenuOpen()) this.cardsCollectionService.populateCardsCollection(this.userService.$userId(), this.cards);
     });
   }
 
@@ -120,62 +117,74 @@ export class CardsCollectionComponent {
     this.cardPositionPerRoomService.createdCardPositionPerRoom(cpr);
   }
 
-  protected onCardRightClick(event: MouseEvent, cardId: string): void {
-    if (!cardId) return;
+  // NOTE: 3 possibilities
+  // 1. Current context card Id equals card ID and that the menu's already open
+  // 2. If the menu doesn't exist ala no actionContextMenuId, then it creates a new context menu for the current card ID
+  // 3. If the menu does exist and there's a newly assigned currentContextCardId, it updates the menu's style and items
 
+  // We can assume that when the menu's closed, all IDs get reset
+  protected onCardRightClick(event: MouseEvent, cardId: string): void {
     event.preventDefault();
 
-    let cardElem: HTMLElement = event.currentTarget as HTMLElement;
-    let cardRect: DOMRect = cardElem.getBoundingClientRect();
+    if (!cardId || this.currentContextCardId === cardId) return;
 
-    this.setContextMenuPosition(cardRect);
-
-    this.currentContextMenuId = cardId;
+    this.currentContextCardId = cardId;
 
     this.setCollectionMenuItems();
-  }
 
-  private setCollectionMenuItems(): void {
-    this.actionContextMenuItems = this.cardEditorOperationsService.getCollectionMenuItems(this.currentContextMenuId, this.cardEditorPreviewService.cardEditorCardDto.card.cardId);
-  }
+    if (!this.actionContextMenuId) {
+      this.actionContextMenuId = this.actionContextMenuService.open
+        (
+          this.actionContextMenuItems,
+          (item: ActionContextMenuItem) => this.performAction(item),
+          this.actionContextMenuService.getStyle
+            (
+              {
+                x: event.clientX,
+                y: event.clientY
+              }
+            ),
+          () => this.onClosedActionContextMenu(),
+        );
+    }
+    else {
+      this.actionContextMenuService.setActionContextMenuItems(
+        this.actionContextMenuId,
+        this.actionContextMenuItems
+      );
 
-  private setContextMenuPosition(cardRect: DOMRect): void {
-    // Center of the card in viewport coordinates
-    let midpoint: Coordinates = getMidpoint(
-      {
-        x: cardRect.left,
-        y: cardRect.top
-      },
-      {
-        x: cardRect.width,
-        y: cardRect.height
-      }
-    );
-
-    this.contextMenuPosition = midpoint;
-  }
-
-
-  @HostListener('document:click')
-  protected documentClick(): void {
-    this.currentContextMenuId = "";
-  }
-
-  // NOTE: Should be right considering it's not a child of the cards-menu
-  protected getRightClickMenuStyle(): {
-    position: string;
-    left: string;
-    top: string;
-  } {
-    return {
-      position: 'fixed',
-      left: `${this.contextMenuPosition.x}px`,
-      top: `${this.contextMenuPosition.y}px`
+      this.actionContextMenuService.setStyle(
+        this.actionContextMenuId,
+        this.actionContextMenuService.getStyle
+          (
+            {
+              x: event.clientX,
+              y: event.clientY
+            }
+          )
+      )
     }
   }
 
+  private setCollectionMenuItems(): void {
+    this.actionContextMenuItems = this.cardEditorOperationsService.getCollectionMenuItems(this.currentContextCardId, this.cardEditorPreviewService.cardEditorCardDto.card.cardId);
+  }
+
+  private onClosedActionContextMenu(): void {
+    this.resetActionContextMenuId();
+    this.resetCurrentContextCardId();
+  }
+
+  private resetActionContextMenuId(): void {
+    this.actionContextMenuId = '';
+  }
+
+  private resetCurrentContextCardId(): void {
+    this.currentContextCardId = "";
+  }
+
   protected performAction(item: ActionContextMenuItem): void {
-    let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextMenuId);
+    let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextCardId);
 
     if (!card) return;
 

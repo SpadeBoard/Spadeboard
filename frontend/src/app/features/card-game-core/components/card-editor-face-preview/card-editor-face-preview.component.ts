@@ -64,11 +64,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
-  private contextMenuPosition: Coordinates = {
-    x: 0,
-    y: 0
-  };
-
   private cardFaceColorOperations: Map<string, Function> = new Map<string, Function>([
     ['face', (color: string) => this.setColor(color, 'face')],
     ['edge', (color: string) => this.setColor(color, 'edge')]
@@ -126,14 +121,14 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   public cardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [];
 
-  private shouldShowContextMenu: boolean = false;
-
   @ViewChild(CardEditorCurrentCardFaceElementsPerCardFaceComponent) cardEditorCurrentCardFaceElementsPerCardFaceComponent!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
   /******************** SIGNALS *************************/
 
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
 
   @ViewChild('importedCardFileInput') importedCardFileInput!: ElementRef<HTMLInputElement>;
+
+  private actionContextMenuId: string = '';
 
   @HostListener('document:keyup', ['$event'])
   protected handleCtrlUp(event: KeyboardEvent): void {
@@ -406,7 +401,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   public shouldDeleteItems(cardFaceElementsPerCardFaceToDeleteIds: string[]): boolean {
     console.log(`%c${this.constructor.name} - ${this.shouldDeleteItems.name} (time: ${Date.now().toLocaleString("en-US")}):\ncardFaceElementsPerCardFaceToDeleteIds:${stringify(cardFaceElementsPerCardFaceToDeleteIds)}}`, `color: #457b9d; background: #f1faee; padding: 5px; border-radius: 5px;`);
-    
+
     return cardFaceElementsPerCardFaceToDeleteIds.length > 0;
   }
 
@@ -449,23 +444,38 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   protected onCardEditorFaceRightClick(event: MouseEvent): void {
     event.preventDefault();
 
-    // FIXME: It's still not actually centred but that's fine
-    this.contextMenuPosition ={
-      x: event.clientX,
-      y: event.clientY
+    if (!this.actionContextMenuId) {
+      this.actionContextMenuId = this.actionContextMenuService.open
+        (
+          this.actionContextMenuItems,
+          (item: ActionContextMenuItem) => this.performAction(item),
+          this.actionContextMenuService.getStyle
+            (
+              {
+                x: event.clientX,
+                y: event.clientY
+              }
+            ),
+          () => this.resetActionContextMenuId(),
+        );
     }
-
-    // FIXME: You can have multiple items open simultaneously, so no
-    if (!this.shouldShowContextMenu) {
-       this.actionContextMenuService.open(this.actionContextMenuItems, (item: ActionContextMenuItem) => this.performAction(item), this.actionContextMenuService.getStyle(this.contextMenuPosition), () => this.toggleActionContextMenu());
-       this.toggleActionContextMenu();
+    else {
+      this.actionContextMenuService.setStyle(
+        this.actionContextMenuId,
+        this.actionContextMenuService.getStyle
+          (
+            {
+              x: event.clientX,
+              y: event.clientY
+            }
+          )
+      )
     }
   }
 
-  private toggleActionContextMenu(): void {
-    this.shouldShowContextMenu = !this.shouldShowContextMenu;
+  private resetActionContextMenuId(): void {
+    this.actionContextMenuId = '';
   }
-  
   protected performAction(item: ActionContextMenuItem): void {
     switch (item.id) {
       case 0:
@@ -487,7 +497,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
       fileReader.onload = (event: ProgressEvent<FileReader>) => {
         try {
-          let json: Object= JSON.parse(event.target?.result as string); // Parse file content as JSON
+          let json: Object = JSON.parse(event.target?.result as string); // Parse file content as JSON
           if (!isCardEditorCardDto(json)) throw new Error("Didn't upload a card editor card dto");
 
           let cardEditorCardDto: CardEditorCardDto = json;
@@ -529,7 +539,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
     // FIXED: This should work
     // CHECKME: Make sure it doesn't affect everything else
-   this.cardEditorPreviewService.setCurrentCardFaceElementsPerCardFace(this.cardFaceElementsPerCardFace);
+    this.cardEditorPreviewService.setCurrentCardFaceElementsPerCardFace(this.cardFaceElementsPerCardFace);
 
     console.log(`%c${this.constructor.name} - ${this.createdCardFaceElementPerCardFace.name}:\nCard face elements per card face:${stringify(this.cardFaceElementsPerCardFace)}\nCard editor card dto:\n${stringify(this.cardEditorPreviewService.cardEditorCardDto)}`, `color: #19183B; background: #E7F2EF; padding: 5px; border-radius: 5px;`);
 
