@@ -1,7 +1,7 @@
 import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inject, Injectable, inputBinding, outputBinding } from '@angular/core';
 import { ActionContextMenuComponent } from '../components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../models/action-context-menu-item';
-import { stringify } from '../../../utils/utils';
+import { Coordinates, stringify } from '../../../utils/utils';
 import { Style } from '../../style/models/style';
 
 @Injectable({
@@ -12,6 +12,14 @@ export class ActionContextMenuService {
   private readonly appRef: ApplicationRef = inject(ApplicationRef);
 
   constructor() { }
+
+  public getStyle(pos: Coordinates): Omit<Style, 'styleId'> {
+    return {
+      position: 'fixed',
+      left: `${pos.x}px`,
+      top: `${pos.y}px`,
+    }
+  }
 
   public open(actionContextMenuItems: ActionContextMenuItem[], performAction: (item: ActionContextMenuItem) => void, style: Omit<Style, 'styleId'>, onClosed?: () => void): void {
     let host: HTMLElement = document.createElement('action-context-menu-host');

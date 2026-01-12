@@ -8,11 +8,11 @@ import { CardEditorOperationsService } from '../../services/card-game-core/card-
   styleUrl: './card-delete-button.component.scss'
 })
 export class CardDeleteButtonComponent {
-  public cardId: InputSignal<string> = input<string>("-1");
+  public $cardId: InputSignal<string> = input<string>("-1");
 
   private readonly cardEditorOperationsService: CardEditorOperationsService = inject(CardEditorOperationsService);
 
-  protected onClick(event: Event): void {
-    this.cardEditorOperationsService.deleteCard(this.cardId());
+  protected deleteCard(event: Event): void {
+    this.cardEditorOperationsService.deleteCard(this.$cardId());
   }
 }

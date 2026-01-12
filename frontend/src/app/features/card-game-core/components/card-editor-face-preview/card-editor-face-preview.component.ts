@@ -457,7 +457,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
     // FIXME: You can have multiple items open simultaneously, so no
     if (!this.shouldShowContextMenu) {
-       this.actionContextMenuService.open(this.actionContextMenuItems, (item: ActionContextMenuItem) => this.performAction(item), this.getRightClickMenuStyle(), () => this.toggleActionContextMenu());
+       this.actionContextMenuService.open(this.actionContextMenuItems, (item: ActionContextMenuItem) => this.performAction(item), this.actionContextMenuService.getStyle(this.contextMenuPosition), () => this.toggleActionContextMenu());
        this.toggleActionContextMenu();
     }
   }
@@ -466,14 +466,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.shouldShowContextMenu = !this.shouldShowContextMenu;
   }
   
-  protected getRightClickMenuStyle(): Omit<Style, 'styleId'> {
-    return {
-      position: 'fixed',
-      left: `${this.contextMenuPosition.x}px`,
-      top: `${this.contextMenuPosition.y}px`,
-    }
-  }
-
   protected performAction(item: ActionContextMenuItem): void {
     switch (item.id) {
       case 0:

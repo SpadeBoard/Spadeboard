@@ -11,6 +11,7 @@ import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-but
 import { CardComponent } from '../card/card.component';
 import { NewCardTemplateCollectionComponent } from '../new-card-template-collection/new-card-template-collection.component';
 import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
+import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
@@ -22,6 +23,8 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
   private readonly cardEditorApiService: CardEditorApiService = inject(CardEditorApiService);
   private readonly cardTemplateService: CardTemplateService = inject(CardTemplateService);
+
+  private readonly actionContextMenuService: ActionContextMenuService = inject(ActionContextMenuService);
 
   protected getDefaultCardScale(): number {
     return DEFAULT_CARD_SCALE;
@@ -40,15 +43,17 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     y: 0
   };
 
-  public currentContextMenuId: string = "";
+  public currentContextCardId: string = "";
 
   public actionContextMenuItems: ActionContextMenuItem[] = [getFlip()];
-  
+
   private cardEditorCardDtoOperations: Map<string, Function> = new Map<string, Function>([
     ['create', (cardEditorCardDto: CardEditorCardDto) => this.addCardTemplate(cardEditorCardDto)],
     ['update', (cardEditorCardDto: CardEditorCardDto) => this.updateCardTemplate(cardEditorCardDto)],
     ['delete', (cardId: string) => this.removeCardTemplate(cardId)]
   ]);
+
+  private shouldShowContextMenu: boolean = false;
 
   constructor() {
     this.cardTemplateService.getCardTemplates('5811e387-1551-4090-9485-a3ebe30efb5a', this.cards);
@@ -101,40 +106,36 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
 
     event.preventDefault();
 
-    /// Find the .menu element (ancestor), might just want to use a template ref? Not sure.
-    let menuElem: HTMLElement | null = (event.currentTarget as HTMLElement).closest('.menu') as HTMLElement | null;
-    if (!menuElem) return;
+    this.currentContextCardId = cardId;
 
-    let menuRect: DOMRect = menuElem.getBoundingClientRect();
-
-    // Calculate mouse position relative to .menu
+    // FIXME: It's still not actually centred but that's fine
     this.contextMenuPosition = {
-      x: event.clientX - menuRect.left,
-      y: event.clientY - menuRect.top
+      x: event.clientX,
+      y: event.clientY
     }
 
-    this.currentContextMenuId = cardId;
-  }
-
-  @HostListener('document:click')
-  protected documentClick(): void {
-    this.currentContextMenuId = "";
-  }
-
-  protected getRightClickMenuStyle(): {
-    position: string;
-    left: string;
-    top: string;
-  } {
-    return {
-      position: 'absolute', // Due to menu ancestor
-      left: `${this.contextMenuPosition.x}px`,
-      top: `${this.contextMenuPosition.y}px`,
+    // FIXME: You can have multiple items open simultaneously, so no
+    if (!this.shouldShowContextMenu) {
+      this.actionContextMenuService.open(this.actionContextMenuItems, (item: ActionContextMenuItem) => this.performAction(item), this.actionContextMenuService.getStyle(this.contextMenuPosition), () => this.onClosedActionContextMenu());
+      this.toggleActionContextMenu();
     }
+  }
+
+  private onClosedActionContextMenu(): void {
+    this.toggleActionContextMenu();
+    this.resetCurrentContextMenuId();
+  }
+
+  private resetCurrentContextMenuId(): void {
+    this.currentContextCardId = "";
+  }
+
+  private toggleActionContextMenu(): void {
+    this.shouldShowContextMenu = !this.shouldShowContextMenu;
   }
 
   protected performAction(item: ActionContextMenuItem): void {
-    let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextMenuId);
+    let card: Card | undefined = this.cards.find(c => c.cardId === this.currentContextCardId);
 
     if (card)
       item.action(
