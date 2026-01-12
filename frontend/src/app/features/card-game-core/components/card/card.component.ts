@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, InputSignal, model, ModelSi
 
 import { Card } from '../../models/card';
 
-import { CommonModule } from '@angular/common';
+
 import { Dimensions, getLodIndex } from '../../../../utils/utils';
 import { CardService } from '../../services/card-game-core/card/card.service';
 import { getDefaultCardEditorCardFaceDimensions } from '../../utils/card-editor.constants';
@@ -13,9 +13,8 @@ import { CardFaceComponent } from '../card-face/card-face.component';
 @Component({
   selector: 'app-card',
   imports: [
-    CardFaceComponent,
-    CommonModule
-  ],
+    CardFaceComponent
+],
   templateUrl: './card.component.html',
   styleUrl: './card.component.scss',
   // animations: [cardFlipAnimation]

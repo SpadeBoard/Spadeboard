@@ -1,5 +1,5 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { CommonModule } from '@angular/common';
+
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EmbeddedExternalIframeComponent } from '../../../../utils/components/embedded-external-iframe/embedded-external-iframe.component';
@@ -15,11 +15,13 @@ import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
 @Component({
   selector: 'app-game-room',
   imports: [
-    CardEditorComponent, CommonModule,
-    DragDropModule, CardsCollectionComponent,
-    DndBoardComponent, GameRoomNavComponent,
+    CardEditorComponent,
+    DragDropModule,
+    CardsCollectionComponent,
+    DndBoardComponent,
+    GameRoomNavComponent,
     EmbeddedExternalIframeComponent
-  ],
+],
   templateUrl: './game-room.component.html',
   styleUrl: './game-room.component.scss'
 })

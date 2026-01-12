@@ -1,5 +1,5 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { CommonModule } from '@angular/common';
+
 import { AfterViewInit, Component, DestroyRef, effect, ElementRef, HostListener, inject, model, ModelSignal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, iif, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
@@ -33,7 +33,7 @@ import { FileMetadataService } from '../../../../utils/services/file/metadata/fa
 
 @Component({
   selector: 'app-card-editor-face-preview',
-  imports: [DragDropModule, CardEditorFacePreviewGridComponent, CardEditorCurrentCardFaceElementsPerCardFaceComponent, CommonModule, ActionContextMenuComponent],
+  imports: [DragDropModule, CardEditorFacePreviewGridComponent, CardEditorCurrentCardFaceElementsPerCardFaceComponent, ActionContextMenuComponent],
   templateUrl: './card-editor-face-preview.component.html',
   styleUrl: './card-editor-face-preview.component.scss'
 })

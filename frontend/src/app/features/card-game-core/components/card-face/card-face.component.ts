@@ -1,7 +1,7 @@
 import { Component, computed, input, InputSignal, Signal } from '@angular/core';
 
 
-import { CommonModule } from '@angular/common';
+
 import { DEFAULT_CARD_FACE_DIMENSIONS, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, DEFAULT_CARD_FACE_PLACEHOLDER_SRC, getDefaultCardFaceImage } from '../../utils/card-face.constants';
 import { CardFaceImage } from '../../utils/card-face.utils';
 import { Dimensions } from 'ngx-image-cropper';
@@ -11,7 +11,7 @@ import { getScaledItemRenderDimensions } from '../../../../utils/utils';
 // TODO: When loading in the cards menu, use a hybdrid approach of storing the indices, caching the images in memory, using LRU, and only replacing the images that have changed via checking timestamp
 @Component({
   selector: 'app-card-face',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './card-face.component.html',
   styleUrl: './card-face.component.scss'
 })

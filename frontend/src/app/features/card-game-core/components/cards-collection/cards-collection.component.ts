@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-import { CommonModule } from '@angular/common';
+
 import { Component, DestroyRef, effect, HostListener, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
@@ -24,9 +24,11 @@ import { CardComponent } from '../card/card.component';
 @Component({
   selector: 'app-cards-collection',
   imports: [
-    CardComponent, CommonModule,
-    CdkDrag, DragDropModule, ActionContextMenuComponent
-  ],
+    CardComponent,
+    CdkDrag,
+    DragDropModule,
+    ActionContextMenuComponent
+],
   templateUrl: './cards-collection.component.html',
   styleUrl: './cards-collection.component.scss'
 })

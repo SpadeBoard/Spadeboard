@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, HostListener, inject } from '@angular/core';
 import { Coordinates } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
@@ -14,7 +14,7 @@ import { CardEditorApiService } from '../../services/card-game-core/card-editor/
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
-  imports: [NewCardTemplateCollectionComponent, CardComponent, CardDeleteButtonComponent, CommonModule, ActionContextMenuComponent],
+  imports: [NewCardTemplateCollectionComponent, CardComponent, CardDeleteButtonComponent, ActionContextMenuComponent],
   templateUrl: './card-editor-controls-cards-template-collection.component.html',
   styleUrl: './card-editor-controls-cards-template-collection.component.scss'
 })

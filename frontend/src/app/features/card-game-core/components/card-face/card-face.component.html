@@ -1,1 +1,1 @@
-<img *ngIf="$cardFaceImage()" [src]="$cardFaceImageSrcComputed()" [alt]="$cardFaceImageAltComputed()" [style.width.px]="$cardFaceImageDimensionsComputed().width" [style.height.px]="$cardFaceImageDimensionsComputed().height"/>
+@if ($cardFaceImage()) {<img [src]="$cardFaceImageSrcComputed()" [alt]="$cardFaceImageAltComputed()" [style.width.px]="$cardFaceImageDimensionsComputed().width" [style.height.px]="$cardFaceImageDimensionsComputed().height"/>}

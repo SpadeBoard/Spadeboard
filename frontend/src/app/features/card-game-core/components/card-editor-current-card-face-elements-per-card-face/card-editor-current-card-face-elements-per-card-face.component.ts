@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
-import { CommonModule } from '@angular/common';
+
 import { Component, ElementRef, inject, input, InputSignal, output, OutputEmitterRef, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Coordinates, Dimensions, Threshold } from '../../../../utils/utils';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
@@ -19,8 +19,7 @@ import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 
 @Component({
   selector: 'app-card-editor-current-card-face-elements-per-card-face',
-  imports: [CdkDrag, DragDropModule, CardFaceImageComponent,
-    CommonModule, CardFaceRtComponent, ResizableWrapperComponent, CardEditorElementDeleteButtonComponent],
+  imports: [CdkDrag, DragDropModule, CardFaceImageComponent, CardFaceRtComponent, ResizableWrapperComponent, CardEditorElementDeleteButtonComponent],
   templateUrl: './card-editor-current-card-face-elements-per-card-face.component.html',
   styleUrl: './card-editor-current-card-face-elements-per-card-face.component.scss'
 })

@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragPreview, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, effect, ElementRef, HostListener, inject, input, InputSignal, QueryList, Signal, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { mergeMap } from 'rxjs';
@@ -24,9 +24,11 @@ import { CardComponent } from '../card/card.component';
 @Component({
   selector: 'app-card-position-per-room',
   imports: [
-    CdkDrag, CdkDragPreview,
-    CardComponent, ActionContextMenuComponent, CommonModule
-  ],
+    CdkDrag,
+    CdkDragPreview,
+    CardComponent,
+    ActionContextMenuComponent
+],
   templateUrl: './card-position-per-room.component.html',
   styleUrl: './card-position-per-room.component.scss'
 })
