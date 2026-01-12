@@ -16,13 +16,6 @@
         (setElementDimensions)="setElementDimensions($event)" 
     />
 </div>
-@if (isDisplayContextMenu) {
-<app-action-context-menu 
-    [style]="getRightClickMenuStyle()" 
-    [actionContextMenuItems]="actionContextMenuItems"
-    (onActionContextMenuItemClick)="performAction($event)">
-</app-action-context-menu>
-}
 
 <!-- NOTE: Hidden file input for importing card-->
 <input 

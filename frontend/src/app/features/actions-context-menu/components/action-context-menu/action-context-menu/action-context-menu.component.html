@@ -1,4 +1,4 @@
-@let items = actionContextMenuItems();
+@let items = $actionContextMenuItems();
 @if (items && items.length > 0) {
   <div class="action-context-menu">
     @for (actionContextMenuItem of items; track actionContextMenuItem.id) { 

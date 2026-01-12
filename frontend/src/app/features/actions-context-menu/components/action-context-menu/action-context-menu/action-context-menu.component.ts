@@ -1,4 +1,4 @@
-import { Component, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
 import { ActionContextMenuItem } from '../../../models/action-context-menu-item';
 
 @Component({
@@ -9,12 +9,23 @@ import { ActionContextMenuItem } from '../../../models/action-context-menu-item'
 })
 export class ActionContextMenuComponent {
   // TODO: Loop through these items
-  actionContextMenuItems: InputSignal<ActionContextMenuItem[] | undefined> = input<ActionContextMenuItem[]>();
-  onActionContextMenuItemClick: OutputEmitterRef<ActionContextMenuItem> = output<ActionContextMenuItem>();
+  public readonly $actionContextMenuItems: InputSignal<ActionContextMenuItem[] | undefined> = input<ActionContextMenuItem[]>();
+  public readonly $onActionContextMenuItemClick: OutputEmitterRef<ActionContextMenuItem> = output<ActionContextMenuItem>();
   
+  protected readonly $closed: OutputEmitterRef<void> = output<void>();
+
+  private readonly el: ElementRef<any> = inject(ElementRef);
+
   constructor(){}
 
-  onContextMenuItemClick(item: ActionContextMenuItem): void {
-    this.onActionContextMenuItemClick.emit(item);
+  @HostListener('document:click', ['$event'])
+  protected onDocumentClick(event: MouseEvent): void {
+    if (!this.el.nativeElement.contains(event.target)) {
+      this.$closed.emit();
+    }
+  }
+
+  protected onContextMenuItemClick(item: ActionContextMenuItem): void {
+    this.$onActionContextMenuItemClick.emit(item);
   }
 }

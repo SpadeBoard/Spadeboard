@@ -1,22 +1,24 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
-import { AfterViewInit, Component, DestroyRef, effect, ElementRef, HostListener, inject, model, ModelSignal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, iif, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { FileMetadataService } from '../../../../utils/services/file/metadata/facade/file-metadata.service';
 import { Coordinates, Dimensions, getMidpoint, stringify, unsubscription } from '../../../../utils/utils';
 import { ActionContextMenuComponent } from '../../../actions-context-menu/components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
+import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { BorderDimensions, Style } from '../../../style/models/style';
 import { CardEditorCardDto } from '../../models/card';
 import { CardFace } from '../../models/card-face';
 import { CardFaceElementPerCardFace } from '../../models/card-face-element';
-import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face/card-editor-controls-design-card-face-attributes.service';
+import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
 import { CardEditorControlsDesignElementAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/attributes/card-editor-controls-design-element-attributes.service';
+import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/attributes/card-editor-controls-element-layering-attributes.service';
 import { CardEditorControlsDesignImageService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-image.service';
 import { CardEditorControlsDesignRteService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-rte.service';
-import { CardEditorControlsElementLayeringAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/attributes/card-editor-controls-element-layering-attributes.service';
-import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
+import { CardEditorControlsDesignCardFaceAttributesService } from '../../services/card-game-core/card-editor/controls/design/card-face/card-editor-controls-design-card-face-attributes.service';
 import { CardEditorOperationsService } from '../../services/card-game-core/card-editor/operations/card-editor-operations.service';
 import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 import { CardFaceElementService } from '../../services/card-game-core/card-face-element/card-face-element.service';
@@ -24,12 +26,10 @@ import { CardFaceElementImageService } from '../../services/card-game-core/card-
 import { CardFaceElementRtService } from '../../services/card-game-core/card-face-element/rt/card-face-element-rt.service';
 import { CardFaceLodsService } from '../../services/card-game-core/card-face/lods/card-face-lods.service';
 import { CardFaceStyleService } from '../../services/card-game-core/card-face/style/card-face-style.service';
-import { CardTemplateService } from '../../services/card-game-core/card-template/card-template.service';
 import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID } from '../../utils/card-editor.constants';
 import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
-import { CardEditorFacePreviewGridComponent } from './card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
-import { FileMetadataService } from '../../../../utils/services/file/metadata/facade/file-metadata.service';
+import { CardEditorFacePreviewGridComponent } from './card-editor-face-preview-grid/card-editor-face-preview-grid.component';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -48,7 +48,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   private readonly cardFaceLodsService: CardFaceLodsService = inject(CardFaceLodsService);
   private readonly cardFaceStyleService: CardFaceStyleService = inject(CardFaceStyleService);
 
-  private readonly cardTemplateService: CardTemplateService = inject(CardTemplateService);
+  private readonly actionContextMenuService: ActionContextMenuService = inject(ActionContextMenuService);
 
   private readonly cardFaceElementService: CardFaceElementService = inject(CardFaceElementService);
 
@@ -120,8 +120,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   // TODO: Have action context menu items be groupable
   protected actionContextMenuItems: ActionContextMenuItem[] = [];
-
-  protected isDisplayContextMenu: boolean = false;
 
   protected cardFaceBorderRadius: number = DEFAULT_CARD_FACE_BORDER_RADIUS;
 
@@ -459,26 +457,15 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     );
 
     this.contextMenuPosition = midpoint;
-    this.isDisplayContextMenu = true;
+    this.actionContextMenuService.open(this.actionContextMenuItems, (item: ActionContextMenuItem) => this.performAction(item), this.getRightClickMenuStyle());
   }
-
-  @HostListener('document:click')
-  protected documentClick(): void {
-    this.isDisplayContextMenu = false;
-  }
-
-  // NOTE: Should be right considering it's not a child of the cards face itself
-  protected getRightClickMenuStyle(): {
-    position: string;
-    left: string;
-    top: string;
-    zIndex: number;
-  } {
+  
+  protected getRightClickMenuStyle(): Omit<Style, 'styleId'> {
     return {
       position: 'fixed',
       left: `${this.contextMenuPosition.x}px`,
       top: `${this.contextMenuPosition.y}px`,
-      zIndex: 10
+      zIndex: `10`
     }
   }
 

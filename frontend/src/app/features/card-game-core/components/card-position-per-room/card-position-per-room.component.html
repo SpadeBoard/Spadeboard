@@ -37,7 +37,7 @@
     }
 
     @if (currentContentMenuCpr) {
-    <app-action-context-menu [style]="getRightClickMenuStyle()" [actionContextMenuItems]="cprActionContextMenuItems"
-        (onActionContextMenuItemClick)="performAction($event)"></app-action-context-menu>
+    <app-action-context-menu [style]="getRightClickMenuStyle()" [$actionContextMenuItems]="cprActionContextMenuItems"
+        ($onActionContextMenuItemClick)="performAction($event)"></app-action-context-menu>
     }
 }
