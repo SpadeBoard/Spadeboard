@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { VERSION } from '../../../../../environments/version';
 
 @Component({
   selector: 'app-spadeboard-header-nav',
@@ -7,5 +8,7 @@ import { Component } from '@angular/core';
   styleUrl: './spadeboard-header-nav.component.scss'
 })
 export class SpadeboardHeaderNavComponent {
-
+  protected getVersion(): string {
+    return `Version ${VERSION.version}\nCommit ${VERSION.hash}\nBranch ${VERSION.branch}`;
+  }
 }

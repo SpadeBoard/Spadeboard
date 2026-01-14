@@ -28,7 +28,7 @@ An open source self-hostable app where you can create rooms to design your table
 
 4. Open a new terminal, either in Docker Desktop, or just a terminal on your OS, head to the root directory of your files via `cd /path/to/root`, replace `/path/to/root` with your path.
 
-5. Type `docker compose -f docker-compose.yml up -d` and press enter. This will start the app, it will load.
+5. Input the command `GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) GIT_HASH=$(git rev-parse --short HEAD) APP_VERSION=$(node -p "require('./frontend/package.json').version") docker compose -f docker-compose.yml up -d --build` and press enter. This will start the app, it will load.
 
 6. Open `http://localhost:4200/` to head to SpadeBoard
 

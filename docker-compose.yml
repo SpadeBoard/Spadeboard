@@ -5,6 +5,10 @@ services:
     build:
       context: ./
       dockerfile: docker/frontend/Dockerfile
+      args:
+        GIT_BRANCH: ${GIT_BRANCH}
+        GIT_HASH: ${GIT_HASH}
+        APP_VERSION: ${APP_VERSION}
     ports:
       - "${NG_FRONTEND_IP_ADDRESS:-4200}:${FRONTEND_PORT:-80}"
     healthcheck:
