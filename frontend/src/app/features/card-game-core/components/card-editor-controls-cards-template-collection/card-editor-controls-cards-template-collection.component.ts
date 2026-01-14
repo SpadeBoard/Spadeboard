@@ -98,7 +98,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   protected onCardRightClick(event: MouseEvent, cardId: string): void {
     event.preventDefault();
 
-    if (cardId === "0" || this.currentContextCardId === cardId) return;
+    if (cardId === "0") return;
 
     this.currentContextCardId = cardId;
 
