@@ -1,13 +1,15 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
 import { CardEditorInfoService } from '../../../card-game-core/services/card-game-core/card-editor/info/card-editor-info.service';
 import { CardEditorPreviewService } from '../../../card-game-core/services/card-game-core/card-editor/preview/card-editor-preview.service';
+import { DEFAULT_MODAL_STYLE } from '../../../card-game-core/utils/card-editor.constants';
 import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/dnd-board.component';
 import { GameRoomService } from '../../services/game-room.service';
 import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
+import { GameRoom } from '../../models/game-room/game-room';
 
 @Component({
   selector: 'app-game-room',
@@ -26,11 +28,11 @@ export class GameRoomComponent {
 
   private readonly cardEditorInfoService: CardEditorInfoService = inject(CardEditorInfoService);
 
-  @ViewChild('dndBoard') dndBoard!: ElementRef;
-  
   private readonly gameRoomService: GameRoomService = inject(GameRoomService);
 
   protected readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   constructor() {
     this.activateGameRoomService();
@@ -44,16 +46,18 @@ export class GameRoomComponent {
     this.gameRoomService.setCurrentGameRoomId("1");
     this.gameRoomService.getGameRoom$()
       .pipe(takeUntilDestroyed())
-      .subscribe((gameRoom) => {
+      .subscribe((gameRoom: GameRoom | undefined) => {
         if (gameRoom) {
-          this.gameRoomService.onAutosaveTimeout();
+          this.gameRoomService.onAutosaveTimeout(this.destroyRef);
         }
       });
   }
 
   protected infoUrlChange(): void {
-    this.cardEditorInfoService.infoUrlChange$.subscribe((src: string) => {
-      this.cardEditorInfoService.openWiki(src, this.cardEditorInfoService.getStyle());
+    this.cardEditorInfoService.infoUrlChange$
+    .pipe(takeUntilDestroyed())
+    .subscribe((src: string) => {
+      this.cardEditorInfoService.openWiki(src, DEFAULT_MODAL_STYLE);
     })
   }
 

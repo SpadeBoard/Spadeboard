@@ -30,6 +30,18 @@ export function getDefaultCardEditorCardFaceDimensions(): Dimensions {
     }
 }
 
+// CHECKME: Move somewhere else?
+export const DEFAULT_MODAL_STYLE: Omit<Style, 'styleId'> = {
+  position: 'fixed',
+  top: '5%',
+  left: '5%',
+  height: `90vh`,
+  width: `90vw`,
+  borderRadius: '15px',
+  backgroundColor: `#e7e7e6`,
+  padding: '1%'
+}
+
 export const DEFAULT_CARD_EDITOR_FACE_STYLE: Style = {
     styleId: "0",
     backgroundColor: DEFAULT_CARD_FACE_BACKGROUND_COLOR,

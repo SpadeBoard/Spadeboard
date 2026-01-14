@@ -1,4 +1,4 @@
-import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inject, Injectable, inputBinding, outputBinding } from '@angular/core';
+import { ApplicationRef, ComponentRef, createComponent, DestroyRef, EnvironmentInjector, inject, Injectable, inputBinding, outputBinding } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, merge, Observable, Subject, Subscription } from 'rxjs';
 import { operate } from '../../../../../../../../utils/utils';
@@ -29,7 +29,7 @@ export class CardEditorControlsDesignImageService {
     this.disableImageEditor$$.next(src);
   }
 
-  public onStatusToggle(imageEditorStatusOperations: Map<string, Function>): Subscription {
+  public onStatusToggle(imageEditorStatusOperations: Map<string, Function>, destroyRef: DestroyRef): Subscription {
     return merge(
       this.enableImageEditor$.pipe(
         map((id: string) => ({ operation: 'enable', emitted: id }))
@@ -39,25 +39,12 @@ export class CardEditorControlsDesignImageService {
       )
     )
       .pipe(
-        takeUntilDestroyed()
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe((result: ({ operation: string, emitted: string }) | string) => {
         operate(result, imageEditorStatusOperations);
       });
   }
-
-   public getStyle(): Omit<Style, 'styleId'> {
-      return {
-        position: 'fixed',
-        top: '5%',
-        left: '5%',
-        height: `90vh`,
-        width: `90vw`,
-        backgroundColor: '#ccc',
-        borderRadius: '15px',
-        padding: `1%`
-      }
-    }
 
   public open(
     cardFaceImageAttr: {

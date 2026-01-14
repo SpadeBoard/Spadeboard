@@ -16,7 +16,7 @@ import { CardEditorControlsDesignImageService } from '../../services/card-game-c
   styleUrl: './card-face-image-editor.component.scss'
 })
 export class CardFaceImageEditorComponent {
-  private cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
+  private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
 
   // https://cloudinary.com/guides/automatic-image-cropping/5-ways-to-crop-images-in-html-css#:~:text=0%2C%205%25);%20%7D-,Crop%20with%20the%20clip-path()%20Function,of%20the%20image%20is%20hidden.
   // https://www.youtube.com/watch?v=lCClcI3Lt2A
@@ -28,7 +28,7 @@ export class CardFaceImageEditorComponent {
   protected croppedImage: SafeUrl = '';
   
   // fileUploadComponent: FileUploadComponent = inject(FileUploadComponent);
-  private sanitizer: DomSanitizer = inject(DomSanitizer);
+  private readonly sanitizer: DomSanitizer = inject(DomSanitizer);
   private src: string = "";
 
   public readonly $closed: OutputEmitterRef<void> = output<void>();

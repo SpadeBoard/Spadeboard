@@ -128,8 +128,8 @@ export class CardPositionPerRoomComponent {
     this.onShowAllItems();
 
     effect(() => {
-      if (parseFloat(this.gameRoomService.currentGameRoomId()) > 0) {
-        this.getCardsPositionPerRoomByRoomId(this.gameRoomService.currentGameRoomId());
+      if (parseFloat(this.gameRoomService.$currentGameRoomId()) > 0) {
+        this.getCardsPositionPerRoomByRoomId(this.gameRoomService.$currentGameRoomId());
       }
     });
   }

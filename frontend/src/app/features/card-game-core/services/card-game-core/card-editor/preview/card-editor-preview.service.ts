@@ -6,7 +6,7 @@ import { stringify } from '../../../../../../utils/utils';
 import { CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../../../../models/card-face';
 import { CardFaceElementPerCardFace } from '../../../../models/card-face-element';
-import { DEFAULT_CARD_EDITOR_FACE_STYLE, getBlankCardTemplate } from '../../../../utils/card-editor.constants';
+import { DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_MODAL_STYLE, getBlankCardTemplate } from '../../../../utils/card-editor.constants';
 import { getDefaultCardFace } from '../../../../utils/card-face.constants';
 import { isCardEditorCardDto } from '../../../../utils/card-game-core.utils';
 import { UserService } from '../../../user/user.service';
@@ -279,24 +279,11 @@ export class CardEditorPreviewService {
     }
 
     if (!this.cardEditorInstance) {
-      this.cardEditorInstance = this.openCardEditor(this.getStyle());
+      this.cardEditorInstance = this.openCardEditor(DEFAULT_MODAL_STYLE);
       return;
     }
 
-    this.showCardEditor(this.cardEditorInstance, this.getStyle());
-  }
-
-  public getStyle(): Omit<Style, 'styleId'> {
-    return {
-      position: 'fixed',
-      top: '5%',
-      left: '5%',
-      height: `90vh`,
-      width: `90vw`,
-      borderRadius: '15px',
-      backgroundColor: `#e7e7e6`,
-      padding: '1%'
-    }
+    this.showCardEditor(this.cardEditorInstance, DEFAULT_MODAL_STYLE);
   }
 
   private showCardEditor(

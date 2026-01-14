@@ -1,11 +1,10 @@
-import { HttpClient, HttpClientModule, HttpEvent, HttpRequest } from '@angular/common/http';
-import { Component, computed, effect, inject, input, InputSignal, Signal } from '@angular/core';
+import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
+import { Component, DestroyRef, inject, SecurityContext } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AngularEditorConfig, AngularEditorModule, UploadResponse } from '@kolkov/angular-editor';
+import { NgDompurifySanitizer, SANITIZE_STYLE, SanitizeStyle } from '@taiga-ui/dompurify';
 import { Observable } from 'rxjs';
 import { CardEditorControlsDesignRteService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-rte.service';
-import {NgDompurifySanitizer, SANITIZE_STYLE, SanitizeStyle} from '@taiga-ui/dompurify';
-import {SecurityContext} from '@angular/core';
 import { sanitizeStyle } from '../../utils/rich-text-sanitizer.utils';
 
 //https://chatgpt.com/share/6876a274-c9a0-800c-9689-87fe5a17b19f
@@ -14,7 +13,7 @@ import { sanitizeStyle } from '../../utils/rich-text-sanitizer.utils';
 @Component({
   selector: 'app-card-face-rte',
   imports: [
-    AngularEditorModule, FormsModule, HttpClientModule  //, HttpClient, HttpRequest
+    AngularEditorModule, FormsModule
   ],
   templateUrl: './card-face-rte.component.html',
   styleUrl: './card-face-rte.component.scss',
@@ -26,23 +25,6 @@ import { sanitizeStyle } from '../../utils/rich-text-sanitizer.utils';
   ]
 })
 export class CardFaceRteComponent {
-  /*
-  core.mjs:6673 ERROR NullInjectorError: R3InjectorError(Standalone[_GameRoomComponent])[_HttpClient -> _HttpClient -> _HttpClient]: 
-  NullInjectorError: No provider for _HttpClient!
-    at NullInjector.get (core.mjs:1652:21)
-    at R3Injector.get (core.mjs:2176:27)
-    at R3Injector.get (core.mjs:2176:27)
-    at R3Injector.get (core.mjs:2176:27)
-    at ChainedInjector.get (core.mjs:4733:32)
-    at lookupTokenUsingModuleInjector (core.mjs:5076:31)
-    at getOrCreateInjectable (core.mjs:5122:10)
-    at ɵɵdirectiveInject (core.mjs:11938:17)
-    at ɵɵinject (core.mjs:1114:40)
-    at inject (core.mjs:1199:10)
-handleError @ core.mjs:6673
-Show 1 more frame
-Show less
-  */
   private readonly http: HttpClient = inject(HttpClient);
 
   private cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
@@ -53,48 +35,18 @@ Show less
   protected htmlContent: string = '';
 
   protected isEditable: boolean = false;
-  
-  public readonly isEditableInput: InputSignal<boolean | undefined> = input<boolean | undefined>(false);
 
-  public readonly htmlContentInput : InputSignal<string | undefined>= input<string | undefined>("");
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
   
   // rteHtmlContentInject: (htmlContent: string) => void  = inject(RTE_HTML_CONTENT);
   // TODO: Have an injector to pass back up the htmlContent
 
   constructor() {
     this.onRteStatusToggle();
-    
-    effect(() => {
-
-      let html: string | undefined = this.htmlContentInput();
-
-      // console.log('HTML input: ', html);
-
-      if (html) {
-        this.htmlContent = html;
-        // console.log('HTML content: ', this.htmlContent);
-      }
-    });
   }
 
   // TODO: Have input for enabling toolbar, enabling editable
   // TODO: Use what's stored in the style to assign heights, etc. to the angularEditorConfig
-  public readonly angularEditorConfigInput : InputSignal<AngularEditorConfig| undefined>= input<AngularEditorConfig | undefined>(/*{
-    // minHeight: '5rem',
-    // maxHeight: '38rem',
-    // minWidth: '5rem',
-    // maxWidth: '15rem',
-    // width: '15rem',
-    // height: '38rem'
-  }*/undefined);
-
-  // When the style's input changes
-  readonly angularEditorConfigComputed: Signal<AngularEditorConfig | undefined> = computed(() => {
-    if (this.angularEditorConfigInput() === undefined)
-      return undefined;
-
-    return this.angularEditorConfigInput();
-  });
 
   private rteStatusOperations: Map<string, Function> = new Map<string, Function>([
     ['enable', (emitted: {id: string, text: string}) => this.enableRte(emitted)],
@@ -110,8 +62,8 @@ upload:: This is the name of the function.
   */
   private uploadUrl: string = '/upload/to/';
 
-  protected getAngularEditorConfig(): AngularEditorConfig {
-    return {
+  protected angularEditorConfig(): AngularEditorConfig {
+    return  {
       editable: this.isEditable,
       spellcheck: true,
       // height: '38rem', // Set desired height
@@ -159,7 +111,7 @@ upload:: This is the name of the function.
   }
 
   private onRteStatusToggle(): void {
-    this.cardEditorControlsDesignRteService.onStatusToggle(this.rteStatusOperations);
+    this.cardEditorControlsDesignRteService.onStatusToggle(this.rteStatusOperations, this.destroyRef);
   }
 
   private enableRte(emitted: {id: string, text: string}): void {

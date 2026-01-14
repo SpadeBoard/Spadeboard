@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { DestroyRef, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, merge, Observable, Subject } from 'rxjs';
 import { operate } from '../../../../../../../../utils/utils';
@@ -41,7 +41,7 @@ export class CardEditorControlsDesignRteService {
       })
   }
 
-  public onStatusToggle(rteStatusOperations: Map<string, Function>): void {
+  public onStatusToggle(rteStatusOperations: Map<string, Function>, destroyRef: DestroyRef): void {
     merge(
       this.enableRte$.pipe(
         map((emitted: {id: string, text :string}) => ({ operation: 'enable', emitted }))
@@ -51,7 +51,7 @@ export class CardEditorControlsDesignRteService {
       )
     )
       .pipe(
-        takeUntilDestroyed()
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe((result: ({ operation: string, emitted: {id: string, text :string} })) => {
         operate(result, rteStatusOperations);

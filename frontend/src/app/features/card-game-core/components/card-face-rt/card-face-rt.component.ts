@@ -13,44 +13,34 @@ export class CardFaceRtComponent {
   // https://dev.to/christiankohler/how-to-use-resizeobserver-with-angular-9l5
 
   // We grab the BBCode from the card face element
-  content: InputSignal<string> = input<string>("");
-  contentComputed: Signal<string> = computed(() => this.content());
+  public readonly $content: InputSignal<string> = input<string>("");
 
-  cardFaceRtWidth: InputSignal<number> = input<number>(0.01);
-  cardFaceRtWidthComputed: Signal<string> = computed(() => `${this.cardFaceRtWidth()}px`);
-  
-  cardFaceRtHeight: InputSignal<number> = input<number>(0.01);
-  cardFaceRtHeightComputed: Signal<string> = computed(() => `${this.cardFaceRtHeight()}px`);
+  public readonly $cardFaceRtWidth: InputSignal<number> = input<number>(0.01);
+
+  public readonly $cardFaceRtHeight: InputSignal<number> = input<number>(0.01);
 
   // TODO: Potentially refactor
-  minWidth: InputSignal<number> = input<number>(MIN_CARD_FACE_WIDTH);
-  minHeight: InputSignal<number> = input<number>(MIN_CARD_FACE_HEIGHT);
+  public readonly $minWidth: InputSignal<number> = input<number>(MIN_CARD_FACE_WIDTH);
 
-  minWidthComputed: Signal<string> = computed(() => `${this.minWidth()}px`);
-  minHeightComputed: Signal<string> = computed(() => `${this.minHeight()}px`);
+  public readonly $minHeight: InputSignal<number> = input<number>(MIN_CARD_FACE_HEIGHT);
 
-  maxWidth: InputSignal<number> = input<number>(MAX_CARD_FACE_WIDTH);
-  maxHeight: InputSignal<number> = input<number>(MAX_CARD_FACE_HEIGHT);
+  public readonly $maxHeight: InputSignal<number> = input<number>(MAX_CARD_FACE_HEIGHT);
 
-  maxWidthComputed: Signal<string> = computed(() => `${this.maxWidth()}px`);
-  maxHeightComputed: Signal<string> = computed(() => `${this.maxHeight()}px`);
+  constructor() {}
 
-  constructor() {
+  protected get html(): string {
+    return this.$content();
   }
 
-  get html(): string {
-    return this.contentComputed();
-  }
-
-  get config(): AngularEditorConfig {
+  protected get config(): AngularEditorConfig {
     return {
       editable: false,
       spellcheck: false,
-      height: this.cardFaceRtHeightComputed(),
-      width: this.cardFaceRtWidthComputed(),
-      minHeight: this.minHeightComputed(),
-      minWidth: this.minWidthComputed(),
-      maxHeight: this.maxHeightComputed(),
+      height:`${this.$cardFaceRtHeight()}px`,
+      width: `${this.$cardFaceRtWidth()}px`,
+      minHeight: `${this.$minHeight()}px`,
+      minWidth: `${this.$minWidth()}px`,
+      maxHeight: `${this.$maxHeight()}px`,
       enableToolbar: false,
       showToolbar: false,
       outline: true

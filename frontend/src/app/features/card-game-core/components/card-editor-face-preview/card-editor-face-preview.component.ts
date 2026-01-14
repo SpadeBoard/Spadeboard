@@ -592,11 +592,11 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private onImageEditorStatusToggle(): void {
-    this.cardEditorControlsDesignImageService.onStatusToggle(this.imageEditorStatusOperations);
+    this.cardEditorControlsDesignImageService.onStatusToggle(this.imageEditorStatusOperations, this.destroyRef);
   }
 
   private onRteStatusToggle(): void {
-    this.cardEditorControlsDesignRteService.onStatusToggle(this.rteStatusOperations);
+    this.cardEditorControlsDesignRteService.onStatusToggle(this.rteStatusOperations, this.destroyRef);
   }
 
   private disableImageEditor(src: string): void {

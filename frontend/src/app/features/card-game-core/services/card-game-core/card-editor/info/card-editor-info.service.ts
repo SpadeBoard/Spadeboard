@@ -17,19 +17,6 @@ export class CardEditorInfoService {
     this.infoUrlChange$$.next(url);
   }
 
-  public getStyle(): Omit<Style, 'styleId'> {
-    return {
-      position: 'fixed',
-      top: '5%',
-      left: '5%',
-      height: `90vh`,
-      width: `90vw`,
-      borderRadius: '15px',
-      backgroundColor: `#e7e7e6`,
-      padding: '1%'
-    }
-  }
-
   public openWiki(
     websiteUrl: string,
     style: Omit<Style, 'styleId'>,

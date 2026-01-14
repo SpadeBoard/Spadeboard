@@ -1,6 +1,6 @@
 import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { interval, Observable, Subject, tap } from 'rxjs';
+import { interval, Observable, Subject, Subscription, tap } from 'rxjs';
 import { GameRoom } from '../models/game-room/game-room';
 import { GameRoomApiService } from './game-room-api.service';
 
@@ -9,60 +9,59 @@ import { GameRoomApiService } from './game-room-api.service';
 })
 export class GameRoomService {
   private readonly gameRoomApiService: GameRoomApiService = inject(GameRoomApiService); 
-  private readonly destroyRef: DestroyRef = inject(DestroyRef);
+  
+  public $currentGameRoomId: WritableSignal<string> = signal<string>("0");
+  public $autosaveInterval: WritableSignal<number> = signal<number>(300000);
 
-  currentGameRoomId: WritableSignal<string> = signal<string>("0");
-  autosaveInterval: WritableSignal<number> = signal<number>(300000);
-
+  public autosaveTimeoutSubscription: Subscription | undefined;
   
   private isSavingGameRoom: boolean = false;
 
-  private onSaveGameRoom$$ = new Subject<void>();
-  onSaveGameRoom$ = this.onSaveGameRoom$$.asObservable();
+  private onSaveGameRoom$$: Subject<void> = new Subject<void>();
+  public readonly onSaveGameRoom$: Observable<void> = this.onSaveGameRoom$$.asObservable();
 
   constructor() { 
 
   }
 
-  getGameRoom$(): Observable<GameRoom | undefined> {
-    return this.gameRoomApiService.getGameRoom$(this.currentGameRoomId()).pipe(
+  public getGameRoom$(): Observable<GameRoom | undefined> {
+    return this.gameRoomApiService.getGameRoom$(this.$currentGameRoomId()).pipe(
       tap((gameRoom: GameRoom | undefined) => {
         if (gameRoom) {
-          this.autosaveInterval.set(gameRoom.autosaveInterval);
+          this.$autosaveInterval.set(gameRoom.autosaveInterval);
         }
       })
     );
   }
 
-  setCurrentGameRoomId(newCurrentGameRoomId: string) {
-    this.currentGameRoomId.set(newCurrentGameRoomId);
+  public setCurrentGameRoomId(newCurrentGameRoomId: string): void {
+    this.$currentGameRoomId.set(newCurrentGameRoomId);
   }
 
-  setIsSavingGameRoom(newIsSavingGameRoom: boolean, newCurrentGameRoomId?: string) {
-    if (this.currentGameRoomId() !== newCurrentGameRoomId)
-      return;
+  public setIsSavingGameRoom(newIsSavingGameRoom: boolean, newCurrentGameRoomId?: string): void {
+    if (this.$currentGameRoomId() !== newCurrentGameRoomId) return;
 
     this.isSavingGameRoom = newIsSavingGameRoom;
   }
 
-  setCurrentGameRoom(newCurrentGameRoomId: string) {
-    this.currentGameRoomId.set(newCurrentGameRoomId);
+  public setCurrentGameRoom(newCurrentGameRoomId: string): void {
+    this.$currentGameRoomId.set(newCurrentGameRoomId);
   }
 
-  getCurrentGameRoom(): string {
-    return this.currentGameRoomId();
+  public getCurrentGameRoom(): string {
+    return this.$currentGameRoomId();
   }
 
   // TODO: Handle where you're saving and autosaving simultaneously, DB Concurrency Exception issues? Gotta disable the Save button somehow, send a signal here?
-  onAutosaveTimeout(): void {
-    let autosaveTimeoutSubscription = interval(this.autosaveInterval())
-      .pipe(takeUntilDestroyed(this.destroyRef))
+  public onAutosaveTimeout(destroyRef: DestroyRef): void {
+    this.autosaveTimeoutSubscription = interval(this.$autosaveInterval())
+      .pipe(takeUntilDestroyed(destroyRef))
       .subscribe(() => {
         this.onSave();
     });
   }
 
-  onSave(): void {
+  public onSave(): void {
     // TODO: Sends a message to the other subscribed functions to run their saving
     this.onSaveGameRoom$$.next();
   }

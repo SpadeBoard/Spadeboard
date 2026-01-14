@@ -23,10 +23,10 @@
             @switch (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
                 @case ("Rte") {
                     <app-card-face-rt 
-                        [cardFaceRtWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
-                        [cardFaceRtHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height"
+                        [$cardFaceRtWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
+                        [$cardFaceRtHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height"
                         (mousedown)="enableRte($event, cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [content]="getCardFaceElementRt(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
+                        [$content]="getCardFaceElementRt(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
                     </app-card-face-rt>
                 }
                 @case ("Image") {

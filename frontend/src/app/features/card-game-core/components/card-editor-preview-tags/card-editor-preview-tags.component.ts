@@ -78,9 +78,9 @@ export class CardEditorPreviewTagsComponent {
   // TODO: Load the whitelist based on backend
   protected whitelist$$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
   
-  public readonly: InputSignal<boolean> = input<boolean>(false);
+  public $readonly: InputSignal<boolean> = input<boolean>(false);
 
-  public disabled: InputSignal<boolean> = input<boolean>(false);
+  public $disabled: InputSignal<boolean> = input<boolean>(false);
 
   constructor() {
     this.populateTags();

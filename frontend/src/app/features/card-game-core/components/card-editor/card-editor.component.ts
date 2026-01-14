@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,29 +10,32 @@ import { CardEditorCloseComponent } from '../card-editor-close/card-editor-close
 import { CardEditorControlsDesignComponent } from '../card-editor-controls-design/card-editor-controls-design.component';
 import { CardEditorInfoComponent } from '../card-editor-info/card-editor-info.component';
 import { CardEditorPreviewComponent } from '../card-editor-preview/card-editor-preview.component';
+import { DEFAULT_MODAL_STYLE } from '../../utils/card-editor.constants';
 
 // TODO: Resizable card face, have arrows for dragging, make sure there's a max width/height for that card face
 @Component({
   selector: 'app-card-editor',
   imports: [
-    AngularEditorModule, 
+    AngularEditorModule,
     FormsModule,
-    CommonModule, 
-    CardEditorPreviewComponent, 
+    CommonModule,
+    CardEditorPreviewComponent,
     CardEditorControlsDesignComponent,
-    CardEditorCloseComponent, 
+    CardEditorCloseComponent,
     CardEditorInfoComponent
-  ], 
+  ],
   templateUrl: './card-editor.component.html',
   styleUrl: './card-editor.component.scss'
 })
-export class CardEditorComponent{
+export class CardEditorComponent {
   private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
-  
-   private imageEditorStatusOperations: Map<string, Function> = new Map<string, Function>([
+
+  private imageEditorStatusOperations: Map<string, Function> = new Map<string, Function>([
     ['enable', (id: string) => this.enableImageEditor(id)],
     ['disable', (src: string) => this.disableImageEditor(src)]
   ]);
+
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   constructor() {
     this.onImageEditorStatusToggle();
@@ -58,7 +61,7 @@ export class CardEditorComponent{
   private enableImageEditor(id: string): void {
     this.cardEditorControlsDesignImageService.open(
       this.cardFaceImageAttr,
-      this.cardEditorControlsDesignImageService.getStyle()
+      DEFAULT_MODAL_STYLE
     )
   }
 
@@ -68,6 +71,6 @@ export class CardEditorComponent{
   }
 
   private onImageEditorStatusToggle(): void {
-    this.cardEditorControlsDesignImageService.onStatusToggle(this.imageEditorStatusOperations);
+    this.cardEditorControlsDesignImageService.onStatusToggle(this.imageEditorStatusOperations, this.destroyRef);
   }
 }

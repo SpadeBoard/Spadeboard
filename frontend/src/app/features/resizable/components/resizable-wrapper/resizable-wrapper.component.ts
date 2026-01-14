@@ -18,7 +18,7 @@ export class ResizableWrapperComponent {
     max: 400
   });
 
-  private clampedDimensionsComputed: Signal<Dimensions> = computed(() => {
+  private readonly $clampedDimensionsComputed: Signal<Dimensions> = computed(() => {
     let value: Dimensions = this.$dimensions();
 
     value = {
@@ -55,33 +55,33 @@ export class ResizableWrapperComponent {
   }
 
   private topLeftResize(offsetX: number, offsetY: number): void {
-    let current = this.clampedDimensionsComputed();
-    let newWidth = clamp(current.width - offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
-    let newHeight = clamp(current.height - offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let current: Dimensions = this.$clampedDimensionsComputed();
+    let newWidth: number = clamp(current.width - offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let newHeight: number = clamp(current.height - offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
 
     this.$resizableChange.emit({ width: newWidth, height: newHeight });
   }
 
   private topRightResize(offsetX: number, offsetY: number): void {
-    let current = this.clampedDimensionsComputed();
-    let newWidth = clamp(current.width + offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
-    let newHeight = clamp(current.height - offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let current: Dimensions = this.$clampedDimensionsComputed();
+    let newWidth: number = clamp(current.width + offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let newHeight: number = clamp(current.height - offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
 
     this.$resizableChange.emit({ width: newWidth, height: newHeight });
   }
 
   private bottomLeftResize(offsetX: number, offsetY: number): void {
-    let current = this.clampedDimensionsComputed();
-    let newWidth = clamp(current.width - offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
-    let newHeight = clamp(current.height + offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let current: Dimensions = this.$clampedDimensionsComputed();
+    let newWidth: number = clamp(current.width - offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let newHeight : number= clamp(current.height + offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
 
     this.$resizableChange.emit({ width: newWidth, height: newHeight });
   }
 
   private bottomRightResize(offsetX: number, offsetY: number): void {
-    let current = this.clampedDimensionsComputed();
-    let newWidth = clamp(current.width + offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
-    let newHeight = clamp(current.height + offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let current: Dimensions = this.$clampedDimensionsComputed();
+    let newWidth: number = clamp(current.width + offsetX, this.$resizeThreshold().min, this.$resizeThreshold().max);
+    let newHeight: number = clamp(current.height + offsetY, this.$resizeThreshold().min, this.$resizeThreshold().max);
 
     this.$resizableChange.emit({ width: newWidth, height: newHeight });
   }
