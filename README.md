@@ -30,6 +30,13 @@ An open source self-hostable app where you can create rooms to design your table
 
 5. Input the command `GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) GIT_HASH=$(git rev-parse --short HEAD) APP_VERSION=$(node -p "require('./frontend/package.json').version") docker compose -f docker-compose.yml up -d --build` and press enter. This will start the app, it will load.
 
+If on Powershell, use the following single-line command instead (starting from `$env:...`):
+```powershell
+$env:GIT_BRANCH = $(git rev-parse --abbrev-ref HEAD); `
+$env:GIT_HASH   = $(git rev-parse --short HEAD); `
+$env:APP_VERSION = $(node -p "require('./frontend/package.json').version"); `
+docker compose -f docker-compose.yml up -d --build
+```
 6. Open `http://localhost:4200/` to head to SpadeBoard
 
 7. To stop the program, either run `docker compose -f docker-compose.yml down` or press the square on your container inside of Docker Desktop to stop it. If you want to delete your volumes and images, run `docker compose -f docker-compose.yml down --volumes --rmi all`, or delete them via Docker Desktop.
