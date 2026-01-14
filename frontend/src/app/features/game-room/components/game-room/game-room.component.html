@@ -8,18 +8,6 @@
 
         <app-cards-collection />
     </div>
-
-    @if (cardEditorPreviewService.$isCardEditorOpen()) {
-        <div class = "game-room-editor">
-            <app-card-editor/>
-        </div>
-    }
-
-    @if (isWikiOpen) {
-        <div class ="embedded-spadeboard-wiki">
-            <app-embedded-external-iframe [websiteUrl]="wikiWebsiteUrl" (onCloseInfo)="onCloseInfo()"/>
-        </div>
-    }
 </div>
 
 <!-- TODO: Put the board in here-->

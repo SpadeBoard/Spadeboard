@@ -1,11 +1,4 @@
 <div class="card-editor">
-    <div class="container">
-        @if (isCurrentPopupMenuOpen) {
-        <div class="card-editor-popup-menu">
-            <!--NOTE: https://vibhas1892.medium.com/difference-between-ng-template-ng-container-and-ng-content-a1d264619655-->
-            <ng-container *ngComponentOutlet="getCurrentPopupMenuComponent(); inputs: popupMenuInputs;" />
-        </div>
-        }
         <div class="bar">
             <app-card-editor-close />
             <app-card-editor-info/>
@@ -18,4 +11,3 @@
             <app-card-editor-controls-design class ="cec-design-container"/>
         </div>
     </div>
-</div>

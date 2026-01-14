@@ -1,4 +1,4 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inject, Injectable, outputBinding, signal, WritableSignal } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { assertObjectsMatch } from '../../../../../../utils/checks.utils';
 import { FileMetadataService } from '../../../../../../utils/services/file/metadata/facade/file-metadata.service';
@@ -12,6 +12,8 @@ import { isCardEditorCardDto } from '../../../../utils/card-game-core.utils';
 import { UserService } from '../../../user/user.service';
 import { CardEditorCardDtoApiService } from '../../api/card-editor-card-dto-api.service';
 import { CardEditorApiService } from '../api/card-editor-api.service';
+import { CardEditorComponent } from '../../../../components/card-editor/card-editor.component';
+import { Style } from '../../../../../style/models/style';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +26,9 @@ export class CardEditorPreviewService {
   private readonly fileMetadataService: FileMetadataService = inject(FileMetadataService);
   
   private readonly userService: UserService = inject(UserService);
+
+  private readonly environmentInjector: EnvironmentInjector = inject(EnvironmentInjector);
+  private readonly appRef: ApplicationRef = inject(ApplicationRef);
 
   // FIXME: Reset this everytime you open the card editor via the button on the side
   public cardEditorCardDto: CardEditorCardDto = getBlankCardTemplate(DEFAULT_CARD_EDITOR_FACE_STYLE, this.userService.$userId());
@@ -39,6 +44,11 @@ export class CardEditorPreviewService {
   private setCardEditorCardDto$$: Subject<void> = new Subject<void>();
   public readonly setCardEditorCardDto$: Observable<void> = this.setCardEditorCardDto$$.asObservable();
 
+  private cardEditorInstance: {
+    host: HTMLElement;
+    ref: ComponentRef<CardEditorComponent>;
+  } | undefined;
+  
   constructor() {
     this.setBlankCardTemplate();
   }
@@ -258,5 +268,104 @@ export class CardEditorPreviewService {
 
   private clearItemsToDelete(): void {
     this.cardEditorApiService.clear();
+  }
+
+  public toggleCardEditor(isCardEditorOpen: boolean): void {
+    this.setIsCardEditorOpen(isCardEditorOpen);
+
+    if (!this.$isCardEditorOpen()) {
+      this.closeCardEditor();
+      return;
+    }
+
+    if (!this.cardEditorInstance) {
+      this.cardEditorInstance = this.openCardEditor(this.getStyle());
+      return;
+    }
+
+    this.showCardEditor(this.cardEditorInstance, this.getStyle());
+  }
+
+  public getStyle(): Omit<Style, 'styleId'> {
+    return {
+      position: 'fixed',
+      top: '5%',
+      left: '5%',
+      height: `90vh`,
+      width: `90vw`,
+      borderRadius: '15px',
+      backgroundColor: `#e7e7e6`,
+      padding: '1%'
+    }
+  }
+
+  private showCardEditor(
+    cardEditorInstance: {
+      host: HTMLElement,
+      ref: ComponentRef<CardEditorComponent>;
+    },
+    style: Omit<Style, 'styleId'>
+  ): {
+    host: HTMLElement;
+    ref: ComponentRef<CardEditorComponent>;
+  } {
+    if (!cardEditorInstance) {
+      throw new Error('cardEditorInstance is not initialized');
+    }
+
+    let { host, ref } = cardEditorInstance;
+
+    this.setCardEditorStyle(host, style);
+    this.appRef.attachView(ref.hostView);
+    document.body.appendChild(host);
+
+    return { host, ref };
+  }
+
+  public openCardEditor(
+    style: Omit<Style, 'styleId'>,
+  ): {
+    host: HTMLElement,
+    ref: ComponentRef<CardEditorComponent>
+  } {
+    let host: HTMLElement = document.createElement('card-face-image-editor-host');
+
+    this.setCardEditorStyle(host, style);
+
+    // TODO: Modify for debugging purposes
+    // console.log(`%c${this.constructor.name} - ${this.open.name}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
+
+    let ref: ComponentRef<CardEditorComponent> = createComponent(CardEditorComponent, {
+      environmentInjector: this.environmentInjector,
+      hostElement: host
+    });
+
+    // Registers the component’s view so it participates in change detection cycle.
+    this.appRef.attachView(ref.hostView);
+    // Inserts the provided host element into the DOM (outside the normal Angular view hierarchy).
+    // This is what makes the popup visible on screen, typically used for overlays or modals.
+    document.body.appendChild(host);
+
+    return { host, ref }
+  }
+
+  private setCardEditorStyle(host: HTMLElement, style: Omit<Style, 'styleId'>) {
+    if (style.position) host.style.position = style.position;
+    if (style.left) host.style.left = style.left;
+    if (style.top) host.style.top = style.top;
+    if (style.height) host.style.height = style.height;
+    if (style.width) host.style.width = style.width;
+    if (style.borderRadius) host.style.borderRadius = style.borderRadius;
+    if (style.padding) host.style.padding = style.padding;
+    if (style.backgroundColor) host.style.backgroundColor = style.backgroundColor;
+  }
+
+  public closeCardEditor(): void {
+    if (!this.cardEditorInstance) return;
+
+    let {host, ref} = this.cardEditorInstance;
+
+    document.body.removeChild(host);
+    this.appRef.detachView(ref.hostView);
   }
 }

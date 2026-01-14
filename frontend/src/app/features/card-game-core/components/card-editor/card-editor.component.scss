@@ -1,20 +1,12 @@
 .card-editor {
-    width: 100%;
-    height: 100%;
-}
-
-.container {
     background-color: #e7e7e6;
     display: grid;
     /*grid-template-columns: 40% 60%;*/
-    padding: 2.5%;
-    height: fit-content;
-    width: fit-content;
     column-gap: 1rem;
     overflow: scroll;
-    max-height: 75vh;
-    max-width: 75vw;
     filter: drop-shadow(grey 1rem 1rem 1rem);
+    border-radius: 15px;
+    height: 100%;
 }
 
 .bar {
@@ -22,7 +14,7 @@
     grid-column: 1 / span 2;
 }
 
-.container .right-column {
+.card-editor .right-column {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -37,7 +29,7 @@
     max-width: 100%;
 }
 
-.container .left-column {
+.card-editor .left-column {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -146,12 +138,4 @@
     border: dotted 3px #999;
     min-height: 60px;
     transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-.card-editor-popup-menu {
-    z-index: 3;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: #ccc;
 }

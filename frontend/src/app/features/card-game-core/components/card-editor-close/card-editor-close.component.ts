@@ -11,6 +11,6 @@ export class CardEditorCloseComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
   protected onClose(event: Event): void {
-    this.cardEditorPreviewService.setIsCardEditorOpen(!this.cardEditorPreviewService.$isCardEditorOpen());
+    this.cardEditorPreviewService.toggleCardEditor(!this.cardEditorPreviewService.$isCardEditorOpen());
   }
 }

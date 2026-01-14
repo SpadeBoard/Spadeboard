@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, InputSignal, SecurityContext } from '@angular/core';
+import { Component, inject, input, InputSignal, output, OutputEmitterRef, SecurityContext } from '@angular/core';
 import { Image } from '../../../style/models/image';
 import { Style } from '../../../style/models/style';
 
@@ -22,30 +22,16 @@ export class CardFaceImageEditorComponent {
   // https://www.youtube.com/watch?v=lCClcI3Lt2A
   // https://stackblitz.com/edit/image-cropper?file=src%2Fimage-cropper%2Fcomponent%2Fimage-cropper.component.ts%3AL255
 
-  public cardFaceImageAttr: InputSignal<{cardFaceImage: Image, cardFaceImageStyle?: Style } | undefined> = input<{cardFaceImage: Image, cardFaceImageStyle?: Style}>();
-  readonly cardFaceImageAttrComputed = computed(() => 
-    {
-      let cardFaceImageAttr: {
-          cardFaceImage: Image;
-          cardFaceImageStyle?: Style;
-      } | undefined = this.cardFaceImageAttr();
-
-      if (cardFaceImageAttr === undefined)
-        return;
-
-      //this.setImage(cardFaceImageAttr.cardFaceImage);
-
-      /*if (cardFaceImageAttr.cardFaceImageStyle)
-        // console.log('Has image style');
-        //this.setImageStyle(cardFaceImageAttr.cardFaceImageStyle);*/
-    }); 
+  public readonly $cardFaceImageAttr: InputSignal<{cardFaceImage: Image, cardFaceImageStyle?: Style } | undefined> = input<{cardFaceImage: Image, cardFaceImageStyle?: Style}>();
     
-  imageChangedEvent: Event | null = null;
-  croppedImage: SafeUrl = '';
+  protected imageChangedEvent: Event | null = null;
+  protected croppedImage: SafeUrl = '';
   
   // fileUploadComponent: FileUploadComponent = inject(FileUploadComponent);
   private sanitizer: DomSanitizer = inject(DomSanitizer);
   private src: string = "";
+
+  public readonly $closed: OutputEmitterRef<void> = output<void>();
 
   constructor() {
   }
@@ -79,10 +65,16 @@ export class CardFaceImageEditorComponent {
 
     if (src) this.src = src;
 
-    this.cardEditorControlsDesignImageService.setDisableImageEditor(this.src);
+    // CHECKME: Do we want this as a flag
+    this.closeImageEditor();
   }
 
   public onDisableImageEditor(event: Event): void {
+   this.closeImageEditor();
+  }
+
+  private closeImageEditor(): void {
     this.cardEditorControlsDesignImageService.setDisableImageEditor(this.src);
+    this.$closed.emit();
   }
 }

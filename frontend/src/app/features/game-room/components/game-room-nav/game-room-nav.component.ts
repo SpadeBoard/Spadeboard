@@ -21,7 +21,7 @@ export class GameRoomNavComponent {
   private readonly cardsCollectionService: CardsCollectionService = inject(CardsCollectionService);
   
   protected cardEditorClick(event: Event): void {
-    this.cardEditorPreviewService.setIsCardEditorOpen(!this.cardEditorPreviewService.$isCardEditorOpen());
+    this.cardEditorPreviewService.toggleCardEditor(!this.cardEditorPreviewService.$isCardEditorOpen());
   }
 
   protected cardsCollectionClick(event: Event): void {
