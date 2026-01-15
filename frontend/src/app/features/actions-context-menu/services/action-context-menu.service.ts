@@ -1,7 +1,7 @@
 import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inject, Injectable, inputBinding, outputBinding } from '@angular/core';
 import { ActionContextMenuComponent } from '../components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../models/action-context-menu-item';
-import { Coordinates, stringify } from '../../../utils/utils';
+import { Coordinates, setHostElementStyle, stringify } from '../../../utils/utils';
 import { Style } from '../../style/models/style';
 
 @Injectable({
@@ -108,10 +108,7 @@ export class ActionContextMenuService {
 
     let {host} = instance;
 
-    if (style.position) host.style.position = style.position;
-    if (style.left) host.style.left = style.left;
-    if (style.top) host.style.top = style.top;
-    if (style.zIndex) host.style.zIndex = style.zIndex;
+    setHostElementStyle(host, style);
   }
 
   public toggleActionContextMenu(shouldShowContextMenu: boolean): boolean {

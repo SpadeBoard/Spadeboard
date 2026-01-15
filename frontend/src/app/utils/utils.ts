@@ -7,6 +7,7 @@ import { from, Observable, of, Subscription, switchMap } from "rxjs";
 import { FileMetadata, FileMetadataStatus } from "./models/file-metadata";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import * as PngMetadata from '@sonrisa-dev/png-metadata';
+import { Style } from "../features/style/models/style";
 
 export function getDefaultFileMetadata(): FileMetadata {
     return {
@@ -574,4 +575,17 @@ export function stringify(value: any): string {
             if (value !== null) return value
         },
         2);
+}
+
+// TODO: Move somewhere else
+export function setHostElementStyle(host: HTMLElement, style: Omit<Style, 'styleId'>): void {
+    if (style.position) host.style.position = style.position;
+    if (style.left) host.style.left = style.left;
+    if (style.top) host.style.top = style.top;
+    if (style.height) host.style.height = style.height;
+    if (style.width) host.style.width = style.width;
+    if (style.borderRadius) host.style.borderRadius = style.borderRadius;
+    if (style.padding) host.style.padding = style.padding;
+    if (style.backgroundColor) host.style.backgroundColor = style.backgroundColor;
+    if (style.zIndex) host.style.zIndex = style.zIndex;
 }

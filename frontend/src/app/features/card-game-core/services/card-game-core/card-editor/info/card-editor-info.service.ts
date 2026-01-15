@@ -2,6 +2,7 @@ import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inj
 import { Observable, Subject } from 'rxjs';
 import { Style } from '../../../../../style/models/style';
 import { EmbeddedExternalIframeComponent } from '../../../../../../utils/components/embedded-external-iframe/embedded-external-iframe.component';
+import { setHostElementStyle } from '../../../../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +27,7 @@ export class CardEditorInfoService {
   } {
     let host: HTMLElement = document.createElement('spadeboard-wiki-host');
 
-    this.setWikiStyle(host, style);
+    setHostElementStyle(host, style);
 
     // TODO: Modify for debugging purposes
     // console.log(`%c${this.constructor.name} - ${this.open.name}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
@@ -51,17 +52,6 @@ export class CardEditorInfoService {
     document.body.appendChild(host);
 
     return { host, ref }
-  }
-
-  private setWikiStyle(host: HTMLElement, style: Omit<Style, 'styleId'>) {
-    if (style.position) host.style.position = style.position;
-    if (style.left) host.style.left = style.left;
-    if (style.top) host.style.top = style.top;
-    if (style.height) host.style.height = style.height;
-    if (style.width) host.style.width = style.width;
-    if (style.borderRadius) host.style.borderRadius = style.borderRadius;
-    if (style.padding) host.style.padding = style.padding;
-    if (style.backgroundColor) host.style.backgroundColor = style.backgroundColor;
   }
 
   public closeWiki(instance: {

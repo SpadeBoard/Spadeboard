@@ -2,7 +2,7 @@ import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inj
 import { Observable, Subject } from 'rxjs';
 import { assertObjectsMatch } from '../../../../../../utils/checks.utils';
 import { FileMetadataService } from '../../../../../../utils/services/file/metadata/facade/file-metadata.service';
-import { stringify } from '../../../../../../utils/utils';
+import { setHostElementStyle, stringify } from '../../../../../../utils/utils';
 import { CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../../../../models/card-face';
 import { CardFaceElementPerCardFace } from '../../../../models/card-face-element';
@@ -302,7 +302,7 @@ export class CardEditorPreviewService {
 
     let { host, ref } = cardEditorInstance;
 
-    this.setCardEditorStyle(host, style);
+    setHostElementStyle(host, style);
     this.appRef.attachView(ref.hostView);
     document.body.appendChild(host);
 
@@ -317,7 +317,7 @@ export class CardEditorPreviewService {
   } {
     let host: HTMLElement = document.createElement('card-face-image-editor-host');
 
-    this.setCardEditorStyle(host, style);
+    setHostElementStyle(host, style);
 
     // TODO: Modify for debugging purposes
     // console.log(`%c${this.constructor.name} - ${this.open.name}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
@@ -334,17 +334,6 @@ export class CardEditorPreviewService {
     document.body.appendChild(host);
 
     return { host, ref }
-  }
-
-  private setCardEditorStyle(host: HTMLElement, style: Omit<Style, 'styleId'>) {
-    if (style.position) host.style.position = style.position;
-    if (style.left) host.style.left = style.left;
-    if (style.top) host.style.top = style.top;
-    if (style.height) host.style.height = style.height;
-    if (style.width) host.style.width = style.width;
-    if (style.borderRadius) host.style.borderRadius = style.borderRadius;
-    if (style.padding) host.style.padding = style.padding;
-    if (style.backgroundColor) host.style.backgroundColor = style.backgroundColor;
   }
 
   public closeCardEditor(): void {
