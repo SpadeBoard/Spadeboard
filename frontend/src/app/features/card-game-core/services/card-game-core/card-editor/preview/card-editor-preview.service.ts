@@ -321,7 +321,7 @@ export class CardEditorPreviewService {
     host: HTMLElement,
     ref: ComponentRef<CardEditorComponent>
   } {
-    let host: HTMLElement = document.createElement('card-face-image-editor-host');
+    let host: HTMLElement = document.createElement('card-editor-preview-host');
 
     // TODO: Modify for debugging purposes
     // console.log(`%c${this.constructor.name} - ${this.open.name}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
