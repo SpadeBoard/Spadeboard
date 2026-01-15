@@ -5,6 +5,9 @@
 }
 
 .cec-design-attributes-row {
-    display: flex;
-    padding-left: 5%;          
+    display: grid;
+    padding-left: 5%;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+    width: fit-content;
 }

@@ -279,12 +279,17 @@ export class CardEditorPreviewService {
       return;
     }
 
+    let style: Omit<Style, 'styleId'> = {
+      ...DEFAULT_MODAL_STYLE,
+      overflow: 'scroll'
+    }
+
     if (!this.cardEditorInstance) {
-      this.cardEditorInstance = this.openCardEditor(DEFAULT_MODAL_STYLE);
+      this.cardEditorInstance = this.openCardEditor(style);
       return;
     }
 
-    this.showCardEditor(this.cardEditorInstance, DEFAULT_MODAL_STYLE);
+    this.showCardEditor(this.cardEditorInstance, style);
   }
 
   private showCardEditor(

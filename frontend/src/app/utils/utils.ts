@@ -584,8 +584,11 @@ export function setModalStyle(host: HTMLElement, style: Omit<Style, 'styleId'>):
     if (style.top) host.style.top = style.top;
     if (style.height) host.style.height = style.height;
     if (style.width) host.style.width = style.width;
+    if (style.maxHeight) host.style.maxHeight = style.maxHeight;
+    if (style.maxWidth) host.style.maxWidth = style.maxWidth;
     if (style.borderRadius) host.style.borderRadius = style.borderRadius;
     if (style.padding) host.style.padding = style.padding;
     if (style.backgroundColor) host.style.backgroundColor = style.backgroundColor;
     if (style.zIndex) host.style.zIndex = style.zIndex;
+    if (style.overflow) host.style.overflow = style.overflow;
 }
