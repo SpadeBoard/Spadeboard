@@ -9,10 +9,10 @@ import { EmbeddedExternalIframeComponent } from '../../../../../../utils/compone
 export class CardEditorInfoService {
   private infoUrlChange$$: Subject<string> = new Subject<string>();
   public readonly infoUrlChange$: Observable<string> = this.infoUrlChange$$.asObservable();
-  
-   private readonly environmentInjector: EnvironmentInjector = inject(EnvironmentInjector);
+
+  private readonly environmentInjector: EnvironmentInjector = inject(EnvironmentInjector);
   private readonly appRef: ApplicationRef = inject(ApplicationRef);
-  
+
   public setOnInfoUrlChange(url: string): void {
     this.infoUrlChange$$.next(url);
   }
@@ -24,7 +24,7 @@ export class CardEditorInfoService {
     host: HTMLElement,
     ref: ComponentRef<EmbeddedExternalIframeComponent>
   } {
-    let host: HTMLElement = document.createElement('card-face-image-editor-host');
+    let host: HTMLElement = document.createElement('spadeboard-wiki-host');
 
     this.setWikiStyle(host, style);
 
@@ -68,7 +68,7 @@ export class CardEditorInfoService {
     host: HTMLElement,
     ref: ComponentRef<EmbeddedExternalIframeComponent>
   }): void {
-    let {host, ref} = instance;
+    let { host, ref } = instance;
 
     document.body.removeChild(host);
     this.appRef.detachView(ref.hostView);
