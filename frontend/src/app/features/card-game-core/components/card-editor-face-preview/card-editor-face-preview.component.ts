@@ -25,7 +25,7 @@ import { CardFaceElementImageService } from '../../services/card-game-core/card-
 import { CardFaceElementRtService } from '../../services/card-game-core/card-face-element/rt/card-face-element-rt.service';
 import { CardFaceLodsService } from '../../services/card-game-core/card-face/lods/card-face-lods.service';
 import { CardFaceStyleService } from '../../services/card-game-core/card-face/style/card-face-style.service';
-import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID } from '../../utils/card-editor.constants';
+import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, DEFAULT_MODAL_STYLE } from '../../utils/card-editor.constants';
 import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
 import { CardEditorFacePreviewGridComponent } from './card-editor-face-preview-grid/card-editor-face-preview-grid.component';
@@ -95,7 +95,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   ]);
 
   private imageEditorStatusOperations: Map<string, Function> = new Map<string, Function>([
-    ['enable', (id: string) => this.setElementAttributes(id)],
+    ['enable', (id: string) => this.enableImageEditor(id)],
+    ['upload', (src: string) => this.uploadmage(src)],
     ['disable', (src: string) => this.disableImageEditor(src)]
   ]);
 
@@ -181,7 +182,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   protected getCardEditorFaceStyle(): Omit<Style, 'styleId'> {
-    return { ...this.cardFaceStyleService.getStyle(this.getCurrentCardFaceStyle()), margin: 'auto'};
+    return { ...this.cardFaceStyleService.getStyle(this.getCurrentCardFaceStyle()), margin: 'auto' };
   }
 
   // CHECKME: Is this being used correctly
@@ -306,7 +307,6 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.onCardFaceElementAttributes(cardFaceElementPerCardFace);
     this.onCardFaceElementsLayering(cardFaceElementId, this.cardFaceElementsPerCardFace);
 
-    // TODO: Why doesn't these run
     this.setElementAttributesPosition(this.cardFaceElementService.getCardFaceElementPosition(cardFaceElementPerCardFace));
     this.setElementAttributesDimensions(this.cardFaceElementService.getCardFaceElementDimensions(cardFaceElementPerCardFace));
   }
@@ -534,8 +534,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         },
         type,
         this.cardFaceElementsPerCardFace
-      )
-    );
+      ));
 
     // FIXED: This should work
     // CHECKME: Make sure it doesn't affect everything else
@@ -563,7 +562,10 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       });
   }
 
+  // CHECKME: Instead of these being subscribables, might want to make it so that in the currentCardFaceElementsPerCardFace, you have output signals
+  // Then call then which will then call the subscribables
   protected enableRte(emitted: { id: string, text: string }): void {
+    this.cardEditorControlsDesignImageService.closeCardFaceImageEditor();
     this.setElementAttributes(emitted.id);
   }
 
@@ -584,11 +586,17 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private setSrc(src: string): void {
-    this.cardFaceElementImageService.setSrc(src, {
+    let element: {
+      cardFaceElementId: string,
+      cardFaceElementsPerCardFace: CardFaceElementPerCardFace[],
+      cardFaceElementService: CardFaceElementService
+    } = {
       cardFaceElementId: this.cardFaceElementId,
       cardFaceElementsPerCardFace: this.cardFaceElementsPerCardFace,
       cardFaceElementService: this.cardFaceElementService
-    });
+    }
+
+    this.cardFaceElementImageService.setSrc(src, element);
   }
 
   private onImageEditorStatusToggle(): void {
@@ -599,10 +607,20 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardEditorControlsDesignRteService.onStatusToggle(this.rteStatusOperations, this.destroyRef);
   }
 
-  private disableImageEditor(src: string): void {
-    if (src === "") return;
+  private enableImageEditor(id: string): void {
+    this.cardEditorControlsDesignImageService.displayCardFaceImageEditor();
+    this.setElementAttributes(id);
+  }
+
+  private uploadmage(src: string): void {
+    if (!src || !this.cardFaceElementImageService.isImage(this.cardFaceElementId, this.cardFaceElementsPerCardFace, this.cardFaceElementService)) return;
 
     this.setSrc(src);
+    this.disableImageEditor(src);
+  }
+
+  private disableImageEditor(src: string): void {
+    this.cardEditorControlsDesignImageService.closeCardFaceImageEditor();
   }
 
   protected onRteTextChange(): void {

@@ -23,6 +23,8 @@ export function closeModal(
 ): void {
     let { host, ref } = instance;
 
+    if (!host || !host.parentNode) return;
+
     document.body.removeChild(host);
     appRef.detachView(ref.hostView);
     if (shouldDestroyRef) ref.destroy();

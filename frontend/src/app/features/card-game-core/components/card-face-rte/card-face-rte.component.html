@@ -1,2 +1,7 @@
-<angular-editor id="card-face-rte" [config]="angularEditorConfig()" [(ngModel)]="htmlContent" (ngModelChange)="onContentChange($event)">
+<angular-editor 
+    id="card-face-rte" 
+    [config]="angularEditorConfig()" 
+    [(ngModel)]="htmlContent"
+    (ngModelChange)="onContentChange($event)"
+    [class.editor-disabled]="!isEditable">
 </angular-editor>

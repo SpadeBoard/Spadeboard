@@ -27,7 +27,7 @@ import { sanitizeStyle } from '../../utils/rich-text-sanitizer.utils';
 export class CardFaceRteComponent {
   private readonly http: HttpClient = inject(HttpClient);
 
-  private cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
+  private readonly cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
 
   private readonly dompurifySanitizer: NgDompurifySanitizer = inject(NgDompurifySanitizer);
   private readonly sanitizeStyle: SanitizeStyle = inject(SANITIZE_STYLE);

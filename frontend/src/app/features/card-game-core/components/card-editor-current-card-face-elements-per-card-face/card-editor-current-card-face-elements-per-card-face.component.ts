@@ -28,7 +28,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
 
   private readonly cardFaceElementService: CardFaceElementService = inject(CardFaceElementService);
 
-  private readonly cardFaceElementDndService:  CardFaceElementDndService = inject(CardFaceElementDndService);
+  private readonly cardFaceElementDndService: CardFaceElementDndService = inject(CardFaceElementDndService);
 
   private readonly cardFaceElementRtService: CardFaceElementRtService = inject(CardFaceElementRtService);
   private readonly cardFaceElementImageService: CardFaceElementImageService = inject(CardFaceElementImageService);
@@ -103,12 +103,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
   protected onDragStarted(event: CdkDragStart<any>, cardFaceElementPerCardFace: CardFaceElementPerCardFace): void {
     if (!cardFaceElementPerCardFace) throw new Error("No currently edited card face element");
 
-    let {x, y} = cardFaceElementPerCardFace.dndPosition;
+    let { x, y } = cardFaceElementPerCardFace.dndPosition;
 
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
     this.cardFaceElementDndService.setOffset(
       this.mousePosition,
-      {x, y},
+      { x, y },
       this.getCardFaceClientRect(),
       this.dragOffset
     );
@@ -140,7 +140,9 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
     // console.log(`On drag dropped - card face element ID: ${cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId}`);
   }
 
+  /************* TODO: Refactor these ***************/
   protected enableRte(event: Event, cardFaceElementId: string): void {
+    this.disableImageEditor();
     this.cardEditorControlsDesignRteService.setOnEnableRte(cardFaceElementId, this.getRt(cardFaceElementId));
   }
 
@@ -164,6 +166,13 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
     this.disableRte();
     this.cardEditorControlsDesignImageService.setOnEnableImageEditor(cardFaceElementId);
   }
+
+  protected disableImageEditor(): void {
+    if (!this.cardFaceElementImageService.isImage(this.$cardFaceElementId(), this.$cardFaceElementsPerCardFace(), this.cardFaceElementService)) return;
+
+    this.cardEditorControlsDesignImageService.setDisableImageEditor('');
+  }
+  /************* TODO: Refactor these ***************/
 
   // TODO: Rework this, because cards have different max widths and heights
   protected getResizeThreshold(): Threshold {

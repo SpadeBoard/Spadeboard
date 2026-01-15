@@ -1,4 +1,4 @@
-import { Component, inject, input, InputSignal, output, OutputEmitterRef, SecurityContext } from '@angular/core';
+import { Component, inject, input, InputSignal, SecurityContext } from '@angular/core';
 import { Image } from '../../../style/models/image';
 import { Style } from '../../../style/models/style';
 
@@ -9,7 +9,6 @@ import { CardEditorControlsDesignImageService } from '../../services/card-game-c
 @Component({
   selector: 'app-card-face-image-editor',
   imports: [
-    // FileUploadComponent,
     ImageCropperComponent
   ],
   templateUrl: './card-face-image-editor.component.html',
@@ -29,9 +28,6 @@ export class CardFaceImageEditorComponent {
   
   // fileUploadComponent: FileUploadComponent = inject(FileUploadComponent);
   private readonly sanitizer: DomSanitizer = inject(DomSanitizer);
-  private src: string = "";
-
-  public readonly $closed: OutputEmitterRef<void> = output<void>();
 
   constructor() {
   }
@@ -63,18 +59,10 @@ export class CardFaceImageEditorComponent {
   public onModifyCardFaceImage(event: Event): void /*Promise<void>*/ {
     let src: string | null = this.sanitizer.sanitize(SecurityContext.URL, this.croppedImage);
 
-    if (src) this.src = src;
-
-    // CHECKME: Do we want this as a flag
-    this.closeImageEditor();
+    if (src) this.cardEditorControlsDesignImageService.setUploadImage(src);
   }
 
   public onDisableImageEditor(event: Event): void {
-   this.closeImageEditor();
-  }
-
-  private closeImageEditor(): void {
-    this.cardEditorControlsDesignImageService.setDisableImageEditor(this.src);
-    this.$closed.emit();
+   this.cardEditorControlsDesignImageService.setDisableImageEditor('');
   }
 }

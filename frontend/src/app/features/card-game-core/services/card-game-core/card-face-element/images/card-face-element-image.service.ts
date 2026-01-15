@@ -154,6 +154,18 @@ export class CardFaceElementImageService {
     return cardFaceElementImage;
   }
 
+  public isImage(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService): boolean {
+    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = cardFaceElementService.getCardFaceElementPerCardFace(cardFaceElementId, cardFaceElementsPerCardFace, 'Rte');
+
+    if (!cardFaceElementPerCardFace) return false;
+
+    let cardFaceElementImage: CardFaceElementImage | undefined = getCardFaceElementImage(cardFaceElementPerCardFace.cardFaceElement);
+
+    if (!cardFaceElementImage) return false;
+
+    return true;
+  }
+
   public getSrc(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService): string {
     let cardFaceElementImage: CardFaceElementImage = this.getElement(cardFaceElementId, cardFaceElementsPerCardFace, cardFaceElementService);
 
