@@ -181,7 +181,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   protected getCardEditorFaceStyle(): Omit<Style, 'styleId'> {
-    return this.cardFaceStyleService.getStyle(this.getCurrentCardFaceStyle());
+    return { ...this.cardFaceStyleService.getStyle(this.getCurrentCardFaceStyle()), margin: 'auto'};
   }
 
   // CHECKME: Is this being used correctly
