@@ -578,7 +578,7 @@ export function stringify(value: any): string {
 }
 
 // TODO: Move somewhere else
-export function setHostElementStyle(host: HTMLElement, style: Omit<Style, 'styleId'>): void {
+export function setModalStyle(host: HTMLElement, style: Omit<Style, 'styleId'>): void {
     if (style.position) host.style.position = style.position;
     if (style.left) host.style.left = style.left;
     if (style.top) host.style.top = style.top;

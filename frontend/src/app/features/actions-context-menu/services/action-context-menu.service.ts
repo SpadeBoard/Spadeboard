@@ -1,8 +1,9 @@
 import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inject, Injectable, inputBinding, outputBinding } from '@angular/core';
 import { ActionContextMenuComponent } from '../components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../models/action-context-menu-item';
-import { Coordinates, setHostElementStyle, stringify } from '../../../utils/utils';
+import { Coordinates, setModalStyle, stringify } from '../../../utils/utils';
 import { Style } from '../../style/models/style';
+import { closeModal, openModal } from '../../../utils/modals.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -52,9 +53,7 @@ export class ActionContextMenuService {
       bindings: [
         outputBinding(
           '$closed', () => {
-            document.body.removeChild(host);
-            this.appRef.detachView(ref.hostView);
-            ref.destroy();
+            closeModal(this.appRef, {host, ref});
 
             this.instances.delete(uuid);
 
@@ -74,11 +73,7 @@ export class ActionContextMenuService {
     // NOTE: Can't use inputBinding because setInput doesn't work with those as those are setup helpers, not dynamic reactive
     ref.setInput('$actionContextMenuItems', actionContextMenuItems);
 
-    // Registers the component’s view so it participates in change detection cycle.
-    this.appRef.attachView(ref.hostView);
-    // Inserts the provided host element into the DOM (outside the normal Angular view hierarchy).
-    // This is what makes the popup visible on screen, typically used for overlays or modals.
-    document.body.appendChild(host);
+    openModal(this.appRef, {host, ref});
 
     this.instances.set(uuid, {host, ref});
 
@@ -108,7 +103,7 @@ export class ActionContextMenuService {
 
     let {host} = instance;
 
-    setHostElementStyle(host, style);
+    setModalStyle(host, style);
   }
 
   public toggleActionContextMenu(shouldShowContextMenu: boolean): boolean {

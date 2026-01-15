@@ -2,7 +2,7 @@ import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inj
 import { Observable, Subject } from 'rxjs';
 import { assertObjectsMatch } from '../../../../../../utils/checks.utils';
 import { FileMetadataService } from '../../../../../../utils/services/file/metadata/facade/file-metadata.service';
-import { setHostElementStyle, stringify } from '../../../../../../utils/utils';
+import { setModalStyle, stringify } from '../../../../../../utils/utils';
 import { CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../../../../models/card-face';
 import { CardFaceElementPerCardFace } from '../../../../models/card-face-element';
@@ -14,6 +14,7 @@ import { CardEditorCardDtoApiService } from '../../api/card-editor-card-dto-api.
 import { CardEditorApiService } from '../api/card-editor-api.service';
 import { CardEditorComponent } from '../../../../components/card-editor/card-editor.component';
 import { Style } from '../../../../../style/models/style';
+import { closeModal, openModal } from '../../../../../../utils/modals.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -302,9 +303,9 @@ export class CardEditorPreviewService {
 
     let { host, ref } = cardEditorInstance;
 
-    setHostElementStyle(host, style);
-    this.appRef.attachView(ref.hostView);
-    document.body.appendChild(host);
+    setModalStyle(host, style);
+
+    openModal(this.appRef, cardEditorInstance);
 
     return { host, ref };
   }
@@ -317,8 +318,6 @@ export class CardEditorPreviewService {
   } {
     let host: HTMLElement = document.createElement('card-face-image-editor-host');
 
-    setHostElementStyle(host, style);
-
     // TODO: Modify for debugging purposes
     // console.log(`%c${this.constructor.name} - ${this.open.name}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
 
@@ -327,21 +326,12 @@ export class CardEditorPreviewService {
       hostElement: host
     });
 
-    // Registers the component’s view so it participates in change detection cycle.
-    this.appRef.attachView(ref.hostView);
-    // Inserts the provided host element into the DOM (outside the normal Angular view hierarchy).
-    // This is what makes the popup visible on screen, typically used for overlays or modals.
-    document.body.appendChild(host);
-
-    return { host, ref }
+    return this.showCardEditor({host, ref}, style);
   }
 
   public closeCardEditor(): void {
     if (!this.cardEditorInstance) return;
 
-    let {host, ref} = this.cardEditorInstance;
-
-    document.body.removeChild(host);
-    this.appRef.detachView(ref.hostView);
+    closeModal(this.appRef, this.cardEditorInstance, false);
   }
 }

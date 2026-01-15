@@ -2,7 +2,8 @@ import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inj
 import { Observable, Subject } from 'rxjs';
 import { Style } from '../../../../../style/models/style';
 import { EmbeddedExternalIframeComponent } from '../../../../../../utils/components/embedded-external-iframe/embedded-external-iframe.component';
-import { setHostElementStyle } from '../../../../../../utils/utils';
+import { setModalStyle } from '../../../../../../utils/utils';
+import { closeModal, openModal } from '../../../../../../utils/modals.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +28,7 @@ export class CardEditorInfoService {
   } {
     let host: HTMLElement = document.createElement('spadeboard-wiki-host');
 
-    setHostElementStyle(host, style);
+    setModalStyle(host, style);
 
     // TODO: Modify for debugging purposes
     // console.log(`%c${this.constructor.name} - ${this.open.name}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
@@ -38,30 +39,13 @@ export class CardEditorInfoService {
       bindings: [
         inputBinding('$websiteUrl', () => websiteUrl),
         outputBinding('$closed', () => {
-          this.closeWiki({
-            host, ref
-          })
+          closeModal(this.appRef, {host, ref});
         })
       ]
     });
 
-    // Registers the component’s view so it participates in change detection cycle.
-    this.appRef.attachView(ref.hostView);
-    // Inserts the provided host element into the DOM (outside the normal Angular view hierarchy).
-    // This is what makes the popup visible on screen, typically used for overlays or modals.
-    document.body.appendChild(host);
+    openModal(this.appRef, {host, ref});
 
     return { host, ref }
-  }
-
-  public closeWiki(instance: {
-    host: HTMLElement,
-    ref: ComponentRef<EmbeddedExternalIframeComponent>
-  }): void {
-    let { host, ref } = instance;
-
-    document.body.removeChild(host);
-    this.appRef.detachView(ref.hostView);
-    ref.destroy();
   }
 }
