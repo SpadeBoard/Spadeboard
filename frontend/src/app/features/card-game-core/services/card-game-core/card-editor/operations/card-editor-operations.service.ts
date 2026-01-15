@@ -193,7 +193,7 @@ export class CardEditorOperationsService {
     console.log(`%c${this.constructor.name} - ${this.editCardAction.name}\ncardId: ${cardId}`, `color: #8D77AB; background: #BAD8B6; padding: 5px; border-radius: 5px;`);
 
     cardEditorPreviewService.getCardEditorCardDtoByCardId(cardId);
-    cardEditorPreviewService.setIsCardEditorOpen(!cardEditorPreviewService.$isCardEditorOpen());
+    cardEditorPreviewService.toggleCardEditor(!cardEditorPreviewService.$isCardEditorOpen());
   }
 
   public deleteCardAction(cardId: string, cardEditorPreviewService: CardEditorPreviewService): void {
