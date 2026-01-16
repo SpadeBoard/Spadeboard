@@ -5,13 +5,13 @@ import { DndDragBoundary, DndPosition } from "../../drag-and-drop/models/dnd-typ
 import { FileMetadata } from "../../../utils/models/file-metadata";
 
 export interface CardFaceElement {
-  cardFaceElementType: 'Rte' | 'Image';
+  cardFaceElementType: 'Rt' | 'Image';
   cardFaceElementId: string;
   style?: Style;
 }
 
 export interface CardFaceElementRt extends CardFaceElement {
-  cardFaceElementType: 'Rte';
+  cardFaceElementType: 'Rt';
   cardFaceElementContent: string;
 }
 

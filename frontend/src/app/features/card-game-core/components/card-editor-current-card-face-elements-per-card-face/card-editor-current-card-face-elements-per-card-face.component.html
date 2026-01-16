@@ -21,7 +21,7 @@
         >
             <!--TODO: Potentially refactor to use ngComponentOutlet, possibly call onRevokeSrc of card face image there?-->
             @switch (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
-                @case ("Rte") {
+                @case ("Rt") {
                     <app-card-face-rt 
                         [$cardFaceRtWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
                         [$cardFaceRtHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height"

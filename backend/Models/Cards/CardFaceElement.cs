@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace Models.Cards
 {
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "cardFaceElementType")]
-    [JsonDerivedType(typeof(CardFaceElementRtDto), "Rte")]
+    [JsonDerivedType(typeof(CardFaceElementRtDto), "Rt")]
     [JsonDerivedType(typeof(CardFaceElementImageDto), "Image")]
     public class CardFaceElementDto
     {
@@ -30,7 +30,7 @@ namespace Models.Cards
     }
 
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "cardFaceElementType")]
-    [JsonDerivedType(typeof(CardFaceElementRt), "Rte")]
+    [JsonDerivedType(typeof(CardFaceElementRt), "Rt")]
     [JsonDerivedType(typeof(CardFaceElementImage), "Image")]
     [Table("CardFaceElements")] 
     public abstract class CardFaceElement: ICrudId

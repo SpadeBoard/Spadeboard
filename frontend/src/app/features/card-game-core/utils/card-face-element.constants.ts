@@ -8,7 +8,7 @@ export function createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: s
   let cardFaceElementPerCardFace: CardFaceElementPerCardFace = {
     cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
     cardFaceElement: {
-      cardFaceElementType: 'Rte',
+      cardFaceElementType: 'Rt',
       cardFaceElementId: cardFaceElementPerCardFaceId,
       style: {
         styleId: "0",
@@ -29,11 +29,11 @@ export function createCardFaceElementPerCardFace(cardFaceElementPerCardFaceId: s
   }
 
   switch (type) {
-    case 'Rte':
+    case 'Rt':
       cardFaceElementPerCardFace = {
         cardFaceElementPerCardFaceId: cardFaceElementPerCardFaceId,
         cardFaceElement: {
-          cardFaceElementType: 'Rte',
+          cardFaceElementType: 'Rt',
           cardFaceElementId: cardFaceElementPerCardFaceId,
           style: {
             styleId: "0",

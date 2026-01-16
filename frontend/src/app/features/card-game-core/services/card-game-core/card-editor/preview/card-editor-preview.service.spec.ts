@@ -48,7 +48,7 @@ describe('CardEditorPreviewService', () => {
         {
           cardFaceElementPerCardFaceId: "1999551277389840384",
           cardFaceElement: {
-            cardFaceElementType: "Rte",
+            cardFaceElementType: "Rt",
             cardFaceElementId: "1999551277154959361",
             style: {
               styleId: "1999551277154959360",

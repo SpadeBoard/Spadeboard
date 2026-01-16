@@ -175,7 +175,12 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   public setCardFaceElementsPerCardFace(): void;
   public setCardFaceElementsPerCardFace(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): void
   public setCardFaceElementsPerCardFace(cardFaceElementsPerCardFace?: CardFaceElementPerCardFace[]): void {
-    if (cardFaceElementsPerCardFace) this.cardFaceElementsPerCardFace = ([...cardFaceElementsPerCardFace]);
+    if (cardFaceElementsPerCardFace) {
+      this.cardFaceElementsPerCardFace = ([...cardFaceElementsPerCardFace]);
+
+      console.log(`%c${this.constructor.name} - ${this.setCardFaceElementsPerCardFace.name}:\ncardFaceElementsPerCardFace:\n${stringify(this.cardFaceElementsPerCardFace)}`, `color: #504B38; background: #F8F3D9; padding: 5px; border-radius: 5px;`);
+      return;
+    }
 
     this.cardFaceElementsPerCardFace = ([...this.cardEditorPreviewService.getCurrentCardFaceElementsPerCardFace()]);
     console.log(`%c${this.constructor.name} - ${this.setCardFaceElementsPerCardFace.name}:\ncardFaceElementsPerCardFace:\n${stringify(this.cardFaceElementsPerCardFace)}`, `color: #504B38; background: #F8F3D9; padding: 5px; border-radius: 5px;`);
@@ -568,7 +573,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   private enableElement(cardFaceElementId: string, type: string): void {
     switch (type) {
-      case 'Rte':
+      case 'Rt':
         this.enableRte(cardFaceElementId);
         break;
       case 'Image':
@@ -651,7 +656,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private disableImageEditor(src: string): void {
-    // if (!this.cardFaceElementImageService.isImage(this.cardFaceElementId, this.cardFaceElementsPerCardFace, this.cardFaceElementService)) return;
+    if (!this.cardFaceElementImageService.isImage(this.cardFaceElementId, this.cardFaceElementsPerCardFace, this.cardFaceElementService)) return;
 
     this.cardEditorControlsDesignImageService.closeCardFaceImageEditor();
   }

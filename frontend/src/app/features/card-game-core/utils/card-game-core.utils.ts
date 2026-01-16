@@ -60,7 +60,7 @@ export function isCardPositionPerRoom(obj: any): obj is CardPositionPerRoom {
 }
 
 export function getCardFaceElementRt(cardFaceElement: CardFaceElement): CardFaceElementRt | undefined {
-    if (cardFaceElement.cardFaceElementType !== "Rte")
+    if (cardFaceElement.cardFaceElementType !== "Rt")
         return;
 
     return (cardFaceElement as CardFaceElementRt);
