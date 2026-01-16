@@ -16,6 +16,7 @@ import { CardFacePerCardApiService } from '../../api/card-face-per-card-api.serv
 import { CardApiService } from '../../card/api/card-api.service';
 import { CardEditorApiService } from '../api/card-editor-api.service';
 import { CardEditorPreviewService } from '../preview/card-editor-preview.service';
+import { CardFaceLodsService } from '../../card-face/lods/card-face-lods.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +32,8 @@ export class CardEditorOperationsService {
 
   private readonly cardFacesPerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
 
+  private readonly cardFaceLodsService: CardFaceLodsService = inject(CardFaceLodsService);
+  
   private readonly atlasExportService: AtlasExportService = inject(AtlasExportService);
 
   private createCard$$: Subject<void> = new Subject<void>();
@@ -59,19 +62,11 @@ export class CardEditorOperationsService {
     // CHECKME: You should be able to import cards that have already been deleted and elements that have been already deleted
     this.isValidCard(cardEditorCardDto);
 
-    // 1. Make the dynamic component
-    /*
-    <div #cardEditorFace [style]="getCardEditorFaceStyle()" (contextmenu)="onCardEditorFaceRightClick($event)">
-        <app-card-editor-face-preview-grid [$shouldSnapToGrid]="shouldSnapToGrid" data-html2canvas-ignore="true"/>
-        <app-card-editor-current-card-face-elements-per-card-face [cardFaceBorderRadius]="cardFaceBorderRadius" [$shouldSnapToGrid]="shouldSnapToGrid" #cardFaceElementsPerCardFace/>
-    </div>
-    */
-
     let imported: CardEditorCardDto = { ...cardEditorCardDto };
 
     console.log(`%c${this.constructor.name} - ${this.importCardAction.name} (time: ${Date.now().toLocaleString("en-US")}) (before):\nimported:${stringify(imported)}}`, `color: #01161e; background: #eff6e0; padding: 5px; border-radius: 5px;`);
 
-    // 2. Set it offscreen and pass in all the inputs
+    this.cardFaceLodsService.createCardEditorCardDtoLods(cardEditorCardDto);
 
     // 3. Add the results of the canvas back into cardEditorCardDto
 

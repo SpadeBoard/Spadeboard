@@ -1,15 +1,18 @@
-import { DestroyRef, ElementRef, inject, Injectable } from '@angular/core';
+import { ApplicationRef, ComponentRef, createComponent, DestroyRef, ElementRef, EnvironmentInjector, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { FileMetadata, FileMetadataStatus } from '../../../../../../utils/models/file-metadata';
 import { FileMetadataService } from '../../../../../../utils/services/file/metadata/facade/file-metadata.service';
 import { FileUploadApiService } from '../../../../../../utils/services/file/upload/api/file-upload-api.service';
 import { FileUploadService } from '../../../../../../utils/services/file/upload/facade/file-upload.service';
-import { clear, flattenToImage, generateResizedImagesAtQualities, stringify } from '../../../../../../utils/utils';
+import { clear, flattenToImage, generateResizedImagesAtQualities, setModalStyle, stringify } from '../../../../../../utils/utils';
 import { CardEditorCardDto } from '../../../../models/card';
-import { CardFace } from '../../../../models/card-face';
+import { CardEditorCardFaceDto, CardFace } from '../../../../models/card-face';
 import { DEFAULT_CARD_FACE_THUMBNAILS_VOLUME_PATH } from '../../../../utils/card-face.constants';
 import { areAllFileMetadataOfStatus } from '../../../../../../utils/file-metadata.utils';
+import { CardEditorFacePreviewComponent } from '../../../../components/card-editor-face-preview/card-editor-face-preview.component';
+import { closeModal, openModal } from '../../../../../../utils/modals.utils';
+import { DEFAULT_MODAL_STYLE, shouldMakeCardFaceThumbnailLods } from '../../../../utils/card-editor.constants';
 
 @Injectable({
   providedIn: 'root'
@@ -23,16 +26,19 @@ export class CardFaceLodsService {
 
   private readonly fileMetadataService: FileMetadataService = inject(FileMetadataService);
 
+  private readonly environmentInjector: EnvironmentInjector = inject(EnvironmentInjector);
+  private readonly appRef: ApplicationRef = inject(ApplicationRef);
+
   public orphanedFileMetadata: FileMetadata[] = [];
 
   constructor() { }
 
   public clear(): void {
     console.log(`%c${this.constructor.name} - ${this.clear.name}(before):\n${stringify(this.orphanedFileMetadata)}`, 'color: #FFA4A4; background: #FCF9EA; padding: 5px; border-radius: 5px;');
-    
+
     // CHECKME: Do we actually want this check?
     if (!areAllFileMetadataOfStatus(this.orphanedFileMetadata, FileMetadataStatus.Orphaned)) throw new Error(`${this.constructor.name} - ${this.clear.name}: orphanedFileMetadata should all have orphaned file metadata`);
-    
+
     clear(this.orphanedFileMetadata);
 
     console.assert(this.orphanedFileMetadata.length === 0, `${this.constructor.name} - ${this.clear.name}: orphanedFileMetadata isn't cleared`);
@@ -51,7 +57,7 @@ export class CardFaceLodsService {
               )
             )
         ),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef) // TODO: Pass in the destroyRef as a parameter
       );
   }
 
@@ -141,5 +147,45 @@ export class CardFaceLodsService {
 
   public orphanFileMetadata(): void {
     this.fileMetadataService.markFileMetadata(this.orphanedFileMetadata, FileMetadataStatus.Orphaned);
+  }
+
+  public createCardEditorCardDtoLods(cardEditorCardDto: CardEditorCardDto): void {
+    let host: HTMLElement = document.createElement('card-editor-face-preview-host');
+
+    let ref: ComponentRef<CardEditorFacePreviewComponent> = createComponent(CardEditorFacePreviewComponent, {
+      environmentInjector: this.environmentInjector,
+      hostElement: host,
+    });
+
+    // CHECKME: This is temporary and dependent on viewport width and height so it's gonna cause issues
+    setModalStyle(host, {
+      ...DEFAULT_MODAL_STYLE,
+      width: '90vw',
+      height: '90vh',
+      display: 'block',
+      pointerEvents: 'none',
+    });
+
+    openModal(this.appRef, { host, ref });
+
+    ref.changeDetectorRef.detectChanges();
+
+    cardEditorCardDto.cardEditorCardFacesDto.forEach((value, index) => {
+      if (!shouldMakeCardFaceThumbnailLods(value)) return;
+
+      console.log(`%c${this.constructor.name} - ${this.createCardEditorCardDtoLods.name} Style:\n${stringify(value.cardFace.style)}\nElements:\n${stringify(value.cardFaceElementsPerCardFace)}`, 'color: #453643; background: #8DAA91; padding: 5px; border-radius: 5px;');
+
+      // FIXME: Why are these not updating the actual component's template itself
+      ref.instance.getCurrentCardFaceStyle(value.cardFace.style);
+      ref.instance.setCardFaceElementsPerCardFace(value.cardFaceElementsPerCardFace);
+
+      ref.changeDetectorRef.detectChanges();
+
+       this.setCardFaceThumbnailImages$(ref.instance.cardEditorFace, cardEditorCardDto, index);
+
+      console.log(`%c${this.constructor.name} - ${this.createCardEditorCardDtoLods.name} Computed style:\n${stringify(window.getComputedStyle(ref.instance.cardEditorFace.nativeElement))}\nDimensions:\n${stringify(ref.instance.cardEditorFace.nativeElement.getBoundingClientRect())}`, 'color: #ffffff; background: #0066cc; padding: 5px; border-radius: 5px;');
+    });
+
+    closeModal(this.appRef, { host, ref });
   }
 }

@@ -119,7 +119,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   public cardFaceElementId: string = '';
 
-  public cardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [];
+  protected cardFaceElementsPerCardFace: CardFaceElementPerCardFace[] = [];
 
   @ViewChild(CardEditorCurrentCardFaceElementsPerCardFaceComponent) cardEditorCurrentCardFaceElementsPerCardFaceComponent!: CardEditorCurrentCardFaceElementsPerCardFaceComponent;
   /******************** SIGNALS *************************/
@@ -172,8 +172,9 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   // TODO: Move into another function
-  private setCardFaceElementsPerCardFace(): void;
-  private setCardFaceElementsPerCardFace(cardFaceElementsPerCardFace?: CardFaceElementPerCardFace[]): void {
+  public setCardFaceElementsPerCardFace(): void;
+  public setCardFaceElementsPerCardFace(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): void
+  public setCardFaceElementsPerCardFace(cardFaceElementsPerCardFace?: CardFaceElementPerCardFace[]): void {
     if (cardFaceElementsPerCardFace) this.cardFaceElementsPerCardFace = ([...cardFaceElementsPerCardFace]);
 
     this.cardFaceElementsPerCardFace = ([...this.cardEditorPreviewService.getCurrentCardFaceElementsPerCardFace()]);
@@ -201,8 +202,10 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardEditorControlsDesignCardFaceAttributesService.setCurrentCardFaceId(this.getCurrentCardFace().cardFaceId);
   }
 
-  private getCurrentCardFaceStyle(): Style {
-    let face: Style = this.cardEditorPreviewService.getCurrentCardFace().style;
+  public getCurrentCardFaceStyle(): Style;
+  public getCurrentCardFaceStyle(style: Style): Style;
+  public getCurrentCardFaceStyle(style?: Style): Style {
+    let face: Style = (style) ? style : this.cardEditorPreviewService.getCurrentCardFace().style;
 
     if (!face) throw new Error("No style associated with card face");
 
@@ -404,6 +407,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     return cardFaceElementsPerCardFaceToDeleteIds.length > 0;
   }
 
+  // TODO: Break this function down into multiple parts
   private saveCard(): void {
     this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.getCurrentCardFaceIndex())
       .pipe(
