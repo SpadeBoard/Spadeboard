@@ -130,6 +130,6 @@ upload:: This is the name of the function.
     // https://medium.com/angular-in-depth/warning-sanitizing-html-stripped-some-content-and-how-to-deal-with-it-properly-10ff77012d5a
     updatedHtml = this.dompurifySanitizer.sanitize(SecurityContext.HTML, updatedHtml);
     
-    this.cardEditorControlsDesignRteService.setOnRteTextChange(updatedHtml);
+    this.cardEditorControlsDesignRteService.setRteTextChange(updatedHtml);
   }
 }

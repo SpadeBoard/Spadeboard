@@ -155,7 +155,7 @@ export class CardFaceElementImageService {
   }
 
   public isImage(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService): boolean {
-    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = cardFaceElementService.getCardFaceElementPerCardFace(cardFaceElementId, cardFaceElementsPerCardFace, 'Rte');
+    let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = cardFaceElementService.getCardFaceElementPerCardFace(cardFaceElementId, cardFaceElementsPerCardFace, 'Image');
 
     if (!cardFaceElementPerCardFace) return false;
 
@@ -174,9 +174,9 @@ export class CardFaceElementImageService {
     return cardFaceElementImage.imageFileMetadata.fileName;
   }
 
-  public setSrc(croppedImage: string, element: { cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService }): void;
-  public setSrc(croppedImage: string, cardFaceElementImage: CardFaceElementImage): void;
-  public setSrc(croppedImage: string, element: CardFaceElementImage | { cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService }): void {
+  public setSrc(croppedImage: string, element: { cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService }, destroyRef: DestroyRef): void;
+  public setSrc(croppedImage: string, cardFaceElementImage: CardFaceElementImage, destroyRef: DestroyRef): void;
+  public setSrc(croppedImage: string, element: CardFaceElementImage | { cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService }, destroyRef: DestroyRef): void {
     function getCardFaceElementImage(getElement: (cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService) => CardFaceElementImage): CardFaceElementImage {
       if (isCardFaceElementImage(element)) return element;
       return getElement(element.cardFaceElementId, element.cardFaceElementsPerCardFace, element.cardFaceElementService);
@@ -189,7 +189,7 @@ export class CardFaceElementImageService {
 
     from(blobUrlToDataURL(croppedImage))
       .pipe(
-        switchMap((base64Image) => getImageFormData$(base64Image, this.destroyRef)
+        switchMap((base64Image) => getImageFormData$(base64Image, destroyRef)
         ),
         switchMap((formData: FormData | undefined) => {
           if (!formData)
@@ -198,10 +198,10 @@ export class CardFaceElementImageService {
           return this.createCardFaceElementImage$(
             cardFaceElementImage,
             formData,
-            this.destroyRef
+            destroyRef
           );
         }),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe({
         next: (cardFaceElementImageFileMetadata: FileMetadata | undefined) => {

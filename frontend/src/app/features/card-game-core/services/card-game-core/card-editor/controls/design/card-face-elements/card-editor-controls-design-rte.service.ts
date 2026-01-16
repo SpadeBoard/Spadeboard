@@ -13,8 +13,8 @@ export class CardEditorControlsDesignRteService {
   private disableRte$$ = new Subject<{id: string, text :string}>();
   public readonly disableRte$: Observable<{id: string, text :string}> = this.disableRte$$.asObservable();
 
-  private onRteTextChange$$ = new Subject<string>();
-  public readonly onRteTextChange$: Observable<string> = this.onRteTextChange$$.asObservable();
+  private rteTextChange$$ = new Subject<string>();
+  public readonly rteTextChange$: Observable<string> = this.rteTextChange$$.asObservable();
 
 
   constructor() { }
@@ -27,14 +27,14 @@ export class CardEditorControlsDesignRteService {
     this.disableRte$$.next({id, text});
   }
 
-  public setOnRteTextChange(text: string): void {
-    this.onRteTextChange$$.next(text);
+  public setRteTextChange(text: string): void {
+    this.rteTextChange$$.next(text);
   }
 
-  public onRteTextChange(fn: Function): void {
-    this.onRteTextChange$
+  public rteTextChange(fn: Function, destroyRef: DestroyRef): void {
+    this.rteTextChange$
       .pipe(
-        takeUntilDestroyed()
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe((text: string) => {
         fn(text);

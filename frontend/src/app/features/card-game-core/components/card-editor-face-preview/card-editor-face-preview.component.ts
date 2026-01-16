@@ -95,14 +95,13 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   ]);
 
   private imageEditorStatusOperations: Map<string, Function> = new Map<string, Function>([
-    ['enable', (id: string) => this.enableImageEditor(id)],
-    ['upload', (src: string) => this.uploadmage(src)],
+    ['upload', (src: string) => this.uploadImage(src)],
     ['disable', (src: string) => this.disableImageEditor(src)]
   ]);
 
-  private rteStatusOperations: Map<string, Function> = new Map<string, Function>([
+  /*private rteStatusOperations: Map<string, Function> = new Map<string, Function>([
     ['enable', (emitted: { id: string, text: string }) => this.enableRte(emitted)],
-  ]);
+  ]);*/
 
   private cardFaceElementAttributes$$: Subscription | null = null;
 
@@ -153,8 +152,8 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.onCardEditorCardDtoOperations();
     this.onCardFaceElementsPerCardFaceOperations();
 
-    this.onRteTextChange();
-    this.onRteStatusToggle();
+    this.rteTextChange();
+    // this.onRteStatusToggle();
 
     this.onImageEditorStatusToggle();
   }
@@ -523,22 +522,23 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   private createdCardFaceElementPerCardFace(emitted: { type: string, dndPosition: DndPosition }): void {
     let { type, dndPosition } = emitted;
 
-    this.setElementAttributes(
-      this.cardFaceElementService.createCardFaceElementPerCardFace(
-        {
-          absolute: {
-            x: dndPosition.x,
-            y: dndPosition.y
-          },
-          rect: this.cardEditorCurrentCardFaceElementsPerCardFaceComponent.getCardFaceClientRect()
+    let cardFaceElementPerCardFaceId: string = this.cardFaceElementService.createCardFaceElementPerCardFace(
+      {
+        absolute: {
+          x: dndPosition.x,
+          y: dndPosition.y
         },
-        type,
-        this.cardFaceElementsPerCardFace
-      ));
+        rect: this.cardEditorCurrentCardFaceElementsPerCardFaceComponent.getCardFaceClientRect()
+      },
+      type,
+      this.cardFaceElementsPerCardFace
+    );
 
     // FIXED: This should work
     // CHECKME: Make sure it doesn't affect everything else
     this.cardEditorPreviewService.setCurrentCardFaceElementsPerCardFace(this.cardFaceElementsPerCardFace);
+
+    this.enableElement(cardFaceElementPerCardFaceId, type);
 
     console.log(`%c${this.constructor.name} - ${this.createdCardFaceElementPerCardFace.name}:\nCard face elements per card face:${stringify(this.cardFaceElementsPerCardFace)}\nCard editor card dto:\n${stringify(this.cardEditorPreviewService.cardEditorCardDto)}`, `color: #19183B; background: #E7F2EF; padding: 5px; border-radius: 5px;`);
 
@@ -562,11 +562,41 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       });
   }
 
-  // CHECKME: Instead of these being subscribables, might want to make it so that in the currentCardFaceElementsPerCardFace, you have output signals
-  // Then call then which will then call the subscribables
-  protected enableRte(emitted: { id: string, text: string }): void {
-    this.cardEditorControlsDesignImageService.closeCardFaceImageEditor();
-    this.setElementAttributes(emitted.id);
+  private enableElement(cardFaceElementId: string, type: string): void {
+    switch (type) {
+      case 'Rte':
+        this.enableRte(cardFaceElementId);
+        break;
+      case 'Image':
+        this.focusImage(cardFaceElementId);
+        break;
+      default:
+        this.setElementAttributes(cardFaceElementId);
+    }
+  }
+
+  protected enableRte(cardFaceElementId: string): void {
+    this.disableImageEditor(cardFaceElementId);
+    this.setElementAttributes(cardFaceElementId);
+
+    // TODO: There should be a check to whether the card face element is an Rt here
+
+    this.cardEditorControlsDesignRteService.setOnEnableRte(this.cardFaceElementId, this.getRt(this.cardFaceElementId));
+  }
+
+  private getRt(cardFaceElementId: string): string {
+    return this.cardFaceElementRtService.getRt(cardFaceElementId, this.cardFaceElementsPerCardFace, this.cardFaceElementService) ?? "";
+  }
+
+  private disableRte(): void {
+    if (!this.cardFaceElementRtService.isRt(this.cardFaceElementId, this.cardFaceElementsPerCardFace, this.cardFaceElementService)) return;
+
+    this.cardEditorControlsDesignRteService.setOnDisableRte(this.cardFaceElementId, this.getRt(this.cardFaceElementId));
+  }
+
+  protected focusImage(cardFaceElementId: string): void {
+    this.disableRte();
+    this.setElementAttributes(cardFaceElementId);
   }
 
   // FIXME: Can't delete card face element per card face
@@ -596,23 +626,20 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
       cardFaceElementService: this.cardFaceElementService
     }
 
-    this.cardFaceElementImageService.setSrc(src, element);
+    this.cardFaceElementImageService.setSrc(src, element, this.destroyRef);
   }
 
   private onImageEditorStatusToggle(): void {
     this.cardEditorControlsDesignImageService.onStatusToggle(this.imageEditorStatusOperations, this.destroyRef);
   }
 
-  private onRteStatusToggle(): void {
-    this.cardEditorControlsDesignRteService.onStatusToggle(this.rteStatusOperations, this.destroyRef);
-  }
+  protected enableImageEditor(cardFaceElementId: string): void {
+    this.focusImage(cardFaceElementId);
 
-  private enableImageEditor(id: string): void {
     this.cardEditorControlsDesignImageService.displayCardFaceImageEditor();
-    this.setElementAttributes(id);
   }
 
-  private uploadmage(src: string): void {
+  private uploadImage(src: string): void {
     if (!src || !this.cardFaceElementImageService.isImage(this.cardFaceElementId, this.cardFaceElementsPerCardFace, this.cardFaceElementService)) return;
 
     this.setSrc(src);
@@ -620,10 +647,12 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private disableImageEditor(src: string): void {
+    // if (!this.cardFaceElementImageService.isImage(this.cardFaceElementId, this.cardFaceElementsPerCardFace, this.cardFaceElementService)) return;
+
     this.cardEditorControlsDesignImageService.closeCardFaceImageEditor();
   }
 
-  protected onRteTextChange(): void {
-    this.cardEditorControlsDesignRteService.onRteTextChange((text: string) => this.cardFaceElementRtService.setRt(this.cardFaceElementId, text, this.cardFaceElementsPerCardFace, this.cardFaceElementService));
+  protected rteTextChange(): void {
+    this.cardEditorControlsDesignRteService.rteTextChange((text: string) => this.cardFaceElementRtService.setRt(this.cardFaceElementId, text, this.cardFaceElementsPerCardFace, this.cardFaceElementService), this.destroyRef);
   }
 }

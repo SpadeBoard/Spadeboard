@@ -11,9 +11,13 @@
         [cardFaceBorderRadius]="cardFaceBorderRadius" 
 
         [$shouldSnapToGrid]="shouldSnapToGrid"
-        (setElementPosition)="setElementPosition($event)"
-        (setElementAttributes)="setElementAttributes($event)"
-        (setElementDimensions)="setElementDimensions($event)" 
+        ($setElementPosition)="setElementPosition($event)"
+        ($setElementAttributes)="setElementAttributes($event)"
+        ($setElementDimensions)="setElementDimensions($event)"
+        
+        ($enableRte)="enableRte($event)"
+        ($focusImage)="focusImage($event)"
+        ($enableImageEditor)="enableImageEditor($event)"
     />
 </div>
 

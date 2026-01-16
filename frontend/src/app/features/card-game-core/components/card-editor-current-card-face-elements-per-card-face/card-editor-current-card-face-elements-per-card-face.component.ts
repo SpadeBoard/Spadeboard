@@ -1,12 +1,10 @@
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 
-import { Component, ElementRef, inject, input, InputSignal, output, OutputEmitterRef, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, ElementRef, inject, input, InputSignal, output, OutputEmitterRef, ViewChild } from '@angular/core';
 import { Coordinates, Dimensions, Threshold } from '../../../../utils/utils';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
 import { Style } from '../../../style/models/style';
 import { CardFaceElementPerCardFace } from '../../models/card-face-element';
-import { CardEditorControlsDesignImageService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-image.service';
-import { CardEditorControlsDesignRteService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-rte.service';
 import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 import { CardFaceElementService } from '../../services/card-game-core/card-face-element/card-face-element.service';
 import { CardFaceElementDndService } from '../../services/card-game-core/card-face-element/dnd/card-face-element-dnd.service';
@@ -33,18 +31,15 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
   private readonly cardFaceElementRtService: CardFaceElementRtService = inject(CardFaceElementRtService);
   private readonly cardFaceElementImageService: CardFaceElementImageService = inject(CardFaceElementImageService);
 
-  private readonly cardEditorControlsDesignRteService: CardEditorControlsDesignRteService = inject(CardEditorControlsDesignRteService);
-  private readonly cardEditorControlsDesignImageService: CardEditorControlsDesignImageService = inject(CardEditorControlsDesignImageService);
-
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
 
   public readonly cardFaceBorderRadius: InputSignal<number> = input<number>(DEFAULT_CARD_FACE_BORDER_RADIUS);
 
-  public readonly setElementAttributes: OutputEmitterRef<string> = output<string>();
+  public readonly $setElementAttributes: OutputEmitterRef<string> = output<string>();
 
-  public readonly setElementDimensions: OutputEmitterRef<Dimensions> = output<Dimensions>();
+  public readonly $setElementDimensions: OutputEmitterRef<Dimensions> = output<Dimensions>();
 
-  public readonly setElementPosition: OutputEmitterRef<Coordinates> = output<Coordinates>();
+  public readonly $setElementPosition: OutputEmitterRef<Coordinates> = output<Coordinates>();
 
   public readonly createdCardFaceElementPerCardFace: OutputEmitterRef<{
     relative: { absolute: Coordinates; rect: DOMRect };
@@ -61,6 +56,12 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
 
   public readonly $shouldSnapToGrid: InputSignal<boolean> = input<boolean>(false);
 
+  public readonly $enableRte: OutputEmitterRef<string> = output<string>();
+
+  public readonly $focusImage: OutputEmitterRef<string> = output<string>();
+
+  public readonly $enableImageEditor: OutputEmitterRef<string> = output<string>();
+  
   protected getCardFaceElementContainer(): Omit<Style, 'styleId'> {
     return {
       width: `100%`,
@@ -128,7 +129,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
     let clamped: Coordinates = this.cardFaceElementDndService.getClampedCoordinates(drop, this.getCardFaceClientRect(), this.dragOffset, this.$shouldSnapToGrid(), this.cardFaceElementService.getCardFaceElementDimensions(cardFaceElementPerCardFace));
 
     // CHECKME: Is it possible that it's not updating correctly is because we're not updating the card face element ID that's being dragged.
-    this.setElementPosition.emit(clamped);
+    this.$setElementPosition.emit(clamped);
 
     // FIXED: Sometimes it just doesn't update and I have no clue why, so this is here to try to force the rerender
     // and clamp the native element, force it to absolutely have a style
@@ -140,39 +141,17 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
     // console.log(`On drag dropped - card face element ID: ${cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId}`);
   }
 
-  /************* TODO: Refactor these ***************/
   protected enableRte(event: Event, cardFaceElementId: string): void {
-    this.disableImageEditor();
-    this.cardEditorControlsDesignRteService.setOnEnableRte(cardFaceElementId, this.getRt(cardFaceElementId));
-  }
-
-  protected disableRte(): void {
-    // CHECKME: Unsubscribe from onRteTextChange here?
-    if (!this.cardFaceElementRtService.isRt(this.$cardFaceElementId(), this.$cardFaceElementsPerCardFace(), this.cardFaceElementService)) return;
-
-    this.cardEditorControlsDesignRteService.setOnDisableRte(this.$cardFaceElementId(), this.getRt(this.$cardFaceElementId()));
-  }
-
-  private getRt(cardFaceElementId: string): string {
-    return this.cardFaceElementRtService.getRt(cardFaceElementId, this.$cardFaceElementsPerCardFace(), this.cardFaceElementService) ?? "";
+    this.$enableRte.emit(cardFaceElementId);
   }
 
   protected focusImage(cardFaceElementId: string): void {
-    this.disableRte();
-    this.setElementAttributes.emit(cardFaceElementId);
+    this.$focusImage.emit(cardFaceElementId);
   }
 
   protected enableImageEditor(cardFaceElementId: string): void {
-    this.disableRte();
-    this.cardEditorControlsDesignImageService.setOnEnableImageEditor(cardFaceElementId);
+    this.$enableImageEditor.emit(cardFaceElementId);
   }
-
-  protected disableImageEditor(): void {
-    if (!this.cardFaceElementImageService.isImage(this.$cardFaceElementId(), this.$cardFaceElementsPerCardFace(), this.cardFaceElementService)) return;
-
-    this.cardEditorControlsDesignImageService.setDisableImageEditor('');
-  }
-  /************* TODO: Refactor these ***************/
 
   // TODO: Rework this, because cards have different max widths and heights
   protected getResizeThreshold(): Threshold {
@@ -183,6 +162,6 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
   }
 
   protected onResizableChange(dimensions: Dimensions): void {
-    this.setElementDimensions.emit(dimensions);
+    this.$setElementDimensions.emit(dimensions);
   }
 }
