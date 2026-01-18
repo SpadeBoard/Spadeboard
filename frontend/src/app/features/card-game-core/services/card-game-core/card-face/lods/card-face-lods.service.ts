@@ -31,6 +31,13 @@ export class CardFaceLodsService {
 
   public orphanedFileMetadata: FileMetadata[] = [];
 
+   private instances: Map<
+    string, 
+    {
+      host: HTMLElement,
+      ref: ComponentRef<CardEditorFacePreviewComponent>
+    }> = new Map();
+
   constructor() { }
 
   public clear(): void {
@@ -149,7 +156,11 @@ export class CardFaceLodsService {
     this.fileMetadataService.markFileMetadata(this.orphanedFileMetadata, FileMetadataStatus.Orphaned);
   }
 
-  public createCardEditorCardDtoLods(cardEditorCardDto: CardEditorCardDto): void {
+  public createCardEditorCardFaceDtoLods$(cardEditorCardDto: CardEditorCardDto, index: number): Observable<string[] | undefined> {
+    let value: CardEditorCardFaceDto = cardEditorCardDto.cardEditorCardFacesDto[index];
+
+    if (!shouldMakeCardFaceThumbnailLods(value)) return of(undefined);
+
     let host: HTMLElement = document.createElement('card-editor-face-preview-host');
 
     let ref: ComponentRef<CardEditorFacePreviewComponent> = createComponent(CardEditorFacePreviewComponent, {
@@ -170,25 +181,30 @@ export class CardFaceLodsService {
 
     ref.changeDetectorRef.detectChanges(); // CHECKME: Do we need these?
 
-    cardEditorCardDto.cardEditorCardFacesDto.forEach((value, index) => {
-      if (!shouldMakeCardFaceThumbnailLods(value)) return;
+    console.log(`%c${this.constructor.name} - ${this.createCardEditorCardFaceDtoLods$.name} (time: ${Date.now().toLocaleString("en-US")}) Style:\n${stringify(value.cardFace.style)}\nElements:\n${stringify(value.cardFaceElementsPerCardFace)}`, 'color: #453643; background: #8DAA91; padding: 5px; border-radius: 5px;');
 
-      console.log(`%c${this.constructor.name} - ${this.createCardEditorCardDtoLods.name} (time: ${Date.now().toLocaleString("en-US")}) Style:\n${stringify(value.cardFace.style)}\nElements:\n${stringify(value.cardFaceElementsPerCardFace)}`, 'color: #453643; background: #8DAA91; padding: 5px; border-radius: 5px;');
+    ref.instance.getCurrentCardFaceStyle(value.cardFace.style);
+    ref.instance.setCardFaceElementsPerCardFace(value.cardFaceElementsPerCardFace);
 
-      ref.instance.getCurrentCardFaceStyle(value.cardFace.style);
-      ref.instance.setCardFaceElementsPerCardFace(value.cardFaceElementsPerCardFace);
+    // FIXME: So why are the images not showing up?
 
-      // FIXME: So why are the images not showing up?
+    ref.changeDetectorRef.detectChanges(); // CHECKME: Do we need these?
 
-      ref.changeDetectorRef.detectChanges(); // CHECKME: Do we need these?
+    console.log(`%c${this.constructor.name} - ${this.createCardEditorCardFaceDtoLods$.name} (time: ${Date.now().toLocaleString("en-US")}) Computed style:\n${stringify(window.getComputedStyle(ref.instance.cardEditorFace.nativeElement))}\nDimensions:\n${stringify(ref.instance.cardEditorFace.nativeElement.getBoundingClientRect())}`, 'color: #ffffff; background: #0066cc; padding: 5px; border-radius: 5px;');
 
-      this.setCardFaceThumbnailImages$(ref.instance.cardEditorFace, cardEditorCardDto, index);
+    this.instances.set(crypto.randomUUID(), {host, ref});
 
-      console.log(`%c${this.constructor.name} - ${this.createCardEditorCardDtoLods.name} (time: ${Date.now().toLocaleString("en-US")}) Computed style:\n${stringify(window.getComputedStyle(ref.instance.cardEditorFace.nativeElement))}\nDimensions:\n${stringify(ref.instance.cardEditorFace.nativeElement.getBoundingClientRect())}`, 'color: #ffffff; background: #0066cc; padding: 5px; border-radius: 5px;');
+    return this.setCardFaceThumbnailImages$(ref.instance.cardEditorFace, cardEditorCardDto, index);
+  }
+
+  public clearCardEditorFacePreviewInstances(): void {
+    this.instances.forEach((value: {
+      host: HTMLElement,
+      ref: ComponentRef<CardEditorFacePreviewComponent>
+    }) => {
+      closeModal(this.appRef, value);
     });
-    
-    console.log(`%c${this.constructor.name} - ${this.createCardEditorCardDtoLods.name} (time: ${Date.now().toLocaleString("en-US")}) - cardEditorCardFacesDto:\n${stringify(cardEditorCardDto.cardEditorCardFacesDto)}`, 'color: #899E8B; background: #e6fff6; padding: 5px; border-radius: 5px;');
 
-    closeModal(this.appRef, { host, ref });
+    this.instances.clear();
   }
 }

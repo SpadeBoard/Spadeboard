@@ -33,7 +33,7 @@ export class CardEditorOperationsService {
   private readonly cardFacesPerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
 
   private readonly cardFaceLodsService: CardFaceLodsService = inject(CardFaceLodsService);
-  
+
   private readonly atlasExportService: AtlasExportService = inject(AtlasExportService);
 
   private createCard$$: Subject<void> = new Subject<void>();
@@ -66,13 +66,20 @@ export class CardEditorOperationsService {
 
     console.log(`%c${this.constructor.name} - ${this.importCardAction.name} (time: ${Date.now().toLocaleString("en-US")}) (before):\nimported:${stringify(imported)}}`, `color: #01161e; background: #eff6e0; padding: 5px; border-radius: 5px;`);
 
-    this.cardFaceLodsService.createCardEditorCardDtoLods(cardEditorCardDto);
-
-    // 3. Add the results of the canvas back into cardEditorCardDto
-
-    // 4. This
-    this.cardApiService.exists$(imported.card.cardId)
+    // FIXME: Ok, we really shouldn't mutate a shared input, this is what's causing issues.
+    // Last mutation always win so that's why
+    let lods$: Observable<string[] | undefined>[] = imported.cardEditorCardFacesDto.map((value, index) => {
+      return this.cardFaceLodsService.createCardEditorCardFaceDtoLods$(imported, index);
+    })
+   
+    forkJoin(lods$)
       .pipe(
+        tap((results: (string[] | undefined)[]) => {
+          console.log(`%c${this.constructor.name} - ${this.importCardAction.name} (time: ${Date.now().toLocaleString("en-US")}) - results:\n${stringify(results)}\ncardEditorCardFacesDto:\n${stringify(cardEditorCardDto.cardEditorCardFacesDto)}`, 'color: #899E8B; background: #e6fff6; padding: 5px; border-radius: 5px;');
+
+          this.cardFaceLodsService.clearCardEditorFacePreviewInstances();
+        }),
+        switchMap(() => this.cardApiService.exists$(imported.card.cardId)),
         switchMap((exists: boolean) => {
           return iif(
             () => exists,
@@ -109,7 +116,7 @@ export class CardEditorOperationsService {
     });
 
     // FIXME: Why is it not filtering out the fileMetadataLods
-     exportCustomTypeFile(Object.fromEntries(Object.entries(JSON.parse(stringify(exported)) as CardEditorCardDto)), `${cardEditorCardDto.card.cardId}`, 'sbd');
+    exportCustomTypeFile(Object.fromEntries(Object.entries(JSON.parse(stringify(exported)) as CardEditorCardDto)), `${cardEditorCardDto.card.cardId}`, 'sbd');
   }
 
   private exportAtlasAction(cardEditorCardDto: CardEditorCardDto): void {

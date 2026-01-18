@@ -3,7 +3,7 @@ import { Style } from "../../style/models/style";
 import { CardEditorCardDto } from "../models/card";
 import { CardFaceImage } from "./card-face.utils";
 import { getDefaultCardFace } from "./card-face.constants";
-import { clamp } from "../../../utils/utils";
+import { clamp, stringify } from "../../../utils/utils";
 import { CardEditorCardFaceDto } from "../models/card-face";
 
 export const MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
@@ -25,9 +25,9 @@ export const DEFAULT_CARD_FACE_BORDER_RADIUS: number = 10;
 
 export function getDefaultCardEditorCardFaceDimensions(): Dimensions {
   return {
-      width: DEFAULT_CARD_FACE_WIDTH,
-      height: DEFAULT_CARD_FACE_HEIGHT
-    }
+    width: DEFAULT_CARD_FACE_WIDTH,
+    height: DEFAULT_CARD_FACE_HEIGHT
+  }
 }
 
 // CHECKME: Move somewhere else?
@@ -43,45 +43,45 @@ export const DEFAULT_MODAL_STYLE: Omit<Style, 'styleId'> = {
 }
 
 export const DEFAULT_CARD_EDITOR_FACE_STYLE: Style = {
-    styleId: "0",
-    backgroundColor: DEFAULT_CARD_FACE_BACKGROUND_COLOR,
-    width: `${DEFAULT_CARD_FACE_WIDTH}px`,
-    height: `${DEFAULT_CARD_FACE_HEIGHT}px`,
-    minWidth: `${MIN_CARD_FACE_WIDTH}px`,
-    minHeight: `${MIN_CARD_FACE_HEIGHT}px`,
-    maxWidth: `${MAX_CARD_FACE_WIDTH}px`,
-    maxHeight: `${MAX_CARD_FACE_HEIGHT}px`,
-    display: 'block',
-    position: 'relative',
-    borderRadius: `${DEFAULT_CARD_FACE_BORDER_RADIUS}px`,
-    borderStyle: 'solid', // Set border left width, etc.
-    borderColor: DEFAULT_CARD_FACE_BORDER_COLOR,
-    borderWidth: `${DEFAULT_CARD_FACE_BORDER_WIDTH}px`,
-    fontSize: '14px'
+  styleId: "0",
+  backgroundColor: DEFAULT_CARD_FACE_BACKGROUND_COLOR,
+  width: `${DEFAULT_CARD_FACE_WIDTH}px`,
+  height: `${DEFAULT_CARD_FACE_HEIGHT}px`,
+  minWidth: `${MIN_CARD_FACE_WIDTH}px`,
+  minHeight: `${MIN_CARD_FACE_HEIGHT}px`,
+  maxWidth: `${MAX_CARD_FACE_WIDTH}px`,
+  maxHeight: `${MAX_CARD_FACE_HEIGHT}px`,
+  display: 'block',
+  position: 'relative',
+  borderRadius: `${DEFAULT_CARD_FACE_BORDER_RADIUS}px`,
+  borderStyle: 'solid', // Set border left width, etc.
+  borderColor: DEFAULT_CARD_FACE_BORDER_COLOR,
+  borderWidth: `${DEFAULT_CARD_FACE_BORDER_WIDTH}px`,
+  fontSize: '14px'
 }
 
 export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEditorCardDto {
-    return {
-      card: {
-        cardId: "0",
-        currentCardFaceIndex: 0,
-        cardName: ''
+  return {
+    card: {
+      cardId: "0",
+      currentCardFaceIndex: 0,
+      cardName: ''
+    },
+    ownerId: newOwnerId,
+    cardEditorCardFacesDto: [
+      {
+        cardFace: getDefaultCardFace("0", { ...style }),
+        cardFaceElementsPerCardFace: [],
+        fileMetadataLods: []
       },
-      ownerId: newOwnerId,
-      cardEditorCardFacesDto: [
-        {
-          cardFace: getDefaultCardFace("0", { ...style }),
-          cardFaceElementsPerCardFace: [],
-          fileMetadataLods: []
-        },
-        {
-          cardFace: getDefaultCardFace("-1", { ...style }),
-          cardFaceElementsPerCardFace: [],
-          fileMetadataLods: []
-        }
-      ],
-      tagNames: []
-    };
+      {
+        cardFace: getDefaultCardFace("-1", { ...style }),
+        cardFaceElementsPerCardFace: [],
+        fileMetadataLods: []
+      }
+    ],
+    tagNames: []
+  };
 }
 
 export const DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID: string = "";
@@ -91,7 +91,7 @@ export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH: number = 0;
 export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT: number = 0;
 
 export function getDefaultCardFaceElementImage(): CardFaceImage {
-  return  {
+  return {
     src: '/card-editor-controls_card-face-elements-list_image-element-icon.svg',
     alt: 'Placeholder square image',
     dimensions: {
@@ -105,9 +105,24 @@ export const DEFAULT_ATLAS_EXPORT_LOD: number = clamp(0, 0, 4);
 
 /******************** IMPORT ***********************/
 export function shouldMakeCardFaceThumbnailLods(cardEditorCardFaceDto: CardEditorCardFaceDto): boolean {
-  let arg: Omit<Style, 'styleId'> = cardEditorCardFaceDto.cardFace.style;
-  let base: Omit<Style, 'styleId'> = DEFAULT_CARD_EDITOR_FACE_STYLE;
+  let arg: Omit<Style, 'styleId'> = omit(cardEditorCardFaceDto.cardFace.style, "styleId");
+  let base: Omit<Style, 'styleId'> = omit(DEFAULT_CARD_EDITOR_FACE_STYLE, "styleId");
 
-  // FIXME: How do we make sure that the style ignores the ID because they will mismatch
-  return !(cardEditorCardFaceDto.cardFaceElementsPerCardFace.length <= 0 && arg === base);
+  return cardEditorCardFaceDto.cardFaceElementsPerCardFace.length > 0 || stringify(arg) !== stringify(base);
+}
+
+// TODO: Move somewhere else
+export function omit<T extends Record<string, any>, K extends (keyof T)[]>(
+  obj: T,
+  ...keys: K
+): Omit<T, K[number]> {
+  let ret: Partial<T> = {};
+  let exclude: Set<string> = new Set(keys as string[]);
+
+  for (let key in obj) {
+    if (!exclude.has(key)) {
+      ret[key as keyof T] = obj[key as keyof T];
+    }
+  }
+  return ret as Omit<T, K[number]>;
 }
