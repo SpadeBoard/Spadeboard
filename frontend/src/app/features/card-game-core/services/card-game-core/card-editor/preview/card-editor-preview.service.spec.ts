@@ -137,16 +137,16 @@ describe('CardEditorPreviewService', () => {
     });
   });
 
-  describe('setCurrentCardFace', () => {
+  describe('setCurrentCardFaceIndex', () => {
     it('should toggle from 0 to 1', () => {
       service.cardEditorCardDto.card.currentCardFaceIndex = 0;
-      service.setCurrentCardFace();
+      service.setCurrentCardFaceIndex();
       expect(service.cardEditorCardDto.card.currentCardFaceIndex).toBe(1);
     });
 
     it('should toggle from 1 to 0', () => {
       service.cardEditorCardDto.card.currentCardFaceIndex = 1;
-      service.setCurrentCardFace();
+      service.setCurrentCardFaceIndex();
       expect(service.cardEditorCardDto.card.currentCardFaceIndex).toBe(0);
     });
   });

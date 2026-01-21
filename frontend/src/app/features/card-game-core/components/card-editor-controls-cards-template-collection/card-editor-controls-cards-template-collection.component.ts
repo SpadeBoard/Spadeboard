@@ -1,5 +1,5 @@
 
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { Card, CardEditorCardDto } from '../../models/card';
@@ -24,6 +24,8 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   private readonly cardTemplateService: CardTemplateService = inject(CardTemplateService);
 
   private readonly actionContextMenuService: ActionContextMenuService = inject(ActionContextMenuService);
+
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   protected getDefaultCardScale(): number {
     return DEFAULT_CARD_SCALE;
@@ -80,7 +82,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   }
 
   private onCardEditorCardDtoOperations(): void {
-    this.cardEditorApiService.onOperations(this.cardEditorCardDtoOperations);
+    this.cardEditorApiService.onOperations(this.cardEditorCardDtoOperations, this.destroyRef);
   }
 
   private removeCardTemplate(cardId: string): void {

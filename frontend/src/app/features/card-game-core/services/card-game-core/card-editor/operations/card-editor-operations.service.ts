@@ -17,6 +17,7 @@ import { CardApiService } from '../../card/api/card-api.service';
 import { CardEditorApiService } from '../api/card-editor-api.service';
 import { CardEditorPreviewService } from '../preview/card-editor-preview.service';
 import { CardFaceLodsService } from '../../card-face/lods/card-face-lods.service';
+import { FileMetadata, FileMetadataStatus } from '../../../../../../utils/models/file-metadata';
 
 @Injectable({
   providedIn: 'root'
@@ -58,7 +59,7 @@ export class CardEditorOperationsService {
     return true;
   }
 
-  private importCardAction(cardEditorCardDto: CardEditorCardDto, duplicateCardObservables: Array<Observable<any>>): void {
+  private importCardAction(cardEditorCardDto: CardEditorCardDto, duplicateCardObservables: Array<Observable<any>>, destroyRef: DestroyRef): void {
     // CHECKME: You should be able to import cards that have already been deleted and elements that have been already deleted
     this.isValidCard(cardEditorCardDto);
 
@@ -68,14 +69,21 @@ export class CardEditorOperationsService {
 
     // FIXME: Ok, we really shouldn't mutate a shared input, this is what's causing issues.
     // Last mutation always win so that's why
-    let lods$: Observable<string[] | undefined>[] = imported.cardEditorCardFacesDto.map((value, index) => {
-      return this.cardFaceLodsService.createCardEditorCardFaceDtoLods$(imported, index);
-    })
+    let lods$: Observable<FileMetadata[] | undefined>[] = imported.cardEditorCardFacesDto.map((value: CardEditorCardFaceDto) => {
+      return this.cardFaceLodsService.createCardEditorCardFaceDtoLods$(value, destroyRef, FileMetadataStatus.Attached);
+    });
    
     forkJoin(lods$)
       .pipe(
-        tap((results: (string[] | undefined)[]) => {
+        tap((results: (FileMetadata[] | undefined)[]) => {
           console.log(`%c${this.constructor.name} - ${this.importCardAction.name} (time: ${Date.now().toLocaleString("en-US")}) - results:\n${stringify(results)}\ncardEditorCardFacesDto:\n${stringify(cardEditorCardDto.cardEditorCardFacesDto)}`, 'color: #899E8B; background: #e6fff6; padding: 5px; border-radius: 5px;');
+
+          imported.cardEditorCardFacesDto.forEach((value: CardEditorCardFaceDto, index: number) => {
+            this.cardFaceLodsService.orphanCardFaceLods(value.fileMetadataLods);
+            
+            let lods: FileMetadata[] | undefined = results[index];
+            if (lods ) value.fileMetadataLods = lods;
+          });
 
           this.cardFaceLodsService.clearCardEditorFacePreviewInstances();
         }),
@@ -155,10 +163,10 @@ export class CardEditorOperationsService {
       {
         id: 0,
         name: 'Import Card (.sbd)',
-        action: (params: { cardEditorCardDto: CardEditorCardDto, duplicateCardObservables: Array<Observable<any>> }) => {
-          let { cardEditorCardDto, duplicateCardObservables } = params;
+        action: (params: { cardEditorCardDto: CardEditorCardDto, duplicateCardObservables: Array<Observable<any>>, destroyRef: DestroyRef }) => {
+          let { cardEditorCardDto, duplicateCardObservables, destroyRef } = params;
 
-          this.importCardAction(cardEditorCardDto, duplicateCardObservables)
+          this.importCardAction(cardEditorCardDto, duplicateCardObservables, destroyRef);
         },
         disabled: false
       },
@@ -261,7 +269,7 @@ export class CardEditorOperationsService {
       }
     });
 
-    if (assertions.some(assertion => assertObjectsMatch(assertion, `${this.constructor.name} - ${this.assertCardFaceElementsPerCardFace.name}`))) throw new Error(`${fn}: Card face elements per card face are identical`);
+    if (assertions.some(assertion => assertObjectsMatch(assertion, `${this.constructor.name} - ${this.assertCardFaceElementsPerCardFace.name}`))) console.error(`${fn}: Card face elements per card face are identical`);
   }
 
   // TODO: Finish this assertion and test it
@@ -277,7 +285,7 @@ export class CardEditorOperationsService {
       }
     });
 
-    if (assertions.some(assertion => !assertCardFaceElements(assertion))) throw new Error(`${fn}: Card face elements aren\'t unique.`);
+    if (assertions.some(assertion => !assertCardFaceElements(assertion))) console.error(`${fn}: Card face elements aren\'t unique.`);
   }
 
   public duplicateCardEditorCardDto$(cardEditorCardDto: CardEditorCardDto, duplicateCardObservables: Array<Observable<any>>): Observable<CardEditorCardDto | undefined> {

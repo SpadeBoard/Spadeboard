@@ -189,16 +189,15 @@ export class CardEditorPreviewService {
     return (this.cardEditorCardDto.card.currentCardFaceIndex === 0) ? false : true;
   }
 
-  public setCurrentCardFace(): void {
+  public setCurrentCardFaceIndex(): void {
     this.cardEditorCardDto.card.currentCardFaceIndex = (this.getCurrentCardFaceIndex() === 0) ? 1 : 0;
   }
 
-  // FIXME: Why is it flipping twice, observables and supscription maybe?
-  public onFlipCurrentCardFace(): void {
-    this.setCurrentCardFace();
+  public toggleCurrentCardFace(): void {
+    this.setCurrentCardFaceIndex();
     this.setCurrentCardEditorCardFaceDto();
 
-    console.log(`%c${this.constructor.name} - ${this.onFlipCurrentCardFace.name} (time: ${Date.now().toLocaleString("en-US")})}:\ncurrentCardFaceIndex: ${this.getCurrentCardFaceIndex()}`, `color: #211103; background: #f8e5ee; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${this.constructor.name} - ${this.toggleCurrentCardFace.name} (time: ${Date.now().toLocaleString("en-US")})}:\ncurrentCardFaceIndex: ${this.getCurrentCardFaceIndex()}`, `color: #211103; background: #f8e5ee; padding: 5px; border-radius: 5px;`);
   }
 
   public postApiOperations(cardEditorCardDto: CardEditorCardDto, operation: 'create' | 'duplicate' | 'update'): void {

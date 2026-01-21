@@ -35,18 +35,18 @@ export class CardEditorPreviewComponent {
    return this.cardEditorPreviewService.getCardName();
   }
 
-  protected onNameChange(event: Event): void {
-    let value = (event.target as HTMLInputElement).value;
+  protected changeCardName(event: Event): void {
+    let value: string = (event.target as HTMLInputElement).value;
     this.cardEditorPreviewService.setCardName(value);
   }
 
-  protected $handleCardCreate(): void {
+  protected handleCardCreate(): void {
     // CHECKME: Assign owner here?
     this.cardEditorPreviewService.cardEditorCardDto.ownerId = this.userService.$userId();
     this.cardEditorOperationsService.clickCreate();
   }
 
-  protected $handleCardSave(): void {
+  protected handleCardSave(): void {
     this.cardEditorOperationsService.clickSave();
   }
 }

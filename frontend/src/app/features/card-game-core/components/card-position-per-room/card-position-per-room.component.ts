@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragPreview, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 
-import { Component, effect, ElementRef, inject, input, InputSignal, QueryList, ViewChildren } from '@angular/core';
+import { Component, DestroyRef, effect, ElementRef, inject, input, InputSignal, QueryList, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { mergeMap } from 'rxjs';
 import { Coordinates, Dimensions, getScaledItemRenderDimensions } from '../../../../utils/utils';
@@ -55,6 +55,8 @@ export class CardPositionPerRoomComponent {
   private readonly actionContextMenuService: ActionContextMenuService = inject(ActionContextMenuService);
 
   private readonly  shouldCloseOnPerformActions: boolean = false;
+
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   @ViewChildren('cardsPositionPerRoom') cardsPositionPerRoomRef!: QueryList<ElementRef<HTMLDivElement>>;
 
@@ -294,7 +296,7 @@ export class CardPositionPerRoomComponent {
   }
 
   private onCardEditorCardDtoOperations(): void {
-    this.cardEditorApiService.onOperations(this.cardEditorCardDtoOperations);
+    this.cardEditorApiService.onOperations(this.cardEditorCardDtoOperations, this.destroyRef);
   }
 
   private updateCard(cardEditorCardDto: CardEditorCardDto): void {

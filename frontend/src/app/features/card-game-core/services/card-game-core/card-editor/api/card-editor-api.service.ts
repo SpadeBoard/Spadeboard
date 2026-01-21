@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { DestroyRef, Injectable } from '@angular/core';
 import { CardEditorCardDto } from '../../../../models/card';
 import { map, merge, Observable, Subject, Subscription } from 'rxjs';
 import { CardEditorPreviewService } from '../preview/card-editor-preview.service';
@@ -52,7 +52,7 @@ export class CardEditorApiService {
     fn(object);
   }
 
-  public onOperations(cardEditorCardDtoOperations: Map<string, Function>): Subscription {
+  public onOperations(cardEditorCardDtoOperations: Map<string, Function>, destroyRef: DestroyRef): Subscription {
     return merge(
       this.createdCardEditorCardDto$.pipe(
         map((cardEditorCardDto: CardEditorCardDto) => ({ operation: 'create', emitted: cardEditorCardDto }))
@@ -65,7 +65,7 @@ export class CardEditorApiService {
       ),
     )
       .pipe(
-        takeUntilDestroyed()
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe((result: ({ operation: string, emitted: CardEditorCardDto | string })) => {
         operate(result, cardEditorCardDtoOperations);

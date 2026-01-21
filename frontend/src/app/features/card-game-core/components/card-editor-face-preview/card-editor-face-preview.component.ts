@@ -29,6 +29,7 @@ import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, 
 import { isCardEditorCardDto } from '../../utils/card-game-core.utils';
 import { CardEditorCurrentCardFaceElementsPerCardFaceComponent } from '../card-editor-current-card-face-elements-per-card-face/card-editor-current-card-face-elements-per-card-face.component';
 import { CardEditorFacePreviewGridComponent } from './card-editor-face-preview-grid/card-editor-face-preview-grid.component';
+import { FileMetadata } from '../../../../utils/models/file-metadata';
 
 @Component({
   selector: 'app-card-editor-face-preview',
@@ -253,32 +254,41 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     }, this.destroyRef);
   }
 
-  private updateCardEditorCardFaceDto(): void {
-    this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.getCurrentCardFaceIndex())
-      .pipe(
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe((cardFaceThumbnailFilePaths: string[] | undefined) => {
-        if (!cardFaceThumbnailFilePaths || cardFaceThumbnailFilePaths.length <= 0) throw new Error("Card face thumbnail file path was never updated");
-
-        this.setCardFaceElementsPerCardFace();
-        this.cardEditorPreviewService.setCardEditorCardFaceDto(this.cardEditorPreviewService.currentCardEditorCardFaceDto);
-      })
+  private setFileMetadataLods(fileMetadataLods: FileMetadata[]): void {
+    this.cardFaceLodsService.orphanCardFaceLods(this.cardEditorPreviewService.cardEditorCardDto.cardEditorCardFacesDto[this.cardEditorPreviewService.getCurrentCardFaceIndex()].fileMetadataLods);
+    this.cardEditorPreviewService.cardEditorCardDto.cardEditorCardFacesDto[this.cardEditorPreviewService.getCurrentCardFaceIndex()].fileMetadataLods = fileMetadataLods;
   }
 
   private onProcessFlip(): void {
     this.cardEditorOperationsService.onProcessFlip(this.processFlipOperations, this.destroyRef);
   }
 
+  // NOTE: This is called when you click the flip button
+  // So we want to take the file metadata lods and then update the cardEditorCardDto
   private onFlip(): void {
     console.log(`%c${this.constructor.name} - ${this.onFlip.name} (time: ${Date.now().toLocaleString("en-US")})} (before)`, `color: #22577a; background: #c7f9cc; padding: 5px; border-radius: 5px;`);
 
-    this.updateCardEditorCardFaceDto();
-    this.cardEditorPreviewService.onFlipCurrentCardFace();
-    this.cardEditorOperationsService.postFlip();
+    this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.destroyRef)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((fileMetadataLods: FileMetadata[] | undefined) => {
+        if (!fileMetadataLods) throw new Error(`${this.constructor.name} - ${this.createCard.name}: fileMetadataLods is undefined`);
+
+        this.setFileMetadataLods(fileMetadataLods);
+
+        // CHECKME: We shouldn't need the below line because setting the file metadata lods updates the currentCardEditorCardFaceDto directly
+        // this.cardEditorPreviewService.setCardEditorCardFaceDto(this.cardEditorPreviewService.currentCardEditorCardFaceDto);
+
+        this.cardEditorOperationsService.postFlip();
+      });
   }
 
+  // NOTE: We toggle the current card face here to finally switch the face and set the correct card face elements per card face
   private postFlip(): void {
+    this.cardEditorPreviewService.toggleCurrentCardFace();
+
+    this.setCardFaceElementsPerCardFace();
     this.resetElementAttributes();
   }
 
@@ -352,9 +362,13 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private createCard(): void {
-    this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.getCurrentCardFaceIndex())
+    this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.destroyRef)
       .pipe(
-        switchMap(() => {
+        switchMap((fileMetadataLods: FileMetadata[] | undefined) => {
+          if (!fileMetadataLods) throw new Error(`${this.constructor.name} - ${this.createCard.name}: fileMetadataLods is undefined`);
+
+          this.setFileMetadataLods(fileMetadataLods);
+
           if (this.cardEditorPreviewService.isNewCardEditorCardDto()) {
             return this.cardEditorOperationsService.createCardEditorCardDto$(this.cardEditorPreviewService.cardEditorCardDto).pipe(
               map(cardEditorCardDto => ({
@@ -394,7 +408,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   private onCardEditorCardDtoOperations(): void {
-    this.cardEditorApiService.onOperations(this.cardEditorCardDtoOperations);
+    this.cardEditorApiService.onOperations(this.cardEditorCardDtoOperations, this.destroyRef);
   }
 
   private createdCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
@@ -414,14 +428,21 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
   // TODO: Break this function down into multiple parts
   private saveCard(): void {
-    this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.cardEditorPreviewService.cardEditorCardDto, this.cardEditorPreviewService.getCurrentCardFaceIndex())
+    this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.destroyRef)
       .pipe(
-        tap(() => console.log(`%c${this.constructor.name} - ${this.saveCard.name} (time: ${Date.now().toLocaleString("en-US")}) 1. Thumbnail images set`, `color: #344e41; background: #dad7cd; padding: 5px; border-radius: 5px;`)),
+        tap((fileMetadataLods: FileMetadata[] | undefined) => {
+          console.log(`%c${this.constructor.name} - ${this.saveCard.name} (time: ${Date.now().toLocaleString("en-US")}) 1. Thumbnail images set`, `color: #344e41; background: #dad7cd; padding: 5px; border-radius: 5px;`)
+
+          // CHECKME: Do we tap here?
+          if (!fileMetadataLods) throw new Error(`${this.constructor.name} - ${this.createCard.name}: fileMetadataLods is undefined`);
+
+          this.setFileMetadataLods(fileMetadataLods);
+        }),
         // CHECKME: Do we actually want to delete the card face elements per card face here
         // TODO: Somehow figure out how you would actually do this in the backend in one call
         // Do we actually want to send the card editor card dto to the backend, grab all card face elements per card faces associated with the faces
         // Delete those, and just readd them? 
-        switchMap(() =>
+        switchMap((fileMetadataLods: FileMetadata[] | undefined) =>
           iif(
             () => this.shouldDeleteItems(
               this.cardFaceElementService.cardFaceElementsPerCardFaceToDeleteIds
@@ -509,7 +530,11 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
           if (!isCardEditorCardDto(json)) throw new Error("Didn't upload a card editor card dto");
 
           let cardEditorCardDto: CardEditorCardDto = json;
-          this.actionContextMenuItems[0].action({ cardEditorCardDto, duplicateCardObservables: this.duplicateCardObservables(cardEditorCardDto) });
+          this.actionContextMenuItems[0].action({
+            cardEditorCardDto,
+            duplicateCardObservables: this.duplicateCardObservables(cardEditorCardDto),
+            destroyRef: this.destroyRef
+          });
         } catch (e: any) {
           // Handle parse or validation errors
           console.error(e);

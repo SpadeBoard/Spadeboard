@@ -119,7 +119,6 @@ upload:: This is the name of the function.
     this.htmlContent = emitted.text;
   }
 
-  // TODO: Make a disable rte editor too?
   private disableRte(emitted: {id: string, text: string}): void {
     this.isEditable = false;
   }

@@ -79,7 +79,7 @@ export class CardsCollectionComponent {
   }
 
   private onCardEditorCardDtoOperations(): void {
-    this.cardEditorApiService.onOperations(this.cardEditorCardDtoOperations);
+    this.cardEditorApiService.onOperations(this.cardEditorCardDtoOperations, this.destroyRef);
   }
 
   private duplicateCardObservables(cardEditorCardDto: CardEditorCardDto): Array<Observable<any>> {
