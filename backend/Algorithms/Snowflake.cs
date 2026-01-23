@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Algorithms
 {
     public static class Snowflake
@@ -66,6 +68,16 @@ namespace Algorithms
                 timestamp = GetUnixEpochTimestamp();
             }
             return timestamp;
+        }
+
+        // TODO: Make this check more robust
+        public static bool IsSnowflakeId(long id) {
+            string snowflake = id.ToString();
+            return Regex.IsMatch(snowflake, @"^\d{17,20}$");
+        }
+
+        public static bool IsSnowflakeId(string id) {
+           return Regex.IsMatch(id, @"^\d{17,20}$");
         }
     }
 }

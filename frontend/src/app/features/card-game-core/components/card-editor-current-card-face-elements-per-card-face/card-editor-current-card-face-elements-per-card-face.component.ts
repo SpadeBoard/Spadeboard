@@ -33,7 +33,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
 
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
 
-  public readonly cardFaceBorderRadius: InputSignal<number> = input<number>(DEFAULT_CARD_FACE_BORDER_RADIUS);
+  public readonly $cardFaceBorderRadius: InputSignal<number> = input<number>(DEFAULT_CARD_FACE_BORDER_RADIUS);
 
   public readonly $setElementAttributes: OutputEmitterRef<string> = output<string>();
 
@@ -66,7 +66,7 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
     return {
       width: `100%`,
       height: `100%`,
-      borderRadius: `${this.cardFaceBorderRadius()}px`
+      borderRadius: `${this.$cardFaceBorderRadius()}px`
     }
   }
 

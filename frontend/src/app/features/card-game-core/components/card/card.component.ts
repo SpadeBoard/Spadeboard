@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, InputSignal, model, ModelSi
 import { Card } from '../../models/card';
 
 
-import { Dimensions, getLodIndex } from '../../../../utils/utils';
+import { Dimensions, getLodIndex, logInfo } from '../../../../utils/utils';
 import { CardService } from '../../services/card-game-core/card/card.service';
 import { getDefaultCardEditorCardFaceDimensions } from '../../utils/card-editor.constants';
 import { DEFAULT_CARD_FACE_PLACEHOLDER_SRC } from '../../utils/card-face.constants';
@@ -24,7 +24,7 @@ export class CardComponent {
 
   public $card: ModelSignal<Card> = model<Card>({
     cardId: "0",
-    currentCardFaceIndex: 0,
+    currentCardFaceId: '',
     cardName: ''
   });
 
@@ -59,14 +59,14 @@ export class CardComponent {
   private defaultCardFaceDimensions: Dimensions = getDefaultCardEditorCardFaceDimensions();
 
   protected getCurrentCardFaceImage(): CardFaceImage {
-    return this.cardService.getCurrentCardFaceImage(this.$card().currentCardFaceIndex, this.cardFaceIdImagesPairs, this.$currentLodComputed(), this.defaultCardFaceDimensions);
+    return this.cardService.getCurrentCardFaceImage(this.$card().currentCardFaceId, this.cardFaceIdImagesPairs, this.$currentLodComputed(), this.defaultCardFaceDimensions);
   }
 
   private onRevokeSrc(url: string): void {
-    console.log(`%c${this.constructor.name} - ${this.onRevokeSrc.name}: Url to revoke: ${url}`, `color: #627566; background: #D0E9F0; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.onRevokeSrc.name)}: Url to revoke: ${url}`, `color: #627566; background: #D0E9F0; padding: 5px; border-radius: 5px;`);
 
     if (!url.startsWith('blob:')) {
-      console.error(`${this.constructor.name} - ${this.onRevokeSrc.name}: Should be a blob we're revoking`);
+      console.error(`${logInfo(this.constructor.name, this.onRevokeSrc.name)}: Should be a blob we're revoking`);
       return;
     }
 

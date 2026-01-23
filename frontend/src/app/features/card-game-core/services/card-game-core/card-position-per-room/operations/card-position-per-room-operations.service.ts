@@ -11,11 +11,15 @@ import { CardPositionPerRoomApiService } from '../../api/card-position-per-room-
 import { CardEditorOperationsService } from '../../card-editor/operations/card-editor-operations.service';
 import { CardEditorPreviewService } from '../../card-editor/preview/card-editor-preview.service';
 import { CardPositionPerRoomManipulationService } from '../manipulation/card-position-per-room-manipulation.service';
+import { CardFacePerCardApiService } from '../../api/card-face-per-card-api.service';
+import { getCurrentCardFaceId, getCurrentCardFaceIndex, setCurrentCardFaceId } from '../../../../utils/card-editor.constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardPositionPerRoomOperationsService {
+  private readonly cardFacePerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
+
   private readonly cardPositionPerRoomApiService: CardPositionPerRoomApiService = inject(CardPositionPerRoomApiService);
 
   private readonly cardPositionPerRoomManipulationService: CardPositionPerRoomManipulationService = inject(CardPositionPerRoomManipulationService);
@@ -32,10 +36,12 @@ export class CardPositionPerRoomOperationsService {
   private flipAction(cpr: CardPositionPerRoom): void {
     if (!cpr) return;
 
-    cpr.card = {
-      ...cpr.card,
-      currentCardFaceIndex: (cpr.card.currentCardFaceIndex === 0) ? 1 : 0
-    };
+    this.cardFacePerCardApiService.getCardFacesPerCardIds$(cpr.card).subscribe((cardFaceIds: string[]) => {
+      cpr.card = {
+        ...cpr.card,
+        currentCardFaceId: setCurrentCardFaceId(getCurrentCardFaceIndex(getCurrentCardFaceId(cpr.card), cardFaceIds), cardFaceIds)
+      };
+    });
   }
 
   private rotateAction(cpr: CardPositionPerRoom, direction: 'l' | 'r' = 'r', degree: number = 45): void {
@@ -80,8 +86,8 @@ export class CardPositionPerRoomOperationsService {
       {
         id: 3,
         name: 'Edit Card',
-        action: (params: { cpr: CardPositionPerRoom, cardEditorPreviewService: CardEditorPreviewService}) => {
-          let { cpr, cardEditorPreviewService} = params;
+        action: (params: { cpr: CardPositionPerRoom, cardEditorPreviewService: CardEditorPreviewService }) => {
+          let { cpr, cardEditorPreviewService } = params;
           this.cardEditorOperationsService.editCardAction(cpr.card.cardId, cardEditorPreviewService);
         },
         disabled: false
@@ -142,17 +148,17 @@ export class CardPositionPerRoomOperationsService {
         map((lvl: number) => 'scale')
       )
     )
-    .pipe(
-      takeUntilDestroyed()
-    )
-    .subscribe((transformation: string) => {
-      switch(transformation) {
-        case 'scale': {
-          
-          break;
+      .pipe(
+        takeUntilDestroyed()
+      )
+      .subscribe((transformation: string) => {
+        switch (transformation) {
+          case 'scale': {
+
+            break;
+          }
         }
-      }
-    });
+      });
   }
 
 
@@ -199,7 +205,7 @@ export class CardPositionPerRoomOperationsService {
   }
 
   /***************************************************************/
-  public getCpr(cardId: string,cprs: CardPositionPerRoom[]): CardPositionPerRoom | undefined {
+  public getCpr(cardId: string, cprs: CardPositionPerRoom[]): CardPositionPerRoom | undefined {
     return cprs.find((cpr) => cpr.card.cardId == cardId);
   }
 }

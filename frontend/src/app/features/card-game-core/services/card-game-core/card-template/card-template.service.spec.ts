@@ -82,12 +82,12 @@ describe('CardTemplateService', () => {
         {
           cardId: '1',
           cardName: '',
-          currentCardFaceIndex: 0
+          currentCardFaceId: 0
         },
         {
           cardId: '2',
           cardName: '',
-          currentCardFaceIndex: 0
+          currentCardFaceId: 0
         }
       ];
 
@@ -101,7 +101,7 @@ describe('CardTemplateService', () => {
       dto.card = {
         cardId: '1',
         cardName: '',
-        currentCardFaceIndex: 0
+        currentCardFaceId: 0
       }
       dto.tagNames = ['Template'];
 
@@ -109,12 +109,12 @@ describe('CardTemplateService', () => {
         {
           cardId: '1',
           cardName: '',
-          currentCardFaceIndex: 0
+          currentCardFaceId: 0
         },
         {
           cardId: '2',
           cardName: '',
-          currentCardFaceIndex: 0
+          currentCardFaceId: 0
         }
       ];
       spyOn(service, 'isCardTemplate').and.returnValue(false);
@@ -131,7 +131,7 @@ describe('CardTemplateService', () => {
       dto.card = {
         cardId: '1',
         cardName: '',
-        currentCardFaceIndex: 0
+        currentCardFaceId: 0
       }
       let tag: Tag = {
         tagName: 'Test',
@@ -149,7 +149,7 @@ describe('CardTemplateService', () => {
       dto.card = {
         cardId: '1',
         cardName: '',
-        currentCardFaceIndex: 0
+        currentCardFaceId: 0
       }
       dto.tagNames = ['Test'];
       let tag: Tag = {
@@ -166,7 +166,7 @@ describe('CardTemplateService', () => {
       dto.card = {
         cardId: '1',
         cardName: '',
-        currentCardFaceIndex: 0
+        currentCardFaceId: 0
       }
       dto.tagNames = ['Old'];
       let tag: Tag = {
@@ -185,7 +185,7 @@ describe('CardTemplateService', () => {
       dto.card = {
         cardId: '1',
         cardName: '',
-        currentCardFaceIndex: 0
+        currentCardFaceId: 0
       }
       let tag: Tag = {
         tagName: 'New',
@@ -201,7 +201,7 @@ describe('CardTemplateService', () => {
       dto.card = {
         cardId: '1',
         cardName: '',
-        currentCardFaceIndex: 0
+        currentCardFaceId: 0
       }
       dto.tagNames = ['ToRemove'];
       let tag: Tag = {

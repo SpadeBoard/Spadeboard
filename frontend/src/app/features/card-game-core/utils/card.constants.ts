@@ -2,6 +2,8 @@ import { Coordinates } from "../../../utils/utils";
 import { ActionContextMenuItem } from "../../actions-context-menu/models/action-context-menu-item";
 import { DndPosition } from "../../drag-and-drop/models/dnd-types";
 import { Card, CardPositionPerRoom } from "../models/card";
+import { CardFacePerCardApiService } from "../services/card-game-core/api/card-face-per-card-api.service";
+import { getCurrentCardFaceId, getCurrentCardFaceIndex, setCurrentCardFaceId } from "./card-editor.constants";
 
 export const DEFAULT_CARD_SCALE: number = 0.45;
 
@@ -11,20 +13,24 @@ export function getFlip(): ActionContextMenuItem {
         name: 'Flip',
         action: (params: {
             card: Card
-            cards: Card[]
+            cards: Card[],
+            cardFacePerCardApiService: CardFacePerCardApiService
         }) => {
             if (!params) return;
 
-            let { card, cards } = params;
+            let { card, cards, cardFacePerCardApiService } = params;
             if (!card || !cards) return;
 
             let idx: number = cards.findIndex(c => c.cardId === card.cardId);
-            if (idx !== -1) {
+
+            if (idx < 0) return;
+
+            cardFacePerCardApiService.getCardFacesPerCardIds$(card).subscribe((cardFaceIds: string[]) => {
                 cards[idx] = {
                     ...card,
-                    currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
+                    currentCardFaceId: setCurrentCardFaceId(getCurrentCardFaceIndex(getCurrentCardFaceId(card), cardFaceIds), cardFaceIds)
                 };
-            }
+            });
         },
         disabled: false
     }

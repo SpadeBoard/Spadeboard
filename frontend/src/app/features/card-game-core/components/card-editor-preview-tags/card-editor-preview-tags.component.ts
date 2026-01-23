@@ -8,7 +8,7 @@ import { TagApiService } from '../../../tagging-system/services/tag-api.service'
 import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
 import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 import { CardTemplateService } from '../../services/card-game-core/card-template/card-template.service';
-import { stringify } from '../../../../utils/utils';
+import { logInfo, stringify } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-card-editor-preview-tags',
@@ -102,7 +102,7 @@ export class CardEditorPreviewTagsComponent {
     }
 
   private populateTags(): void {
-    console.log(`%c${this.constructor.name} - ${this.populateTags.name}: ${stringify(this.cardEditorPreviewService.getCardTagNames())}`, 'color: #56021F; background: #F4CCE9; padding: 5px; border-radius: 5px;');
+    console.log(`%c${logInfo(this.constructor.name, this.populateTags.name)}: ${stringify(this.cardEditorPreviewService.getCardTagNames())}`, 'color: #56021F; background: #F4CCE9; padding: 5px; border-radius: 5px;');
 
     this.tags = this.cardEditorPreviewService.getCardTagNames().map(
       (tagName: string) => ({ value: tagName })

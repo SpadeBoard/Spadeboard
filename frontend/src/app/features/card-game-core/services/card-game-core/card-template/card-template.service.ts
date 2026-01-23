@@ -3,7 +3,7 @@ import { Card, CardEditorCardDto } from '../../../models/card';
 import { Tag } from '../../../../tagging-system/models/tag';
 import { TagsPerCardApiService } from '../api/tags-per-card-api.service';
 import { Observable, of } from 'rxjs';
-import { clear, stringify } from '../../../../../utils/utils';
+import { clear, logInfo, stringify } from '../../../../../utils/utils';
 import { isCardEditorCardDto } from '../../../utils/card-game-core.utils';
 
 @Injectable({
@@ -45,9 +45,11 @@ export class CardTemplateService {
   public removeCardTemplate(cardEditorCardDto: CardEditorCardDto, cards: Card[]): Card[];
   public removeCardTemplate(identifier: CardEditorCardDto | string, cards: Card[]): Card[] {
     if (isCardEditorCardDto(identifier)) {
+      if (this.isCardTemplate(identifier)) return cards;
+
       let { cardId } = identifier.card;
 
-      return cards.filter(c => c.cardId !== cardId && !this.isCardTemplate(identifier));
+      return cards.filter(c => c.cardId !== cardId);
     }
 
     if (typeof identifier === 'string') {
@@ -92,7 +94,7 @@ export class CardTemplateService {
 
   public getCardTemplates(ownerId: string, cards: Card[]): void {
     this.tagsPerCardApiService.getCardTemplatesByOwnerId$(ownerId).subscribe((c: Card[] | undefined) => {
-      console.log(`%c${this.constructor.name} - ${ this.tagsPerCardApiService.getCardTemplatesByOwnerId$.name}:\n${stringify(c)}`, `color: #A75D5D; background: #FFC3A1; padding: 5px; border-radius: 5px;`);
+      console.log(`%c${logInfo(this.constructor.name, this.tagsPerCardApiService.getCardTemplatesByOwnerId$.name)}:\n${stringify(c)}`, `color: #A75D5D; background: #FFC3A1; padding: 5px; border-radius: 5px;`);
 
       if (c) cards.push(...c);
     });

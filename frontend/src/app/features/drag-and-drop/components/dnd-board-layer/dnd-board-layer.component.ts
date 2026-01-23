@@ -13,7 +13,7 @@ export class DndBoardLayerComponent {
 
   @ViewChild('camera') camera!: ElementRef<HTMLDivElement>;
 
-  viewport!: Dimensions;
+  protected viewport!: Dimensions;
 
   public ngOnInit(): void {
     this.viewport = {
@@ -40,7 +40,7 @@ export class DndBoardLayerComponent {
         \nViewport size: (${stringify(this.viewport)})
         \nZoom Level: ${this.dndBoardService.zoom}`;
 
-      // console.log(`%c${this.constructor.name} - ${this.onMouseMove.name}:\n${mouseMoveLog}`, `color: #5448c8; background: #fffecb; padding: 5px; border-radius: 5px;`);
+      // console.log(`%c${logInfo(this.constructor.name, this.onMouseMove.name)}:\n${mouseMoveLog}`, `color: #5448c8; background: #fffecb; padding: 5px; border-radius: 5px;`);
     })
   }
 

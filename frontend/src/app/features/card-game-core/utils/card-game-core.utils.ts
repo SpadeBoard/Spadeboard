@@ -1,4 +1,5 @@
 import { Card, CardEditorCardDto, CardPositionPerRoom } from "../models/card";
+import { CardEditorCardFaceDto } from "../models/card-face";
 import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from "../models/card-face-element";
 import { Deck } from "../models/deck";
 
@@ -8,7 +9,7 @@ export function isCard(obj: any): obj is Card {
         && typeof obj === 'object'
         && 'cardId' in obj
         && 'cardName' in obj
-        && 'currentCardFaceIndex' in obj
+        && 'currentCardFaceId' in obj
 }
 
 export function isCardEditorCardDto(obj: any): obj is CardEditorCardDto {
@@ -16,6 +17,23 @@ export function isCardEditorCardDto(obj: any): obj is CardEditorCardDto {
         && typeof obj === 'object'
         && 'card' in obj
         && 'cardEditorCardFacesDto' in obj
+}
+
+export function isCardEditorCardFaceDto(obj: any): obj is CardEditorCardFaceDto {
+    return obj
+        && typeof obj === 'object'
+        && 'cardFace' in obj
+        && 'fileMetadataLods' in obj
+        && 'cardFaceElementsPerCardFace' in obj;
+}
+
+export function isCardEditorCardFaceDtoArray(arr: CardEditorCardFaceDto[] | string[]): arr is CardEditorCardFaceDto[] {
+    return Array.isArray(arr)
+        && arr.length > 0
+        && typeof arr[0] === 'object'
+        && 'cardFace' in arr[0]
+        && 'fileMetadataLods' in arr[0]
+        && 'cardFaceElementsPerCardFace' in arr[0];
 }
 
 export function isDeck(obj: any): obj is Deck {
@@ -66,8 +84,7 @@ export function getCardFaceElementRt(cardFaceElement: CardFaceElement): CardFace
     return (cardFaceElement as CardFaceElementRt);
 }
 
-export function getCardFaceElementImage(cardFaceElement: CardFaceElement): CardFaceElementImage | undefined
-{
+export function getCardFaceElementImage(cardFaceElement: CardFaceElement): CardFaceElementImage | undefined {
     if (cardFaceElement.cardFaceElementType !== "Image")
         return;
 

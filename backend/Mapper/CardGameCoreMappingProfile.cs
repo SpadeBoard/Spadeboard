@@ -23,7 +23,9 @@ namespace Mapper
             CreateMap<CardDto, Card>()
                 .ForMember(dest => dest.CardId,
                            opt => opt.MapFrom(src => long.Parse(src.CardId)))
-                .ForMember(dest => dest.Id, opt => opt.Ignore()); ;
+                .ForMember(dest => dest.CurrentCardFaceId,
+                           opt => opt.MapFrom(src => long.Parse(src.CurrentCardFaceId)))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             CreateMap<CardPositionPerRoomDto, CardPositionPerRoom>()
                 .ForMember(dest => dest.CardPositionPerRoomId,

@@ -1,7 +1,7 @@
 import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inject, Injectable, inputBinding, outputBinding } from '@angular/core';
 import { ActionContextMenuComponent } from '../components/action-context-menu/action-context-menu/action-context-menu.component';
 import { ActionContextMenuItem } from '../models/action-context-menu-item';
-import { Coordinates, setModalStyle, stringify } from '../../../utils/utils';
+import { Coordinates, logInfo, setModalStyle, stringify } from '../../../utils/utils';
 import { Style } from '../../style/models/style';
 import { closeModal, openModal } from '../../../utils/modals.utils';
 
@@ -45,7 +45,7 @@ export class ActionContextMenuService {
 
     let uuid: string = crypto.randomUUID();
 
-    console.log(`%c${this.constructor.name} - ${this.open.name} - UUID:${uuid}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;') ;
+    console.log(`%c${logInfo(this.constructor.name, this.open.name)} - UUID:${uuid}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;') ;
 
     let ref: ComponentRef<ActionContextMenuComponent> = createComponent(ActionContextMenuComponent, {
       environmentInjector: this.environmentInjector,
@@ -86,7 +86,7 @@ export class ActionContextMenuService {
   ): void {
      let instance: {host: HTMLElement, ref: ComponentRef<ActionContextMenuComponent>} | undefined = this.instances.get(id);
   
-    if (!instance) throw new Error(`${this.constructor.name} - ${this.setActionContextMenuItems.name}: No instance per Id`);
+    if (!instance) throw new Error(`${logInfo(this.constructor.name, this.setActionContextMenuItems.name)}: No instance per Id`);
 
     let {ref} = instance;
 
@@ -99,7 +99,7 @@ export class ActionContextMenuService {
   ): void {
     let instance: {host: HTMLElement, ref: ComponentRef<ActionContextMenuComponent>} | undefined = this.instances.get(id);
   
-    if (!instance) throw new Error(`${this.constructor.name} - ${this.setStyle.name}: No instanceper Id`);
+    if (!instance) throw new Error(`${logInfo(this.constructor.name, this.setStyle.name)}: No instanceper Id`);
 
     let {host} = instance;
 

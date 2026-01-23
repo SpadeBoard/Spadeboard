@@ -3,7 +3,7 @@ import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragPreview, CdkDragStart, DragRe
 import { Component, DestroyRef, effect, ElementRef, inject, input, InputSignal, QueryList, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { mergeMap } from 'rxjs';
-import { Coordinates, Dimensions, getScaledItemRenderDimensions } from '../../../../utils/utils';
+import { Coordinates, Dimensions, getScaledItemRenderDimensions, logInfo } from '../../../../utils/utils';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -455,7 +455,7 @@ export class CardPositionPerRoomComponent {
 
     let potentialCurrentContextMenuCpr: CardPositionPerRoom | undefined = this.cardPositionPerRoomOperationsService.getCpr(cardId, this.cprs);
 
-    if (!potentialCurrentContextMenuCpr) throw new Error(`${this.constructor.name} - ${this.onCardRightClick.name}: Current context menu CPR is undefined`);
+    if (!potentialCurrentContextMenuCpr) throw new Error(`${logInfo(this.constructor.name, this.onCardRightClick.name)}: Current context menu CPR is undefined`);
 
     this.currentContentMenuCpr = potentialCurrentContextMenuCpr;
 

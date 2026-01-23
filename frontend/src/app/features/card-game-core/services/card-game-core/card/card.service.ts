@@ -29,10 +29,8 @@ export class CardService {
     });
   }
 
-  public getCurrentCardFaceImage(currentCardFaceIndex: number, cardFaceIdImagesPairs: Map<string, CardFaceImage[]>, currentLod: number, cardFaceDimensions: Dimensions): CardFaceImage {
-    let key: string = Array.from(cardFaceIdImagesPairs.keys())[currentCardFaceIndex];
-
-    let cardFaceImages: CardFaceImage[] | undefined = cardFaceIdImagesPairs.get(key);
+  public getCurrentCardFaceImage(currentCardFaceId: string, cardFaceIdImagesPairs: Map<string, CardFaceImage[]>, currentLod: number, cardFaceDimensions: Dimensions): CardFaceImage {
+    let cardFaceImages: CardFaceImage[] | undefined = cardFaceIdImagesPairs.get(currentCardFaceId);
 
     if (!cardFaceImages || cardFaceImages.length <= 0) return getDefaultCardFaceImage(DEFAULT_CARD_FACE_PLACEHOLDER_SRC, DEFAULT_CARD_FACE_PLACEHOLDER_ALT, cardFaceDimensions);
 

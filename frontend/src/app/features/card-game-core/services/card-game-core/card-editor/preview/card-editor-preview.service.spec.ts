@@ -73,7 +73,7 @@ describe('CardEditorPreviewService', () => {
       let map: Map<string, CardFaceElementPerCardFace[]> = new Map<string, CardFaceElementPerCardFace[]>([
         ['currentCardFaceElementsPerCardFace', service.getCurrentCardFaceElementsPerCardFace()],
         ['currentCardEditorCardFaceDto', service.currentCardEditorCardFaceDto.cardFaceElementsPerCardFace],
-        ['cardEditorCardDto', service.cardEditorCardDto.cardEditorCardFacesDto[service.getCurrentCardFaceIndex()].cardFaceElementsPerCardFace]
+        ['cardEditorCardDto', service.cardEditorCardDto.cardEditorCardFacesDto[service.getCurrentCardFaceId()].cardFaceElementsPerCardFace]
       ]);
 
       assertObjectsMatch(map, `setCardEditorCardDto - assertCardFaceElementsPerCardFace`);
@@ -82,17 +82,17 @@ describe('CardEditorPreviewService', () => {
 
   describe('isFlipped', () => {
     it('should return false when current card face index is 0', () => {
-      service.cardEditorCardDto.card.currentCardFaceIndex = 0;
+      service.cardEditorCardDto.card.currentCardFaceId = "0";
       expect(service.isFlipped()).toBe(false);
     });
 
     it('should return true when current card face index is 1', () => {
-      service.cardEditorCardDto.card.currentCardFaceIndex = 1;
+      service.cardEditorCardDto.card.currentCardFaceId =  "1";
       expect(service.isFlipped()).toBe(true);
     });
 
     it('should return true for any non-zero index', () => {
-      service.cardEditorCardDto.card.currentCardFaceIndex = 2;
+      service.cardEditorCardDto.card.currentCardFaceId =  "2";
       expect(service.isFlipped()).toBe(true);
     });
   });
@@ -139,15 +139,19 @@ describe('CardEditorPreviewService', () => {
 
   describe('setCurrentCardFaceIndex', () => {
     it('should toggle from 0 to 1', () => {
-      service.cardEditorCardDto.card.currentCardFaceIndex = 0;
-      service.setCurrentCardFaceIndex();
-      expect(service.cardEditorCardDto.card.currentCardFaceIndex).toBe(1);
+      let dto: CardEditorCardDto = getBlankCardTemplate(DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_USER_ID);
+
+      service.cardEditorCardDto.card.currentCardFaceId = "0";
+      service.setCurrentCardFaceId();
+      expect(service.cardEditorCardDto.card.currentCardFaceId).toBe("1");
     });
 
     it('should toggle from 1 to 0', () => {
-      service.cardEditorCardDto.card.currentCardFaceIndex = 1;
-      service.setCurrentCardFaceIndex();
-      expect(service.cardEditorCardDto.card.currentCardFaceIndex).toBe(0);
+      let dto: CardEditorCardDto = getBlankCardTemplate(DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_USER_ID)
+
+      service.cardEditorCardDto.card.currentCardFaceId =  "1";
+      service.setCurrentCardFaceId();
+      expect(service.cardEditorCardDto.card.currentCardFaceId).toBe("0");
     });
   });
 });

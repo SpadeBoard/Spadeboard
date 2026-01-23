@@ -5,7 +5,7 @@ import { FileMetadata, FileMetadataStatus } from '../../../../../../utils/models
 import { FileMetadataService } from '../../../../../../utils/services/file/metadata/facade/file-metadata.service';
 import { FileUploadApiService } from '../../../../../../utils/services/file/upload/api/file-upload-api.service';
 import { FileUploadService } from '../../../../../../utils/services/file/upload/facade/file-upload.service';
-import { blobUrlToDataURL, clear, getImageFormData$, stringify } from '../../../../../../utils/utils';
+import { blobUrlToDataURL, clear, getImageFormData$, logInfo, stringify } from '../../../../../../utils/utils';
 import { CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto } from '../../../../models/card-face';
 import { CardFaceElementImage, CardFaceElementPerCardFace } from '../../../../models/card-face-element';
@@ -29,7 +29,7 @@ export class CardFaceElementImageService {
   public orphanedFileMetadata: FileMetadata[] = [];
 
   // TODO: MOVE SOMEWHERE ELSE
-  private readonly PLACEHOLDER_IMAGE_SRC: string = '/card-editor-controls_card-face-elements-list_image-element-icon.svg'; 
+  private readonly PLACEHOLDER_IMAGE_SRC: string = '/card-editor-controls_card-face-elements-list_image-element-icon.svg';
 
   constructor() { }
 
@@ -41,7 +41,7 @@ export class CardFaceElementImageService {
     if (image !== undefined) {
       return this.fileUploadApiService.uploadFile$(image, 'card-face-element-image').pipe(
         switchMap((result: { id: string | undefined }) => {
-          console.log(`%c${this.constructor.name} - ${this.createCardFaceElementImage$.name} - ${this.fileUploadApiService.uploadFile$.name}: ${stringify(result)}`, `color: #31326F; background: #A8FBD3; padding: 5px; border-radius: 5px;`);
+          console.log(`%c${logInfo(this.constructor.name, `${this.createCardFaceElementImage$.name} - ${this.fileUploadApiService.uploadFile$.name}`)}: ${stringify(result)}`, `color: #31326F; background: #A8FBD3; padding: 5px; border-radius: 5px;`);
           if (!result.id) return of(undefined);
 
           return this.fileMetadataService.createFileMetadata$(DEFAULT_CARD_FACE_ELEMENT_IMAGE_VOLUME_PATH, result.id, FileMetadataStatus.Pending).pipe(
@@ -52,9 +52,9 @@ export class CardFaceElementImageService {
                 if (imageFileMetadata) this.orphanedFileMetadata.push(imageFileMetadata);
 
                 cardFaceElementImage.imageFileMetadata = newFileMetadata;
-                
-                console.log(`%c${this.constructor.name} - ${this.createCardFaceElementImage$.name} - ${this.fileMetadataService.createFileMetadata$.name}:\nnewFileMetadata:\n${stringify(newFileMetadata)}\norphanedFileMetadata:\n${stringify(this.orphanedFileMetadata)}`, `color: #313647; background: #FFF8D4; padding: 5px; border-radius: 5px;`);
-                
+
+                console.log(`%c${logInfo(this.constructor.name, `${this.createCardFaceElementImage$.name} - ${this.fileMetadataService.createFileMetadata$.name}`)}:\nnewFileMetadata:\n${stringify(newFileMetadata)}\norphanedFileMetadata:\n${stringify(this.orphanedFileMetadata)}`, `color: #313647; background: #FFF8D4; padding: 5px; border-radius: 5px;`);
+
                 return newFileMetadata;
               }
 
@@ -72,8 +72,8 @@ export class CardFaceElementImageService {
   private assertCardFaceElementImages(fn: string, a: FileMetadata, b: FileMetadata): boolean {
     let shareSameValues: boolean = stringify(a) !== stringify(b), areRefsIdentical: boolean = a !== b;
 
-    console.assert(shareSameValues, `${this.constructor.name} - ${fn}: old and new imageFileMetadata share same values`);
-    console.assert(areRefsIdentical, `${this.constructor.name} - ${fn}: old and new imageFileMetadata share same reference`);
+    console.assert(shareSameValues, `${logInfo(this.constructor.name, fn)}: old and new imageFileMetadata share same values`);
+    console.assert(areRefsIdentical, `${logInfo(this.constructor.name, fn)}: old and new imageFileMetadata share same reference`);
 
     return shareSameValues && areRefsIdentical;
   }
@@ -105,7 +105,7 @@ export class CardFaceElementImageService {
               .pipe(
                 tap((fm: FileMetadata | undefined) => {
                   if (!fm || !cardFaceElementImage.imageFileMetadata) throw new Error();
-                  
+
                   this.assertCardFaceElementImages(this.duplicateCardFaceElementImages$.name, cardFaceElementImage.imageFileMetadata, fm);
                   cardFaceElementImage.imageFileMetadata = fm;
                 }),
@@ -131,15 +131,15 @@ export class CardFaceElementImageService {
 
   // FIXME: How are we clearing attached files
   public clear(): void {
-    console.log(`%c${this.constructor.name} - ${this.clear.name}(before):\n${stringify(this.orphanedFileMetadata)}`, 'color: #555879; background: #F4EBD3; padding: 5px; border-radius: 5px;');
+    console.log(`%c${logInfo(this.constructor.name, this.clear.name)}(before):\n${stringify(this.orphanedFileMetadata)}`, 'color: #555879; background: #F4EBD3; padding: 5px; border-radius: 5px;');
 
     // CHECKME: Do we want this?
     if (!areAllFileMetadataOfStatus(this.orphanedFileMetadata, FileMetadataStatus.Orphaned)) throw new Error(`${this.constructor.name} - ${this.clear.name}: orphanedFileMetadata should all have orphaned file metadata`);
 
     clear(this.orphanedFileMetadata);
 
-    console.assert(this.orphanedFileMetadata.length === 0, `${this.constructor.name} - ${this.clear.name}: orphanedFileMetadata isn't cleared`);
-    console.log(`%c${this.constructor.name} - ${this.clear.name} (after):\n${stringify(this.orphanedFileMetadata)}`, 'color: #004030; background: #FFF9E5; padding: 5px; border-radius: 5px;');
+    console.assert(this.orphanedFileMetadata.length === 0, `${logInfo(this.constructor.name, this.clear.name)}: orphanedFileMetadata isn't cleared`);
+    console.log(`%c${logInfo(this.constructor.name, this.clear.name)} (after):\n${stringify(this.orphanedFileMetadata)}`, 'color: #004030; background: #FFF9E5; padding: 5px; border-radius: 5px;');
   }
 
   public getElement(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService): CardFaceElementImage {

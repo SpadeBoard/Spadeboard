@@ -7,7 +7,7 @@ import { CardEditorCardFaceDto } from "./card-face";
 export interface Card {
     cardId: string;
     cardName: string;
-    currentCardFaceIndex: number;
+    currentCardFaceId: string;
 }
 
 // TODO: Make a CardEditorCardDto which has everything including DndPosition

@@ -31,7 +31,7 @@ export class CardEditorInfoService {
     setModalStyle(host, style);
 
     // TODO: Modify for debugging purposes
-    // console.log(`%c${this.constructor.name} - ${this.open.name}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
+    // console.log(`%c${logInfo(this.constructor.name, this.open.name)}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
 
     let ref: ComponentRef<EmbeddedExternalIframeComponent> = createComponent(EmbeddedExternalIframeComponent, {
       environmentInjector: this.environmentInjector,

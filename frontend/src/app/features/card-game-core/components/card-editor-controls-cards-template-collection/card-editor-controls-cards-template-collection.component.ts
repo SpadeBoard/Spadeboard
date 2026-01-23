@@ -11,6 +11,7 @@ import { DEFAULT_USER_ID } from '../../utils/user.constants';
 import { CardDeleteButtonComponent } from '../card-delete-button/card-delete-button.component';
 import { CardComponent } from '../card/card.component';
 import { NewCardTemplateCollectionComponent } from '../new-card-template-collection/new-card-template-collection.component';
+import { CardFacePerCardApiService } from '../../services/card-game-core/api/card-face-per-card-api.service';
 
 @Component({
   selector: 'app-card-editor-controls-cards-template-collection',
@@ -20,7 +21,11 @@ import { NewCardTemplateCollectionComponent } from '../new-card-template-collect
 })
 export class CardEditorControlsCardsTemplateCollectionComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  
   private readonly cardEditorApiService: CardEditorApiService = inject(CardEditorApiService);
+  
+  private readonly cardFacePerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
+
   private readonly cardTemplateService: CardTemplateService = inject(CardTemplateService);
 
   private readonly actionContextMenuService: ActionContextMenuService = inject(ActionContextMenuService);
@@ -36,7 +41,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   public new: Card = {
     cardId: "0",
     cardName: 'New',
-    currentCardFaceIndex: 0
+    currentCardFaceId: "0"
   }
 
   public currentContextCardId: string = "";
@@ -72,7 +77,7 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
   private updateCardTemplate(cardEditorCardDto: CardEditorCardDto): void {
     let index: number = this.cards.findIndex(card => card.cardId === cardEditorCardDto.card.cardId);
     if (index !== -1) {
-      if (this.hasRemovedCardTemplate(cardEditorCardDto, this.cards)) return;
+      if (this.hasRemovedCardTemplate(cardEditorCardDto)) return;
 
       this.cards[index] = { ...cardEditorCardDto.card };
       return;
@@ -89,12 +94,12 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
     this.cards = this.cardTemplateService.removeCardTemplate(cardId, this.cards);
   }
 
-  private hasRemovedCardTemplate(cardEditorCardDto: CardEditorCardDto, cards: Card[]): boolean {
-    let { cardId } = cardEditorCardDto.card;
+  private hasRemovedCardTemplate(cardEditorCardDto: CardEditorCardDto): boolean {
+    let { card } = cardEditorCardDto;
 
     this.cards = this.cardTemplateService.removeCardTemplate(cardEditorCardDto, this.cards);
 
-    return !cards.findIndex(c => c.cardId === cardId);
+    return !this.cards.some((c: Card) => c.cardId === card.cardId);
   }
 
   protected onCardRightClick(event: MouseEvent, cardId: string): void {
@@ -150,7 +155,8 @@ export class CardEditorControlsCardsTemplateCollectionComponent {
       item.action(
         {
           card: card,
-          cards: this.cards
+          cards: this.cards,
+          cardFacePerCardApiService: this.cardFacePerCardApiService
         }
       );
   }

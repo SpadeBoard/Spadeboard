@@ -4,12 +4,12 @@ import canvasSize from 'canvas-size';
 import { catchError, defer, forkJoin, iif, map, merge, Observable, Subject, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { assertObjectsMatch } from '../../../../../../utils/checks.utils';
 import { AtlasExportService } from '../../../../../../utils/services/atlas-export/atlas-export.service';
-import { exportCustomTypeFile, operate, stringify, unzipImages } from '../../../../../../utils/utils';
+import { exportCustomTypeFile, logInfo, operate, stringify, unzipImages } from '../../../../../../utils/utils';
 import { ActionContextMenuItem } from '../../../../../actions-context-menu/models/action-context-menu-item';
 import { Card, CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto } from '../../../../models/card-face';
 import { CardFaceElement, CardFaceElementPerCardFace } from '../../../../models/card-face-element';
-import { DEFAULT_ATLAS_EXPORT_LOD } from '../../../../utils/card-editor.constants';
+import { DEFAULT_ATLAS_EXPORT_LOD, getCurrentCardFaceId, getCurrentCardFaceIndex, setCurrentCardFaceId } from '../../../../utils/card-editor.constants';
 import { assertCardFaceElements } from '../../../../utils/card-face-element.constants';
 import { CardEditorCardDtoApiService } from '../../api/card-editor-card-dto-api.service';
 import { CardFacePerCardApiService } from '../../api/card-face-per-card-api.service';
@@ -31,7 +31,7 @@ export class CardEditorOperationsService {
 
   private readonly cardApiService: CardApiService = inject(CardApiService);
 
-  private readonly cardFacesPerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
+  private readonly cardFacePerCardApiService: CardFacePerCardApiService = inject(CardFacePerCardApiService);
 
   private readonly cardFaceLodsService: CardFaceLodsService = inject(CardFaceLodsService);
 
@@ -52,9 +52,9 @@ export class CardEditorOperationsService {
   constructor() { }
 
   private isValidCard(cardEditorCardDto: CardEditorCardDto): boolean {
-    if (!cardEditorCardDto) throw new Error(`${this.constructor.name} - ${this.isValidCard.name}: No card editor card cardEditorCardDto to be found`);
+    if (!cardEditorCardDto) throw new Error(`${logInfo(this.constructor.name, this.isValidCard.name)}: No card editor card cardEditorCardDto to be found`);
 
-    if (cardEditorCardDto.card.cardId === "0") throw new Error(`${this.constructor.name} - ${this.isValidCard.name}: Can't import export a card that hasn't been made yet.`);
+    if (cardEditorCardDto.card.cardId === "0") throw new Error(`${logInfo(this.constructor.name, this.isValidCard.name)}: Can't import export a card that hasn't been made yet.`);
 
     return true;
   }
@@ -65,7 +65,7 @@ export class CardEditorOperationsService {
 
     let imported: CardEditorCardDto = { ...cardEditorCardDto };
 
-    console.log(`%c${this.constructor.name} - ${this.importCardAction.name} (time: ${Date.now().toLocaleString("en-US")}) (before):\nimported:${stringify(imported)}}`, `color: #01161e; background: #eff6e0; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.importCardAction.name)} (before):\nimported:${stringify(imported)}}`, `color: #01161e; background: #eff6e0; padding: 5px; border-radius: 5px;`);
 
     // FIXME: Ok, we really shouldn't mutate a shared input, this is what's causing issues.
     // Last mutation always win so that's why
@@ -76,7 +76,7 @@ export class CardEditorOperationsService {
     forkJoin(lods$)
       .pipe(
         tap((results: (FileMetadata[] | undefined)[]) => {
-          console.log(`%c${this.constructor.name} - ${this.importCardAction.name} (time: ${Date.now().toLocaleString("en-US")}) - results:\n${stringify(results)}\ncardEditorCardFacesDto:\n${stringify(cardEditorCardDto.cardEditorCardFacesDto)}`, 'color: #899E8B; background: #e6fff6; padding: 5px; border-radius: 5px;');
+          console.log(`%c${logInfo(this.constructor.name, this.importCardAction.name)} - results:\n${stringify(results)}\ncardEditorCardFacesDto:\n${stringify(cardEditorCardDto.cardEditorCardFacesDto)}`, 'color: #899E8B; background: #e6fff6; padding: 5px; border-radius: 5px;');
 
           imported.cardEditorCardFacesDto.forEach((value: CardEditorCardFaceDto, index: number) => {
             this.cardFaceLodsService.orphanCardFaceLods(value.fileMetadataLods);
@@ -92,18 +92,18 @@ export class CardEditorOperationsService {
           return iif(
             () => exists,
             defer(() => {
-              console.log(`%c${this.constructor.name} - ${this.importCardAction.name}: duplicateCardEditorCardDto (before)`, `color: #2A324B; background: #C7CCDB; padding: 5px; border-radius: 5px;`);
+              console.log(`%c${logInfo(this.constructor.name, this.importCardAction.name)}: duplicateCardEditorCardDto (before)`, `color: #2A324B; background: #C7CCDB; padding: 5px; border-radius: 5px;`);
               return this.duplicateCardEditorCardDto$(imported, duplicateCardObservables); // CHECKME: Can we simplify this by just creating the imported card (setting all IDs to 0) and running the duplicateCardObservables beforehand?
             }),
             defer(() => {
-              console.log(`%c${this.constructor.name} - ${this.importCardAction.name}: createCardEditorCardDto (before)`, `color: #005442; background: #FCE4D8; padding: 5px; border-radius: 5px;`);
+              console.log(`%c${logInfo(this.constructor.name, this.importCardAction.name)}: createCardEditorCardDto (before)`, `color: #005442; background: #FCE4D8; padding: 5px; border-radius: 5px;`);
               return this.createCardEditorCardDto$(imported);
             })
           );
         })
       )
       .subscribe((result: CardEditorCardDto | undefined) => {
-        if (!result) throw new Error(`${this.constructor.name} - ${this.importCardAction.name}: Invalid import, can't import card`);
+        if (!result) throw new Error(`${logInfo(this.constructor.name, this.importCardAction.name)}: Invalid import, can't import card`);
 
         this.cardEditorApiService.setOperation('create', result);
 
@@ -130,7 +130,7 @@ export class CardEditorOperationsService {
   private exportAtlasAction(cardEditorCardDto: CardEditorCardDto): void {
     this.isValidCard(cardEditorCardDto);
 
-    this.cardFacesPerCardApiService.getCardFacesByLod$(cardEditorCardDto.card.cardId, DEFAULT_ATLAS_EXPORT_LOD).subscribe({
+    this.cardFacePerCardApiService.getCardFacesByLod$(cardEditorCardDto.card.cardId, DEFAULT_ATLAS_EXPORT_LOD).subscribe({
       next: async (result: Blob | undefined) => {
         if (!result) throw new Error("There are no card faces thumbnails");
 
@@ -189,18 +189,21 @@ export class CardEditorOperationsService {
     if (!card || !cards) return;
 
     let idx: number = cards.findIndex(c => c.cardId === card.cardId);
-    if (idx !== -1) {
+
+    if (idx < 0) return;
+
+    this.cardFacePerCardApiService.getCardFacesPerCardIds$(card).subscribe((cardFaceIds: string[]) => {
       cards[idx] = {
         ...card,
-        currentCardFaceIndex: (card.currentCardFaceIndex === 0) ? 1 : 0
+        currentCardFaceId: setCurrentCardFaceId(getCurrentCardFaceIndex(getCurrentCardFaceId(card), cardFaceIds), cardFaceIds)
       };
-    }
+    });
   }
 
   public editCardAction(cardId: string, cardEditorPreviewService: CardEditorPreviewService): void {
     if (!cardId || !cardEditorPreviewService) return;
 
-    console.log(`%c${this.constructor.name} - ${this.editCardAction.name}\ncardId: ${cardId}`, `color: #8D77AB; background: #BAD8B6; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.editCardAction.name)}\ncardId: ${cardId}`, `color: #8D77AB; background: #BAD8B6; padding: 5px; border-radius: 5px;`);
 
     cardEditorPreviewService.getCardEditorCardDtoByCardId(cardId);
     cardEditorPreviewService.toggleCardEditor(!cardEditorPreviewService.$isCardEditorOpen());
@@ -269,7 +272,7 @@ export class CardEditorOperationsService {
       }
     });
 
-    if (assertions.some(assertion => assertObjectsMatch(assertion, `${this.constructor.name} - ${this.assertCardFaceElementsPerCardFace.name}`))) console.error(`${fn}: Card face elements per card face are identical`);
+    if (assertions.some(assertion => assertObjectsMatch(assertion, `${logInfo(this.constructor.name, this.assertCardFaceElementsPerCardFace.name)}`))) console.error(`${fn}: Card face elements per card face are identical`);
   }
 
   // TODO: Finish this assertion and test it
@@ -294,7 +297,7 @@ export class CardEditorOperationsService {
         this.cardEditorCardDtoApiService.createCardEditorCardDto$(cardEditorCardDto)
       ),
       tap((value: CardEditorCardDto | undefined) => {
-        if (!value) throw new Error(`${this.constructor.name} - ${this.duplicateCardEditorCardDto$.name}: No card editor card dto duplicated`);
+        if (!value) throw new Error(`${logInfo(this.constructor.name, this.duplicateCardEditorCardDto$.name)}: No card editor card dto duplicated`);
 
         let fn: string = `${this.duplicateCardEditorCardDto$.name}`;
 
@@ -302,7 +305,7 @@ export class CardEditorOperationsService {
         this.assertCardFaceElements(fn, cardEditorCardDto, value);
       }),
       catchError((err: unknown) => {
-        console.error(`${this.constructor.name} - ${this.duplicateCardEditorCardDto$.name}: Something went wrong:`, err);
+        console.error(`${logInfo(this.constructor.name, this.duplicateCardEditorCardDto$.name)}}: Something went wrong:`, err);
         return throwError(() => err);
       })
     );
@@ -311,7 +314,7 @@ export class CardEditorOperationsService {
   public updateCardEditorCardDto$(cardEditorCardDto: CardEditorCardDto): Observable<CardEditorCardDto | undefined> {
     return this.cardEditorCardDtoApiService.updateCardEditorCardDto$(cardEditorCardDto).pipe(
       catchError(err => {
-        console.error(`${this.constructor.name} - ${this.updateCardEditorCardDto$.name}: Something went wrong:`, err);
+        console.error(`${logInfo(this.constructor.name, this.updateCardEditorCardDto$.name)}: Something went wrong:`, err);
         return throwError(() => err);
       })
     );
@@ -324,7 +327,7 @@ export class CardEditorOperationsService {
   }
 
   public deleteCard(cardId: string): void {
-    console.log(`%c${this.constructor.name} - ${this.deleteCard.name}:\ncardId: ${cardId}`, `color: #4a5759; background: #edafb8; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.deleteCard.name)}:\ncardId: ${cardId}`, `color: #4a5759; background: #edafb8; padding: 5px; border-radius: 5px;`);
 
     if (!this.canDeleteCard(cardId)) {
       throw new Error("Can't delete card as it's being edited or it's being undefined");

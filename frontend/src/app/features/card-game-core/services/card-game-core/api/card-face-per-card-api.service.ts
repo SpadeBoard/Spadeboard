@@ -2,8 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { CardFace } from '../../../models/card-face';
 
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
+import { Card } from '../../../models/card';
+import { logInfo } from '../../../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +16,18 @@ export class CardFacePerCardApiService {
   private apiUrl = `${environment.hostServerUrl}/api/CardFacesPerCard`;
 
   constructor() { }
+
+  // TODO: Modify backend to just grab the IDs directly instead of piping
+  public getCardFacesPerCardIds$(card: Card): Observable<string[]> {
+    return this.getCardFacesPerCard$(card.cardId)
+    .pipe(
+      map((cardFaces: CardFace[] | undefined) => {
+        if (!cardFaces) throw new Error(`${logInfo(this.constructor.name, this.getCardFacesPerCardIds$.name)}: No card faces retrieved`);
+
+        return cardFaces.map((cardFace: CardFace) => cardFace.cardFaceId);
+      })
+    );
+  }
 
   getCardFacesPerCard$(cardId: string): Observable<CardFace[] | undefined> {
     return this.http.get<CardFace[]>(`${this.apiUrl}/card/${cardId}`);

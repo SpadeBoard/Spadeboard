@@ -8,7 +8,7 @@
     <app-card-editor-current-card-face-elements-per-card-face 
         [$cardFaceElementId]="cardFaceElementId"
         [$cardFaceElementsPerCardFace]="cardFaceElementsPerCardFace"
-        [cardFaceBorderRadius]="cardFaceBorderRadius" 
+        [$cardFaceBorderRadius]="cardFaceBorderRadius" 
 
         [$shouldSnapToGrid]="shouldSnapToGrid"
         ($setElementPosition)="setElementPosition($event)"
@@ -21,9 +21,10 @@
     />
 </div>
 
-<!-- NOTE: Hidden file input for importing card-->
 <input 
-    #importedCardFileInput type="file" 
+    #importedCardFileInput 
+    type="file" 
     accept=".sbd" 
     style="display: none" 
-    (change)="importCard($event)" />
+    (change)="importCard($event)" 
+/>

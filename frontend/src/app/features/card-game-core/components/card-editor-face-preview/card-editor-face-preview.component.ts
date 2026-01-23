@@ -4,7 +4,7 @@ import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, inject,
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, iif, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { FileMetadataService } from '../../../../utils/services/file/metadata/facade/file-metadata.service';
-import { Coordinates, Dimensions, stringify, unsubscription } from '../../../../utils/utils';
+import { Coordinates, Dimensions, logInfo, stringify, unsubscription } from '../../../../utils/utils';
 import { ActionContextMenuItem } from '../../../actions-context-menu/models/action-context-menu-item';
 import { ActionContextMenuService } from '../../../actions-context-menu/services/action-context-menu.service';
 import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
@@ -179,12 +179,12 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     if (cardFaceElementsPerCardFace) {
       this.cardFaceElementsPerCardFace = ([...cardFaceElementsPerCardFace]);
 
-      console.log(`%c${this.constructor.name} - ${this.setCardFaceElementsPerCardFace.name}:\ncardFaceElementsPerCardFace:\n${stringify(this.cardFaceElementsPerCardFace)}`, `color: #504B38; background: #F8F3D9; padding: 5px; border-radius: 5px;`);
+      console.log(`%c${logInfo(this.constructor.name, this.setCardFaceElementsPerCardFace.name)}:\ncardFaceElementsPerCardFace:\n${stringify(this.cardFaceElementsPerCardFace)}`, `color: #504B38; background: #F8F3D9; padding: 5px; border-radius: 5px;`);
       return;
     }
 
     this.cardFaceElementsPerCardFace = ([...this.cardEditorPreviewService.getCurrentCardFaceElementsPerCardFace()]);
-    console.log(`%c${this.constructor.name} - ${this.setCardFaceElementsPerCardFace.name}:\ncardFaceElementsPerCardFace:\n${stringify(this.cardFaceElementsPerCardFace)}`, `color: #504B38; background: #F8F3D9; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.setCardFaceElementsPerCardFace.name)}:\ncardFaceElementsPerCardFace:\n${stringify(this.cardFaceElementsPerCardFace)}`, `color: #504B38; background: #F8F3D9; padding: 5px; border-radius: 5px;`);
   }
 
   protected getCardEditorFaceStyle(): Omit<Style, 'styleId'> {
@@ -266,20 +266,17 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   // NOTE: This is called when you click the flip button
   // So we want to take the file metadata lods and then update the cardEditorCardDto
   private onFlip(): void {
-    console.log(`%c${this.constructor.name} - ${this.onFlip.name} (time: ${Date.now().toLocaleString("en-US")})} (before)`, `color: #22577a; background: #c7f9cc; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.onFlip.name)} (before)`, `color: #22577a; background: #c7f9cc; padding: 5px; border-radius: 5px;`);
 
     this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.destroyRef)
       .pipe(
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((fileMetadataLods: FileMetadata[] | undefined) => {
-        if (!fileMetadataLods) throw new Error(`${this.constructor.name} - ${this.createCard.name}: fileMetadataLods is undefined`);
+        if (!fileMetadataLods) throw new Error(`${logInfo(this.constructor.name, this.createCard.name)}: fileMetadataLods is undefined`);
 
         this.setFileMetadataLods(fileMetadataLods);
-
-        // CHECKME: We shouldn't need the below line because setting the file metadata lods updates the currentCardEditorCardFaceDto directly
-        // this.cardEditorPreviewService.setCardEditorCardFaceDto(this.cardEditorPreviewService.currentCardEditorCardFaceDto);
-
+        
         this.cardEditorOperationsService.postFlip();
       });
   }
@@ -365,7 +362,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.destroyRef)
       .pipe(
         switchMap((fileMetadataLods: FileMetadata[] | undefined) => {
-          if (!fileMetadataLods) throw new Error(`${this.constructor.name} - ${this.createCard.name}: fileMetadataLods is undefined`);
+          if (!fileMetadataLods) throw new Error(`${logInfo(this.constructor.name, this.createCard.name)}: fileMetadataLods is undefined`);
 
           this.setFileMetadataLods(fileMetadataLods);
 
@@ -388,7 +385,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(({ operation, cardEditorCardDto }) => {
-        if (!cardEditorCardDto) throw new Error(`${this.constructor.name}- ${this.createCard.name}: No card editor card dto`);
+        if (!cardEditorCardDto) throw new Error(`${logInfo(this.constructor.name, this.createCard.name)}: No card editor card dto`);
 
         if (operation !== 'create' && operation !== 'duplicate') throw new Error("Invalid operation");
 
@@ -421,7 +418,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
   }
 
   public shouldDeleteItems(cardFaceElementsPerCardFaceToDeleteIds: string[]): boolean {
-    console.log(`%c${this.constructor.name} - ${this.shouldDeleteItems.name} (time: ${Date.now().toLocaleString("en-US")}):\ncardFaceElementsPerCardFaceToDeleteIds:${stringify(cardFaceElementsPerCardFaceToDeleteIds)}}`, `color: #457b9d; background: #f1faee; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.shouldDeleteItems.name)}:\ncardFaceElementsPerCardFaceToDeleteIds:${stringify(cardFaceElementsPerCardFaceToDeleteIds)}}`, `color: #457b9d; background: #f1faee; padding: 5px; border-radius: 5px;`);
 
     return cardFaceElementsPerCardFaceToDeleteIds.length > 0;
   }
@@ -431,10 +428,10 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.cardFaceLodsService.setCardFaceThumbnailImages$(this.cardEditorFace, this.destroyRef)
       .pipe(
         tap((fileMetadataLods: FileMetadata[] | undefined) => {
-          console.log(`%c${this.constructor.name} - ${this.saveCard.name} (time: ${Date.now().toLocaleString("en-US")}) 1. Thumbnail images set`, `color: #344e41; background: #dad7cd; padding: 5px; border-radius: 5px;`)
+          console.log(`%c${logInfo(this.constructor.name, this.saveCard.name)} 1. Thumbnail images set`, `color: #344e41; background: #dad7cd; padding: 5px; border-radius: 5px;`)
 
           // CHECKME: Do we tap here?
-          if (!fileMetadataLods) throw new Error(`${this.constructor.name} - ${this.createCard.name}: fileMetadataLods is undefined`);
+          if (!fileMetadataLods) throw new Error(`${logInfo(this.constructor.name, this.createCard.name)}: fileMetadataLods is undefined`);
 
           this.setFileMetadataLods(fileMetadataLods);
         }),
@@ -454,14 +451,14 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
           )
         ),
 
-        tap(() => console.log(`%c${this.constructor.name} - ${this.saveCard.name} (time: ${Date.now().toLocaleString("en-US")}) 2. Delete operation completed`, `color: #450920; background: #f9dbbd; padding: 5px; border-radius: 5px;`)),
+        tap(() => console.log(`%c${logInfo(this.constructor.name, this.saveCard.name)} 2. Delete operation completed`, `color: #450920; background: #f9dbbd; padding: 5px; border-radius: 5px;`)),
         switchMap(() => (this.cardEditorOperationsService.updateCardEditorCardDto$(this.cardEditorPreviewService.cardEditorCardDto))),
 
-        tap(() => console.log(`%c${this.constructor.name} - ${this.saveCard.name} (time: ${Date.now().toLocaleString("en-US")}) 3. Update operation completed`, `color: #590d22; background: #fff0f3; padding: 5px; border-radius: 5px;`)),
+        tap(() => console.log(`%c${logInfo(this.constructor.name, this.saveCard.name)} 3. Update operation completed`, `color: #590d22; background: #fff0f3; padding: 5px; border-radius: 5px;`)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
-        console.log(`%c${this.constructor.name} - ${this.saveCard.name} (time: ${Date.now().toLocaleString("en-US")}):\ncardFaceElementsPerCardFaceToDeleteIds:\n${stringify(this.cardFaceElementService.cardFaceElementsPerCardFaceToDeleteIds)}\ncardEditorCardDto:\n${stringify(cardEditorCardDto)}`, `color: #5D414D; background: #E5F6C6; padding: 5px; border-radius: 5px;`);
+        console.log(`%c${logInfo(this.constructor.name, this.saveCard.name)}:\ncardFaceElementsPerCardFaceToDeleteIds:\n${stringify(this.cardFaceElementService.cardFaceElementsPerCardFaceToDeleteIds)}\ncardEditorCardDto:\n${stringify(cardEditorCardDto)}`, `color: #5D414D; background: #E5F6C6; padding: 5px; border-radius: 5px;`);
 
         if (cardEditorCardDto) {
           // CHECKME: We need to update the card editor card dto inside of cardEditorPreviewService here
@@ -574,7 +571,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
 
     this.enableElement(cardFaceElementPerCardFaceId, type);
 
-    console.log(`%c${this.constructor.name} - ${this.createdCardFaceElementPerCardFace.name}:\nCard face elements per card face:${stringify(this.cardFaceElementsPerCardFace)}\nCard editor card dto:\n${stringify(this.cardEditorPreviewService.cardEditorCardDto)}`, `color: #19183B; background: #E7F2EF; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.createdCardFaceElementPerCardFace.name)}:\nCard face elements per card face:${stringify(this.cardFaceElementsPerCardFace)}\nCard editor card dto:\n${stringify(this.cardEditorPreviewService.cardEditorCardDto)}`, `color: #19183B; background: #E7F2EF; padding: 5px; border-radius: 5px;`);
 
     // ASSUMPTION: The latest card face element per card face will always be the last of the index
     // this.clampNewCardFaceElementPerCardFacePosition();
@@ -642,7 +639,7 @@ export class CardEditorFacePreviewComponent implements AfterViewInit {
     this.resetElementAttributes();
 
     console.log(`
-        %c${this.constructor.name} - ${this.deletedCardFaceElementPerCardFace.name}:\nCard face element per face ID: ${emitted}
+        %c${logInfo(this.constructor.name, this.deletedCardFaceElementPerCardFace.name)}:\nCard face element per face ID: ${emitted}
         \n${stringify(this.cardFaceElementService.cardFaceElementsPerCardFaceToDeleteIds)}
       `, 'color: #f95401; background: #fffdf3; padding: 5px; border-radius: 5px;');
 

@@ -54,7 +54,7 @@ export class DndBoardGridComponent {
       \nZoom Level: ${this.dndBoardService.zoom}
       \nCell size screen: ${this.cellSizeScreen}`;
 
-      // console.log(`%c${this.constructor.name} - ${this.onMouseMove.name}:\n${mouseMoveLog}`, `color: #052349; background: #e7f0ff; padding: 5px; border-radius: 5px;`);
+      // console.log(`%c${logInfo(this.constructor.name, this.onMouseMove.name)}:\n${mouseMoveLog}`, `color: #052349; background: #e7f0ff; padding: 5px; border-radius: 5px;`);
     })
   }
 

@@ -1,10 +1,11 @@
 import { Dimensions } from "ngx-image-cropper";
-import { Style } from "../../style/models/style";
-import { CardEditorCardDto } from "../models/card";
-import { CardFaceImage } from "./card-face.utils";
-import { getDefaultCardFace } from "./card-face.constants";
 import { clamp, stringify } from "../../../utils/utils";
+import { Style } from "../../style/models/style";
+import { Card, CardEditorCardDto } from "../models/card";
 import { CardEditorCardFaceDto } from "../models/card-face";
+import { getDefaultCardFace } from "./card-face.constants";
+import { CardFaceImage } from "./card-face.utils";
+import { isCardEditorCardFaceDtoArray } from "./card-game-core.utils";
 
 export const MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
 export const MIN_CARD_FACE_WIDTH: number = 20;
@@ -64,7 +65,7 @@ export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEdit
   return {
     card: {
       cardId: "0",
-      currentCardFaceIndex: 0,
+      currentCardFaceId: "0",
       cardName: ''
     },
     ownerId: newOwnerId,
@@ -75,7 +76,7 @@ export function getBlankCardTemplate(style: Style, newOwnerId: string): CardEdit
         fileMetadataLods: []
       },
       {
-        cardFace: getDefaultCardFace("-1", { ...style }),
+        cardFace: getDefaultCardFace("1", { ...style }),
         cardFaceElementsPerCardFace: [],
         fileMetadataLods: []
       }
@@ -102,6 +103,33 @@ export function getDefaultCardFaceElementImage(): CardFaceImage {
 }
 
 export const DEFAULT_ATLAS_EXPORT_LOD: number = clamp(0, 0, 4);
+
+/************* CARD FACE ID **************/
+export function getCurrentCardFaceId(card: Card): string {
+  return card.currentCardFaceId;
+}
+
+export function getCurrentCardFaceIndex(currentCardFaceId: string, cardEditorCardFacesDto: CardEditorCardFaceDto[]): number;
+export function getCurrentCardFaceIndex(currentCardFaceId: string, cardFaceIds: string[]): number;
+export function getCurrentCardFaceIndex(currentCardFaceId: string, cardFacesCollection: CardEditorCardFaceDto[] | string[]): number {
+  if (isCardEditorCardFaceDtoArray(cardFacesCollection)) return cardFacesCollection.findIndex((cardFacesCollection: CardEditorCardFaceDto) => cardFacesCollection.cardFace.cardFaceId === currentCardFaceId);
+
+  return cardFacesCollection.findIndex((cardFacesCollection: string) => cardFacesCollection === currentCardFaceId);
+}
+
+// TODO: Modify this depending on how many faces we have
+export function setCurrentCardFaceId(currentCardFaceIndex: number,cardEditorCardFacesDto: CardEditorCardFaceDto[]): string;
+export function setCurrentCardFaceId(currentCardFaceIndex: number,cardFaceIds: string[]): string;
+export function setCurrentCardFaceId(currentCardFaceIndex: number,cardFacesCollection: CardEditorCardFaceDto[] | string[]): string {
+  let idx: number = currentCardFaceIndex === 0 ? 1 : 0;
+
+  if (isCardEditorCardFaceDtoArray(cardFacesCollection)) {
+    return cardFacesCollection[idx].cardFace.cardFaceId;
+  }
+
+  return cardFacesCollection[idx];
+}
+/**********************************/
 
 /******************** IMPORT ***********************/
 export function shouldMakeCardFaceThumbnailLods(cardEditorCardFaceDto: CardEditorCardFaceDto): boolean {

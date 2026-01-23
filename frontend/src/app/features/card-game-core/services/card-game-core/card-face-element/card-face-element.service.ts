@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, map, merge, Observable, of, Subject, Subscription } from 'rxjs';
-import { clamp, clear, Coordinates, Dimensions, operate, parseNumeric, stringify } from '../../../../../utils/utils';
+import { clamp, clear, Coordinates, Dimensions, logInfo, operate, parseNumeric, stringify } from '../../../../../utils/utils';
 import { DndPosition } from '../../../../drag-and-drop/models/dnd-types';
 import { Style } from '../../../../style/models/style';
 import { CardFaceElementPerCardFace } from '../../../models/card-face-element';
@@ -235,7 +235,7 @@ export class CardFaceElementService {
   }
 
   public deleteCardFaceElementsPerCardFace$(cardFaceElementsPerCardFaceIds: string[]): Observable<any[]> {
-    console.log(`%c${this.constructor.name} - ${this.deleteCardFaceElementsPerCardFace$.name} (time: ${Date.now().toLocaleString("en-US")}) (before): ${stringify(cardFaceElementsPerCardFaceIds)}`, `color: #4E56C0; background: #FDCFFA; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.deleteCardFaceElementsPerCardFace$.name)} (before): ${stringify(cardFaceElementsPerCardFaceIds)}`, `color: #4E56C0; background: #FDCFFA; padding: 5px; border-radius: 5px;`);
     if (cardFaceElementsPerCardFaceIds.length <= 0) {
       return of([]);
     }
@@ -253,11 +253,11 @@ export class CardFaceElementService {
   }
 
   public clear(): void {
-    console.log(`%c${this.constructor.name} - ${this.clear.name}(before):\n${stringify(this.cardFaceElementsPerCardFaceToDeleteIds)}`, 'color: #493323; background: #FFDF91; padding: 5px; border-radius: 5px;');
+    console.log(`%c${logInfo(this.constructor.name, this.clear.name)}(before):\n${stringify(this.cardFaceElementsPerCardFaceToDeleteIds)}`, 'color: #493323; background: #FFDF91; padding: 5px; border-radius: 5px;');
 
     clear(this.cardFaceElementsPerCardFaceToDeleteIds);
 
-    console.assert(this.cardFaceElementsPerCardFaceToDeleteIds.length === 0, `${this.constructor.name} - ${this.clear.name}: cardFaceElementsPerCardFaceToDeleteIds isn't cleared`);
-    console.log(`%c${this.constructor.name} - ${this.clear.name} (after):\n${stringify(this.cardFaceElementsPerCardFaceToDeleteIds)}`, 'color: #280B45; background: #FFE98A; padding: 5px; border-radius: 5px;');
+    console.assert(this.cardFaceElementsPerCardFaceToDeleteIds.length === 0, `${logInfo(this.constructor.name, this.clear.name)}: cardFaceElementsPerCardFaceToDeleteIds isn't cleared`);
+    console.log(`%c${logInfo(this.constructor.name, this.clear.name)} (after):\n${stringify(this.cardFaceElementsPerCardFaceToDeleteIds)}`, 'color: #280B45; background: #FFE98A; padding: 5px; border-radius: 5px;');
   }
 }

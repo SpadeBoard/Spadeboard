@@ -2,7 +2,7 @@ import { CdkDropList } from '@angular/cdk/drag-drop';
 import { AfterViewInit, Component, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Dimensions } from 'ngx-image-cropper';
-import { Coordinates, stringify } from '../../../../utils/utils';
+import { Coordinates, logInfo, stringify } from '../../../../utils/utils';
 import { CardPositionPerRoomComponent } from '../../../card-game-core/components/card-position-per-room/card-position-per-room.component';
 import { DndBoardService } from '../../services/dnd-board.service';
 import { DndBoardGridComponent } from '../dnd-board-grid/dnd-board-grid.component';
@@ -182,7 +182,7 @@ export class DndBoardComponent implements AfterViewInit {
     // Only scroll if the camera actually moved
     let newCamera: Coordinates = this.dndBoardService.camera;
 
-    console.log(`%c${this.constructor.name} - ${this.onWheel.name} - Camera position on zoom: ${stringify(newCamera)}`, `color: #084b83; background: #bbe6e4; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.onWheel.name)} - Camera position on zoom: ${stringify(newCamera)}`, `color: #084b83; background: #bbe6e4; padding: 5px; border-radius: 5px;`);
 
     if (this.isCameraTranslationHighEnough(prevCamera, newCamera))
       // We need to scroll because the board's a scrollable container 

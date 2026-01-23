@@ -577,6 +577,10 @@ export function stringify(value: any): string {
         2);
 }
 
+export function logInfo(constructor: string, fn: string): string {
+    return `${constructor} - ${fn} (time: ${Date.now().toLocaleString("en-US")})`;
+}
+
 // TODO: Move somewhere else
 export function setModalStyle(host: HTMLElement, style: Omit<Style, 'styleId'>): void {
     if (style.position) host.style.position = style.position;

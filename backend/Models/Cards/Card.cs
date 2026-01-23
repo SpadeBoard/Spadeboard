@@ -36,7 +36,7 @@ namespace Models.Cards
 
         public string? CardName {get;set;} = "";
 
-        public int? CurrentCardFaceIndex { get; set;} = 0;
+        public long? CurrentCardFaceId { get; set;} = 0; // CHECKME: Do we need a foreign key constraint
     }
 
     public class CardDto
@@ -45,6 +45,6 @@ namespace Models.Cards
 
         public string? CardName {get;set;} = "";
 
-        public int? CurrentCardFaceIndex { get; set;} = 0;
+        public string? CurrentCardFaceId { get; set;} = "0";
     }
 }

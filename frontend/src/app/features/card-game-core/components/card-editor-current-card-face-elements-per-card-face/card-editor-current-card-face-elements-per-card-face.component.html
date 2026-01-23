@@ -32,9 +32,9 @@
                 @case ("Image") {
                     <app-card-face-image 
                         (mousedown)="focusImage(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [cardFaceImageSrc]="getCardFaceElementImageSrc(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [cardFaceImageWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
-                        [cardFaceImageHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height">
+                        [$cardFaceImageSrc]="getCardFaceElementImageSrc(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
+                        [$cardFaceImageWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
+                        [$cardFaceImageHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height">
                         <button class="change-image-button" (click)="enableImageEditor(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
                     </app-card-face-image>
                 }

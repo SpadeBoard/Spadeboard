@@ -3,6 +3,7 @@ using Data;
 using Models.Cards;
 using Models.Bridge;
 using Models.Tags;
+using Algorithms;
 
 // https://stackoverflow.com/questions/59753218/how-to-use-dbcontext-in-separate-class-library-net-core
 // https://www.postgresql.org/docs/current/ddl-schemas.html#:~:text=Unlike%20databases%2C%20schemas%20are%20not,without%20interfering%20with%20each%20other.
@@ -31,10 +32,13 @@ namespace Services
             {
                 if (dto.CardEditorCardFacesDto != null)
                 {
+                    int idx = Array.FindIndex(dto.CardEditorCardFacesDto, (CardEditorCardFaceDto cardEditorCardFaceDto) => cardEditorCardFaceDto.CardFace.CardFaceId == dto.Card.CurrentCardFaceId);
+                
                     dto.CardEditorCardFacesDto = (await _cardEditorCardFaceDtoService.CreateAllDtoAsync(dto.CardEditorCardFacesDto)).ToArray();
-                }
 
-                dto.Card = await _cardDtoService.CreateDtoAsync(dto.Card);
+                    dto.Card.CurrentCardFaceId = dto.CardEditorCardFacesDto[idx].CardFace.CardFaceId;
+                    dto.Card = await _cardDtoService.CreateDtoAsync(dto.Card);
+                }
 
                 if (!String.IsNullOrEmpty(dto.OwnerId))
                 {

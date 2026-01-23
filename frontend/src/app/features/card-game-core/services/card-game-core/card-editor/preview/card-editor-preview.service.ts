@@ -2,11 +2,11 @@ import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, inj
 import { Observable, Subject } from 'rxjs';
 import { assertObjectsMatch } from '../../../../../../utils/checks.utils';
 import { FileMetadataService } from '../../../../../../utils/services/file/metadata/facade/file-metadata.service';
-import { setModalStyle, stringify } from '../../../../../../utils/utils';
+import { logInfo, setModalStyle, stringify } from '../../../../../../utils/utils';
 import { CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../../../../models/card-face';
 import { CardFaceElementPerCardFace } from '../../../../models/card-face-element';
-import { DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_MODAL_STYLE, getBlankCardTemplate } from '../../../../utils/card-editor.constants';
+import { DEFAULT_CARD_EDITOR_FACE_STYLE, DEFAULT_MODAL_STYLE, getBlankCardTemplate, getCurrentCardFaceId, getCurrentCardFaceIndex, setCurrentCardFaceId } from '../../../../utils/card-editor.constants';
 import { getDefaultCardFace } from '../../../../utils/card-face.constants';
 import { isCardEditorCardDto } from '../../../../utils/card-game-core.utils';
 import { UserService } from '../../../user/user.service';
@@ -87,7 +87,7 @@ export class CardEditorPreviewService {
     this.cardEditorCardDtoApiService.getCardEditorCardDtoByCardId$(cardId)
       .subscribe((cardEditorCardDto: CardEditorCardDto | undefined) => {
         if (cardEditorCardDto) {
-          console.assert(cardEditorCardDto.card.cardId === cardId, `${this.constructor.name} - ${this.getCardEditorCardDtoByCardId.name}: cardEditorCardDto.card.cardId and cardId (argument) mismatch`);
+          console.assert(cardEditorCardDto.card.cardId === cardId, `${logInfo(this.constructor.name, this.getCardEditorCardDtoByCardId.name)}: cardEditorCardDto.card.cardId and cardId (argument) mismatch`);
           this.setCardEditorCardDto(cardEditorCardDto);
         }
       });
@@ -118,7 +118,7 @@ export class CardEditorPreviewService {
       ['cardEditorCardDto', this.cardEditorCardDto.cardEditorCardFacesDto[this.getCurrentCardFaceIndex()].cardFaceElementsPerCardFace]
     ]);
 
-    assertObjectsMatch(map, `${this.setCurrentCardFaceElementsPerCardFace.name} - assertCardFaceElementsPerCardFace`);
+    assertObjectsMatch(map, `${logInfo(this.constructor.name, this.setCurrentCardFaceElementsPerCardFace.name)} - assertCardFaceElementsPerCardFace`);
   }
 
   public isNewCardEditorCardDto(): boolean {
@@ -145,36 +145,41 @@ export class CardEditorPreviewService {
     console.assert(!(a === b && b === c) === false, 'assertCardEditorCardFaceDto: References are not identical', { a, b, c });
   }
 
-  public setCardEditorCardFaceDto(cardEditorCardFaceDto: CardEditorCardFaceDto): void;
+  // CHECKME: Do we want to use?
+  /*public setCardEditorCardFaceDto(cardEditorCardFaceDto: CardEditorCardFaceDto): void;
   public setCardEditorCardFaceDto(cardEditorCardFaceDto: CardEditorCardFaceDto, currentCardFaceIndex: number): void;
   public setCardEditorCardFaceDto(cardEditorCardFaceDto: CardEditorCardFaceDto, currentCardFaceIndex?: number): void {
     let idx: number = (currentCardFaceIndex) ? currentCardFaceIndex : this.getCurrentCardFaceIndex();
     this.cardEditorCardDto.cardEditorCardFacesDto[idx] = cardEditorCardFaceDto;
 
     // TODO: Refactor later
-    /*let map: Map<string, CardEditorCardFaceDto> = new Map<string, CardEditorCardFaceDto>([
+    let map: Map<string, CardEditorCardFaceDto> = new Map<string, CardEditorCardFaceDto>([
       ['cardEditorCardFaceDto', cardEditorCardFaceDto],
       ['currentCardEditorCardFaceDto', this.getCurrentCardFaceElementsPerCardFace()],
       ['cardEditorCardDto', this.cardEditorCardDto.cardEditorCardFacesDto[idx]]
-    ]);*/
+    ]);
 
     this.assertCardEditorCardFace(cardEditorCardFaceDto);
-  }
+  }*/
 
   public setCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
-    if (!isCardEditorCardDto(cardEditorCardDto)) throw new Error(`${this.constructor.name} - ${this.setCardEditorCardDto.name}: Not a card editor card dto`);
+    if (!isCardEditorCardDto(cardEditorCardDto)) throw new Error(`${logInfo(this.constructor.name, this.setCardEditorCardDto.name)}: Not a card editor card dto`);
 
-    console.log(`%c${this.constructor.name} - ${this.setCardEditorCardDto.name} (before):\n${stringify(cardEditorCardDto)}\n${stringify(this.cardEditorCardDto)}`, `color: #3A015C; background: #fce3f9ff; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.setCardEditorCardDto.name)} (before):\n${stringify(cardEditorCardDto)}\n${stringify(this.cardEditorCardDto)}`, `color: #3A015C; background: #fce3f9ff; padding: 5px; border-radius: 5px;`);
 
     this.cardEditorCardDto = cardEditorCardDto;
     this.setCurrentCardEditorCardFaceDto(); // CHECKME: Is it fine to call it, not modular enough?
     this.setCardEditorCardDto$$.next();
 
-    console.log(`%c${this.constructor.name} - ${this.setCardEditorCardDto.name} (after):\n${stringify(this.cardEditorCardDto)}`, `color: #1b4965; background: #8cd0e0ff; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.setCardEditorCardDto.name)} (after):\n${stringify(this.cardEditorCardDto)}`, `color: #1b4965; background: #8cd0e0ff; padding: 5px; border-radius: 5px;`);
+  }
+
+  public getCurrentCardFaceId(): string {
+    return getCurrentCardFaceId(this.cardEditorCardDto.card);
   }
 
   public getCurrentCardFaceIndex(): number {
-    return this.cardEditorCardDto.card.currentCardFaceIndex;
+    return getCurrentCardFaceIndex(this.getCurrentCardFaceId(), this.cardEditorCardDto.cardEditorCardFacesDto);
   }
 
   public getCurrentCardFace(): CardFace {
@@ -186,18 +191,18 @@ export class CardEditorPreviewService {
   }
 
   public isFlipped(): boolean {
-    return (this.cardEditorCardDto.card.currentCardFaceIndex === 0) ? false : true;
+    return (this.getCurrentCardFaceIndex()) ? false : true;
   }
 
-  public setCurrentCardFaceIndex(): void {
-    this.cardEditorCardDto.card.currentCardFaceIndex = (this.getCurrentCardFaceIndex() === 0) ? 1 : 0;
+  public setCurrentCardFaceId(): void {
+    this.cardEditorCardDto.card.currentCardFaceId = setCurrentCardFaceId(this.getCurrentCardFaceIndex(), this.cardEditorCardDto.cardEditorCardFacesDto);
   }
 
   public toggleCurrentCardFace(): void {
-    this.setCurrentCardFaceIndex();
+    this.setCurrentCardFaceId();
     this.setCurrentCardEditorCardFaceDto();
 
-    console.log(`%c${this.constructor.name} - ${this.toggleCurrentCardFace.name} (time: ${Date.now().toLocaleString("en-US")})}:\ncurrentCardFaceIndex: ${this.getCurrentCardFaceIndex()}`, `color: #211103; background: #f8e5ee; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.toggleCurrentCardFace.name)}:\ncurrentCardFaceIndex: ${this.getCurrentCardFaceId()}`, `color: #211103; background: #f8e5ee; padding: 5px; border-radius: 5px;`);
   }
 
   public postApiOperations(cardEditorCardDto: CardEditorCardDto, operation: 'create' | 'duplicate' | 'update'): void {
@@ -224,7 +229,7 @@ export class CardEditorPreviewService {
     }
 
     console.log(
-      `%c${this.constructor.name} - ${this.postApiOperations.name} - ${operation}\nCard editor card dto:\n${stringify(cardEditorCardDto)}`,
+      `%c${logInfo(this.constructor.name, this.postApiOperations.name)} - ${operation}\nCard editor card dto:\n${stringify(cardEditorCardDto)}`,
       `color: ${color}; background: ${background}; padding: 5px; border-radius: 5px;`
     );
   }
@@ -323,7 +328,7 @@ export class CardEditorPreviewService {
     let host: HTMLElement = document.createElement('card-editor-preview-host');
 
     // TODO: Modify for debugging purposes
-    // console.log(`%c${this.constructor.name} - ${this.open.name}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
+    // console.log(`%c${logInfo(this.constructor.name, this.open.name)}\nactionContextMenuItems:\n${stringify(actionContextMenuItems)}`, 'color: #003844; background: #FFEBC6; padding: 5px; border-radius: 5px;');
 
     let ref: ComponentRef<CardEditorComponent> = createComponent(CardEditorComponent, {
       environmentInjector: this.environmentInjector,

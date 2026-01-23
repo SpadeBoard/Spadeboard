@@ -1,6 +1,10 @@
-<div #camera class="camera"
+<div 
+    #camera 
+    class="camera"
     [style.position]="'absolute'"
     [style.transform]="getViewportTransform()"
-    [style.width.px]="viewport.width" [style.height.px]="viewport.height">
+    [style.width.px]="viewport.width" 
+    [style.height.px]="viewport.height"
+>
     <ng-content></ng-content>
 </div>

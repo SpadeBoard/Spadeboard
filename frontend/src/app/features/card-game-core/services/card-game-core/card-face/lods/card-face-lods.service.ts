@@ -7,7 +7,7 @@ import { FileMetadata, FileMetadataStatus } from '../../../../../../utils/models
 import { FileMetadataService } from '../../../../../../utils/services/file/metadata/facade/file-metadata.service';
 import { FileUploadApiService } from '../../../../../../utils/services/file/upload/api/file-upload-api.service';
 import { FileUploadService } from '../../../../../../utils/services/file/upload/facade/file-upload.service';
-import { clear, flattenToImage, generateResizedImagesAtQualities, setModalStyle, stringify } from '../../../../../../utils/utils';
+import { clear, flattenToImage, generateResizedImagesAtQualities, logInfo, setModalStyle, stringify } from '../../../../../../utils/utils';
 import { CardEditorFacePreviewComponent } from '../../../../components/card-editor-face-preview/card-editor-face-preview.component';
 import { CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../../../../models/card-face';
@@ -39,15 +39,15 @@ export class CardFaceLodsService {
   constructor() { }
 
   public clear(): void {
-    console.log(`%c${this.constructor.name} - ${this.clear.name}(before):\n${stringify(this.orphanedFileMetadata)}`, 'color: #FFA4A4; background: #FCF9EA; padding: 5px; border-radius: 5px;');
+    console.log(`%c${logInfo(this.constructor.name, this.clear.name)}(before):\n${stringify(this.orphanedFileMetadata)}`, 'color: #FFA4A4; background: #FCF9EA; padding: 5px; border-radius: 5px;');
 
     // CHECKME: Do we actually want this check?
-    if (!areAllFileMetadataOfStatus(this.orphanedFileMetadata, FileMetadataStatus.Orphaned)) throw new Error(`${this.constructor.name} - ${this.clear.name}: orphanedFileMetadata should all have orphaned file metadata`);
+    if (!areAllFileMetadataOfStatus(this.orphanedFileMetadata, FileMetadataStatus.Orphaned)) throw new Error(`${logInfo(this.constructor.name, this.clear.name)}: orphanedFileMetadata should all have orphaned file metadata`);
 
     clear(this.orphanedFileMetadata);
 
-    console.assert(this.orphanedFileMetadata.length === 0, `${this.constructor.name} - ${this.clear.name}: orphanedFileMetadata isn't cleared`);
-    console.log(`%c${this.constructor.name} - ${this.clear.name} (after):\n${stringify(this.orphanedFileMetadata)}`, 'color: #8E7DBE; background: #F4F8D3; padding: 5px; border-radius: 5px;');
+    console.assert(this.orphanedFileMetadata.length === 0, `${logInfo(this.constructor.name, this.clear.name)}: orphanedFileMetadata isn't cleared`);
+    console.log(`%c${logInfo(this.constructor.name, this.clear.name)} (after):\n${stringify(this.orphanedFileMetadata)}`, 'color: #8E7DBE; background: #F4F8D3; padding: 5px; border-radius: 5px;');
   }
 
   public setCardFaceThumbnailImages$(cardEditorFace: ElementRef, destroyRef: DestroyRef, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Attached): Observable<FileMetadata[] | undefined> {
@@ -74,7 +74,7 @@ export class CardFaceLodsService {
     return this.fileUploadApiService.uploadFiles$(cardFaceThumbnailImages, 'card-face').pipe(
       switchMap((result: string[] | undefined) => {
         // TODO: Why are the upload files not working
-        console.log(`%c${this.constructor.name} - ${this.createCardFaceThumbnailImages$.name} - ${this.fileUploadApiService.uploadFiles$.name}: ${stringify(result)}`, `color: #778873; background: #F1F3E0; padding: 5px; border-radius: 5px;`);
+        console.log(`%c${logInfo(this.constructor.name, this.createCardFaceThumbnailImages$.name)} - ${this.fileUploadApiService.uploadFiles$.name}: ${stringify(result)}`, `color: #778873; background: #F1F3E0; padding: 5px; border-radius: 5px;`);
         if (!result || result.length <= 0) return of(undefined);
 
         // ASSUMPTION: The cardFacePerLods already have elements beforehand, set in the blank card template
@@ -153,7 +153,7 @@ export class CardFaceLodsService {
 
     ref.changeDetectorRef.detectChanges(); // CHECKME: Do we need these?
 
-    console.log(`%c${this.constructor.name} - ${this.createCardEditorCardFaceDtoLods$.name} (time: ${Date.now().toLocaleString("en-US")}) Style:\n${stringify(value.cardFace.style)}\nElements:\n${stringify(value.cardFaceElementsPerCardFace)}`, 'color: #453643; background: #8DAA91; padding: 5px; border-radius: 5px;');
+    console.log(`%c${logInfo(this.constructor.name, this.createCardEditorCardFaceDtoLods$.name)} Style:\n${stringify(value.cardFace.style)}\nElements:\n${stringify(value.cardFaceElementsPerCardFace)}`, 'color: #453643; background: #8DAA91; padding: 5px; border-radius: 5px;');
 
     ref.instance.getCurrentCardFaceStyle(value.cardFace.style);
     ref.instance.setCardFaceElementsPerCardFace(value.cardFaceElementsPerCardFace);
@@ -162,7 +162,7 @@ export class CardFaceLodsService {
 
     ref.changeDetectorRef.detectChanges(); // CHECKME: Do we need these?
 
-    console.log(`%c${this.constructor.name} - ${this.createCardEditorCardFaceDtoLods$.name} (time: ${Date.now().toLocaleString("en-US")}) Computed style:\n${stringify(window.getComputedStyle(ref.instance.cardEditorFace.nativeElement))}\nDimensions:\n${stringify(ref.instance.cardEditorFace.nativeElement.getBoundingClientRect())}`, 'color: #ffffff; background: #0066cc; padding: 5px; border-radius: 5px;');
+    console.log(`%c${logInfo(this.constructor.name, this.createCardEditorCardFaceDtoLods$.name)} Computed style:\n${stringify(window.getComputedStyle(ref.instance.cardEditorFace.nativeElement))}\nDimensions:\n${stringify(ref.instance.cardEditorFace.nativeElement.getBoundingClientRect())}`, 'color: #ffffff; background: #0066cc; padding: 5px; border-radius: 5px;');
 
     this.instances.set(crypto.randomUUID(), {host, ref});
 

@@ -5,7 +5,7 @@ import { Style } from '../../../style/models/style';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ImageCroppedEvent, ImageCropperComponent, LoadedImage } from 'ngx-image-cropper';
 import { CardEditorControlsDesignImageService } from '../../services/card-game-core/card-editor/controls/design/card-face-elements/card-editor-controls-design-image.service';
-import { stringify } from '../../../../utils/utils';
+import { logInfo, stringify } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-card-face-image-editor',
@@ -36,7 +36,7 @@ export class CardFaceImageEditorComponent {
     this.imageChangedEvent = event;
 
     // CHECKME: The blob might not be revoked properly
-    console.log(`%c${this.constructor.name} - ${this.fileChangeEvent.name}: ${stringify(this.croppedImage)}`, 'color: #231942; background: #e0b1cb; padding: 5px; border-radius: 5px;');
+    console.log(`%c${logInfo(this.constructor.name, this.fileChangeEvent.name)}: ${stringify(this.croppedImage)}`, 'color: #231942; background: #e0b1cb; padding: 5px; border-radius: 5px;');
   }
 
   public imageCropped(event: ImageCroppedEvent): void {
