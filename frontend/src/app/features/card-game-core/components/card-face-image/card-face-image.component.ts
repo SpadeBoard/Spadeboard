@@ -1,10 +1,7 @@
-import { Component, DestroyRef, effect, inject, input, InputSignal, output, OutputEmitterRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, of, Subscriber, switchMap } from 'rxjs';
-import { FileUploadApiService } from '../../../../utils/services/file/upload/api/file-upload-api.service';
-import { CardFaceImage } from '../../utils/card-face.utils';
-import { getDefaultCardFaceElementImage } from '../../utils/card-editor.constants';
-import { logInfo, stringify } from '../../../../utils/utils';
+import { Component, computed, inject, input, InputSignal, Signal } from '@angular/core';
+import { Dimensions } from '../../../../utils/utils';
+import { CardFaceElementImageService } from '../../services/card-game-core/card-face-element/images/card-face-element-image.service';
+import { DEFAULT_CARD_FACE_PLACEHOLDER_ALT } from '../../utils/card-face.constants';
 
 @Component({
   selector: 'app-card-face-image',
@@ -13,120 +10,31 @@ import { logInfo, stringify } from '../../../../utils/utils';
   styleUrl: './card-face-image.component.scss'
 })
 export class CardFaceImageComponent {
-  // TODO: Make sure that it's always passing in the data url and not a blob
-  private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
+  private readonly cardFaceElementImageService: CardFaceElementImageService = inject(CardFaceElementImageService);
 
-  public readonly $cardFaceImageSrc: InputSignal<string | undefined> = input<string | undefined>('');
+  public readonly $cardFaceImageSrc: InputSignal<string> = input<string>(this.cardFaceElementImageService.PLACEHOLDER_IMAGE_SRC);
+
+  public readonly $cardFaceImageAlt: InputSignal<string> = input<string>(DEFAULT_CARD_FACE_PLACEHOLDER_ALT);
 
   public readonly $cardFaceImageWidth: InputSignal<number> = input<number>(100);
   public readonly $cardFaceImageHeight: InputSignal<number> = input<number>(100);
 
-  // TODO: Have this be a function to assign
-  protected imageHtmlContent: CardFaceImage = getDefaultCardFaceElementImage();
+  // FIXME: Why this ain't working
+  protected readonly $cardFaceImageDimensions: Signal<Dimensions> = computed(() => {
+      return {
+        width: this.$cardFaceImageWidth(),
+        height: this.$cardFaceImageHeight()
+      };
+  });
 
-  private previousImageUrl: string = "";
-
-  private readonly destroyRef: DestroyRef = inject(DestroyRef);
-
-  private setImageSrc(url: string): void {
-    console.log(`%c${logInfo(this.constructor.name, this.setImageSrc.name)} - url:${url}, imageHtmlContent.src: ${this.imageHtmlContent.src}`, 'color: #4b2142; background: #97ead2; padding: 5px; border-radius: 5px;');
-
-    this.previousImageUrl = url; // For the comparison above, we don't want to reset the image constantly based on effect, make sure the new url's actually different
-
-    // So there's two steps, here the source is already a blob, we revoke it then assign it to the new url
-    this.onRevokeSrc(this.imageHtmlContent.src);
-    this.imageHtmlContent.src = url;
-
-    let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
-
-    if (this.imageHtmlContent.src.match(guidPattern)) {
-      this.getImageFromStorage$(this.imageHtmlContent.src)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((image: HTMLImageElement | undefined) => {
-          if (!image)
-            return;
-
-          this.imageHtmlContent.src = image.src;
-          this.imageHtmlContent.alt = image.alt;
-
-          console.log(`%c${logInfo(this.constructor.name, this.setImageSrc.name)} - imageHtmlContent: ${stringify(this.imageHtmlContent)}`, 'color: #f6f3ee; background: #2b2d2d; padding: 5px; border-radius: 5px;');
-        })
-    }
-  }
-
-  constructor() {
-    // CHECKME: Shouldn't this just be a computed style instead?
-    effect(() => {
-      if (this.$cardFaceImageSrc() !== '' && this.$cardFaceImageSrc() !== undefined && this.$cardFaceImageSrc() !== this.previousImageUrl) {
-        this.setImageSrc(this.$cardFaceImageSrc() as string);
-      }
-
-      if (this.$cardFaceImageWidth() > 0) {
-        this.imageHtmlContent.dimensions.width = this.$cardFaceImageWidth();
-        // console.log(`Card face image width change: ${this.imageHtmlContent.width}`);
-      }
-
-      if (this.$cardFaceImageHeight() > 0) {
-        this.imageHtmlContent.dimensions.height = this.$cardFaceImageHeight();
-        // console.log(`Card face image height change: ${this.imageHtmlContent.height}`);
-      }
-    });
-  }
-
-  // PURPOSE: Emit back the cardFaceElementID
-  public $showImageEditor: OutputEmitterRef<void> = output<void>();
-
-  private extractGuid(url: string): string | null {
-    // Captures a GUID anywhere in the string (with or without curly braces)
-    let guidRegex: RegExp = /(?:\{{0,1})([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\}{0,1})/;
-    let match: RegExpMatchArray | null = url.match(guidRegex);
-    return match ? match[1] : null;
-  }
-
-  private getImageFromStorage$(url: string): Observable<HTMLImageElement | undefined> {
-    let guid: string | null = this.extractGuid(url);
-
-    if (!guid) return of(undefined);
-
-    return this.fileUploadApiService.getFile$(guid, 'card-face-element-image').pipe(
-      switchMap((blob: Blob | undefined) => {
-        if (!blob) return of(undefined);
-
-        return new Observable<HTMLImageElement>((observer: Subscriber<HTMLImageElement>) => {
-          let img: HTMLImageElement = new Image();
-          let objectUrl: string = URL.createObjectURL(blob);
-          img.src = objectUrl;
-
-          img.onload = () => {
-            observer.next(img);
-            observer.complete();
-            // URL.revokeObjectURL(objectUrl); // Optionally revoke here
-          };
-
-          img.onerror = (err) => observer.error(err);
-        });
-      })
-    );
-  }
-
-
-  protected onOpenImageEditor(event: Event): void {
-    this.$showImageEditor.emit(); // no payload
-  }
-
-  protected onRevokeSrc(url: string): void {
-    if (!url.startsWith('blob:')) return;
-
-    URL.revokeObjectURL(url);
-    // console.log('Blob URL revoked after image loaded');
-  }
+  constructor() {}
 
   public ngOnDestroy(): void {
     // FIXME: Image not loading on flipped card, problem is it's being destroyed as the card's being flipped, so it's not present in the DOM to be taken images of
     // TODO: Actually call the revoke source somehow
     // This is literally just a workaround and not gonna work for all systems depending on how slow they are
     setTimeout(() => {
-      this.onRevokeSrc(this.imageHtmlContent.src);
-    }, 1000);
+      this.cardFaceElementImageService.onRevokeSrc(this.$cardFaceImageSrc());
+    }, 10000);
   }
 }

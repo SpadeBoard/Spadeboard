@@ -25,7 +25,7 @@ export class CardEditorPreviewService {
   private readonly cardEditorApiService: CardEditorApiService = inject(CardEditorApiService);
 
   private readonly fileMetadataService: FileMetadataService = inject(FileMetadataService);
-  
+
   private readonly userService: UserService = inject(UserService);
 
   private readonly environmentInjector: EnvironmentInjector = inject(EnvironmentInjector);
@@ -49,7 +49,7 @@ export class CardEditorPreviewService {
     host: HTMLElement;
     ref: ComponentRef<CardEditorComponent>;
   } | undefined;
-  
+
   constructor() {
     this.setBlankCardTemplate();
   }
@@ -165,13 +165,13 @@ export class CardEditorPreviewService {
   public setCardEditorCardDto(cardEditorCardDto: CardEditorCardDto): void {
     if (!isCardEditorCardDto(cardEditorCardDto)) throw new Error(`${logInfo(this.constructor.name, this.setCardEditorCardDto.name)}: Not a card editor card dto`);
 
-    console.log(`%c${logInfo(this.constructor.name, this.setCardEditorCardDto.name)} (before):\n${stringify(cardEditorCardDto)}\n${stringify(this.cardEditorCardDto)}`, `color: #3A015C; background: #fce3f9ff; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.setCardEditorCardDto.name)} (before):\nArg:\n${stringify(cardEditorCardDto)}\nCurrent:\n${stringify(this.cardEditorCardDto)}`, `color: #3A015C; background: #fce3f9ff; padding: 5px; border-radius: 5px;`);
 
-    this.cardEditorCardDto = cardEditorCardDto;
-    this.setCurrentCardEditorCardFaceDto(); // CHECKME: Is it fine to call it, not modular enough?
+    this.cardEditorCardDto = {...cardEditorCardDto};
+    this.setCurrentCardEditorCardFaceDto(); 
     this.setCardEditorCardDto$$.next();
 
-    console.log(`%c${logInfo(this.constructor.name, this.setCardEditorCardDto.name)} (after):\n${stringify(this.cardEditorCardDto)}`, `color: #1b4965; background: #8cd0e0ff; padding: 5px; border-radius: 5px;`);
+    console.log(`%c${logInfo(this.constructor.name, this.setCardEditorCardDto.name)} (after):\nCurrent:\n${stringify(this.cardEditorCardDto)}`, `color: #1b4965; background: #8cd0e0ff; padding: 5px; border-radius: 5px;`);
   }
 
   public getCurrentCardFaceId(): string {
@@ -184,6 +184,14 @@ export class CardEditorPreviewService {
 
   public getCurrentCardFace(): CardFace {
     return this.currentCardEditorCardFaceDto.cardFace;
+  }
+
+  public getCurrentCardFaceStyle(): Style {
+    return this.currentCardEditorCardFaceDto.cardFace.style;
+  }
+
+  public setCurrentCardFaceStyle(style: Style): void {
+    this.currentCardEditorCardFaceDto.cardFace.style = {...style};
   }
 
   public getCardTagNames(): readonly string[] {
@@ -335,7 +343,7 @@ export class CardEditorPreviewService {
       hostElement: host
     });
 
-    return this.showCardEditor({host, ref}, style);
+    return this.showCardEditor({ host, ref }, style);
   }
 
   public closeCardEditor(): void {

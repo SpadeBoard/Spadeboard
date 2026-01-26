@@ -9,6 +9,11 @@ import { CardFaceElementService } from '../card-face-element.service';
 export class CardFaceElementRtService {
   constructor() { }
 
+  // TODO: Make this more robust or rename it to something clearer
+  public getElements(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): CardFaceElementPerCardFace[] {
+    return cardFaceElementsPerCardFace.filter((cardFaceElementPerCardFace: CardFaceElementPerCardFace) => cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType === 'Rt');
+  }
+
   public getElement(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService): CardFaceElementRt {
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = cardFaceElementService.getCardFaceElementPerCardFace(cardFaceElementId, cardFaceElementsPerCardFace, 'Rt');
 

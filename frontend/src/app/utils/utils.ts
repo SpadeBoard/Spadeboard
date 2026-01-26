@@ -538,15 +538,23 @@ export function clear(arr: Array<any> | Array<Array<any>>): void {
   arr.length = 0;
 }
 
-export function operate(key: string | { operation: string, emitted: any }, operations: Map<string, Function>): void {
+export function operate<TArgs>(
+    key: string | { operation: string, emitted: any }, 
+    operations: Map<string, Function>,
+    args?: TArgs): void {
     if (typeof key === 'string') {
         let fn: Function | undefined = operations.get(key);
-        if (fn) {
-            fn();
+        if (!fn) {
+            console.error(`No ${key} operation`);
             return;
         }
 
-        console.error(`No ${key} operation`);
+        if (args) {
+            fn(args);
+            return;
+        }
+
+        fn();
         return;
     }
 

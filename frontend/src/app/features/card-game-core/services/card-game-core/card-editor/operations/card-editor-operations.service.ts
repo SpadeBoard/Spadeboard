@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Injectable } from '@angular/core';
+import { DestroyRef, ElementRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import canvasSize from 'canvas-size';
 import { catchError, defer, forkJoin, iif, map, merge, Observable, Subject, Subscription, switchMap, tap, throwError } from 'rxjs';
@@ -18,6 +18,8 @@ import { CardEditorApiService } from '../api/card-editor-api.service';
 import { CardEditorPreviewService } from '../preview/card-editor-preview.service';
 import { CardFaceLodsService } from '../../card-face/lods/card-face-lods.service';
 import { FileMetadata, FileMetadataStatus } from '../../../../../../utils/models/file-metadata';
+import { Style } from '../../../../../style/models/style';
+import { CardFaceEditorPreviewAttributesService } from '../../card-face/preview/attributes/card-face-editor-preview-attributes.service';
 
 @Injectable({
   providedIn: 'root'
@@ -348,7 +350,13 @@ export class CardEditorOperationsService {
     this.saveCard$$.next();
   }
 
-  public onClickOperations(cardEditorFacePreviewOperations: Map<string, Function>, destroyRef: DestroyRef): Subscription {
+  public onClickOperations(
+    cardEditorFacePreviewOperations: Map<string, Function>, 
+    destroyRef: DestroyRef,
+    args: {
+      cardEditorFace: ElementRef,
+      cardFaceEditorPreviewAttributesService: CardFaceEditorPreviewAttributesService
+    }): Subscription {
     return merge(
       this.createCard$.pipe(
         map(() => 'create')
@@ -361,7 +369,13 @@ export class CardEditorOperationsService {
         takeUntilDestroyed(destroyRef)
       )
       .subscribe((operation: string) => {
-        operate(operation, cardEditorFacePreviewOperations);
+        // operate(operation, cardEditorFacePreviewOperations);
+
+        operate<{
+          cardEditorFace: ElementRef,
+          cardFaceEditorPreviewAttributesService: CardFaceEditorPreviewAttributesService,
+          destroyRef: DestroyRef
+        }>(operation, cardEditorFacePreviewOperations, {...args, destroyRef});
       });
   }
 

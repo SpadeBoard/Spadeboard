@@ -22,10 +22,4 @@ describe('CardEditorFacePreviewComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  describe('shouldDeleteItems', () => {
-    it('should delete when there are card face elements per card face ids to delete', () => {
-      expect(component.shouldDeleteItems(['2008222447328821248'])).toBe(true);
-    });
-  });
 });

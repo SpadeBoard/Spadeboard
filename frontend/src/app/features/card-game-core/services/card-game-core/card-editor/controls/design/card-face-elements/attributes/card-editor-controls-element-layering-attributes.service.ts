@@ -1,6 +1,7 @@
 import { DestroyRef, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, merge, Observable, Subject, Subscription } from 'rxjs';
+import { unsubscription } from '../../../../../../../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -41,5 +42,10 @@ export class CardEditorControlsElementLayeringAttributesService {
 
         fn(operation);
       })
+  }
+
+  public cardFaceElementsLayeringChange(fn: (operation: string) => void, cardFaceElementLayering$$: Subscription | null, destroyRef: DestroyRef): Subscription {
+    unsubscription(cardFaceElementLayering$$);
+    return this.onCardFaceElementsLayering((operation: string) => fn(operation), destroyRef);
   }
 }

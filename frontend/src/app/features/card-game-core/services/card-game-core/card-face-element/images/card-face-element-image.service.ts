@@ -1,6 +1,7 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, from, map, Observable, of, switchMap, tap } from 'rxjs';
+import { forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
+import { areAllFileMetadataOfStatus } from '../../../../../../utils/file-metadata.utils';
 import { FileMetadata, FileMetadataStatus } from '../../../../../../utils/models/file-metadata';
 import { FileMetadataService } from '../../../../../../utils/services/file/metadata/facade/file-metadata.service';
 import { FileUploadApiService } from '../../../../../../utils/services/file/upload/api/file-upload-api.service';
@@ -10,16 +11,13 @@ import { CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto } from '../../../../models/card-face';
 import { CardFaceElementImage, CardFaceElementPerCardFace } from '../../../../models/card-face-element';
 import { DEFAULT_CARD_FACE_ELEMENT_IMAGE_VOLUME_PATH } from '../../../../utils/card-face-element.constants';
-import { getCardFaceElementImage, isCardFaceElementImage } from '../../../../utils/card-game-core.utils';
+import { getCardFaceElementImage } from '../../../../utils/card-game-core.utils';
 import { CardFaceElementService } from '../card-face-element.service';
-import { areAllFileMetadataOfStatus } from '../../../../../../utils/file-metadata.utils';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardFaceElementImageService {
-  private readonly destroyRef: DestroyRef = inject(DestroyRef);
-
   private readonly fileUploadService: FileUploadService = inject(FileUploadService);
 
   private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
@@ -29,7 +27,7 @@ export class CardFaceElementImageService {
   public orphanedFileMetadata: FileMetadata[] = [];
 
   // TODO: MOVE SOMEWHERE ELSE
-  private readonly PLACEHOLDER_IMAGE_SRC: string = '/card-editor-controls_card-face-elements-list_image-element-icon.svg';
+  public readonly PLACEHOLDER_IMAGE_SRC: string = '/card-editor-controls_card-face-elements-list_image-element-icon.svg';
 
   constructor() { }
 
@@ -142,6 +140,11 @@ export class CardFaceElementImageService {
     console.log(`%c${logInfo(this.constructor.name, this.clear.name)} (after):\n${stringify(this.orphanedFileMetadata)}`, 'color: #004030; background: #FFF9E5; padding: 5px; border-radius: 5px;');
   }
 
+  // TODO: Make this more robust or rename it to something clearer
+  public getElements(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): CardFaceElementPerCardFace[] {
+    return cardFaceElementsPerCardFace.filter((cardFaceElementPerCardFace: CardFaceElementPerCardFace) => cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType === 'Image');
+  }
+
   public getElement(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService): CardFaceElementImage {
     let cardFaceElementPerCardFace: CardFaceElementPerCardFace | undefined = cardFaceElementService.getCardFaceElementPerCardFace(cardFaceElementId, cardFaceElementsPerCardFace, 'Image');
 
@@ -174,20 +177,11 @@ export class CardFaceElementImageService {
     return cardFaceElementImage.imageFileMetadata.fileName;
   }
 
-  public setSrc(croppedImage: string, element: { cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService }, destroyRef: DestroyRef): void;
-  public setSrc(croppedImage: string, cardFaceElementImage: CardFaceElementImage, destroyRef: DestroyRef): void;
-  public setSrc(croppedImage: string, element: CardFaceElementImage | { cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService }, destroyRef: DestroyRef): void {
-    function getCardFaceElementImage(getElement: (cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService) => CardFaceElementImage): CardFaceElementImage {
-      if (isCardFaceElementImage(element)) return element;
-      return getElement(element.cardFaceElementId, element.cardFaceElementsPerCardFace, element.cardFaceElementService);
-    }
-
-    let cardFaceElementImage: CardFaceElementImage = getCardFaceElementImage(this.getElement);
-
+  public setSrc(croppedImage: string, cardFaceElementImage: CardFaceElementImage, destroyRef: DestroyRef): Observable<FileMetadata | undefined> {
     // https://stackoverflow.com/questions/51019467/convert-blob-to-image-url-and-use-in-image-src-to-display-image
     if (!cardFaceElementImage) throw new Error("Not a card face element image");
 
-    from(blobUrlToDataURL(croppedImage))
+    return from(blobUrlToDataURL(croppedImage))
       .pipe(
         switchMap((base64Image) => getImageFormData$(base64Image, destroyRef)
         ),
@@ -203,15 +197,129 @@ export class CardFaceElementImageService {
         }),
         takeUntilDestroyed(destroyRef)
       )
-      .subscribe({
-        next: (cardFaceElementImageFileMetadata: FileMetadata | undefined) => {
-          if (!cardFaceElementImageFileMetadata || !cardFaceElementImage.imageFileMetadata) throw new Error(`Set card face image element src:\nCard face element image file metadata: ${JSON.stringify(cardFaceElementImageFileMetadata, null, 2)}\nImage file metadata${JSON.stringify(cardFaceElementImage.imageFileMetadata, null, 2)}`);
+  }
 
-          cardFaceElementImage.imageFileMetadata = cardFaceElementImageFileMetadata;
-        },
-        error: (err) => {
-          console.error(err);
-        }
-      });
+  // CHECKME: Put this somewhere else? Make it utility based
+  private extractGuid(url: string): string | null {
+    // Captures a GUID anywhere in the string (with or without curly braces)
+    let guidRegex: RegExp = /(?:\{{0,1})([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\}{0,1})/;
+    let match: RegExpMatchArray | null = url.match(guidRegex);
+    return match ? match[1] : null;
+  }
+
+  public getImage$(url: string): Observable<HTMLImageElement | undefined> {
+    let guid: string | null = this.extractGuid(url);
+
+    if (!guid) return of(undefined);
+
+    return this.fileUploadApiService.getFile$(guid, 'card-face-element-image').pipe(
+      switchMap((blob: Blob | undefined) => {
+        if (!blob) return of(undefined);
+
+        return new Observable<HTMLImageElement>((observer: Subscriber<HTMLImageElement>) => {
+          let img: HTMLImageElement = new Image();
+          let objectUrl: string = URL.createObjectURL(blob);
+          img.src = objectUrl;
+
+          img.onload = () => {
+            observer.next(img);
+            observer.complete();
+            // URL.revokeObjectURL(objectUrl); // Optionally revoke here
+          };
+
+          img.onerror = (err) => observer.error(err);
+        });
+      })
+    );
+  }
+
+  public onRevokeSrc(url: string): void {
+    if (!url.startsWith('blob:')) return;
+
+    URL.revokeObjectURL(url);
+    // console.log('Blob URL revoked after image loaded');
+  }
+
+  public setImageSrc$(url: string, destroyRef: DestroyRef): Observable<HTMLImageElement | undefined> {
+    console.log(`%c${logInfo(this.constructor.name, this.setImageSrc$.name)} - url:\n${url}`, 'color: #4b2142; background: #97ead2; padding: 5px; border-radius: 5px;');
+
+    let guidPattern: RegExp = /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/;
+
+    if (!url.match(guidPattern)) return of(undefined);
+
+    // ASSUMPTION: So there's two steps, here the source is already a blob, we revoke it then assign it to the new url
+    /*this.onRevokeSrc(imageHtmlContent.src);
+    imageHtmlContent.src = url;*/
+
+    return this.getImage$(url)
+      .pipe(
+        map((image: HTMLImageElement | undefined) => {
+          console.log(`%c${logInfo(this.constructor.name, this.setImageSrc$.name)} - image: ${stringify(image)}`, 'color: #004c63; background: #d4fdfd; padding: 5px; border-radius: 5px;');
+
+          return image;
+        }),
+        takeUntilDestroyed(destroyRef)
+      )
+  }
+
+  public getAllImageSrcs$(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementService: CardFaceElementService, destroyRef: DestroyRef): Observable<{
+    cardFaceElementId: string;
+    htmlImageElementSrc: string;
+  }[]> {
+    let obs$: Observable<{
+      cardFaceElementId: string,
+      htmlImageElementSrc: string
+    }>[] = [];
+
+    cardFaceElementsPerCardFace.forEach((value: CardFaceElementPerCardFace) => {
+      obs$.push(this.setImageSrc$(
+          this.getSrc(
+            value.cardFaceElement.cardFaceElementId,
+            cardFaceElementsPerCardFace,
+            cardFaceElementService
+          ),
+          destroyRef
+        )
+        .pipe(
+          map((img: HTMLImageElement | undefined) => {
+            return {
+              cardFaceElementId: value.cardFaceElement.cardFaceElementId,
+              htmlImageElementSrc: img?.src ?? this.PLACEHOLDER_IMAGE_SRC
+            }
+          }
+          )
+        )
+      )
+    });
+
+    return forkJoin(obs$);
+  }
+
+  public setCardFaceImages(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], cardFaceElementImages: Map<string, string>, cardFaceElementService: CardFaceElementService, destroyRef: DestroyRef): void {
+    console.log(`%c${logInfo(this.constructor.name, this.setCardFaceImages.name)} - ${stringify(cardFaceElementsPerCardFace)}`, 'color: #C455A8; background: #E5CDC8; padding: 5px; border-radius: 5px;');
+    
+    if (!cardFaceElementsPerCardFace.length) {
+      cardFaceElementImages.clear();
+      return;
+    }
+
+    // TODO Figure out how to unsubscribe from this
+    this.getAllImageSrcs$(cardFaceElementsPerCardFace, cardFaceElementService, destroyRef)
+    .pipe(
+      takeUntilDestroyed(destroyRef)
+    )
+    .subscribe((results: {
+      cardFaceElementId: string;
+      htmlImageElementSrc: string;
+    }[]) => {
+      results.forEach((result: {
+        cardFaceElementId: string;
+        htmlImageElementSrc: string;
+      }) => {
+        let { cardFaceElementId, htmlImageElementSrc } = result;
+
+        cardFaceElementImages.set(cardFaceElementId, htmlImageElementSrc);
+      })
+    });
   }
 }

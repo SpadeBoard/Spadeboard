@@ -415,15 +415,15 @@ export class CardPositionPerRoomComponent {
   // NOTE: Just to make sure that they all have unique IDs
   // Because the issue is despite overlapping
   // They can share the same zIndex, so the order ends up being dependent on the DOM
-  normaliseZIndexes() {
+  public normaliseZIndexes(): void {
     // Use all cprs, not just unculled
-    let sorted: CardPositionPerRoom[] = this.cprs.slice().sort((a, b) => a.zIndex - b.zIndex);
-    sorted.forEach((cpr, idx) => cpr.zIndex = idx);
+    let sorted: CardPositionPerRoom[] = this.cprs.slice().sort((a: CardPositionPerRoom, b: CardPositionPerRoom) => a.zIndex - b.zIndex);
+    sorted.forEach((cpr: CardPositionPerRoom, idx: number) => cpr.zIndex = idx);
 
     this.dndBoardService.globalZIndexCounter = sorted.length + 1;
   }
 
-  getCardPositionPerRoomRectById(cardPositionPerRoomId: string): DOMRect | null {
+  public getCardPositionPerRoomRectById(cardPositionPerRoomId: string): DOMRect | null {
     let element: ElementRef<HTMLDivElement> | undefined = this.cardsPositionPerRoomRef.find(ref =>
       ref.nativeElement.getAttribute('card-position-per-room-id') === cardPositionPerRoomId
     );

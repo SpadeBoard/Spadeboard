@@ -1,14 +1,15 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, map, merge, Observable, of, Subject, Subscription } from 'rxjs';
-import { clamp, clear, Coordinates, Dimensions, logInfo, operate, parseNumeric, stringify } from '../../../../../utils/utils';
+import { clamp, clear, Coordinates, Dimensions, logInfo, operate, parseNumeric, stringify, unsubscription } from '../../../../../utils/utils';
 import { DndPosition } from '../../../../drag-and-drop/models/dnd-types';
 import { Style } from '../../../../style/models/style';
-import { CardFaceElementPerCardFace } from '../../../models/card-face-element';
+import { CardFaceElement, CardFaceElementPerCardFace } from '../../../models/card-face-element';
 import { MAX_CURRENT_ELEMENTS_PER_CARD_FACE } from '../../../utils/card-editor.constants';
 import { createCardFaceElementPerCardFace } from '../../../utils/card-face-element.constants';
 import { CardFaceElementApiService } from './api/card-face-element-api.service';
 import { CardFaceElementDndService } from './dnd/card-face-element-dnd.service';
+import { isCardFaceElement } from '../../../utils/card-game-core.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -59,15 +60,23 @@ export class CardFaceElementService {
     current.dndPosition.y = coordinates.y;
   }
 
+  public getCardFaceElementDimensions(cardFaceElement: CardFaceElement): Dimensions;
   public getCardFaceElementDimensions(cardFaceElementPerCardFace: CardFaceElementPerCardFace): Dimensions;
   public getCardFaceElementDimensions(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): Dimensions;
-  public getCardFaceElementDimensions(cardFaceElement: string | CardFaceElementPerCardFace, cardFaceElementsPerCardFace?: CardFaceElementPerCardFace[]): Dimensions {
-    let current: CardFaceElementPerCardFace | undefined = (typeof cardFaceElement === "string" && cardFaceElementsPerCardFace) ? this.getCardFaceElementPerCardFace(cardFaceElement, cardFaceElementsPerCardFace) : cardFaceElement as CardFaceElementPerCardFace;
+  public getCardFaceElementDimensions(cardFaceElement: string | CardFaceElementPerCardFace | CardFaceElement, cardFaceElementsPerCardFace?: CardFaceElementPerCardFace[]): Dimensions {
+    let style: Style | undefined;
 
-    if (!current)
-      throw new Error("No card face element per card face");
+    if (isCardFaceElement(cardFaceElement)) {
+      style = cardFaceElement.style;
+    }
+    else {
+      let current: CardFaceElementPerCardFace | undefined = (typeof cardFaceElement === "string" && cardFaceElementsPerCardFace) ? this.getCardFaceElementPerCardFace(cardFaceElement, cardFaceElementsPerCardFace) : cardFaceElement as CardFaceElementPerCardFace;
 
-    let style: Style | undefined = current.cardFaceElement.style;
+      if (!current)
+        throw new Error("No card face element per card face");
+
+      style = current.cardFaceElement.style;
+    }
 
     if (!style) throw new Error("No card face element style");
 
@@ -98,66 +107,65 @@ export class CardFaceElementService {
     if (!style) throw new Error("No card face element style");
 
     style.width = `${dimensions.width}px`;
-    style.height =`${dimensions.height}px`;
+    style.height = `${dimensions.height}px`;
   }
 
 
   /************* TODO: MOVE THESE INTO OWN SERVICE? ********************/
   // TODO: Make this private
-  public bringToFront(cardFaceElement: string | CardFaceElementPerCardFace, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): void {
-    if (!cardFaceElementsPerCardFace) throw new Error("No card face elements per card face to grab max index");
+  public normaliseZIndexes(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): void {
+    cardFaceElementsPerCardFace.sort((a: CardFaceElementPerCardFace, b: CardFaceElementPerCardFace) => {
+      let za: number = parseInt(a.cardFaceElement.style?.zIndex ?? "1") || 0;
+      let zb: number = parseInt(b.cardFaceElement.style?.zIndex ?? "1") || 0;
 
-    let maxZIndex: number = Math.max(
-      ...cardFaceElementsPerCardFace.map(
-        e => parseInt(e.cardFaceElement.style?.zIndex ?? "1") || 0
-      )
-    );
+      return za - zb;
+    });
+
+    cardFaceElementsPerCardFace.forEach((cardFaceElementPerCardFace: CardFaceElementPerCardFace, index: number) => {
+      if (cardFaceElementPerCardFace.cardFaceElement.style) {
+        cardFaceElementPerCardFace.cardFaceElement.style.zIndex = index.toString();
+      }
+
+      return;
+    })
+  }
+
+  public setZIndex(cardFaceElement: string | CardFaceElementPerCardFace, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], zIndex: number): string {
+    if (!cardFaceElementsPerCardFace) throw new Error("No card face elements per card face to grab max index");
 
     let current: CardFaceElementPerCardFace | undefined = (typeof cardFaceElement === "string") ? this.getCardFaceElementPerCardFace(cardFaceElement, cardFaceElementsPerCardFace) : cardFaceElement as CardFaceElementPerCardFace;
 
-    if (!current) return;
+    if (!current) throw new Error("No card face element to modify Z index to");
 
     if (!current.cardFaceElement.style)
       throw new Error("Card face element has no style to add Z index to");
 
-    current.cardFaceElement.style.zIndex = `${clamp(maxZIndex + 1, 0, cardFaceElementsPerCardFace.length)}`;
+    current.cardFaceElement.style.zIndex = `${zIndex}`;
+
+    this.normaliseZIndexes(cardFaceElementsPerCardFace);
+
+    return current.cardFaceElement.style.zIndex;
   }
 
-  // TODO: Make this private
-  public sendToBack(cardFaceElement: string | CardFaceElementPerCardFace, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): void {
-    if (!cardFaceElementsPerCardFace) throw new Error("No card face elements per card face to grab max index");
-
-    let minZIndex: number = Math.min(
-      ...cardFaceElementsPerCardFace.map(
-        e => parseInt(e.cardFaceElement.style?.zIndex ?? "1") || 0
-      )
-    );
-
-    let current: CardFaceElementPerCardFace | undefined = (typeof cardFaceElement === "string") ? this.getCardFaceElementPerCardFace(cardFaceElement, cardFaceElementsPerCardFace) : cardFaceElement as CardFaceElementPerCardFace;
-
-    if (!current) return;
-
-    if (!current.cardFaceElement.style)
-      throw new Error("Card face element has no style to add Z index to");
-
-    current.cardFaceElement.style.zIndex = `${clamp(minZIndex - 1, 0, cardFaceElementsPerCardFace.length)}`;
-  }
-
-  public setLayer(cardFaceElementPerCardFace: CardFaceElementPerCardFace, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], operation: 'front' | 'back'): void;
-  public setLayer(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], operation: 'front' | 'back'): void;
-  public setLayer(cardFaceElement: string | CardFaceElementPerCardFace, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], operation: 'front' | 'back'): void {
+  public setLayer(cardFaceElementPerCardFace: CardFaceElementPerCardFace, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], operation: 'front' | 'back'): string;
+  public setLayer(cardFaceElementId: string, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], operation: 'front' | 'back'): string;
+  public setLayer(cardFaceElement: string | CardFaceElementPerCardFace, cardFaceElementsPerCardFace: CardFaceElementPerCardFace[], operation: 'front' | 'back'): string {
+    let zIndex: string = "-1";
+    
     switch (operation) {
       case ('front'): {
-        this.bringToFront(cardFaceElement, cardFaceElementsPerCardFace);
+        zIndex = this.setZIndex(cardFaceElement, cardFaceElementsPerCardFace, 9999);
         break;
       }
       case ('back'): {
-        this.sendToBack(cardFaceElement, cardFaceElementsPerCardFace);
+        zIndex = this.setZIndex(cardFaceElement, cardFaceElementsPerCardFace, -1);
         break;
       }
       default:
         throw new Error("Unsupported layering operation");
     }
+
+    return zIndex;
   }
 
   /************* TODO: MOVE THESE INTO OWN SERVICE? ********************/
@@ -183,15 +191,20 @@ export class CardFaceElementService {
         map((emitted: { type: string, dndPosition: DndPosition }) => ({ operation: 'create', emitted }))
       ),
       this.deletedCardFaceElementPerCardFace$.pipe(
-        map((id: string) => ({operation: 'delete', emitted: id}))
+        map((id: string) => ({ operation: 'delete', emitted: id }))
       ),
     )
       .pipe(
         takeUntilDestroyed(destroyRef)
       )
-      .subscribe((key: string | { operation: string, emitted: { type: string, dndPosition: DndPosition } | string}) => {
+      .subscribe((key: string | { operation: string, emitted: { type: string, dndPosition: DndPosition } | string }) => {
         operate(key, cardFaceElementsPerCardFaceOperations);
       });
+  }
+
+  public cardFaceElementsPerCardFaceOperationsChange(cardFaceElementsPerCardFaceOperations: Map<string, Function>, cardFaceElementsPerCardFaceOperations$$: Subscription | null, destroyRef: DestroyRef): Subscription {
+    unsubscription(cardFaceElementsPerCardFaceOperations$$);
+    return this.onOperations(cardFaceElementsPerCardFaceOperations, destroyRef);
   }
 
   public canAddCardFaceElementPerCardFace(cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): boolean {
@@ -204,10 +217,10 @@ export class CardFaceElementService {
       rect: DOMRect
     },
     type: string,
-    cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): string {
+    cardFaceElementsPerCardFace: CardFaceElementPerCardFace[]): CardFaceElementPerCardFace | undefined {
     if (!this.canAddCardFaceElementPerCardFace(cardFaceElementsPerCardFace)) {
       console.error(`On create card face element per card face - Too many card face element per card face`);
-      return '';
+      return undefined;
     }
 
     let { absolute, rect } = relative;
@@ -215,14 +228,15 @@ export class CardFaceElementService {
     let dndPosition: Coordinates = this.cardFaceElementDndService.getRelativeCoordinates(absolute, rect);
 
     let currentCardFaceElementPerCardFaceId: string = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    let cardFaceElementPerCardFace: CardFaceElementPerCardFace = createCardFaceElementPerCardFace(currentCardFaceElementPerCardFaceId, type, dndPosition);
 
     // FIXED: Elements can share the same ID, so you can accidentally select double
     // So we'll just do Date.now which should return a large number and it should still be fine because it is parseable in the backend
     cardFaceElementsPerCardFace.push(
-      createCardFaceElementPerCardFace(currentCardFaceElementPerCardFaceId, type, dndPosition)
+      cardFaceElementPerCardFace
     );
 
-    return currentCardFaceElementPerCardFaceId;
+    return cardFaceElementPerCardFace;
   }
 
   // TODO: Refactor this, rewrite it, it should be more obust than this

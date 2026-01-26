@@ -1,9 +1,9 @@
 <div class="image-container">
     <ng-content/>
     <img 
-        [src]="imageHtmlContent.src"
-        [alt]="imageHtmlContent.alt" 
-        [width]="imageHtmlContent.dimensions.width" 
-        [height]="imageHtmlContent.dimensions.height"
+        [src]="$cardFaceImageSrc()"
+        [alt]="$cardFaceImageAlt()" 
+        [width]="$cardFaceImageDimensions().width" 
+        [height]="$cardFaceImageDimensions().height"
     />
 </div>

@@ -1,6 +1,6 @@
 import { ApplicationRef, ComponentRef, createComponent, DestroyRef, ElementRef, EnvironmentInjector, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, from, Observable, of, switchMap, tap } from 'rxjs';
+import { forkJoin, from, Observable, of, Subscription, switchMap, take, tap } from 'rxjs';
 import { areAllFileMetadataOfStatus } from '../../../../../../utils/file-metadata.utils';
 import { closeModal, openModal } from '../../../../../../utils/modals.utils';
 import { FileMetadata, FileMetadataStatus } from '../../../../../../utils/models/file-metadata';
@@ -13,11 +13,14 @@ import { CardEditorCardDto } from '../../../../models/card';
 import { CardEditorCardFaceDto, CardFace } from '../../../../models/card-face';
 import { DEFAULT_MODAL_STYLE, shouldMakeCardFaceThumbnailLods } from '../../../../utils/card-editor.constants';
 import { DEFAULT_CARD_FACE_THUMBNAILS_VOLUME_PATH } from '../../../../utils/card-face.constants';
+import { CardFaceEditorPreviewElementsService } from '../preview/elements/card-face-editor-preview-elements.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardFaceLodsService {
+  private readonly cardFaceEditorPreviewElementsService: CardFaceEditorPreviewElementsService = inject(CardFaceEditorPreviewElementsService);
+  
   private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
 
   private readonly fileUploadService: FileUploadService = inject(FileUploadService);
@@ -50,7 +53,7 @@ export class CardFaceLodsService {
     console.log(`%c${logInfo(this.constructor.name, this.clear.name)} (after):\n${stringify(this.orphanedFileMetadata)}`, 'color: #8E7DBE; background: #F4F8D3; padding: 5px; border-radius: 5px;');
   }
 
-  public setCardFaceThumbnailImages$(cardEditorFace: ElementRef, destroyRef: DestroyRef, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Attached): Observable<FileMetadata[] | undefined> {
+  public setCardFaceThumbnailImages$(cardEditorFace: ElementRef, destroyRef: DestroyRef, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending): Observable<FileMetadata[] | undefined> {
     return from(flattenToImage(cardEditorFace))
       .pipe(
         switchMap((originalThumbnail: FormData) =>
@@ -130,6 +133,9 @@ export class CardFaceLodsService {
     this.fileMetadataService.markFileMetadata(this.orphanedFileMetadata, FileMetadataStatus.Orphaned);
   }
 
+  // FIXME: There's something off with the timing here.
+  // The setting images for card face element and styling for the card face occurs way later after the LODs themselves have been set
+  // We might need to chain inner observables in here and not just return the creation of the LODs
   public createCardEditorCardFaceDtoLods$(value: CardEditorCardFaceDto, destroyRef: DestroyRef, fileMetadataStatus: FileMetadataStatus = FileMetadataStatus.Pending): Observable<FileMetadata[] | undefined> {
     if (!shouldMakeCardFaceThumbnailLods(value)) return of(undefined);
 
@@ -151,20 +157,15 @@ export class CardFaceLodsService {
 
     openModal(this.appRef, { host, ref });
 
-    ref.changeDetectorRef.detectChanges(); // CHECKME: Do we need these?
-
     console.log(`%c${logInfo(this.constructor.name, this.createCardEditorCardFaceDtoLods$.name)} Style:\n${stringify(value.cardFace.style)}\nElements:\n${stringify(value.cardFaceElementsPerCardFace)}`, 'color: #453643; background: #8DAA91; padding: 5px; border-radius: 5px;');
 
-    ref.instance.getCurrentCardFaceStyle(value.cardFace.style);
+    ref.instance.setCurrentCardFaceStyle(value.cardFace.style);
     ref.instance.setCardFaceElementsPerCardFace(value.cardFaceElementsPerCardFace);
 
-    // FIXME: So why are the images not showing up?
+    let id: string = crypto.randomUUID();
+    this.instances.set(id, { host, ref });
 
-    ref.changeDetectorRef.detectChanges(); // CHECKME: Do we need these?
-
-    console.log(`%c${logInfo(this.constructor.name, this.createCardEditorCardFaceDtoLods$.name)} Computed style:\n${stringify(window.getComputedStyle(ref.instance.cardEditorFace.nativeElement))}\nDimensions:\n${stringify(ref.instance.cardEditorFace.nativeElement.getBoundingClientRect())}`, 'color: #ffffff; background: #0066cc; padding: 5px; border-radius: 5px;');
-
-    this.instances.set(crypto.randomUUID(), {host, ref});
+    ref.changeDetectorRef.detectChanges();  // CHECKME: Do we need these?
 
     return this.setCardFaceThumbnailImages$(ref.instance.cardEditorFace, destroyRef, fileMetadataStatus);
   }
@@ -182,5 +183,7 @@ export class CardFaceLodsService {
 
   public orphanCardFaceLods(fileMetadataLods: FileMetadata[]): void {
     this.orphanedFileMetadata.push(...fileMetadataLods);
+
+    console.log(`%c${logInfo(this.constructor.name, this.orphanCardFaceLods.name)}:\n${stringify(this.orphanedFileMetadata)}`, 'color: #392F5A; background: #9DD9D2; padding: 5px; border-radius: 5px;');
   }
 }

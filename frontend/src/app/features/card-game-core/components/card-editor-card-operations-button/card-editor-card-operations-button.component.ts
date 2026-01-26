@@ -1,8 +1,7 @@
 import { Component, inject, output, OutputEmitterRef } from '@angular/core';
-import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
-import { CardEditorCardDto } from '../../models/card';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CardEditorApiService } from '../../services/card-game-core/card-editor/api/card-editor-api.service';
+import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
 
 @Component({
   selector: 'app-card-editor-card-operations-button',

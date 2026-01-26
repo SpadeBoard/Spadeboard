@@ -6,6 +6,7 @@ import { CardEditorCardFaceDto } from "../models/card-face";
 import { getDefaultCardFace } from "./card-face.constants";
 import { CardFaceImage } from "./card-face.utils";
 import { isCardEditorCardFaceDtoArray } from "./card-game-core.utils";
+import { DndPosition } from "../../drag-and-drop/models/dnd-types";
 
 export const MAX_CURRENT_ELEMENTS_PER_CARD_FACE: number = 20;
 export const MIN_CARD_FACE_WIDTH: number = 20;
@@ -90,6 +91,11 @@ export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X: number = 0;
 export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y: number = 0;
 export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH: number = 0;
 export const DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT: number = 0;
+
+export const DEFAULT_CARD_FACE_ELEMENT_POSITION: Omit<DndPosition, 'dndPositionId'> = {
+  x: 0,
+  y: 0
+};
 
 export function getDefaultCardFaceElementImage(): CardFaceImage {
   return {

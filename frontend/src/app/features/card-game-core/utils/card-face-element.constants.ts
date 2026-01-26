@@ -1,5 +1,5 @@
 import { areRefsIdentical, doValuesMatch } from "../../../utils/checks.utils";
-import { Coordinates, stringify } from "../../../utils/utils";
+import { Coordinates, Dimensions, stringify } from "../../../utils/utils";
 import { CardFaceElement, CardFaceElementPerCardFace } from "../models/card-face-element";
 
 export const DEFAULT_CARD_FACE_ELEMENT_IMAGE_VOLUME_PATH: string = '/app/backend/card-face-elements-images';
@@ -102,12 +102,17 @@ export function assertCardFaceElements(cardFaceElements: Map<string, CardFaceEle
   });
 
   console.log('%c' + log, `color: #4C9085; background: #98ffe7ff; padding: 5px; border-radius: 5px;`);
-  
+
   let values: Array<CardFaceElement[]> = Array.from(cardFaceElements.values());
-  
+
   let uniqueIds: boolean = areCardFaceElementsIdsUnique(values);
 
-  console.assert(uniqueIds, `${assertCardFaceElements.name}: Card face elements share IDs`, {values});
+  console.assert(uniqueIds, `${assertCardFaceElements.name}: Card face elements share IDs`, { values });
 
   return uniqueIds;
+}
+
+export const DEFAULT_CARD_FACE_ELEMENTDIMENSIONS: Dimensions = {
+  width: 100,
+  height: 100
 }

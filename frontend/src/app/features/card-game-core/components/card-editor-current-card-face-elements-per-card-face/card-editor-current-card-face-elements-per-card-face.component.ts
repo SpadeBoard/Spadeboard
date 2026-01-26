@@ -2,15 +2,14 @@ import { CdkDrag, CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule } from 
 
 import { Component, ElementRef, inject, input, InputSignal, output, OutputEmitterRef, ViewChild } from '@angular/core';
 import { Coordinates, Dimensions, Threshold } from '../../../../utils/utils';
+import { DndPosition } from '../../../drag-and-drop/models/dnd-types';
 import { ResizableWrapperComponent } from '../../../resizable/components/resizable-wrapper/resizable-wrapper.component';
 import { Style } from '../../../style/models/style';
-import { CardFaceElementPerCardFace } from '../../models/card-face-element';
 import { CardEditorPreviewService } from '../../services/card-game-core/card-editor/preview/card-editor-preview.service';
-import { CardFaceElementService } from '../../services/card-game-core/card-face-element/card-face-element.service';
 import { CardFaceElementDndService } from '../../services/card-game-core/card-face-element/dnd/card-face-element-dnd.service';
 import { CardFaceElementImageService } from '../../services/card-game-core/card-face-element/images/card-face-element-image.service';
-import { CardFaceElementRtService } from '../../services/card-game-core/card-face-element/rt/card-face-element-rt.service';
-import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { DEFAULT_CARD_FACE_BORDER_RADIUS, DEFAULT_CARD_FACE_ELEMENT_POSITION, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID, MAX_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../utils/card-editor.constants';
+import { DEFAULT_CARD_FACE_ELEMENTDIMENSIONS } from '../../utils/card-face-element.constants';
 import { CardEditorElementDeleteButtonComponent } from '../card-editor-element-delete-button/card-editor-element-delete-button.component';
 import { CardFaceImageComponent } from '../card-face-image/card-face-image.component';
 import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
@@ -24,11 +23,8 @@ import { CardFaceRtComponent } from '../card-face-rt/card-face-rt.component';
 export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
   private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
 
-  private readonly cardFaceElementService: CardFaceElementService = inject(CardFaceElementService);
-
   private readonly cardFaceElementDndService: CardFaceElementDndService = inject(CardFaceElementDndService);
 
-  private readonly cardFaceElementRtService: CardFaceElementRtService = inject(CardFaceElementRtService);
   private readonly cardFaceElementImageService: CardFaceElementImageService = inject(CardFaceElementImageService);
 
   @ViewChild('cardEditorFace') cardEditorFace!: ElementRef;
@@ -41,18 +37,11 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
 
   public readonly $setElementPosition: OutputEmitterRef<Coordinates> = output<Coordinates>();
 
-  public readonly createdCardFaceElementPerCardFace: OutputEmitterRef<{
-    relative: { absolute: Coordinates; rect: DOMRect };
-    type: string;
-  }> = output<{ relative: { absolute: Coordinates; rect: DOMRect }; type: string }>();
-
   private dragOffset: Coordinates = { x: 0, y: 0 };
 
   private mousePosition: Coordinates = { x: 0, y: 0 };
 
   public readonly $cardFaceElementId: InputSignal<string> = input<string>(DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID);
-
-  public readonly $cardFaceElementsPerCardFace: InputSignal<CardFaceElementPerCardFace[]> = input<CardFaceElementPerCardFace[]>([]);
 
   public readonly $shouldSnapToGrid: InputSignal<boolean> = input<boolean>(false);
 
@@ -61,7 +50,28 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
   public readonly $focusImage: OutputEmitterRef<string> = output<string>();
 
   public readonly $enableImageEditor: OutputEmitterRef<string> = output<string>();
-  
+
+  public readonly $cardFaceElementRts: InputSignal<Map<string, string>> = input<Map<string, string>>(new Map<string, string>());
+
+  public readonly $cardFaceElementImages: InputSignal<Map<string, string>> = input<Map<string, string>>(new Map<string, string>());
+
+  // TODO: Replace $cardFaceElementsPerCardFace with this since it's smaller
+  public readonly $cardFaceElementIdentifiers: InputSignal<{
+    cardFaceElementId: string,
+    cardFaceElementType: 'Rt' | 'Image',
+    cardFaceElementZIndex: string,
+    cardFaceElementPerCardFaceId: string // TODO: Take this out
+  }[]> = input<{
+    cardFaceElementId: string,
+    cardFaceElementType: 'Rt' | 'Image',
+    cardFaceElementZIndex: string,
+    cardFaceElementPerCardFaceId: string // TODO: Take this out
+  }[]>([]);
+
+  public readonly $cardFaceElementPositions: InputSignal<Map<string, Coordinates>> = input<Map<string, Coordinates>>(new Map<string, DndPosition>());
+
+  public readonly $cardFaceElementDimensions: InputSignal<Map<string, Dimensions>> = input<Map<string, Dimensions>>(new Map<string, Dimensions>());
+
   protected getCardFaceElementContainer(): Omit<Style, 'styleId'> {
     return {
       width: `100%`,
@@ -82,29 +92,31 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
     return this.cardEditorFace.nativeElement.getBoundingClientRect();
   }
 
-  constructor() {
+  constructor() {}
+
+  protected getCardFaceElementDimensions(cardFaceElementId: string): Dimensions {
+    return this.$cardFaceElementDimensions().get(cardFaceElementId) ?? DEFAULT_CARD_FACE_ELEMENTDIMENSIONS;
   }
 
-  protected getCardFaceElementDimensions(cardFaceElementPerCardFace: CardFaceElementPerCardFace): Dimensions {
-    return this.cardFaceElementService.getCardFaceElementDimensions(cardFaceElementPerCardFace);
+  protected getCardFaceElementPosition(cardFaceElementId: string): Omit<DndPosition, 'dndPositionId'> {
+    return this.$cardFaceElementPositions().get(cardFaceElementId) ?? DEFAULT_CARD_FACE_ELEMENT_POSITION;
   }
 
   protected getCardFaceElementRt(cardFaceElementId: string): string {
-    return this.cardFaceElementRtService.getRt(cardFaceElementId, this.$cardFaceElementsPerCardFace(), this.cardFaceElementService)
+    return this.$cardFaceElementRts().get(cardFaceElementId) ?? '';
   }
 
+  // TODO: Replace with getting inside the map
   protected getCardFaceElementImageSrc(cardFaceElementId: string): string {
-    return this.cardFaceElementImageService.getSrc(cardFaceElementId, this.$cardFaceElementsPerCardFace(), this.cardFaceElementService)
+    return this.$cardFaceElementImages().get(cardFaceElementId) ?? this.cardFaceElementImageService.PLACEHOLDER_IMAGE_SRC;
   }
 
   protected onDragStartMouseDown(event: MouseEvent): void {
     this.mousePosition = { x: event.clientX, y: event.clientY };
   }
 
-  protected onDragStarted(event: CdkDragStart<any>, cardFaceElementPerCardFace: CardFaceElementPerCardFace): void {
-    if (!cardFaceElementPerCardFace) throw new Error("No currently edited card face element");
-
-    let { x, y } = cardFaceElementPerCardFace.dndPosition;
+  protected onDragStarted(event: CdkDragStart<any>, cardFaceElementId: string): void {
+    let { x, y } = this.getCardFaceElementPosition(cardFaceElementId);
 
     // NOTE: This is because unless you click at the top left of the item, there'll always be an offset
     this.cardFaceElementDndService.setOffset(
@@ -120,13 +132,13 @@ export class CardEditorCurrentCardFaceElementsPerCardFaceComponent {
 
   }
 
-  protected onDragDropped(event: CdkDragDrop<any>, cardFaceElementPerCardFace: CardFaceElementPerCardFace): void {
+  protected onDragDropped(event: CdkDragDrop<any>, cardFaceElementId: string): void {
     let drop: Coordinates = {
       x: event.dropPoint.x,
       y: event.dropPoint.y,
     }
 
-    let clamped: Coordinates = this.cardFaceElementDndService.getClampedCoordinates(drop, this.getCardFaceClientRect(), this.dragOffset, this.$shouldSnapToGrid(), this.cardFaceElementService.getCardFaceElementDimensions(cardFaceElementPerCardFace));
+    let clamped: Coordinates = this.cardFaceElementDndService.getClampedCoordinates(drop, this.getCardFaceClientRect(), this.dragOffset, this.$shouldSnapToGrid(), this.getCardFaceElementDimensions(cardFaceElementId));
 
     // CHECKME: Is it possible that it's not updating correctly is because we're not updating the card face element ID that's being dragged.
     this.$setElementPosition.emit(clamped);

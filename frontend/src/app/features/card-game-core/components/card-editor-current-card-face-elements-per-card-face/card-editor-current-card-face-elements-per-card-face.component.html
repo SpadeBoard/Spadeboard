@@ -3,48 +3,51 @@
     cdkDropList 
     cdkDropListSortingDisabled="true" 
     #cardEditorFace>
-    @if ($cardFaceElementsPerCardFace().length > 0) {
+    @if ($cardFaceElementIdentifiers().length > 0) {
         <!--CHECKME: Track by ID, but caveat is it cause issues in scenarios where you expect the DOM or child component to fully re-render or reset—such as when generating a thumbnail image-->
         <!--Which means there might need to be a potential refactor-->
-        @for (cardFaceElementPerCardFace of $cardFaceElementsPerCardFace(); track cardFaceElementPerCardFace.cardFaceElementPerCardFaceId) {
+        @for (cardFaceElementIdentifier of $cardFaceElementIdentifiers(); track cardFaceElementIdentifier.cardFaceElementPerCardFaceId) {
         <div class="card-face-element-dnd-wrapper" 
             cdkDrag 
             cdkDragBoundary=".card-editor-face"
-            [title]="cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId"
+            [title]="cardFaceElementIdentifier.cardFaceElementId"
             (mousedown)="onDragStartMouseDown($event)"
-            (cdkDragStarted)="onDragStarted($event, cardFaceElementPerCardFace)"
+            (cdkDragStarted)="onDragStarted($event, cardFaceElementIdentifier.cardFaceElementId)"
             (cdkDragMoved)="onDragMoved($event)"
-            (cdkDragDropped)="onDragDropped($event, cardFaceElementPerCardFace)" 
-            [style.left.px]="cardFaceElementPerCardFace.dndPosition.x"
-            [style.top.px]="cardFaceElementPerCardFace.dndPosition.y"
-            [style.z-index]="cardFaceElementPerCardFace.cardFaceElement.style?.zIndex ?? 'inherit'"
+            (cdkDragDropped)="onDragDropped($event, cardFaceElementIdentifier.cardFaceElementId)" 
+            
+            [style.left.px]="getCardFaceElementPosition(cardFaceElementIdentifier.cardFaceElementId).x"
+            [style.top.px]="getCardFaceElementPosition(cardFaceElementIdentifier.cardFaceElementId).y"
+            
+            [style.z-index]="cardFaceElementIdentifier.cardFaceElementZIndex"
         >
             <!--TODO: Potentially refactor to use ngComponentOutlet, possibly call onRevokeSrc of card face image there?-->
-            @switch (cardFaceElementPerCardFace.cardFaceElement.cardFaceElementType) {
+            @switch (cardFaceElementIdentifier.cardFaceElementType) {
                 @case ("Rt") {
                     <app-card-face-rt 
-                        [$cardFaceRtWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
-                        [$cardFaceRtHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height"
-                        (mousedown)="enableRte($event, cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [$content]="getCardFaceElementRt(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">
+                        [$cardFaceRtWidth]="getCardFaceElementDimensions(cardFaceElementIdentifier.cardFaceElementId).width"
+                        [$cardFaceRtHeight]="getCardFaceElementDimensions(cardFaceElementIdentifier.cardFaceElementId).height"
+                        (mousedown)="enableRte($event, cardFaceElementIdentifier.cardFaceElementId)"
+                        [$content]="getCardFaceElementRt(cardFaceElementIdentifier.cardFaceElementId)">
                     </app-card-face-rt>
                 }
                 @case ("Image") {
                     <app-card-face-image 
-                        (mousedown)="focusImage(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [$cardFaceImageSrc]="getCardFaceElementImageSrc(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)"
-                        [$cardFaceImageWidth]="getCardFaceElementDimensions(cardFaceElementPerCardFace).width"
-                        [$cardFaceImageHeight]="getCardFaceElementDimensions(cardFaceElementPerCardFace).height">
-                        <button class="change-image-button" (click)="enableImageEditor(cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId)">Change image</button>
+                        (mousedown)="focusImage(cardFaceElementIdentifier.cardFaceElementId)"
+                        [$cardFaceImageSrc]="getCardFaceElementImageSrc(cardFaceElementIdentifier.cardFaceElementId)"
+                        [$cardFaceImageWidth]="getCardFaceElementDimensions(cardFaceElementIdentifier.cardFaceElementId).width"
+                        [$cardFaceImageHeight]="getCardFaceElementDimensions(cardFaceElementIdentifier.cardFaceElementId).height">
+                        <button class="change-image-button" (click)="enableImageEditor(cardFaceElementIdentifier.cardFaceElementId)">Change image</button>
                     </app-card-face-image>
                 }
             }
-            @if ($cardFaceElementId() === cardFaceElementPerCardFace.cardFaceElement.cardFaceElementId) {
+            <!--CHECKME: Do we need the cardFaceElementPerCardFaceId-->
+            @if ($cardFaceElementId() === cardFaceElementIdentifier.cardFaceElementId) {
                 <app-card-editor-element-delete-button
-                    [$cardFaceElementPerCardFaceId]="cardFaceElementPerCardFace.cardFaceElementPerCardFaceId"
+                    [$cardFaceElementPerCardFaceId]="cardFaceElementIdentifier.cardFaceElementPerCardFaceId"
                     data-html2canvas-ignore="true" />
                 <app-resizable-wrapper
-                    [$dimensions]="getCardFaceElementDimensions(cardFaceElementPerCardFace)"
+                    [$dimensions]="getCardFaceElementDimensions(cardFaceElementIdentifier.cardFaceElementId)"
                     [$resizeThreshold]="getResizeThreshold()"
                     ($resizableChange)="onResizableChange($event)" 
                     data-html2canvas-ignore="true" />

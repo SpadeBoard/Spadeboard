@@ -179,7 +179,7 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     return match ? parseFloat(match[0]) : fallback;
   }
 
-  public cardFaceDimensionsAttributes(cardFaceDimensionsOperations: Map<string, Function>): void {
+  public cardFaceDimensionsAttributes(cardFaceDimensionsOperations: Map<string, Function>, destroyRef: DestroyRef): void {
     merge(
       this.setWidth$.pipe(
         map((value: number) => ({ operation: 'w', emitted: value }))
@@ -189,7 +189,7 @@ export class CardEditorControlsDesignCardFaceAttributesService {
       ))
       .pipe(
         distinctUntilChanged(),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe((result: { operation: string, emitted: number }) => {
         operate(result, cardFaceDimensionsOperations);
@@ -198,7 +198,7 @@ export class CardEditorControlsDesignCardFaceAttributesService {
       });
   }
 
-  public cardFaceColorAttributes(cardFaceColorOperations: Map<string, Function>): Subscription {
+  public cardFaceColorAttributes(cardFaceColorOperations: Map<string, Function>, destroyRef: DestroyRef): Subscription {
     return merge(
       this.faceColorChange$.pipe(
         map((appearance: string) => ({ operation: 'face', emitted: appearance }))
@@ -209,7 +209,7 @@ export class CardEditorControlsDesignCardFaceAttributesService {
     )
       .pipe(
         distinctUntilChanged(),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe((result: ({ operation: string, emitted: string })) => {
         operate(result, cardFaceColorOperations);
@@ -218,22 +218,22 @@ export class CardEditorControlsDesignCardFaceAttributesService {
       });
   }
 
-  public borderDimensionsChange(borderDimensionsOperation: Function): Subscription {
+  public borderDimensionsChange(borderDimensionsOperation: Function, destroyRef: DestroyRef): Subscription {
     return this.borderDimensionsChange$
       .pipe(
         distinctUntilChanged(),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe((bd: BorderDimensions) => {
         borderDimensionsOperation(bd);
       });
   }
 
-  public borderRadiusChange(borderRadiusOperation: Function): Subscription {
+  public borderRadiusChange(borderRadiusOperation: Function, destroyRef: DestroyRef): Subscription {
     return this.borderRadiusChange$
       .pipe(
         distinctUntilChanged(),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(destroyRef)
       )
       .subscribe((radius: number) => {
         borderRadiusOperation(radius);

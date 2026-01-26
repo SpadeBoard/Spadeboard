@@ -2,7 +2,7 @@ import { DestroyRef, Injectable, signal, WritableSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Dimensions } from 'ngx-image-cropper';
 import { distinctUntilChanged, map, merge, Observable, Subject, Subscription } from 'rxjs';
-import { Coordinates } from '../../../../../../../../../utils/utils';
+import { Coordinates, unsubscription } from '../../../../../../../../../utils/utils';
 import { CardFaceElementPerCardFace } from '../../../../../../../models/card-face-element';
 import { DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_HEIGHT, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_WIDTH, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_X, DEFAULT_CARD_FACE_ELEMENT_ATTRIBUTE_Y, DEFAULT_CURRENT_CARD_FACE_ELEMENT_ID } from '../../../../../../../utils/card-editor.constants';
 
@@ -131,5 +131,11 @@ export class CardEditorControlsDesignElementAttributesService {
             throw new Error("Unsupported element attribute to update");
         }
       });
+  }
+
+  // CHECKME: Problem is there's no getCardFaceElementPerCardFace available when the editor opens
+  public cardFaceElementAttributesChange(cardFaceElementPerCardFace: CardFaceElementPerCardFace, cardFaceElementAttributes$$: Subscription | null, destroyRef: DestroyRef): Subscription {
+    unsubscription(cardFaceElementAttributes$$);
+    return this.onCardFaceElementAttributes(cardFaceElementPerCardFace, destroyRef);
   }
 }

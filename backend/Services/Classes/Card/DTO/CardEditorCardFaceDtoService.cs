@@ -20,8 +20,6 @@ namespace Services
             {
                 CardEditorCardFaceDto result = await CreateDtoAsync(cardEditorCardFaceDto);
                 results.Add(result);
-
-                await _cardFacePerLodDtoService.AttachLodsByCardFaceIdDtoAsync(result.CardFace.CardFaceId);
             }
             return results;
         }
@@ -89,15 +87,13 @@ namespace Services
             if ((await _cardFacePerLodDtoService.GetFilesMetadataByCardFaceDto(cardFaceId)).ToList().Count <= 0 && fileMetadataLods.Length > 0)
             {
                 if ((await _cardFacePerLodDtoService.CreateAllFromFilesMetadataPerCardFaceDtoAsync(fileMetadataLods, cardFaceId)).ToList().Count <= 0) throw new Exception("If the card face didn't have LODs before, it should've created them now");
+                if (fileMetadataLods.Any((FileMetadataDto fm) => fm.FileMetadataStatus != FileMetadataStatus.Attached)) await _cardFacePerLodDtoService.AttachLodsByCardFaceIdDtoAsync(cardFaceId);  // NOTE: Frontend sets the LODs as pending
             }
             else
             {
                 await _cardFacePerLodDtoService.UpdateFileMetadataByCardFaceDto(cardEditorCardFaceDto.CardFace.CardFaceId, cardEditorCardFaceDto.FileMetadataLods.Select(f => f.FileMetadataId).ToList());
+                if (fileMetadataLods.Any((FileMetadataDto fm) => fm.FileMetadataStatus != FileMetadataStatus.Attached)) await _cardFacePerLodDtoService.AttachLodsByCardFaceIdDtoAsync(cardFaceId); // NOTE: Frontend sets the LODs as pending
             }
-
-
-            // bool updated = await _cardFacePerLodDtoService.UpdateFileMetadataByCardFaceDto(cardEditorCardFaceDto.CardFace.CardFaceId, cardEditorCardFaceDto.FileMetadataLods.Select(f => f.FileMetadataId).ToList());
-            // if (!updated) throw new Exception("File metadata for Card Face Per Lod has not been updated");
 
             return await _cardFaceElementPerCardFaceDtoService.UpdateAllDtoNavByCardFaceAsync(cardEditorCardFaceDto.CardFaceElementsPerCardFace, cardEditorCardFaceDto.CardFace);
         }

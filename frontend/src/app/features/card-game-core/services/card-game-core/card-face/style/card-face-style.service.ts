@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BorderDimensions, Style } from '../../../../../style/models/style';
-import { DEFAULT_CARD_FACE_BORDER_RADIUS, MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../../../utils/card-editor.constants';
 import { clamp, Dimensions, isDimensions } from '../../../../../../utils/utils';
+import { BorderDimensions, Style } from '../../../../../style/models/style';
 import { filterAgainstNull, isBorderDimensions } from '../../../../../style/utils/get-style';
+import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../../../utils/card-editor.constants';
 import { clampBorderRadius } from '../../../../utils/card-face.constants';
 
 @Injectable({
