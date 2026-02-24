@@ -1,0 +1,1 @@
+export const PLACEHOLDER_IMAGE_SRC: string = '/image-element-icon.svg';

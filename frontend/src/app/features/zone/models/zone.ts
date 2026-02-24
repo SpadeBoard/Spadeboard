@@ -1,5 +1,5 @@
 import { DndItem } from "../../drag-and-drop/models/dnd-item";
-import { DndPosition } from "../../drag-and-drop/models/dnd-types";
+import { DndPosition } from "../../drag-and-drop/models/dnd-position";
 import { Style } from "../../style/models/style";
 
 export interface Zone extends DndItem {

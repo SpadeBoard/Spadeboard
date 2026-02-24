@@ -8,7 +8,7 @@ describe('CardFacePerCardApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({providers: [provideHttpClient()]});
-    service = TestBed.inject(CardFacePerCardApiService);
+    service = TestBed.inject<CardFacePerCardApiService>(CardFacePerCardApiService);
   });
 
   it('should be created', () => {

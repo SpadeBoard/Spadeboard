@@ -1,0 +1,26 @@
+.card-editor-face {
+    position: relative;
+    overflow: hidden;
+}
+
+/*absolute: positions to closest ancestory that's RELATIVE*/
+.card-face-element-dnd-wrapper {
+    position: absolute;
+    /*background: rgba(0,0,0,0.1);*/
+    width: fit-content;
+    height: fit-content;
+}
+
+.change-image-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.change-image-button:hover {
+    opacity: 1;
+}

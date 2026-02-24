@@ -1,0 +1,53 @@
+<app-label
+   [title]="'Card face attributes: to modify the edge and face'"
+   [$label]="$header()"
+/>
+<div class="card-face-attributes-columns">
+    <div class="card-face-attributes-container">
+        <app-pair-text-input
+            [($a)]="$cardFaceWidth"
+            [($b)]="$cardFaceHeight"
+            [$labelA]="'W'"
+            [$labelB]="'H'"
+            [$minA]="$minWidth()"
+            [$maxA]="$maxWidth()"
+            [$minB]="$minHeight()"
+            [$maxB]="$maxHeight()"
+            [$disabled]="!$editable()"
+        />
+        <app-color-picker 
+            [($hexcode)]="$cardFaceHexcode" 
+            [($hexInput)]="$cardFaceHexcode"
+            [$readonly]="!$editable()"
+        />
+    </div>
+    <div class ="card-edge-attributes-container">
+        <app-label 
+            [title]="'Edge attributes'" 
+            [$label]="'Edge'" />
+        <app-color-picker 
+            [($hexcode)]="$borderHexcode" 
+            [($hexInput)]="$borderHexcode"
+            [$readonly]="!$editable()"
+        />
+        <app-complex-text-input>
+            <span  id="left">
+                Radius
+            </span>
+            <input 
+                id="right" 
+                type="number"
+                [attr.min]="$minBorderRadius()" 
+                [attr.max]="$maxBorderRadius()"
+                [(ngModel)]="$borderRadius" 
+                (ngModelChange)="onBorderRadiusChange($event)"
+                [disabled]="!$editable()"
+            />
+        </app-complex-text-input>
+        <app-card-face-border-width 
+            [$areBorderDimensionsEqual]="$areBorderDimensionsEqual()" 
+            [($borderDimensions)]="$borderDimensions"
+            [$editable]="$editable()"
+        />
+    </div>
+</div>

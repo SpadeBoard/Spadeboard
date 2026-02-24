@@ -8,7 +8,7 @@ describe('FileMetadataService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({providers: [provideHttpClient()]});
-    service = TestBed.inject(FileMetadataService);
+    service = TestBed.inject<FileMetadataService>(FileMetadataService);
   });
 
   it('should be created', () => {

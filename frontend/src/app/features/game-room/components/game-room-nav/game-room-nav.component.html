@@ -1,10 +1,12 @@
-<nav class="game-room-save">
-    <button (click)="saveGameRoomClick($event)" class="game-room-save-button"><img src="/save-game-room-icon.svg" class="game-room-save-img"/></button>
+<nav class="game-room-operations">
+    <button (click)="saveGameRoomClick($event)" class="game-room-operations-button"><img src="/save-icon.svg" class="game-room-operations-img"/></button>
+    <button disabled (click)="saveGameRoomClick($event)" class="game-room-operations-button"><img src="/undo-icon.svg" class="game-room-operations-img"/></button>
+    <button disabled (click)="saveGameRoomClick($event)" class="game-room-operations-button"><img src="/redo-icon.svg" class="game-room-operations-img"/></button>
 </nav>
 <!-- TODO: Refactor raw svgs into angular components -->
 <nav class="game-room-nav" (mouseenter)="gameRoomNavMouseEnter($event)" (mouseleave)='gameRoomNavMouseLeave($event)'>
     <button disabled class="game-room-nav-button">
-        <!-- Settings icon (/game-room-nav_game-settings-icon.svg) -->
+        <!-- Settings icon (/game-settings-icon.svg) -->
         <svg width="32" height="31" viewBox="0 0 32 31" fill="none" xmlns="http://www.w3.org/2000/svg" class="game-room-nav-svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M14.7964 1V1.02303L18.6722 1.82242V4.56184H14.7964V21.8566L1 26.1035V5.24648L14.7964 1Z" fill="#FFFCFA" stroke="#173552" stroke-width="0.4" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M4.97266 6.03589V26.8924L18.6718 22.6457V1.78918L4.97266 6.03589Z" fill="#FFFCFA" stroke="#173552" stroke-width="0.4" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -22,7 +24,7 @@
         }
     </button>
     <button (click)="cardEditorClick($event)" class="game-room-nav-button">
-        <!-- Card editor icon (/game-room-nav_card-editor-icon.svg) -->
+        <!-- Card editor icon (/card-editor-icon.svg) -->
         <svg width="35" height="31" viewBox="0 0 35 31" fill="none" xmlns="http://www.w3.org/2000/svg" class="game-room-nav-svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M34.6061 6.58386C34.7106 6.19415 34.656 5.7791 34.4544 5.42982C34.2525 5.08047 33.9204 4.82578 33.5308 4.72138C30.5638 3.92635 23.8862 2.1371 20.9191 1.34208C20.5295 1.23768 20.1146 1.29223 19.7654 1.49391C19.4161 1.69559 19.161 2.02767 19.0566 2.41737C17.9809 6.43181 15.0008 17.5537 13.9252 21.5682C13.8207 21.9579 13.8756 22.373 14.0772 22.7223C14.2788 23.0715 14.6108 23.3262 15.0005 23.4306C17.9675 24.2257 24.6451 26.0149 27.6122 26.8099C28.0018 26.9143 28.4167 26.8598 28.7663 26.6582C29.1155 26.4565 29.3703 26.1243 29.4747 25.7346C30.5504 21.7202 33.5305 10.5983 34.6061 6.58386Z" fill="#FFFCFA" stroke="#173552" stroke-width="0.7" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M33.2714 7.30544C33.3758 6.916 33.3212 6.50087 33.1195 6.15144C32.9177 5.80229 32.5856 5.54733 32.1961 5.44298C29.6151 4.7514 24.2955 3.326 21.7144 2.63442C21.325 2.53007 20.9099 2.58483 20.5606 2.7863C20.2112 2.98806 19.9564 3.32029 19.852 3.70973C18.8579 7.4198 16.2543 17.1365 15.2602 20.8465C15.1559 21.236 15.2104 21.6511 15.4122 22.0006C15.6139 22.3497 15.946 22.6047 16.3355 22.709C18.9165 23.4006 24.2362 24.826 26.8172 25.5176C27.2066 25.6219 27.6217 25.5672 27.971 25.3657C28.3204 25.1639 28.5753 24.8317 28.6796 24.4423C29.6737 20.7322 32.2773 11.0155 33.2714 7.30544Z" fill="#173552" class="game-room-nav-svg-fill-change"/>
@@ -33,7 +35,7 @@
         }
     </button>
     <button (click)="cardsCollectionClick($event)" class="game-room-nav-button">
-        <!-- Card collection icon (/game-room-nav_card-collection-icon.svg") -->
+        <!-- Card collection icon (/card-collection-icon.svg") -->
         <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" class="game-room-nav-svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M32.8495 11.4319C33.0687 11.0126 33.1125 10.5236 32.9711 10.0723C32.8294 9.62084 32.5146 9.24442 32.0954 9.02524C28.9032 7.3562 21.7189 3.59989 18.5267 1.93085C18.1075 1.71167 17.6187 1.66795 17.1674 1.8094C16.7161 1.95085 16.3392 2.26563 16.12 2.68491C13.8618 7.00399 7.60546 18.9699 5.34724 23.289C5.12802 23.7082 5.0846 24.1974 5.22596 24.6487C5.36732 25.1 5.68213 25.4764 6.10133 25.6956C9.29354 27.3647 16.4779 31.121 19.6701 32.79C20.0893 33.0092 20.5781 33.0529 21.0297 32.9116C21.481 32.7702 21.8575 32.4552 22.0767 32.0359C24.335 27.7169 30.5913 15.751 32.8495 11.4319Z" fill="#FFFCFA" stroke="#173552" stroke-width="0.7" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M27.0351 5.79273C27.1287 5.32897 27.0345 4.84718 26.773 4.45315C26.5111 4.05904 26.1038 3.78525 25.6401 3.69159C22.1093 2.97831 14.1627 1.37304 10.6318 0.659762C10.1682 0.566095 9.68657 0.660323 9.29258 0.921937C8.8986 1.18355 8.62436 1.5909 8.53067 2.05466C7.56561 6.83196 4.89193 20.0674 3.92687 24.8447C3.83319 25.3084 3.9278 25.7903 4.18934 26.1843C4.45087 26.5784 4.85812 26.8521 5.32179 26.9458C8.85268 27.6591 16.7992 29.2644 20.3301 29.9776C20.7938 30.0713 21.2754 29.9771 21.6697 29.7155C22.0637 29.4539 22.3376 29.0465 22.4313 28.5827C23.3963 23.8054 26.07 10.57 27.0351 5.79273Z" fill="#FFFCFA" stroke="#173552" stroke-width="0.7" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round"/>

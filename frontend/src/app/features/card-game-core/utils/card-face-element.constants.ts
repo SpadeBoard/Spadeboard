@@ -1,6 +1,5 @@
-import { areRefsIdentical, doValuesMatch } from "../../../utils/checks.utils";
 import { Coordinates, Dimensions, stringify } from "../../../utils/utils";
-import { CardFaceElement, CardFaceElementPerCardFace } from "../models/card-face-element";
+import { CardFaceElement, CardFaceElementPerCardFace } from "../card-face-element/models/card-face-element";
 
 export const DEFAULT_CARD_FACE_ELEMENT_IMAGE_VOLUME_PATH: string = '/app/backend/card-face-elements-images';
 

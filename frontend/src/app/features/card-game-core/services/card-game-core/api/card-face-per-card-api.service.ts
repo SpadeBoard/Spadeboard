@@ -1,17 +1,17 @@
 import { inject, Injectable } from '@angular/core';
-import { CardFace } from '../../../models/card-face';
+import { CardFace } from '../../../card-face/models/card-face';
 
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
-import { Card } from '../../../models/card';
+import { Card } from '../../../card/models/card';
 import { logInfo } from '../../../../../utils/utils';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardFacePerCardApiService {
-  private http = inject(HttpClient);
+  private http = inject<HttpClient>(HttpClient);
 
   private apiUrl = `${environment.hostServerUrl}/api/CardFacesPerCard`;
 

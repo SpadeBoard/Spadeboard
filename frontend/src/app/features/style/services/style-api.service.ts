@@ -7,7 +7,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class StyleApiService {
-  private readonly http: HttpClient = inject(HttpClient);
+  private readonly http: HttpClient = inject<HttpClient>(HttpClient);
 
   // TODO: Replace with actual API url from the config
   private readonly apiUrl: string = `${environment.hostServerUrl}/api/Styles`;

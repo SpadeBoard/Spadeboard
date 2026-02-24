@@ -1,0 +1,9 @@
+<!--TODO: Do we use template ref instead of ng-content considering we have 2 layers-->
+<!-- ng-content also doesn't work with tables-->
+<ng-content select="main"></ng-content>
+<button class="dropdown-image" (click)="onDropdownClick($event)">
+    <img src="/arrow-down-icon.svg" />
+</button>
+@if ($shouldDropDown()) {
+    <ng-content [style]="$dropdownStyle()" select="dropdown"></ng-content>
+}

@@ -1,0 +1,41 @@
+.opener {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    color: #FFFFFF;
+    background-color: #BFBEBE;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+}
+
+.arrow {
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+    margin-right: 5px;
+}
+
+.down {
+    transform: rotate(45deg);
+}
+
+.menu {
+    display: none;
+    position: relative; /*For context menu in child below*/
+    /* TODO: Add transition for animation. */
+}
+
+.menu-container.open .menu {
+    display: block;
+}
+
+.cec-cards-template-collection {
+    background-color: #969696;
+    overflow-x: scroll;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    padding: 1%;
+}

@@ -1,0 +1,54 @@
+<div class="cec-design">
+    <app-card-templates
+        [$currentEditedCardId]="$currentEditedCardId()"
+        [$cardTemplates]="$cardTemplates()"
+
+        ($collectionContextCardId)="setCollectionContextCardId($event)"
+        ($toggleContextMenu)="toggleContextMenu($event)"
+
+        ($selectCard)="selectCard($event)"
+        ($deleteCard)="deleteCard($event)"
+    />
+    @if ($editable()) {
+        <app-card-face-elements-library 
+            [$isCardFaceElementsLibraryDisabled]="$isCardFaceElementsLibraryDisabled()"
+            
+            ($createdCardFaceElementPerCardFace)="createdCardFaceElementPerCardFace($event)"
+        />
+        <app-card-face-element-rte />
+    }
+   <div class="cec-design-attributes-row">
+        <app-card-face-controls
+            [$cardFaceAttributesId]="$cardFaceAttributesId()"    
+            [$areBorderDimensionsEqual]="$areBorderDimensionsEqual()"
+            [($cardFaceHexcode)]="$cardFaceHexcode"
+            [($cardFaceWidth)]="$cardFaceWidth"
+            [($cardFaceHeight)]="$cardFaceHeight"
+            [($borderHexcode)]="$borderHexcode"
+            [($borderRadius)]="$borderRadius"
+            [($borderDimensions)]="$borderDimensions"
+            
+            [$editable]="$editable()"
+        />
+        <app-card-face-element-controls
+            [$currentCardFaceElementId]="$currentCardFaceElementId()"
+
+            [($cardFaceElementWidth)]="$cardFaceElementWidth"
+            [($cardFaceElementHeight)]="$cardFaceElementHeight"
+
+            [($cardFaceElementX)]="$cardFaceElementX"
+            [($cardFaceElementY)]="$cardFaceElementY"
+
+            ($setLayeringOperation)="setLayeringOperation($event)"
+
+            [$maxCardFaceElementWidth]="$maxCardFaceElementWidth()"
+            [$maxCardFaceElementHeight]="$maxCardFaceElementHeight()"
+            [$maxCardFaceElementX]="$maxCardFaceElementX()"
+            [$maxCardFaceElementY]="$maxCardFaceElementY()"
+
+            [($aspectRatioLocked)]="$aspectRatioLocked"
+
+            [$editable]="$editable()"
+        />
+    </div>
+</div>

@@ -7,7 +7,7 @@ describe('AtlasExportService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(AtlasExportService);
+    service = TestBed.inject<AtlasExportService>(AtlasExportService);
   });
 
   it('should be created', () => {

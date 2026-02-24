@@ -1,0 +1,22 @@
+.standard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.15vw;
+}
+
+.standard label {
+    vertical-align: middle;
+    font-weight: bold;
+    color: #666667;
+    font-family: "Kumbh Sans", sans-serif;
+    padding: 0.35vw;
+}
+
+.standard input {
+    font-weight: bold;
+    border: 2px dotted #ccc;
+    background-color: #d1d0d0;
+    font-family: 'Roboto', sans-serif;
+    border-radius: 5px;
+    padding: 0.35vw;
+}

@@ -1,8 +1,48 @@
 <div class="card-editor-preview">
-    <input type="text" placeholder="Untitled card" [value]="getCardName()" (input)="changeCardName($event)"/>
-    <app-card-editor-preview-tags/>
-    <app-card-editor-face-preview />
-    <app-card-editor-preview-change-face />
-    <app-card-editor-card-operations-button ($handleCardCreate)="handleCardCreate()"
-        ($handleCardSave)="handleCardSave()" />
+    <input [readonly] = "!$editable()" type="text" placeholder="Untitled card" [value]="$cardName()" (input)="changeCardName($event)"/>
+    <app-card-editor-tags
+        [$disabled]="!$editable()"
+        [($cardEditorPreviewTags)]="$cardEditorPreviewTags"
+        [$whitelist]="$whitelist()"
+
+        ($tag)="tag($event)"
+    />
+    <app-card-editor-face 
+        [$editable]="$editable()"
+        [$cardEditorFaceStyle]="$cardEditorFaceStyle()"
+
+        [$cardFaceElementId]="$cardFaceElementId()"
+        [$cardFaceElementIdentifiers]="$cardFaceElementIdentifiers()"
+        [$cardFaceElementPositions]="$cardFaceElementPositions()"
+        [$cardFaceElementDimensions]="$cardFaceElementDimensions()"
+        [$cardFaceElementRts]="$cardFaceElementRts()"
+        [$cardFaceElementImages]="$cardFaceElementImages()"
+
+        ($cardEditorFace)="setCardEditorFace($event)"
+
+        ($enableElement)="enableElement($event)"
+        
+        ($setElementPosition)="setElementPosition($event)"
+        ($setElementAttributes)="setElementAttributes($event)"
+        ($setElementDimensions)="setElementDimensions($event)"
+        
+        ($enableImageEditor)="enableImageEditor($event)"
+
+        ($toggleContextMenu)="toggleContextMenu($event)"
+
+        ($deletedCardFaceElementPerCardFace)="deletedCardFaceElementPerCardFace($event)"
+    />
+    <div class="operations">
+        @if ($editable()) {
+            <app-card-editor-operations 
+                [$hasCreated]="$hasCreated()"
+                ($handleCardCreate)="handleCardCreate()"
+                ($handleCardSave)="handleCardSave()" 
+            />
+        }
+        <app-card-editor-change-face 
+            [$isFlipped]="$isFlipped()" 
+            ($activateFlip)="activateFlip()" 
+        />
+    </div>
 </div>

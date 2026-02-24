@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class FileUploadApiService {
-  private readonly http: HttpClient = inject(HttpClient);
+  private readonly http: HttpClient = inject<HttpClient>(HttpClient);
 
   private readonly apiUrl: string = `${environment.hostServerUrl}/api/Files`;
 

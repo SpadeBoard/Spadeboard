@@ -2,14 +2,13 @@ import { Injectable } from '@angular/core';
 import { clamp, Dimensions, isDimensions } from '../../../../../../utils/utils';
 import { BorderDimensions, Style } from '../../../../../style/models/style';
 import { filterAgainstNull, isBorderDimensions } from '../../../../../style/utils/get-style';
-import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../../../utils/card-editor.constants';
-import { clampBorderRadius } from '../../../../utils/card-face.constants';
+import { MAX_CARD_FACE_HEIGHT, MAX_CARD_FACE_WIDTH, MIN_CARD_FACE_HEIGHT, MIN_CARD_FACE_WIDTH } from '../../../../card-editor/constants/card-editor.constants';
+import { clampBorderRadius } from '../../../../card-face/constants/card-face.constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardFaceStyleService {
-
   constructor() { }
 
   private setBorderDimensions(bd: BorderDimensions, face: Style): void {

@@ -1,4 +1,4 @@
-
+// CHECKME: Ok, we're gonna need to refactor this, I don't think it's worth keeping most of this code since we've decided we're not going with BB Code
 
 
 export const RICH_TEXT_SANITIZER_DEFAULT_BBCODE_PATTERN: string = `\\[element\\]content\\[\\/element\\]`;

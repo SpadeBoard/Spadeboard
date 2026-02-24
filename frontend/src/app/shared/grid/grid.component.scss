@@ -1,0 +1,8 @@
+.grid {
+    position: absolute;
+    inset: inherit;
+    transform-origin: top left;
+    z-index: 0;
+    pointer-events: none;
+    background-color: #F0F0F0;
+}

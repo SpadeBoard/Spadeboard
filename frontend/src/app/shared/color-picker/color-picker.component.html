@@ -1,0 +1,21 @@
+<app-complex-text-input>
+    <div id="left">
+        <div class="separator">
+            <input 
+                type="color"
+                [(ngModel)]="$hexcode"
+                (ngModelChange)="onColorChange($event)" 
+                [disabled]="$readonly()"/>
+        </div>
+    </div>
+    <div id="right">
+        <div class="separator">
+            <input id="color-hex-input" 
+                [attr.max-length]="7" 
+                [(ngModel)]="$hexInput" 
+                (ngModelChange)="onColorChange($event)"
+                [disabled]="$readonly()"
+                #colorHexInput />
+        </div>
+    </div>
+</app-complex-text-input>

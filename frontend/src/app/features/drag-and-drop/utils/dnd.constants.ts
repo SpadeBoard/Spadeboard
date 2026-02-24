@@ -1,0 +1,1 @@
+export const DND_BOARD_SIZE_AU: number = 1000; // TODO: Rename after we rework the entire coordinate system

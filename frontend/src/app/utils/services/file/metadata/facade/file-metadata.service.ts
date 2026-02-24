@@ -7,7 +7,7 @@ import { FileMetadataApiService } from '../api/file-metadata-api.service';
   providedIn: 'root'
 })
 export class FileMetadataService {
-  private readonly fileMetadataApiService: FileMetadataApiService = inject(FileMetadataApiService);
+  private readonly fileMetadataApiService: FileMetadataApiService = inject<FileMetadataApiService>(FileMetadataApiService);
 
   private orphan$$: Subject<void> = new Subject<void>();
   public readonly orphan$: Observable<void> = this.orphan$$.asObservable();

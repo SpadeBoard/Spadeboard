@@ -1,0 +1,12 @@
+.cec-design {
+    display: flex;
+    flex-direction:column;
+    gap: 1.5rem;
+}
+
+.cec-design-attributes-row {
+    display: grid;
+    padding-left: 5%;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+}

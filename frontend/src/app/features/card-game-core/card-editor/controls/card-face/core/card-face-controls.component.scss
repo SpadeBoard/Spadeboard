@@ -1,0 +1,34 @@
+.card-face-attributes-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    grid-gap: 1rem;
+    border-left: 3px solid #666667;
+    width: 50%;
+    margin-top: 1.5%;
+}
+
+.card-face-attributes-columns > * {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  gap: 1rem;
+  padding: 1vw 1vw;
+}
+
+span {
+    font-family: "Kumbh Sans", sans-serif;
+    font-weight: bold;
+    white-space: nowrap;
+    padding-right: 0.25rem;
+}
+
+input[type=number] {
+    background-color: #D1D1D1;
+    border: none;
+    font-weight: bold;
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: medium;
+    border-radius: 5px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}

@@ -1,0 +1,29 @@
+.separator {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+}
+
+span {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+}
+
+input[type=color] {
+    width: 2vw;
+    height: 2vw;
+    border: none;
+    background: transparent;
+}
+
+#color-hex-input {
+    background-color: #D1D1D1;
+    border: none;
+    font-weight: bold;
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: large;
+    padding: 5%;
+    border-radius: 5px;
+    width: 100%;
+}

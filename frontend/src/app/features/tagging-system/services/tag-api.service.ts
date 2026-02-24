@@ -8,7 +8,7 @@ import { Tag } from '../models/tag';
 })
 export class TagApiService {
   // TODO: Make a giant interface to use for all the CRUD operations then have the API services inherit from it
-  private readonly http: HttpClient = inject(HttpClient);
+  private readonly http: HttpClient = inject<HttpClient>(HttpClient);
   
   // TODO: Replace with actual API url from the config
   private readonly apiUrl: string = `${environment.hostServerUrl}/api/Tags`;

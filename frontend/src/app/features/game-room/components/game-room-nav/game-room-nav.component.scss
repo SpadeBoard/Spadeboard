@@ -21,10 +21,8 @@
     /* Use vw if you want it relative to viewport, or use px/% as needed */
 }
 
-.game-room-save {
+.game-room-operations {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
     position: absolute;
     padding-top: 3vh;
     padding-bottom: 2vh;
@@ -32,17 +30,17 @@
     padding-right: 1vw;
 }
 
-.game-room-save-button {
+.game-room-operations-button {
     border: none;
     fill-opacity: 0;
     background: none;
 }
 
-.game-room-save-img {
-    width: 20px;
+.game-room-operations-img {
+    width: 1.25rem;
 }
 
-.game-room-save-button:active>.game-room-save-img {
+.game-room-operations-button:active>.game-room-operations-img {
     filter: brightness(0) saturate(100%) invert(45%) sepia(100%) saturate(696%) hue-rotate(329deg) brightness(103%) contrast(91%);
 }
 
@@ -92,4 +90,8 @@
 
 .game-room-nav-button:disabled {
     color: rgba(23, 53, 82, 0.5);
+}
+
+button:disabled {
+    opacity: 0.5;
 }

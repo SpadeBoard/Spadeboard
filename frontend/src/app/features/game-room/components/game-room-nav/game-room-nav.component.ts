@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
-import { CardEditorPreviewService } from '../../../card-game-core/services/card-game-core/card-editor/preview/card-editor-preview.service';
-import { CardsCollectionService } from '../../../card-game-core/services/card-game-core/cards-collection/cards-collection.service';
-import { GameRoomService } from '../../services/game-room.service';
+import { CardEditorModalService } from '../../../card-game-core/card-editor/services/modal/card-editor-modal.service';
+import { CardsCollectionService } from '../../../card-game-core/cards-collection/service/cards-collection.service';
+import { GameRoomService } from '../../services/core/game-room.service';
 
 @Component({
   selector: 'app-game-room-nav',
@@ -14,14 +14,14 @@ export class GameRoomNavComponent {
   
   protected isGameRoomNavHovered: boolean = false;
 
-  private readonly gameRoomService: GameRoomService = inject(GameRoomService);
- 
-  private readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
+  private readonly gameRoomService: GameRoomService = inject<GameRoomService>(GameRoomService);
 
-  private readonly cardsCollectionService: CardsCollectionService = inject(CardsCollectionService);
+  private readonly cardEditorModalService: CardEditorModalService = inject<CardEditorModalService>(CardEditorModalService);
+
+  private readonly cardsCollectionService: CardsCollectionService = inject<CardsCollectionService>(CardsCollectionService);
   
   protected cardEditorClick(event: Event): void {
-    this.cardEditorPreviewService.toggleCardEditor(!this.cardEditorPreviewService.$isCardEditorOpen());
+    this.cardEditorModalService.toggleCardEditor(!this.cardEditorModalService.$isCardEditorOpen());
   }
 
   protected cardsCollectionClick(event: Event): void {

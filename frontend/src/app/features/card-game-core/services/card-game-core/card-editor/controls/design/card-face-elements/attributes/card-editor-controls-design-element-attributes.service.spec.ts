@@ -8,7 +8,7 @@ describe('CardEditorControlsDesignElementAttributesService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({providers: [provideHttpClient()]});
-    service = TestBed.inject(CardEditorControlsDesignElementAttributesService);
+    service = TestBed.inject<CardEditorControlsDesignElementAttributesService>(CardEditorControlsDesignElementAttributesService);
   });
 
   it('should be created', () => {

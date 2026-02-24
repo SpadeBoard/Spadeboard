@@ -1,0 +1,21 @@
+.attributes {
+    border-left: 3px solid #666667;
+    display: flex;
+    flex-direction: column;
+    gap: 1vw;
+    max-width: 12vw;
+    padding: 1vw 1vw;
+}
+
+#aspect-ratio {
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: medium;
+    font-weight: bold;
+    color: #666667;
+    border: none;
+    text-align: left;
+    fill-opacity: 0;
+    background: none;
+    gap: 1em;
+    display: flex;
+}

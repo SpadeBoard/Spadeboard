@@ -1,0 +1,27 @@
+<div 
+    #dndBoard 
+    class ="dnd-board" 
+    cdkDropList 
+    cdkDropListSortingDisabled="true"
+    (scroll)="onScroll($event)" 
+>
+    <app-grid
+        [$shouldSnapToGrid]="shouldSnapToGrid"
+        [$cellSizeScreen]="cellSizeScreen"
+        [$gridDimensions]="getGridDimensions()"
+    />
+    <app-dnd-board-layer
+        [$camera]="getCameraCoordinates()"
+        [$cellSize]="getCellSize()"
+        [$style]="getLayerStyle()"
+    >
+        <app-card-position-per-room 
+            [$cprs]="getUnculled()"
+            [$shouldSnapToGrid]="shouldSnapToGrid"
+            [$scale]="itemRenderScale"
+            [$scaledCellSize]="getCellSize()"
+            ($setPosition)="onSetPosition($event)"
+        />
+        <!-- TODO: Insert zones/decks here-->
+    </app-dnd-board-layer>
+</div>

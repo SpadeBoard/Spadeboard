@@ -1,0 +1,9 @@
+<div class="standard">
+    <label>{{$label()}}:</label>
+    <input 
+        [type]="$type()" 
+        [placeholder]="$label()" 
+        [(ngModel)]="$input" 
+        (ngModelChange)="onInputChange($event)"
+        [disabled]="$disabled()">
+</div>

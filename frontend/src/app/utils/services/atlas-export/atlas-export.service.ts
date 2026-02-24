@@ -247,7 +247,7 @@ export function guillotine(images: HTMLImageElement[]): {
 export class AtlasExportService {
   constructor() { }
 
-  async atlasExport(images: HTMLImageElement[], fileName: string = 'atlas', maxCanvasSize: Dimensions): Promise<void> {
+  public async atlasExport(images: HTMLImageElement[], fileName: string = 'atlas', maxCanvasSize: Dimensions): Promise<void> {
     /************* SPLIT INTO FUNCTION, make blob, don't download yet******************/
     // Check to see if we need to split the HTML Image Elements[] into multiple to then pass into createAtlas
     function atlasAmt(images: HTMLImageElement[]): number {

@@ -1,0 +1,105 @@
+<div class="card-editor">
+    <div class="bar">
+        <app-card-editor-close 
+            ($handleClose)="handleClose()" 
+        />
+        <app-card-editor-info />
+    </div>
+    <div class="left-column">
+        <app-card-editor-preview 
+            [$editable]="$editable()"
+            [$cardEditorFaceStyle]="getCardEditorFaceStyle()"
+
+            [$cardFaceElementId]="getCurrentCardFaceElementId()"
+            
+            [$cardFaceElementIdentifiers]="getCardFaceElementIdentifiers()"
+            [$cardFaceElementPositions]="getCardFaceElementPositions()"
+            [$cardFaceElementDimensions]="getCardFaceElementDimensions()"
+
+            [$cardFaceElementRts]="getCardFaceElementRts()"
+            [$cardFaceElementImages]="getCardFaceElementImages()"
+
+            ($cardEditorFace)="setCardEditorFace($event)" 
+            [$cardEditorPreviewTags]="cardEditorPreviewTags"
+
+            ($toggleContextMenu)="toggleContextMenu($event)"
+
+            [$whitelist]="whitelist$$" 
+            ($tag)="tag($event)" 
+
+            [$isFlipped]="isFlipped()" 
+            ($activateFlip)="activateFlip()"
+
+            [$hasCreated]="hasCreated()" 
+            ($handleCardCreate)="handleCardCreate()" 
+            ($handleCardSave)="handleCardSave()"
+
+            [$cardName]="getCardName()" 
+            ($changeCardName)="changeCardName($event)"
+            ($enableElement)="enableElement($event)" 
+            
+            ($setElementPosition)="setElementPosition($event)"
+            ($setElementAttributes)="setElementAttributes($event)"
+            ($setElementDimensions)="setElementDimensions($event)" 
+            ($enableImageEditor)="enableImageEditor($event)" 
+
+            ($deletedCardFaceElementPerCardFace)="deletedCardFaceElementPerCardFace($event)"
+        />
+    </div>
+    <!--TODO: Make the right column a drop list-->
+    <div class="right-column">
+        <app-card-editor-controls 
+            class="cec-design-container" 
+
+            [$currentEditedCardId]="getCurrentEditedCardId()"
+            [$cardTemplates]="cardTemplates" 
+
+            ($collectionContextCardId)="setCollectionContextCardId($event)"
+            ($toggleContextMenu)="toggleContextMenu($event)"
+            
+            ($selectCard)="selectCard($event)" 
+            ($deleteCard)="deleteCard($event)" 
+
+            [$isCardFaceElementsLibraryDisabled]="isCardFaceElementsLibraryDisabled()"
+            ($createdCardFaceElementPerCardFace)="createdCardFaceElementPerCardFace($event)"
+        
+            [$cardFaceAttributesId]="getCardFaceId()"
+            [$areBorderDimensionsEqual]="areBorderDimensionsEqual"
+            
+            [($cardFaceHexcode)]="$cardFaceHexcode"
+            [($borderHexcode)]="$borderHexcode"
+            [($borderRadius)]="$borderRadius"
+            [($borderDimensions)]="$borderDimensions"
+            
+            [($cardFaceWidth)]="$cardFaceWidth"
+            [($cardFaceHeight)]="$cardFaceHeight"
+
+            [$currentCardFaceElementId]="getCurrentCardFaceElementId()"
+
+            [($cardFaceElementWidth)]="$cardFaceElementWidth"
+            [($cardFaceElementHeight)]="$cardFaceElementHeight"
+            
+            [($cardFaceElementX)]="$cardFaceElementX"
+            [($cardFaceElementY)]="$cardFaceElementY"
+
+            [($aspectRatioLocked)]="$aspectRatioLocked"
+
+            [$maxCardFaceElementWidth]="maxCardFaceElementWidth"
+            [$maxCardFaceElementHeight]="maxCardFaceElementHeight"
+            [$maxCardFaceElementX]="maxCardFaceElementX"
+            [$maxCardFaceElementY]="maxCardFaceElementY"
+
+            ($setLayeringOperation)="setLayeringOperation($event)"
+
+            [$editable]="$editable()"
+            />
+    </div>
+</div>
+
+<input 
+    #importedCardFileInput 
+    type="file" 
+    accept=".sbd" 
+    style="display: none" 
+    (change)="importCard($event)" 
+/>

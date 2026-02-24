@@ -2,14 +2,13 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CardsCollectionComponent } from '../../../card-game-core/components/cards-collection/cards-collection.component';
-import { CardEditorInfoService } from '../../../card-game-core/services/card-game-core/card-editor/info/card-editor-info.service';
-import { CardEditorPreviewService } from '../../../card-game-core/services/card-game-core/card-editor/preview/card-editor-preview.service';
-import { DEFAULT_MODAL_STYLE } from '../../../card-game-core/utils/card-editor.constants';
-import { DndBoardComponent } from '../../../drag-and-drop/components/dnd-board/dnd-board.component';
-import { GameRoomService } from '../../services/game-room.service';
+import { CardsCollectionComponent } from '../../../card-game-core/cards-collection/component/cards-collection.component';
+import { CardEditorInfoService } from '../../../card-game-core/card-editor-info/service/card-editor-info.service';
+import { DEFAULT_MODAL_STYLE } from '../../../card-game-core/card-editor/constants/card-editor.constants';
+import { DndBoardComponent } from '../../../drag-and-drop/board/component/core/dnd-board.component';
+import { GameRoom } from '../../models/game-room';
+import { GameRoomService } from '../../services/core/game-room.service';
 import { GameRoomNavComponent } from '../game-room-nav/game-room-nav.component';
-import { GameRoom } from '../../models/game-room/game-room';
 
 @Component({
   selector: 'app-game-room',
@@ -26,13 +25,11 @@ export class GameRoomComponent {
   // TODO: ViewChild being cardMenu, then grab its width and height and pass that into card
   // https://stackoverflow.com/a/41095677
 
-  private readonly cardEditorInfoService: CardEditorInfoService = inject(CardEditorInfoService);
+  private readonly cardEditorInfoService: CardEditorInfoService = inject<CardEditorInfoService>(CardEditorInfoService);
 
-  private readonly gameRoomService: GameRoomService = inject(GameRoomService);
+  private readonly gameRoomService: GameRoomService = inject<GameRoomService>(GameRoomService);
 
-  protected readonly cardEditorPreviewService: CardEditorPreviewService = inject(CardEditorPreviewService);
-
-  private readonly destroyRef: DestroyRef = inject(DestroyRef);
+  private readonly destroyRef: DestroyRef = inject<DestroyRef>(DestroyRef);
 
   constructor() {
     this.activateGameRoomService();

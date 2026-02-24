@@ -1,7 +1,9 @@
-import { Card, CardEditorCardDto, CardPositionPerRoom } from "../models/card";
-import { CardEditorCardFaceDto } from "../models/card-face";
-import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace, CardFaceElementRt } from "../models/card-face-element";
-import { Deck } from "../models/deck";
+import { Card } from "../card/models/card";
+import { CardPositionPerRoom } from "../card-position-per-room/model/card-position-per-room";
+import { CardEditorCardDto } from "../card-editor/models/card-editor-card-dto";
+import { CardEditorCardFaceDto } from "../card-editor/models/card-editor-card-face-dto";
+import { CardFaceElement, CardFaceElementImage, CardFaceElementPerCardFace } from "../card-face-element/models/card-face-element";
+import { Deck } from "../deck/models/deck";
 
 // Are interfaces so we can't do instanceof to check
 export function isCard(obj: any): obj is Card {
@@ -75,18 +77,4 @@ export function isCardPositionPerRoom(obj: any): obj is CardPositionPerRoom {
         && 'dndItem' in obj
         && 'dndPosition' in obj
         && 'gameRoom' in obj
-}
-
-export function getCardFaceElementRt(cardFaceElement: CardFaceElement): CardFaceElementRt | undefined {
-    if (cardFaceElement.cardFaceElementType !== "Rt")
-        return;
-
-    return (cardFaceElement as CardFaceElementRt);
-}
-
-export function getCardFaceElementImage(cardFaceElement: CardFaceElement): CardFaceElementImage | undefined {
-    if (cardFaceElement.cardFaceElementType !== "Image")
-        return;
-
-    return (cardFaceElement as CardFaceElementImage);
 }

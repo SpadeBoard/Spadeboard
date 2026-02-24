@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
-import { Card } from '../../../models/card';
+import { Card } from '../../../card/models/card';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +10,7 @@ import { Card } from '../../../models/card';
 export class TagsPerCardApiService {
   constructor() { }
 
-  private http: HttpClient = inject(HttpClient);
+  private readonly http: HttpClient = inject<HttpClient>(HttpClient);
 
   private readonly apiUrl: string = `${environment.hostServerUrl}/api/TagsPerCard`;
   

@@ -8,13 +8,14 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
   styleUrl: './embedded-external-iframe.component.scss'
 })
 export class EmbeddedExternalIframeComponent {
-  private readonly domSanitizer: DomSanitizer = inject(DomSanitizer);
+  private readonly domSanitizer: DomSanitizer = inject<DomSanitizer>(DomSanitizer);
 
-  $websiteUrl: InputSignal<string> = input<string>("");
+  public readonly $websiteUrl: InputSignal<string> = input<string>("");
+
   // CHECKME: Security, cross-site scripting
-  $safeWebsiteUrl: Signal<SafeResourceUrl> = computed(() => this.domSanitizer.bypassSecurityTrustResourceUrl((this.$websiteUrl())));
+  protected readonly $safeWebsiteUrl: Signal<SafeResourceUrl> = computed<SafeResourceUrl>(() => this.domSanitizer.bypassSecurityTrustResourceUrl((this.$websiteUrl())));
 
-  $closed: OutputEmitterRef<void> = output<void>();
+  public readonly $closed: OutputEmitterRef<void> = output<void>();
   
   protected onInfoClose(event: Event): void {
     this.$closed.emit();

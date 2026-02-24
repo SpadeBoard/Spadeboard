@@ -1,0 +1,15 @@
+@if ($hasCreated()) {
+    <app-button 
+        [$style]="style"
+        ($clicked)="saveCard($event)"
+    > 
+        {{ 'Save' }}
+    </app-button>
+}
+
+<app-button 
+    [$style]="style"
+    ($clicked)="createCard($event)"
+>
+    {{ $createButtonText() }}
+</app-button>

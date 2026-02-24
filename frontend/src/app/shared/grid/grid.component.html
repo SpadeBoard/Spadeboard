@@ -1,0 +1,9 @@
+<div class="grid" 
+    [style]="$style()"
+    
+    [style.width]="$gridDimensions().width" 
+    [style.height]="$gridDimensions().height"
+    [style.backgroundSize]="$cellSizeScreen() + 'px ' + $cellSizeScreen() + 'px'"
+    [style.backgroundImage]="getGridCellOutline()"
+>
+</div>

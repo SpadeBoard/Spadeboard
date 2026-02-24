@@ -1,13 +1,16 @@
 import { DestroyRef, ElementRef } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { SafeUrl } from "@angular/platform-browser";
+import * as PngMetadata from '@sonrisa-dev/png-metadata';
 import html2canvas from "html2canvas";
 import ImageBlobReduce, { ResizeOptions } from 'image-blob-reduce';
 import JSZip from "jszip";
-import { from, Observable, of, Subscription, switchMap } from "rxjs";
-import { FileMetadata, FileMetadataStatus } from "./models/file-metadata";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import * as PngMetadata from '@sonrisa-dev/png-metadata';
+import { EMPTY, from, Observable, of, Subscription, switchMap } from "rxjs";
+import { CardEditorCardDto } from "../features/card-game-core/card-editor/models/card-editor-card-dto";
+import { CardEditorCardFaceDto } from "../features/card-game-core/card-editor/models/card-editor-card-face-dto";
+import { CardFaceElementPerCardFace } from "../features/card-game-core/card-face-element/models/card-face-element";
 import { Style } from "../features/style/models/style";
+import { FileMetadata, FileMetadataStatus } from "./models/file-metadata";
 
 export function getDefaultFileMetadata(): FileMetadata {
     return {
@@ -506,7 +509,7 @@ export function parseNumeric(value: string | number): number {
     return numeric ? parseFloat(numeric[0]) : 0;
 }
 
-export function getImageFormData$(content: string, destroyRef: DestroyRef): Observable<FormData | undefined> {
+export function getImageFormData$(content: string, destroyRef: DestroyRef): Observable<FormData> {
     let formData: FormData = new FormData();
     // Handle blob: URL or .png URL
     if (content.startsWith('blob:') || content.endsWith('.png')) {
@@ -528,7 +531,7 @@ export function getImageFormData$(content: string, destroyRef: DestroyRef): Obse
     }
 
     // Unsupported type
-    return of(undefined);
+    return EMPTY;
 }
 
 export function clear(arr: Array<any> | Array<Array<any>>): void {
@@ -604,3 +607,19 @@ export function setModalStyle(host: HTMLElement, style: Omit<Style, 'styleId'>):
     if (style.zIndex) host.style.zIndex = style.zIndex;
     if (style.overflow) host.style.overflow = style.overflow;
 }
+
+
+export function assertCardFaceElementsPerCardFace(fn: string, original: CardEditorCardDto, duplicate: CardEditorCardDto): void {
+    let assertions: Array<Map<string, CardFaceElementPerCardFace[]>> = [];
+
+    original.cardEditorCardFacesDto.forEach((cardEditorCardFaceDto: CardEditorCardFaceDto, index: number) => {
+      if (cardEditorCardFaceDto.cardFaceElementsPerCardFace) {
+        assertions.push(new Map<string, CardFaceElementPerCardFace[]>([
+          [`Original - ${index}`, cardEditorCardFaceDto.cardFaceElementsPerCardFace],
+          [`Duplicated - ${index}`, duplicate.cardEditorCardFacesDto[index].cardFaceElementsPerCardFace],
+        ]));
+      }
+    });
+
+    // if (assertions.some(assertion => assertObjectsMatch(assertion, `${logInfo(assertCardFaceElementsPerCardFace.name)}`))) console.error(`${fn}: Card face elements per card face are identical`);
+  }

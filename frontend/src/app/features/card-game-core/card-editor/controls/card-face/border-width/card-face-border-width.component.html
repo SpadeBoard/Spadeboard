@@ -1,0 +1,84 @@
+<app-complex-text-input>
+    <div id="left">
+        <div class="separator">
+            <label>Width </label>
+        </div>
+    </div>
+    <div id="right">
+        <div class="separator">
+            @if (isMixed) {
+                <span (click)="onMixedClick($event)">Mixed</span>
+            }
+            @else {
+                <input 
+                    type="number" 
+                    [attr.min]="$minBorderDimensions()" 
+                    [attr.max]="$maxBorderDimensions()" 
+                    [(ngModel)]="$borderDimensions().borderWidth" 
+                    (ngModelChange)="onBorderWidthChange($event)"
+                    [disabled]="!$editable()"
+                />
+            }
+            <button class="dropdown-image"(click)="onDropdownActivation($event)">
+                <img src="/arrow-down-icon.svg"/>
+            </button>
+        </div>
+    </div>
+</app-complex-text-input>
+
+@if (shouldDropDown) {
+    <table class="border-width-mixed-table">
+        <tr>
+            <td>
+                <img class="border-width-icons"src="/border-top-icon.svg"/>
+                <input 
+                    type="number" 
+                    placeholder="T" 
+                    [attr.min]="$minBorderDimensions()" 
+                    [attr.max]="$maxBorderDimensions()" 
+                    [(ngModel)]="$borderDimensions().borderRect.top" 
+                    (ngModelChange)="onBorderTopChange($event)"
+                    [disabled]="!$editable()"
+                />
+            </td>
+            <td>
+                <img class="border-width-icons"src="/border-bottom-icon.svg"/>
+                <input 
+                    type="number" 
+                    placeholder="B" 
+                    [attr.min]="$minBorderDimensions()" 
+                    [attr.max]="$maxBorderDimensions()" 
+                    [(ngModel)]="$borderDimensions().borderRect.bottom" 
+                    (ngModelChange)="onBorderBottomChange($event)"
+                    [disabled]="!$editable()"
+                />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <img class="border-width-icons"src="/border-left-icon.svg"/>
+                <input 
+                    type="number" 
+                    placeholder="L" 
+                    [attr.min]="$minBorderDimensions()" 
+                    [attr.max]="$maxBorderDimensions()" 
+                    [(ngModel)]="$borderDimensions().borderRect.left" 
+                    (ngModelChange)="onBorderLeftChange($event)"
+                    [disabled]="!$editable()"
+                />
+            </td>
+            <td>
+                <img class="border-width-icons"src="/border-right-icon.svg"/>
+                <input 
+                    type="number" 
+                    placeholder="R" 
+                    [attr.min]="$minBorderDimensions()" 
+                    [attr.max]="$maxBorderDimensions()" 
+                    [(ngModel)]="$borderDimensions().borderRect.right" 
+                    (ngModelChange)="onBorderRightChange($event)"
+                    [disabled]="!$editable()"
+                />
+            </td>
+        </tr>
+    </table>
+}

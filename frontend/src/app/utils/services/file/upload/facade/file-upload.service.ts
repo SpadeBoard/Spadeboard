@@ -8,9 +8,9 @@ import { Observable, of, switchMap } from 'rxjs';
   providedIn: 'root'
 })
 export class FileUploadService {
-  private readonly fileUploadApiService: FileUploadApiService = inject(FileUploadApiService);
+  private readonly fileUploadApiService: FileUploadApiService = inject<FileUploadApiService>(FileUploadApiService);
 
-  private readonly fileMetadataService: FileMetadataService = inject(FileMetadataService);
+  private readonly fileMetadataService: FileMetadataService = inject<FileMetadataService>(FileMetadataService);
 
   constructor() { }
 

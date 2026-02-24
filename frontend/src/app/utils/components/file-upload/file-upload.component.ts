@@ -9,7 +9,7 @@ import { Component, inject, ResourceRef } from '@angular/core';
 })
 export class FileUploadComponent {
   // FIXME: Fix the environment paths
-  // private fileUploadApiService = inject(FileUploadApiService);
+  // private fileUploadApiService = inject<FileUploadApiService>(FileUploadApiService);
   
   url: string | undefined = '';
   file: File | undefined;

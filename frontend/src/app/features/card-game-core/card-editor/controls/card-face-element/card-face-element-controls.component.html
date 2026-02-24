@@ -1,0 +1,40 @@
+@if ($editable()) {
+    <app-card-face-element-layering 
+        ($setLayeringOperation)="setLayeringOperation($event)"
+    />
+}
+
+<div class="attributes">
+    <app-label 
+        [$label]="$header()"
+    />
+    <app-pair-text-input
+        [($a)]="$cardFaceElementWidth"
+        [($b)]="$cardFaceElementHeight"
+        [$labelA]="'W'"
+        [$labelB]="'H'"
+        [$minA]="$minCardFaceElementWidth()"
+        [$maxA]="$maxCardFaceElementWidth()"
+        [$minB]="$minCardFaceElementHeight()"
+        [$maxB]="$maxCardFaceElementHeight()"
+        [$disabled]="!$editable()"
+    />
+    <!--TODO: Make the nav icon and word and aspect ratio word into a reusable component somehow-->
+    @if ($editable()) {
+        <button id="aspect-ratio" (click)="onAspectRatioToggle($event)">
+            <img [src]="$aspectRatioIcon()" width="20vw" />
+            <span>Aspect Ratio</span>
+        </button>
+    }
+    <app-pair-text-input
+        [($a)]="$cardFaceElementX"
+        [($b)]="$cardFaceElementY"
+        [$labelA]="'X'"
+        [$labelB]="'Y'"
+        [$minA]="$minCardFaceElementX()"
+        [$maxA]="$maxCardFaceElementX()"
+        [$minB]="$minCardFaceElementY()"
+        [$maxB]="$maxCardFaceElementY()"
+        [$disabled]="!$editable()"
+    />
+</div>

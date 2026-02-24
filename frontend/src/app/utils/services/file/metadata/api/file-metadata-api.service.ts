@@ -8,7 +8,7 @@ import { FileMetadata } from '../../../../models/file-metadata';
   providedIn: 'root'
 })
 export class FileMetadataApiService {
-  private readonly http: HttpClient = inject(HttpClient);
+  private readonly http: HttpClient = inject<HttpClient>(HttpClient);
 
   private readonly apiUrl: string = `${environment.hostServerUrl}/api/FileMetadata`;
 

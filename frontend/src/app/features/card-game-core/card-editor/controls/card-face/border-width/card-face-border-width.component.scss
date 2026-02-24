@@ -1,0 +1,37 @@
+label, span {
+    white-space: nowrap;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+}
+
+.separator {
+    display: flex;
+    align-items: center;
+    gap: 0.15vw;
+}
+
+input[type=number] {
+    background-color: #D1D1D1;
+    border: none;
+    font-weight: bold;
+    font-family: "Kumbh Sans", sans-serif;
+    font-size: medium;
+    padding: 5%;
+    border-radius: 5px;
+}
+
+.border-width-mixed-table {
+    margin-top: 0.75rem;
+    background-color: #BFBEBE;
+    padding: 5%;
+    border-radius: 10px;
+}
+
+.border-width-icons {
+    width: 1.5vw;
+}
+
+.dropdown-image {
+    background-color: #BFBEBE;
+    border-color: #BFBEBE;
+}

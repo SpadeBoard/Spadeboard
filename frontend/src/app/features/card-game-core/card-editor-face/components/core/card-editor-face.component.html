@@ -1,0 +1,38 @@
+<div 
+    #cardEditorFace 
+    [style]="$cardEditorFaceStyle()" 
+    (contextmenu)="contextMenu($event)"
+>
+    @if (shouldSnapToGrid) {
+        <app-grid
+            [$shouldSnapToGrid]="shouldSnapToGrid" 
+            [$cellSizeScreen]="cellSizeScreen"
+
+            data-html2canvas-ignore="true" 
+        />
+    } 
+    <app-card-editor-card-face-elements 
+        [$editable]="$editable()"
+        [$cardFaceElementId]="$cardFaceElementId()"
+        
+        [$cardFaceElementIdentifiers]="$cardFaceElementIdentifiers()"
+        [$cardFaceElementRts]="$cardFaceElementRts()"
+        [$cardFaceElementImages]="$cardFaceElementImages()"
+        [$cardFaceElementDimensions]="$cardFaceElementDimensions()"
+        [$cardFaceElementPositions]="$cardFaceElementPositions()"
+
+        [$cardFaceBorderRadius]="cardFaceBorderRadius" 
+
+        [$shouldSnapToGrid]="shouldSnapToGrid"
+        
+        ($setElementPosition)="setElementPosition($event)"
+        ($setElementAttributes)="setElementAttributes($event)"
+        ($setElementDimensions)="setElementDimensions($event)"
+        
+        ($enableRte)="enableElement($event, 'Rt')"
+        ($focusImage)="enableElement($event, 'Image')"
+        ($enableImageEditor)="enableImageEditor($event)"
+    
+        ($deletedCardFaceElementPerCardFace)="deletedCardFaceElementPerCardFace($event)"
+    />
+</div>

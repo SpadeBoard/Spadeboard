@@ -1,0 +1,14 @@
+<div class="container">
+    <app-standard-text-input
+        [$label]="$labelA()"
+        [($input)]="$a"
+        ($inputChanged)="onValueChange($event, 'a')"
+        [$disabled]="$disabled()"
+    />
+    <app-standard-text-input
+        [$label]="$labelB()"
+        [($input)]="$b"
+        ($inputChanged)="onValueChange($event, 'b')"
+        [$disabled]="$disabled()"
+    />
+</div>

@@ -8,7 +8,7 @@ describe('CardFaceStyleService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({providers: [provideHttpClient()]});
-    service = TestBed.inject(CardFaceStyleService);
+    service = TestBed.inject<CardFaceStyleService>(CardFaceStyleService);
   });
 
   it('should be created', () => {

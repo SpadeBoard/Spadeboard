@@ -7,7 +7,7 @@ describe('FileUploadApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(FileUploadApiService);
+    service = TestBed.inject<FileUploadApiService>(FileUploadApiService);
   });
 
   it('should be created', () => {

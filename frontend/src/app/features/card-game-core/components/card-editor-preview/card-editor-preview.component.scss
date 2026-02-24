@@ -18,3 +18,11 @@ input::placeholder {
     font-weight: bold;
     color: black;
 }
+
+.operations {
+    display: flex;
+}
+
+.operations > *:nth-child(2) {
+    margin-left: auto;
+}

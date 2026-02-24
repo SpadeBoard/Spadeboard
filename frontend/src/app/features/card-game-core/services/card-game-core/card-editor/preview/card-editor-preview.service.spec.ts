@@ -2,10 +2,10 @@ import { TestBed } from '@angular/core/testing';
 
 import { provideHttpClient } from '@angular/common/http';
 import { assertObjectsMatch } from '../../../../../../utils/checks.utils';
-import { CardEditorCardDto } from '../../../../models/card';
-import { CardFaceElementPerCardFace } from '../../../../models/card-face-element';
-import { DEFAULT_CARD_EDITOR_FACE_STYLE, getBlankCardTemplate } from '../../../../utils/card-editor.constants';
-import { DEFAULT_USER_ID } from '../../../../utils/user.constants';
+import { CardEditorCardDto } from '../../../../card-editor/models/card-editor-card-dto';
+import { CardFaceElementPerCardFace } from '../../../../card-face-element/models/card-face-element';
+import { DEFAULT_CARD_EDITOR_FACE_STYLE, getBlankCardTemplate } from '../../../../card-editor/constants/card-editor.constants';
+import { DEFAULT_USER_ID } from '../../../../../user/constants/user.constants';
 import { CardEditorPreviewService } from './card-editor-preview.service';
 
 describe('CardEditorPreviewService', () => {
@@ -13,7 +13,7 @@ describe('CardEditorPreviewService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
-    service = TestBed.inject(CardEditorPreviewService);
+    service = TestBed.inject<CardEditorPreviewService>(CardEditorPreviewService);
   });
 
   it('should be created', () => {
@@ -100,14 +100,14 @@ describe('CardEditorPreviewService', () => {
   describe('setCardName', () => {
     it('should set card name', () => {
       let testName: string = 'Test Card Name';
-      service.setCardName(testName);
+      service.cardEditorCardDto.card.cardName = testName;
       expect(service.cardEditorCardDto.card.cardName).toBe(testName);
     });
 
     it('should update existing card name', () => {
       service.cardEditorCardDto.card.cardName = 'Old Name';
       let newName: string = 'New Name';
-      service.setCardName(newName);
+      service.cardEditorCardDto.card.cardName = newName;
       expect(service.cardEditorCardDto.card.cardName).toBe(newName);
     });
   });
@@ -116,24 +116,24 @@ describe('CardEditorPreviewService', () => {
     it('should return card name', () => {
       let cardName: string = "My Card";
       service.cardEditorCardDto.card.cardName = cardName;
-      expect(service.getCardName()).toBe(cardName);
+      expect(service.cardEditorCardDto.card.cardName).toBe(cardName);
     });
 
     it('should return empty string if card name is empty', () => {
       service.cardEditorCardDto.card.cardName = '';
-      expect(service.getCardName()).toBe('');
+      expect(service.cardEditorCardDto.card.cardName).toBe('');
     });
   });
 
   describe('getCardTagNames', () => {
     it('should return card tag names array', () => {
       service.cardEditorCardDto.tagNames = ['tag1', 'tag2', 'tag3'];
-      expect(service.getCardTagNames()).toEqual(['tag1', 'tag2', 'tag3']);
+      expect(service.cardEditorCardDto.tagNames).toEqual(['tag1', 'tag2', 'tag3']);
     });
 
     it('should return empty array when no tags', () => {
       service.cardEditorCardDto.tagNames = [];
-      expect(service.getCardTagNames()).toEqual([]);
+      expect(service.cardEditorCardDto.tagNames).toEqual([]);
     });
   });
 

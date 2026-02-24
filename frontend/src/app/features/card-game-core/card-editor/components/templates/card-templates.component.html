@@ -1,0 +1,17 @@
+<div class="menu-container" [class.open]="isMenuOpen">
+    <div class="opener">
+        CARD TEMPLATES COLLECTION
+        <i class="arrow down" (click)="toggleMenu($event)"></i>
+    </div>
+    <div class="menu">
+      <div class="cec-cards-template-collection">
+        <app-card-placeholder [$title]="new.cardName" (click)="selectCard($event, new.cardId)"></app-card-placeholder>
+        @if ($cardTemplates().length > 0) {
+          @for (card of $cardTemplates(); track card.cardId) {
+            <app-card [$cardScale]="getDefaultCardScale()" [$card]="card" [title]="card.cardName" (click)="selectCard($event, card.cardId)" (contextmenu)="onCardRightClick($event, card.cardId)" />
+          }
+        }
+      </div>
+    </div>
+</div>
+  
